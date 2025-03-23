@@ -2,19 +2,37 @@ package it.uniupo.simnova.simcreation;
 
 import java.util.ArrayList;
 
-public class PatientSimulatedScenario extends AdvancedScenario{
-    private String Sceneggiatura;
+public class PatientSimulatedScenario extends  ScenarioTemporizzato{
+    private int id_patient_simulated_scenario;
+    private String sceneggiatura;
 
-    public PatientSimulatedScenario(String titoloScenario, String nomePaziente, String patologiaMalattia, String nomeFile, String descrizioneScenario, String briefing, String patto, String azioniChiave, String obiettiviDidattici, String materialeNecessario, String esamiReferti, String moulage, String liquidiPresidi, int PA, int FC, int RR, float temp, int SPO2, int etCO2, boolean accessiVenosi, boolean accessiArteriosi, String monitor, String generale, String pupille, String collo, String torace, String cuore, String addome, String retto, String cute, String estremita, String neurologico, String FAST, ArrayList<TempoN> tempi, String sceneggiatura) {
-        super(titoloScenario, nomePaziente, patologiaMalattia, nomeFile, descrizioneScenario, briefing, patto, azioniChiave, obiettiviDidattici, materialeNecessario, esamiReferti, moulage, liquidiPresidi, PA, FC, RR, temp, SPO2, etCO2, accessiVenosi, accessiArteriosi, monitor, generale, pupille, collo, torace, cuore, addome, retto, cute, estremita, neurologico, FAST, tempi);
-        Sceneggiatura = sceneggiatura;
+    public PatientSimulatedScenario(int id, String titolo, String nome_paziente, String patologia, String descrizione, String briefing, String patto_aula, String azione_chiave, String obiettivo, String materiale, String moulage, String liquidi, EsameFisico esame_fisico, PazienteT0 paziente_t0, ArrayList<Tempo> tempi, int id_patient_simulated_scenario, String sceneggiatura) {
+        super(id, titolo, nome_paziente, patologia, descrizione, briefing, patto_aula, azione_chiave, obiettivo, materiale, moulage, liquidi, esame_fisico, paziente_t0, tempi);
+        this.id_patient_simulated_scenario = id_patient_simulated_scenario;
+        this.sceneggiatura = sceneggiatura;
+    }
+
+    public int getId_patient_simulated_scenario() {
+        return id_patient_simulated_scenario;
+    }
+
+    public void setId_patient_simulated_scenario(int id_patient_simulated_scenario) {
+        this.id_patient_simulated_scenario = id_patient_simulated_scenario;
     }
 
     public String getSceneggiatura() {
-        return Sceneggiatura;
+        return sceneggiatura;
     }
 
     public void setSceneggiatura(String sceneggiatura) {
-        Sceneggiatura = sceneggiatura;
+        this.sceneggiatura = sceneggiatura;
+    }
+
+    @Override
+    public String toString() {
+        return "PatientSimulatedScenario{" +
+                "id_patient_simulated_scenario=" + id_patient_simulated_scenario +
+                ", sceneggiatura='" + sceneggiatura + '\'' +
+                '}';
     }
 }

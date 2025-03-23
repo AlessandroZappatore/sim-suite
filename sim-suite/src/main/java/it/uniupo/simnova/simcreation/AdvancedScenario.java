@@ -2,19 +2,26 @@ package it.uniupo.simnova.simcreation;
 
 import java.util.ArrayList;
 
-public class AdvancedScenario extends Scenario{
-    private ArrayList<TempoN> tempi;
+public class AdvancedScenario extends  ScenarioTemporizzato{
+    private int id_advanced;
 
-    public AdvancedScenario(String titoloScenario, String nomePaziente, String patologiaMalattia, String nomeFile, String descrizioneScenario, String briefing, String patto, String azioniChiave, String obiettiviDidattici, String materialeNecessario, String esamiReferti, String moulage, String liquidiPresidi, int PA, int FC, int RR, float temp, int SPO2, int etCO2, boolean accessiVenosi, boolean accessiArteriosi, String monitor, String generale, String pupille, String collo, String torace, String cuore, String addome, String retto, String cute, String estremita, String neurologico, String FAST, ArrayList<TempoN> tempi) {
-        super(titoloScenario, nomePaziente, patologiaMalattia, nomeFile, descrizioneScenario, briefing, patto, azioniChiave, obiettiviDidattici, materialeNecessario, esamiReferti, moulage, liquidiPresidi, PA, FC, RR, temp, SPO2, etCO2, accessiVenosi, accessiArteriosi, monitor, generale, pupille, collo, torace, cuore, addome, retto, cute, estremita, neurologico, FAST);
-        this.tempi = tempi;
+    public AdvancedScenario(int id, String titolo, String nome_paziente, String patologia, String descrizione, String briefing, String patto_aula, String azione_chiave, String obiettivo, String materiale, String moulage, String liquidi, EsameFisico esame_fisico, PazienteT0 paziente_t0, ArrayList<Tempo> tempi, int id_advanced) {
+        super(id, titolo, nome_paziente, patologia, descrizione, briefing, patto_aula, azione_chiave, obiettivo, materiale, moulage, liquidi, esame_fisico, paziente_t0, tempi);
+        this.id_advanced = id_advanced;
     }
 
-    public ArrayList<TempoN> getTempi() {
-        return tempi;
+    public int getId_advanced() {
+        return id_advanced;
     }
 
-    public void setTempi(ArrayList<TempoN> tempi) {
-        this.tempi = tempi;
+    public void setId_advanced(int id_advanced) {
+        this.id_advanced = id_advanced;
+    }
+
+    @Override
+    public String toString() {
+        return "AdvancedScenario{" +
+                "id_advanced=" + id_advanced +
+                '}';
     }
 }
