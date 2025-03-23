@@ -2,7 +2,7 @@ package it.uniupo.simnova.simcreation;
 
 import java.util.ArrayList;
 
-public class PatientSimulatedScenario extends  ScenarioTemporizzato{
+public class PatientSimulatedScenario extends  AdvancedScenario{
     private int id_patient_simulated_scenario;
     private String sceneggiatura;
 

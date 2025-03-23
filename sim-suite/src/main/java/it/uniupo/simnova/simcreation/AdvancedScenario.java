@@ -2,26 +2,38 @@ package it.uniupo.simnova.simcreation;
 
 import java.util.ArrayList;
 
-public class AdvancedScenario extends  ScenarioTemporizzato{
-    private int id_advanced;
+public class AdvancedScenario extends Scenario {
+    private int id;
+    private ArrayList<Tempo> tempi;
 
-    public AdvancedScenario(int id, String titolo, String nome_paziente, String patologia, String descrizione, String briefing, String patto_aula, String azione_chiave, String obiettivo, String materiale, String moulage, String liquidi, EsameFisico esame_fisico, PazienteT0 paziente_t0, ArrayList<Tempo> tempi, int id_advanced) {
-        super(id, titolo, nome_paziente, patologia, descrizione, briefing, patto_aula, azione_chiave, obiettivo, materiale, moulage, liquidi, esame_fisico, paziente_t0, tempi);
-        this.id_advanced = id_advanced;
+    public AdvancedScenario(int id, String titolo, String nome_paziente, String patologia, String descrizione, String briefing, String patto_aula, String azione_chiave, String obiettivo, String materiale, String moulage, String liquidi, EsameFisico esame_fisico, PazienteT0 paziente_t0, ArrayList<Tempo> tempi) {
+        super(id, titolo, nome_paziente, patologia, descrizione, briefing, patto_aula, azione_chiave, obiettivo, materiale, moulage, liquidi, esame_fisico, paziente_t0);
+        this.tempi = tempi;
     }
 
-    public int getId_advanced() {
-        return id_advanced;
+    @Override
+    public int getId() {
+        return id;
     }
 
-    public void setId_advanced(int id_advanced) {
-        this.id_advanced = id_advanced;
+    @Override
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public ArrayList<Tempo> getTempi() {
+        return tempi;
+    }
+
+    public void setTempi(ArrayList<Tempo> tempi) {
+        this.tempi = tempi;
     }
 
     @Override
     public String toString() {
         return "AdvancedScenario{" +
-                "id_advanced=" + id_advanced +
+                "id=" + id +
+                ", tempi=" + tempi +
                 '}';
     }
 }

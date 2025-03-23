@@ -69,6 +69,10 @@ public class CreationView extends Composite<VerticalLayout> {
             backButton.getUI().ifPresent(ui -> ui.navigate(""));
         });
 
+        quickScenarioButton.addClickListener(e -> {
+            quickScenarioButton.getUI().ifPresent(ui -> ui.navigate("startCreation"));
+        });
+
         // Aggiunta degli elementi al layout
         layout.add(header, quickScenarioButton, quickScenarioDescription, advancedScenarioButton, advancedScenarioDescription, patientSimulatedScenarioButton, patientSimulatedScenarioDescription, visualizzaScenari, backButton);
     }
