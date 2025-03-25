@@ -6,8 +6,8 @@ public class PatientSimulatedScenario extends  AdvancedScenario{
     private int id_patient_simulated_scenario;
     private String sceneggiatura;
 
-    public PatientSimulatedScenario(int id, String titolo, String nome_paziente, String patologia, String descrizione, String briefing, String patto_aula, String azione_chiave, String obiettivo, String materiale, String moulage, String liquidi, EsameFisico esame_fisico, PazienteT0 paziente_t0, ArrayList<Tempo> tempi, int id_patient_simulated_scenario, String sceneggiatura) {
-        super(id, titolo, nome_paziente, patologia, descrizione, briefing, patto_aula, azione_chiave, obiettivo, materiale, moulage, liquidi, esame_fisico, paziente_t0, tempi);
+    public PatientSimulatedScenario(int id, String titolo, String nome_paziente, String patologia, String descrizione, String briefing, String patto_aula, String azione_chiave, String obiettivo, String materiale, String moulage, String liquidi, float timer_generale, EsameFisico esame_fisico, PazienteT0 paziente_t0, ArrayList<Tempo> tempi, int id_patient_simulated_scenario, String sceneggiatura) {
+        super(id, titolo, nome_paziente, patologia, descrizione, briefing, patto_aula, azione_chiave, obiettivo, materiale, moulage, liquidi, timer_generale, esame_fisico, paziente_t0, tempi);
         this.id_patient_simulated_scenario = id_patient_simulated_scenario;
         this.sceneggiatura = sceneggiatura;
     }

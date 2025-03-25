@@ -7,136 +7,159 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
-import com.vaadin.flow.component.orderedlayout.FlexComponent.JustifyContentMode;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
-import org.vaadin.lineawesome.LineAwesomeIconUrl;
+import com.vaadin.flow.theme.lumo.LumoUtility;
+import it.uniupo.simnova.views.home.AppHeader;
 
-@PageTitle("PazienteT0")
+@PageTitle("Parametri Paziente T0")
 @Route("pazienteT0")
-@Menu(order = 12, icon = LineAwesomeIconUrl.PENCIL_RULER_SOLID)
+@Menu(order = 12)
 public class PazienteT0View extends Composite<VerticalLayout> {
 
+    private Select<String> venosiSelect;
+    private Select<String> arteriosiSelect;
+
     public PazienteT0View() {
-        HorizontalLayout layoutRow = new HorizontalLayout();
-        HorizontalLayout layoutRow2 = new HorizontalLayout();
-        Icon icon = new Icon();
-        VerticalLayout layoutColumn2 = new VerticalLayout();
-        VerticalLayout layoutColumn3 = new VerticalLayout();
-        H3 h3 = new H3();
-        NumberField numberField = new NumberField();
-        NumberField numberField2 = new NumberField();
-        NumberField numberField3 = new NumberField();
-        NumberField numberField4 = new NumberField();
-        NumberField numberField5 = new NumberField();
-        NumberField numberField6 = new NumberField();
-        NumberField numberField7 = new NumberField();
-        Checkbox checkbox = new Checkbox();
-        Checkbox checkbox2 = new Checkbox();
-        TextArea textArea = new TextArea();
-        HorizontalLayout layoutRow3 = new HorizontalLayout();
-        HorizontalLayout layoutRow4 = new HorizontalLayout();
-        Button buttonPrimary = new Button();
-        Paragraph textSmall = new Paragraph();
-        Button buttonPrimary2 = new Button();
-        getContent().setWidth("100%");
-        getContent().getStyle().set("flex-grow", "1");
-        layoutRow.addClassName(Gap.MEDIUM);
-        layoutRow.setWidth("100%");
-        layoutRow.setHeight("min-content");
-        layoutRow2.setHeightFull();
-        layoutRow.setFlexGrow(1.0, layoutRow2);
-        layoutRow2.addClassName(Gap.MEDIUM);
-        layoutRow2.setWidth("100%");
-        layoutRow2.getStyle().set("flex-grow", "1");
-        layoutRow2.setAlignItems(Alignment.START);
-        layoutRow2.setJustifyContentMode(JustifyContentMode.END);
-        icon.setIcon("lumo:user");
-        layoutColumn2.setWidth("100%");
-        layoutColumn2.getStyle().set("flex-grow", "1");
-        layoutColumn3.setWidthFull();
-        layoutColumn2.setFlexGrow(1.0, layoutColumn3);
-        layoutColumn3.setWidth("100%");
-        layoutColumn3.getStyle().set("flex-grow", "1");
-        h3.setText("PARAMETRI VITALI PRINCIPALI");
-        layoutColumn3.setAlignSelf(Alignment.CENTER, h3);
-        h3.setWidth("max-content");
-        numberField.setLabel("Number field");
-        layoutColumn3.setAlignSelf(Alignment.CENTER, numberField);
-        numberField.setWidth("min-content");
-        numberField2.setLabel("Number field");
-        layoutColumn3.setAlignSelf(Alignment.CENTER, numberField2);
-        numberField2.setWidth("min-content");
-        numberField3.setLabel("Number field");
-        layoutColumn3.setAlignSelf(Alignment.CENTER, numberField3);
-        numberField3.setWidth("min-content");
-        numberField4.setLabel("Number field");
-        layoutColumn3.setAlignSelf(Alignment.CENTER, numberField4);
-        numberField4.setWidth("min-content");
-        numberField5.setLabel("Number field");
-        layoutColumn3.setAlignSelf(Alignment.CENTER, numberField5);
-        numberField5.setWidth("min-content");
-        numberField6.setLabel("Number field");
-        layoutColumn3.setAlignSelf(Alignment.CENTER, numberField6);
-        numberField6.setWidth("min-content");
-        numberField7.setLabel("Number field");
-        layoutColumn3.setAlignSelf(Alignment.CENTER, numberField7);
-        numberField7.setWidth("min-content");
-        checkbox.setLabel("Accessi venosi");
-        layoutColumn3.setAlignSelf(Alignment.CENTER, checkbox);
-        checkbox.setWidth("200px");
-        checkbox2.setLabel("Accessi arteriosi");
-        layoutColumn3.setAlignSelf(Alignment.CENTER, checkbox2);
-        checkbox2.setWidth("200px");
-        textArea.setLabel("MONITOR *indicare dettaglio ECG o altri parametri specifici");
-        layoutColumn3.setAlignSelf(Alignment.CENTER, textArea);
-        textArea.setWidth("60%");
-        textArea.setHeight("100px");
-        layoutRow3.addClassName(Gap.MEDIUM);
-        layoutRow3.setWidth("100%");
-        layoutRow3.setHeight("min-content");
-        layoutRow4.addClassName(Gap.MEDIUM);
-        layoutRow4.setWidth("100%");
-        layoutRow4.setHeight("min-content");
-        buttonPrimary.setText("Indietro");
-        buttonPrimary.setWidth("10%");
-        buttonPrimary.setHeight("50px");
-        buttonPrimary.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        textSmall.setText("Sviluppato e creato da Alessandro Zappatore");
-        layoutRow4.setAlignSelf(Alignment.CENTER, textSmall);
-        textSmall.setWidth("100%");
-        textSmall.getStyle().set("font-size", "var(--lumo-font-size-xs)");
-        buttonPrimary2.setText("Avanti");
-        buttonPrimary2.setWidth("10%");
-        buttonPrimary2.setHeight("50px");
-        buttonPrimary2.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        getContent().add(layoutRow);
-        layoutRow.add(layoutRow2);
-        layoutRow2.add(icon);
-        getContent().add(layoutColumn2);
-        layoutColumn2.add(layoutColumn3);
-        layoutColumn3.add(h3);
-        layoutColumn3.add(numberField);
-        layoutColumn3.add(numberField2);
-        layoutColumn3.add(numberField3);
-        layoutColumn3.add(numberField4);
-        layoutColumn3.add(numberField5);
-        layoutColumn3.add(numberField6);
-        layoutColumn3.add(numberField7);
-        layoutColumn3.add(checkbox);
-        layoutColumn3.add(checkbox2);
-        layoutColumn3.add(textArea);
-        getContent().add(layoutRow3);
-        layoutRow3.add(layoutRow4);
-        layoutRow4.add(buttonPrimary);
-        layoutRow4.add(textSmall);
-        layoutRow4.add(buttonPrimary2);
+        // Configurazione layout principale
+        VerticalLayout mainLayout = getContent();
+        mainLayout.setSizeFull();
+        mainLayout.setPadding(false);
+        mainLayout.setSpacing(false);
+        mainLayout.getStyle().set("min-height", "100vh");
+
+        // 1. HEADER con pulsante indietro
+        AppHeader header = new AppHeader();
+
+        Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
+        backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        backButton.getStyle().set("margin-right", "auto");
+
+        HorizontalLayout customHeader = new HorizontalLayout();
+        customHeader.setWidthFull();
+        customHeader.setPadding(true);
+        customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
+        customHeader.add(backButton, header);
+
+        // 2. CONTENUTO PRINCIPALE
+        VerticalLayout contentLayout = new VerticalLayout();
+        contentLayout.setWidth("100%");
+        contentLayout.setMaxWidth("800px");
+        contentLayout.setPadding(true);
+        contentLayout.setSpacing(false);
+        contentLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        contentLayout.getStyle()
+                .set("margin", "0 auto")
+                .set("flex-grow", "1");
+
+        // Titolo sezione
+        H3 title = new H3("PARAMETRI VITALI PRINCIPALI IN T0");
+        title.addClassName(LumoUtility.Margin.Bottom.LARGE);
+
+        // Campi parametri vitali
+        NumberField paField = createNumberField("PA (mmHg)", "120/80");
+        NumberField fcField = createNumberField("FC (bpm)", "72");
+        NumberField rrField = createNumberField("FR (atti/min)", "16");
+        NumberField tempField = createNumberField("Temperatura (°C)", "36.5");
+        NumberField spo2Field = createNumberField("SpO₂ (%)", "98");
+        NumberField etco2Field = createNumberField("EtCO₂ (mmHg)", "35");
+
+        // Checkbox e select per accessi
+        Checkbox venosiCheckbox = new Checkbox("Accessi venosi");
+        venosiCheckbox.addClassName(LumoUtility.Margin.Top.MEDIUM);
+
+        venosiSelect = new Select<>();
+        venosiSelect.setLabel("Tipo accesso venoso");
+        venosiSelect.setItems("Periferico", "Centrale", "PICC", "Midline", "Altro");
+        venosiSelect.setWidthFull();
+        venosiSelect.setVisible(false);
+
+        Checkbox arteriosiCheckbox = new Checkbox("Accessi arteriosi");
+        arteriosiCheckbox.addClassName(LumoUtility.Margin.Top.MEDIUM);
+
+        arteriosiSelect = new Select<>();
+        arteriosiSelect.setLabel("Tipo accesso arterioso");
+        arteriosiSelect.setItems("Radiale", "Femorale", "Umerale", "Altro");
+        arteriosiSelect.setWidthFull();
+        arteriosiSelect.setVisible(false);
+
+        // Listener per checkbox
+        venosiCheckbox.addValueChangeListener(e -> {
+            venosiSelect.setVisible(e.getValue());
+            if (!e.getValue()) venosiSelect.clear();
+        });
+
+        arteriosiCheckbox.addValueChangeListener(e -> {
+            arteriosiSelect.setVisible(e.getValue());
+            if (!e.getValue()) arteriosiSelect.clear();
+        });
+
+        // Area testo per monitor
+        TextArea monitorArea = new TextArea("Monitoraggio");
+        monitorArea.setPlaceholder("Specificare dettagli ECG o altri parametri...");
+        monitorArea.setWidthFull();
+        monitorArea.setMinHeight("150px");
+        monitorArea.addClassName(LumoUtility.Margin.Top.LARGE);
+
+        // Aggiunta componenti al layout
+        contentLayout.add(
+                title,
+                paField, fcField, rrField, tempField, spo2Field, etco2Field,
+                venosiCheckbox, venosiSelect,
+                arteriosiCheckbox, arteriosiSelect,
+                monitorArea
+        );
+
+        // 3. FOOTER con pulsanti e crediti
+        HorizontalLayout footerLayout = new HorizontalLayout();
+        footerLayout.setWidthFull();
+        footerLayout.setPadding(true);
+        footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        Button nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
+        nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        nextButton.setWidth("150px");
+
+        Paragraph credits = new Paragraph("Sviluppato e creato da Alessandro Zappatore");
+        credits.addClassName(LumoUtility.TextColor.SECONDARY);
+        credits.addClassName(LumoUtility.FontSize.XSMALL);
+        credits.getStyle().set("margin", "0");
+
+        footerLayout.add(credits, nextButton);
+
+        // Aggiunta di tutti i componenti al layout principale
+        mainLayout.add(
+                customHeader,
+                contentLayout,
+                footerLayout
+        );
+
+        // Listener per i pulsanti
+        backButton.addClickListener(e ->
+                backButton.getUI().ifPresent(ui -> ui.navigate("liquidi")));
+
+        nextButton.addClickListener(e -> {
+            // Qui puoi aggiungere la logica per salvare i dati
+            nextButton.getUI().ifPresent(ui -> ui.navigate("esamefisico"));
+        });
+    }
+
+    private NumberField createNumberField(String label, String placeholder) {
+        NumberField field = new NumberField(label);
+        field.setPlaceholder(placeholder);
+        field.setWidthFull();
+        field.setMin(0);
+        field.setStep(0.1);
+        field.addClassName(LumoUtility.Margin.Bottom.SMALL);
+        return field;
     }
 }

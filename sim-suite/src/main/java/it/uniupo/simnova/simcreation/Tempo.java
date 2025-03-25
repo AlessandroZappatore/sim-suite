@@ -13,8 +13,9 @@ public class Tempo {
     private Tempo TSi;
     private Tempo TNo;
     private String altri_dettagli;
+    private float timer_tempo;
 
-    public Tempo(int id, int id_scenario, int PA, int FC, int RR, float T, int SpO2, int EtCO2, String Azione, Tempo TSi, Tempo TNo, String altri_dettagli) {
+    public Tempo(int id, int id_scenario, int PA, int FC, int RR, float T, int SpO2, int EtCO2, String Azione, Tempo TSi, Tempo TNo, String altri_dettagli, float timer_tempo) {
         this.id = id;
         this.id_scenario = id_scenario;
         this.PA = PA;
@@ -27,6 +28,12 @@ public class Tempo {
         this.TSi = TSi;
         this.TNo = TNo;
         this.altri_dettagli = altri_dettagli;
+        if(timer_tempo<=0){
+            this.timer_tempo = 0;
+        }
+        else{
+            this.timer_tempo = timer_tempo;
+        }
     }
 
     public int getId() {

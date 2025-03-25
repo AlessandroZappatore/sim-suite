@@ -3,51 +3,97 @@ package it.uniupo.simnova.views.home;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 
 @PageTitle("Home")
 @Route("")
 public class HomeView extends Composite<VerticalLayout> {
 
     public HomeView() {
+        // Header
         AppHeader header = new AppHeader();
+
+        // Titoli
         H1 title = new H1("SIM SUITE");
-        H3 subtitle = new H3("Benvenuto in SIM SUITE, il software per la creazione ed esecuzione di scenari di simulazione.");
+        title.addClassName(LumoUtility.TextAlignment.CENTER);
+        title.addClassNames(
+                LumoUtility.FontSize.XXXLARGE,
+                LumoUtility.FontWeight.BOLD,
+                LumoUtility.Margin.Bottom.SMALL
+        );
+        title.getStyle()
+                .set("color", "var(--lumo-primary-text-color)")
+                .set("text-shadow", "2px 2px 4px rgba(0,0,0,0.1)");
 
-        // Creazione dei bottoni
-        Button buttonPrimary = new Button("SIM CREATION");
-        Button buttonPrimary2 = new Button("SIM EXECUTION");
+        H3 subtitle = new H3("Piattaforma per la creazione ed esecuzione di scenari di simulazione avanzati");
+        subtitle.addClassName(LumoUtility.TextAlignment.CENTER);
+        subtitle.addClassNames(
+                LumoUtility.TextColor.SECONDARY,
+                LumoUtility.FontSize.LARGE,
+                LumoUtility.Margin.Bottom.XLARGE
+        );
 
-        // Impostazione delle dimensioni e degli stili
-        buttonPrimary.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        buttonPrimary2.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        // Container per i bottoni
+        Div buttonContainer = new Div();
+        buttonContainer.setWidth("min(90%, 600px)");
+        buttonContainer.getStyle()
+                .set("display", "grid")
+                .set("gap", "1.5rem")
+                .set("margin", "0 auto");
 
-        // Aggiunta degli stili per adattare i bottoni alla dimensione dello schermo
-        buttonPrimary.getStyle().set("width", "80%");
-        buttonPrimary.getStyle().set("height", "200px");
-        buttonPrimary.getStyle().set("font-size", "32px");
+        // Bottoni principali
+        Button creationButton = createMainButton("SIM CREATION", "vaadin:cogs");
+        Button executionButton = createMainButton("SIM EXECUTION", "vaadin:play");
 
-        buttonPrimary2.getStyle().set("width", "80%");
-        buttonPrimary2.getStyle().set("height", "200px");
-        buttonPrimary2.getStyle().set("font-size", "32px");
+        // Aggiungi azioni ai bottoni
+        creationButton.addClickListener(e ->
+                creationButton.getUI().ifPresent(ui -> ui.navigate("creation")));
+        executionButton.addClickListener(e ->
+                executionButton.getUI().ifPresent(ui -> ui.navigate("execution")));
 
-        // Configurazione del layout
-        getContent().setWidthFull();
-        getContent().setHeightFull();
-        getContent().getStyle().set("display", "flex");
-        getContent().getStyle().set("flex-direction", "column");
-        getContent().getStyle().set("justify-content", "center");
-        getContent().getStyle().set("align-items", "center");
+        buttonContainer.add(creationButton, executionButton);
 
-        // Aggiunta del titolo, sottotitolo, bottoni e header al layout
-        getContent().add(header, title, subtitle, buttonPrimary, buttonPrimary2);
+        // Configurazione del layout principale
+        getContent().addClassName("home-view");
+        getContent().setSizeFull();
+        getContent().setPadding(false);
+        getContent().setSpacing(false);
+        getContent().setAlignItems(FlexComponent.Alignment.CENTER);
+        getContent().setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        getContent().getStyle()
+                .set("background", "linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%)")
+                .set("padding", "2rem");
 
-        // Aggiunta dei listener per la navigazione
-        buttonPrimary.addClickListener(e -> buttonPrimary.getUI().ifPresent(ui -> ui.navigate("creation")));
-        buttonPrimary2.addClickListener(e -> buttonPrimary2.getUI().ifPresent(ui -> ui.navigate("execution")));
+        // Aggiunta dei componenti al layout
+        getContent().add(header, title, subtitle, buttonContainer);
+    }
+
+    private Button createMainButton(String text, String iconName) {
+        Button button = new Button(text, new Icon(iconName));
+        button.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_LARGE);
+        button.setWidthFull();
+        button.setHeight("120px");
+        button.addClassName(LumoUtility.FontSize.LARGE);
+        button.getStyle()
+                .set("border-radius", "12px")
+                .set("box-shadow", "0 4px 6px rgba(0,0,0,0.1)")
+                .set("transition", "all 0.3s ease")
+                .set("background", "var(--lumo-primary-color)")
+                .set("color", "white")
+                .set("border", "none");
+
+        // Effetto hover
+        button.getElement().getThemeList().add("primary");
+        button.addClickListener(e -> button.getStyle().set("transform", "translateY(2px)"));
+
+        return button;
     }
 }

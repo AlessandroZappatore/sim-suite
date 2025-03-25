@@ -2,66 +2,26 @@
 @import url('./views/creation-view.css');
 @import url('./views/execution-view.css');
 /* styles.css */
-:host([theme="dark"]) {
-    --lumo-primary-color: #bb86fc;
-    --lumo-primary-contrast-color: #ffffff;
-    --lumo-primary-text-color: #ffffff;
-    --lumo-base-color: #37474f;
-    --lumo-body-text-color: #eceff1;
-    --lumo-header-text-color: #eceff1;
-    --lumo-secondary-text-color: #b0bec5;
-    --lumo-tertiary-text-color: #90a4ae;
-    --lumo-disabled-text-color: #78909c;
-    --lumo-icon-color: #eceff1;
-    --lumo-error-color: #ff5f6d;
-    --lumo-error-text-color: #ff5f6d;
-    --lumo-success-color: #10c17d;
-    --lumo-success-text-color: #10c17d;
-    --lumo-shade-10pct: rgba(0, 0, 0, 0.1);
-    --lumo-shade-20pct: rgba(0, 0, 0, 0.2);
-    --lumo-shade-30pct: rgba(0, 0, 0, 0.3);
-    --lumo-shade-40pct: rgba(0, 0, 0, 0.4);
-    --lumo-shade-50pct: rgba(0, 0, 0, 0.5);
-    --lumo-shade-60pct: rgba(0, 0, 0, 0.6);
-    --lumo-shade-70pct: rgba(0, 0, 0, 0.7);
-    --lumo-shade-80pct: rgba(0, 0, 0, 0.8);
-    --lumo-shade-90pct: rgba(0, 0, 0, 0.9);
-    --lumo-tint-5pct: rgba(255, 255, 255, 0.05);
-    --lumo-tint-10pct: rgba(255, 255, 255, 0.1);
-    --lumo-tint-20pct: rgba(255, 255, 255, 0.2);
-    --lumo-tint-30pct: rgba(255, 255, 255, 0.3);
-    --lumo-tint-40pct: rgba(255, 255, 255, 0.4);
-    --lumo-tint-50pct: rgba(255, 255, 255, 0.5);
+:host([theme~="dark"]) {
+    --lumo-base-color: #1d1d1d;
+    --lumo-body-text-color: #f3f3f3;
+    --lumo-primary-text-color: #a1c4fd;
+    --lumo-primary-color-10pct: rgba(161, 196, 253, 0.1);
 }
 
-:host([theme="light"]) {
-    --lumo-primary-color: #007bff;
-    --lumo-primary-contrast-color: #ffffff;
-    --lumo-primary-text-color: #212121;
+/* Stili per light mode */
+:host([theme~="light"]) {
     --lumo-base-color: #ffffff;
-    --lumo-body-text-color: #212121;
-    --lumo-header-text-color: #212121;
-    --lumo-secondary-text-color: #757575;
-    --lumo-tertiary-text-color: #9e9e9e;
-    --lumo-disabled-text-color: #bdbdbd;
-    --lumo-icon-color: #212121;
-    --lumo-error-color: #ff4a4a;
-    --lumo-error-text-color: #ff4a4a;
-    --lumo-success-color: #28a745;
-    --lumo-success-text-color: #28a745;
-    --lumo-shade-10pct: rgba(0, 0, 0, 0.1);
-    --lumo-shade-20pct: rgba(0, 0, 0, 0.2);
-    --lumo-shade-30pct: rgba(0, 0, 0, 0.3);
-    --lumo-shade-40pct: rgba(0, 0, 0, 0.4);
-    --lumo-shade-50pct: rgba(0, 0, 0, 0.5);
-    --lumo-shade-60pct: rgba(0, 0, 0, 0.6);
-    --lumo-shade-70pct: rgba(0, 0, 0, 0.7);
-    --lumo-shade-80pct: rgba(0, 0, 0, 0.8);
-    --lumo-shade-90pct: rgba(0, 0, 0, 0.9);
-    --lumo-tint-5pct: rgba(0, 0, 0, 0.05);
-    --lumo-tint-10pct: rgba(0, 0, 0, 0.1);
-    --lumo-tint-20pct: rgba(0, 0, 0, 0.2);
-    --lumo-tint-30pct: rgba(0, 0, 0, 0.3);
-    --lumo-tint-40pct: rgba(0, 0, 0, 0.4);
-    --lumo-tint-50pct: rgba(0, 0, 0, 0.5);
+    --lumo-body-text-color: #333333;
+    --lumo-primary-text-color: #2c68e8;
+    --lumo-primary-color-10pct: rgba(44, 104, 232, 0.1);
+}
+
+/* Stile header */
+[theme~="dark"] .app-header {
+    border-bottom: 1px solid var(--lumo-contrast-20pct);
+}
+
+[theme~="light"] .app-header {
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
 }

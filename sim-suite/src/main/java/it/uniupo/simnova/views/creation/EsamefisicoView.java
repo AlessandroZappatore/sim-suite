@@ -3,119 +3,113 @@ package it.uniupo.simnova.views.creation;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
-import com.vaadin.flow.component.orderedlayout.FlexComponent.JustifyContentMode;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
-import org.vaadin.lineawesome.LineAwesomeIconUrl;
+import com.vaadin.flow.router.RouterLink;
+import com.vaadin.flow.theme.lumo.LumoUtility;
+import it.uniupo.simnova.views.home.AppHeader;
 
-@PageTitle("Esamefisico")
+@PageTitle("Esame Fisico")
 @Route("esamefisico")
-@Menu(order = 13, icon = LineAwesomeIconUrl.PENCIL_RULER_SOLID)
+@Menu(order = 13)
 public class EsamefisicoView extends Composite<VerticalLayout> {
 
     public EsamefisicoView() {
-        HorizontalLayout layoutRow = new HorizontalLayout();
-        HorizontalLayout layoutRow2 = new HorizontalLayout();
-        Icon icon = new Icon();
-        VerticalLayout layoutColumn2 = new VerticalLayout();
-        TextField textField = new TextField();
-        TextField textField2 = new TextField();
-        TextField textField3 = new TextField();
-        TextField textField4 = new TextField();
-        TextField textField5 = new TextField();
-        TextField textField6 = new TextField();
-        TextField textField7 = new TextField();
-        TextField textField8 = new TextField();
-        TextField textField9 = new TextField();
-        TextField textField10 = new TextField();
-        TextField textField11 = new TextField();
-        HorizontalLayout layoutRow3 = new HorizontalLayout();
-        HorizontalLayout layoutRow4 = new HorizontalLayout();
-        Button buttonPrimary = new Button();
-        Paragraph textSmall = new Paragraph();
-        Button buttonPrimary2 = new Button();
-        getContent().setWidth("100%");
-        getContent().getStyle().set("flex-grow", "1");
-        layoutRow.addClassName(Gap.MEDIUM);
-        layoutRow.setWidth("100%");
-        layoutRow.setHeight("min-content");
-        layoutRow2.setHeightFull();
-        layoutRow.setFlexGrow(1.0, layoutRow2);
-        layoutRow2.addClassName(Gap.MEDIUM);
-        layoutRow2.setWidth("100%");
-        layoutRow2.getStyle().set("flex-grow", "1");
-        layoutRow2.setAlignItems(Alignment.START);
-        layoutRow2.setJustifyContentMode(JustifyContentMode.END);
-        icon.setIcon("lumo:user");
-        layoutColumn2.setWidth("100%");
-        layoutColumn2.getStyle().set("flex-grow", "1");
-        textField.setLabel("Text field");
-        textField.setWidth("min-content");
-        textField2.setLabel("Text field");
-        textField2.setWidth("min-content");
-        textField3.setLabel("Text field");
-        textField3.setWidth("min-content");
-        textField4.setLabel("Text field");
-        textField4.setWidth("min-content");
-        textField5.setLabel("Text field");
-        textField5.setWidth("min-content");
-        textField6.setLabel("Text field");
-        textField6.setWidth("min-content");
-        textField7.setLabel("Text field");
-        textField7.setWidth("min-content");
-        textField8.setLabel("Text field");
-        textField8.setWidth("min-content");
-        textField9.setLabel("Text field");
-        textField9.setWidth("min-content");
-        textField10.setLabel("Text field");
-        textField10.setWidth("min-content");
-        textField11.setLabel("Text field");
-        textField11.setWidth("min-content");
-        layoutRow3.addClassName(Gap.MEDIUM);
-        layoutRow3.setWidth("100%");
-        layoutRow3.setHeight("min-content");
-        layoutRow4.addClassName(Gap.MEDIUM);
-        layoutRow4.setWidth("100%");
-        layoutRow4.setHeight("min-content");
-        buttonPrimary.setText("Indietro");
-        buttonPrimary.setWidth("10%");
-        buttonPrimary.setHeight("50px");
-        buttonPrimary.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        textSmall.setText("Sviluppato e creato da Alessandro Zappatore");
-        layoutRow4.setAlignSelf(Alignment.CENTER, textSmall);
-        textSmall.setWidth("100%");
-        textSmall.getStyle().set("font-size", "var(--lumo-font-size-xs)");
-        buttonPrimary2.setText("Avanti");
-        buttonPrimary2.setWidth("10%");
-        buttonPrimary2.setHeight("50px");
-        buttonPrimary2.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        getContent().add(layoutRow);
-        layoutRow.add(layoutRow2);
-        layoutRow2.add(icon);
-        getContent().add(layoutColumn2);
-        layoutColumn2.add(textField);
-        layoutColumn2.add(textField2);
-        layoutColumn2.add(textField3);
-        layoutColumn2.add(textField4);
-        layoutColumn2.add(textField5);
-        layoutColumn2.add(textField6);
-        layoutColumn2.add(textField7);
-        layoutColumn2.add(textField8);
-        layoutColumn2.add(textField9);
-        layoutColumn2.add(textField10);
-        layoutColumn2.add(textField11);
-        getContent().add(layoutRow3);
-        layoutRow3.add(layoutRow4);
-        layoutRow4.add(buttonPrimary);
-        layoutRow4.add(textSmall);
-        layoutRow4.add(buttonPrimary2);
+        // Configurazione layout principale
+        VerticalLayout mainLayout = getContent();
+        mainLayout.setSizeFull();
+        mainLayout.setPadding(false);
+        mainLayout.setSpacing(false);
+        mainLayout.getStyle().set("min-height", "100vh");
+
+        // 1. HEADER con pulsante indietro
+        AppHeader header = new AppHeader();
+
+        // Creazione del pulsante indietro con RouterLink per la navigazione
+        RouterLink backLink = new RouterLink();
+        Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
+        backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        backLink.add(backButton);
+        // Imposta qui la route a cui tornare indietro (es. "home")
+
+        HorizontalLayout customHeader = new HorizontalLayout();
+        customHeader.setWidthFull();
+        customHeader.setPadding(true);
+        customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
+        customHeader.add(backButton, header);
+        customHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+
+        // 2. CONTENUTO PRINCIPALE
+        VerticalLayout contentLayout = new VerticalLayout();
+        contentLayout.setWidth("100%");
+        contentLayout.setMaxWidth("1200px");
+        contentLayout.setPadding(true);
+        contentLayout.setSpacing(false);
+        contentLayout.setAlignItems(FlexComponent.Alignment.CENTER); // Allineamento al centro
+        contentLayout.getStyle()
+                .set("margin", "0 auto")
+                .set("flex-grow", "1");
+
+        // Titolo della pagina - ora centrato correttamente
+        H2 pageTitle = new H2("ESAME FISICO");
+        pageTitle.addClassNames(
+                LumoUtility.TextAlignment.CENTER,
+                LumoUtility.Margin.Bottom.LARGE,
+                LumoUtility.Margin.Horizontal.AUTO
+        );
+        pageTitle.getStyle()
+                .set("font-size", "var(--lumo-font-size-xxl)")
+                .set("color", "var(--lumo-primary-text-color)")
+                .set("width", "100%"); // Assicura che occupi tutta la larghezza per centrarsi
+
+        // Creazione delle aree di testo per ogni sezione
+        TextArea generaleArea = createExamSection("Generale", "Stato generale, livello di coscienza, etc.");
+        TextArea pupilleArea = createExamSection("Pupille", "Dimensione, reattività, simmetria");
+        // Aggiungi qui le altre sezioni...
+
+        contentLayout.add(pageTitle, generaleArea, pupilleArea /*, altre aree... */);
+
+        // 3. FOOTER
+        HorizontalLayout footerLayout = createFooter();
+
+        mainLayout.add(customHeader, contentLayout, footerLayout);
+    }
+
+    private TextArea createExamSection(String title, String placeholder) {
+        TextArea area = new TextArea(title);
+        area.setPlaceholder(placeholder);
+        area.setWidthFull();
+        area.setMinHeight("150px");
+        area.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
+        return area;
+    }
+
+    private HorizontalLayout createFooter() {
+        HorizontalLayout footerLayout = new HorizontalLayout();
+        footerLayout.setWidthFull();
+        footerLayout.setPadding(true);
+        footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        Button nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
+        nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        nextButton.setWidth("150px");
+
+        Paragraph credits = new Paragraph("Sviluppato e creato da Alessandro Zappatore");
+        credits.addClassName(LumoUtility.TextColor.SECONDARY);
+        credits.addClassName(LumoUtility.FontSize.XSMALL);
+        credits.getStyle().set("margin", "0");
+
+        footerLayout.add(credits, nextButton);
+        return footerLayout;
     }
 }

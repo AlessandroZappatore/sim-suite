@@ -4,10 +4,15 @@ import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.views.home.AppHeader;
 
 @PageTitle("Creation")
@@ -17,75 +22,132 @@ public class CreationView extends Composite<VerticalLayout> {
     public CreationView() {
         AppHeader header = new AppHeader();
 
-        // Creazione dei bottoni
-        Button quickScenarioButton = new Button("Quick Scenario");
-        Button advancedScenarioButton = new Button("Advanced Scenario");
-        Button patientSimulatedScenarioButton = new Button("Patient Simulated Scenario");
-        Button visualizzaScenari = new Button("Visualizza Scenari Salvati");
-        Button backButton = new Button("Indietro");
+        // Titolo della pagina
+        H2 pageTitle = new H2("Creazione Scenario");
+        pageTitle.addClassNames(
+                LumoUtility.TextAlignment.CENTER,
+                LumoUtility.FontSize.XXXLARGE,
+                LumoUtility.FontWeight.BOLD,
+                LumoUtility.Margin.Bottom.XLARGE
+        );
+        pageTitle.getStyle()
+                .set("color", "var(--lumo-primary-text-color)")
+                .set("text-shadow", "1px 1px 2px rgba(0,0,0,0.1)");
 
-        // Creazione delle spiegazioni
-        Span quickScenarioTitle = new Span("Quick Scenario:");
-        quickScenarioTitle.getStyle().set("font-weight", "bold");
-        Div quickScenarioDescription = new Div(quickScenarioTitle, new com.vaadin.flow.component.Text(" Uno scenario veloce con un solo tempo di simulazione."));
+        // Create buttons with icons
+        Button quickScenarioButton = createScenarioButton(
+                "Quick Scenario",
+                VaadinIcon.BOLT,
+                "Uno scenario veloce con un solo tempo di simulazione"
+        );
 
-        Span advancedScenarioTitle = new Span("Advanced Scenario:");
-        advancedScenarioTitle.getStyle().set("font-weight", "bold");
-        Div advancedScenarioDescription = new Div(advancedScenarioTitle, new com.vaadin.flow.component.Text(" Un quick scenario con la possibilità di aggiungere i vari tempi di simulazione con il relativo algoritmo."));
+        Button advancedScenarioButton = createScenarioButton(
+                "Advanced Scenario",
+                VaadinIcon.CLOCK,
+                "Un quick scenario con la possibilità di aggiungere i vari tempi di simulazione"
+        );
 
-        Span patientSimulatedScenarioTitle = new Span("Patient Simulated Scenario:");
-        patientSimulatedScenarioTitle.getStyle().set("font-weight", "bold");
-        Div patientSimulatedScenarioDescription = new Div(patientSimulatedScenarioTitle, new com.vaadin.flow.component.Text(" Un advanced scenario con la possibilità di aggiungere una sceneggiatura."));
+        Button patientSimulatedScenarioButton = createScenarioButton(
+                "Patient Simulated Scenario",
+                VaadinIcon.USER_HEART,
+                "Un advanced scenario con la possibilità di aggiungere una sceneggiatura"
+        );
 
-        // Impostazione degli stili per i pulsanti
-        setButtonStyle(quickScenarioButton);
-        setButtonStyle(advancedScenarioButton);
-        setButtonStyle(patientSimulatedScenarioButton);
-        setButtonStyle(visualizzaScenari);
+        Button visualizzaScenari = createScenarioButton(
+                "Visualizza Scenari Salvati",
+                VaadinIcon.ARCHIVE,
+                "Accedi alla libreria degli scenari creati"
+        );
 
-        // Impostazione degli stili per le descrizioni
-        setDescriptionStyle(quickScenarioDescription);
-        setDescriptionStyle(advancedScenarioDescription);
-        setDescriptionStyle(patientSimulatedScenarioDescription);
+        // Configure back button
+        Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
+        backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        backButton.addClickListener(e -> backButton.getUI().ifPresent(ui -> ui.navigate("")));
+        backButton.addClassNames(
+                LumoUtility.Margin.SMALL,
+                LumoUtility.Margin.Left.AUTO
+        );
 
-        // Configurazione del layout
+        // Button click listeners
+        quickScenarioButton.addClickListener(e ->
+                quickScenarioButton.getUI().ifPresent(ui -> ui.navigate("startCreation")));
+
+        // Main content container
+        Div contentContainer = new Div();
+        contentContainer.addClassName("scenario-container");
+        contentContainer.getStyle()
+                .set("width", "min(90%, 800px)")
+                .set("margin", "0 auto")
+                .set("padding", "1rem")
+                .set("height", "100%");
+
+        // Add buttons to container
+        contentContainer.add(
+                quickScenarioButton,
+                advancedScenarioButton,
+                patientSimulatedScenarioButton,
+                visualizzaScenari
+        );
+
+        // Configure main layout
         VerticalLayout layout = getContent();
-        layout.setWidthFull();
-        layout.setHeightFull();
-        layout.getStyle().set("display", "flex");
-        layout.getStyle().set("flex-direction", "column");
-        layout.getStyle().set("justify-content", "center");
-        layout.getStyle().set("align-items", "center");
-        layout.getStyle().set("padding", "20px"); // Aggiunge spazio intorno al layout
+        layout.addClassName("creation-view");
+        layout.setPadding(false);
+        layout.setSpacing(false);
+        layout.setSizeFull();
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+        layout.getStyle()
+                .set("background", "linear-gradient(to bottom, #f8f9fa, #e9ecef)")
+                .set("min-height", "100vh");
 
-        // Stile per il pulsante di ritorno
-        backButton.getStyle().set("width", "10%");
-        backButton.getStyle().set("height", "50px");
-        backButton.getStyle().set("font-size", "16px");
-        backButton.getStyle().set("margin", "20px");
-        backButton.getStyle().set("align-self", "flex-start");
-        backButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
-        backButton.addClickListener(e -> {
-            backButton.getUI().ifPresent(ui -> ui.navigate(""));
-        });
-
-        quickScenarioButton.addClickListener(e -> {
-            quickScenarioButton.getUI().ifPresent(ui -> ui.navigate("startCreation"));
-        });
-
-        // Aggiunta degli elementi al layout
-        layout.add(header, quickScenarioButton, quickScenarioDescription, advancedScenarioButton, advancedScenarioDescription, patientSimulatedScenarioButton, patientSimulatedScenarioDescription, visualizzaScenari, backButton);
+        // Add components to layout
+        layout.add(header, backButton, pageTitle, contentContainer);
     }
 
-    private void setButtonStyle(Button button) {
-        button.getStyle().set("width", "65%"); // Larghezza ridotta per dispositivi mobili
-        button.getStyle().set("height", "150px");
-        button.getStyle().set("font-size", "32px");
-        button.getStyle().set("margin", "10px 0"); // Spazio sopra e sotto i pulsanti
-    }
+    private Button createScenarioButton(String title, VaadinIcon icon, String description) {
+        Div content = new Div();
 
-    private void setDescriptionStyle(Div description) {
-        description.getStyle().set("text-align", "center");
-        description.getStyle().set("margin", "16px 0"); // Spazio sopra e sotto le descrizioni
+        // Icon
+        Icon buttonIcon = icon.create();
+        buttonIcon.setSize("24px");
+        buttonIcon.getStyle().set("margin-right", "0.5rem");
+
+        // Title
+        Span titleSpan = new Span(title);
+        titleSpan.getStyle()
+                .set("font-weight", "600")
+                .set("font-size", "1.2rem");
+
+        // Description
+        Span descSpan = new Span(description);
+        descSpan.addClassNames(
+                LumoUtility.FontSize.SMALL,
+                LumoUtility.TextColor.SECONDARY
+        );
+        descSpan.getStyle()
+                .set("display", "block")
+                .set("margin-top", "0.5rem")
+                .set("text-align", "left");
+
+        content.add(buttonIcon, titleSpan, descSpan);
+
+        Button button = new Button(content);
+        button.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        button.setWidthFull();
+        button.addClassName("scenario-button");
+        button.getStyle()
+                .set("padding", "1.5rem")
+                .set("margin-bottom", "1.5rem")
+                .set("border-radius", "12px")
+                .set("box-shadow", "0 2px 4px rgba(0,0,0,0.1)")
+                .set("transition", "all 0.2s ease")
+                .set("text-align", "left")
+                .set("justify-content", "flex-start")
+                .set("height", "80px");
+
+        // Hover effect
+        button.addClickListener(e -> button.getStyle().set("transform", "translateY(2px)"));
+
+        return button;
     }
 }

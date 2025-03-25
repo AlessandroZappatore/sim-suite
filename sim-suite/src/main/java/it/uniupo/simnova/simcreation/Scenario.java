@@ -13,10 +13,11 @@ public class Scenario {
     private String materiale;
     private String moulage;
     private String liquidi;
+    private float timer_generale;
     private EsameFisico esame_fisico;
     private PazienteT0 paziente_t0;
 
-    public Scenario(int id, String titolo, String nome_paziente, String patologia, String descrizione, String briefing, String patto_aula, String azione_chiave, String obiettivo, String materiale, String moulage, String liquidi, EsameFisico esame_fisico, PazienteT0 paziente_t0) {
+    public Scenario(int id, String titolo, String nome_paziente, String patologia, String descrizione, String briefing, String patto_aula, String azione_chiave, String obiettivo, String materiale, String moulage, String liquidi, float timer_generale, EsameFisico esame_fisico, PazienteT0 paziente_t0) {
         this.id = id;
         this.titolo = titolo;
         this.nome_paziente = nome_paziente;
@@ -29,6 +30,12 @@ public class Scenario {
         this.materiale = materiale;
         this.moulage = moulage;
         this.liquidi = liquidi;
+        if(timer_generale<=0){
+            this.timer_generale = 0;
+        }
+        else{
+            this.timer_generale = timer_generale;
+        }
         this.esame_fisico = esame_fisico;
         this.paziente_t0 = paziente_t0;
     }
