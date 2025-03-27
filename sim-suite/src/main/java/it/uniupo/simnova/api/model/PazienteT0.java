@@ -1,6 +1,7 @@
-package it.uniupo.simnova.simcreation;
+package it.uniupo.simnova.api.model;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class PazienteT0 {
     private int id;
@@ -13,8 +14,8 @@ public class PazienteT0 {
     private String Monitor;
     private boolean accesso_venoso;
     private boolean accesso_arterioso;
-    private ArrayList<Accesso> accessi_venosi;
-    private ArrayList<Accesso> accessi_arteriosi;
+    private List<Accesso> accessi_venosi;
+    private List<Accesso> accessi_arteriosi;
 
     public PazienteT0(int id, int PA, int FC, int RR, float T, int SpO2, int EtCO2, String Monitor, boolean accesso_venoso, boolean accesso_arterioso, ArrayList<Accesso> accessi_venosi, ArrayList<Accesso> accessi_arteriosi) {
         this.id = id;
@@ -71,11 +72,11 @@ public class PazienteT0 {
         return accesso_arterioso;
     }
 
-    public ArrayList<Accesso> getAccessiVenosi() {
+    public List<Accesso> getAccessiVenosi() {
         return accessi_venosi;
     }
 
-    public ArrayList<Accesso> getAccessiArteriosi() {
+    public List<Accesso> getAccessiArteriosi() {
         return accessi_arteriosi;
     }
 
@@ -119,11 +120,11 @@ public class PazienteT0 {
         this.accesso_arterioso = accesso_arterioso;
     }
 
-    public void setAccessiVenosi(ArrayList<Accesso> accessi_venosi) {
+    public void setAccessiVenosi(List<Accesso> accessi_venosi) {
         this.accessi_venosi = accessi_venosi;
     }
 
-    public void setAccessiArteriosi(ArrayList<Accesso> accessi_arteriosi) {
+    public void setAccessiArteriosi(List<Accesso> accessi_arteriosi) {
         this.accessi_arteriosi = accessi_arteriosi;
     }
 

@@ -1,29 +1,42 @@
 package it.uniupo.simnova.views.creation;
 
 import com.vaadin.flow.component.Composite;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+
+import java.util.Optional;
 
 @PageTitle("StartCreation")
 @Route("startCreation")
 @Menu(order = 2)
 public class StartCreationView extends Composite<VerticalLayout> {
 
-    public StartCreationView() {
+    private final ScenarioService scenarioService;
+    private TextField scenarioTitle;
+    private TextField patientName;
+    private TextField pathology;
+    private NumberField durationField;
+
+    public StartCreationView(ScenarioService scenarioService) {
+        this.scenarioService = scenarioService;
+
         // Configurazione layout principale
         VerticalLayout mainLayout = getContent();
         mainLayout.setSizeFull();
@@ -58,12 +71,12 @@ public class StartCreationView extends Composite<VerticalLayout> {
                 .set("flex-grow", "1");
 
         // Campi del form
-        TextField scenarioTitle = createTextField("TITOLO SCENARIO", "Inserisci il titolo dello scenario");
-        TextField patientName = createTextField("NOME PAZIENTE", "Inserisci il nome del paziente");
-        TextField pathology = createTextField("PATOLOGIA/MALATTIA", "Inserisci la patologia");
+        scenarioTitle = createTextField("TITOLO SCENARIO", "Inserisci il titolo dello scenario");
+        patientName = createTextField("NOME PAZIENTE", "Inserisci il nome del paziente");
+        pathology = createTextField("PATOLOGIA/MALATTIA", "Inserisci la patologia");
 
         // Campo durata timer
-        NumberField durationField = new NumberField("DURATA SIMULAZIONE (minuti)");
+        durationField = new NumberField("DURATA SIMULAZIONE (minuti)");
         durationField.setMin(1);
         durationField.setValue(10.0);
         durationField.setStep(1);
@@ -108,32 +121,54 @@ public class StartCreationView extends Composite<VerticalLayout> {
                 backButton.getUI().ifPresent(ui -> ui.navigate("creation")));
 
         nextButton.addClickListener(e -> {
-                nextButton.getUI().ifPresent(ui -> ui.navigate("descrizione"));
-
+            if (validateFields()) {
+                saveScenarioAndNavigate(nextButton.getUI());
+            }
         });
     }
+
+    private boolean validateFields() {
+        if (scenarioTitle.isEmpty() || patientName.isEmpty() || pathology.isEmpty()) {
+            Notification.show("Compila tutti i campi obbligatori", 3000, Notification.Position.MIDDLE);
+            return false;
+        }
+        return true;
+    }
+
+    private void saveScenarioAndNavigate(Optional<UI> uiOptional) {
+        uiOptional.ifPresent(ui -> {
+            try {
+                int scenarioId = scenarioService.startScenario(
+                        scenarioTitle.getValue(),
+                        patientName.getValue(),
+                        pathology.getValue(),
+                        durationField.getValue().floatValue()
+                );
+
+                System.out.println("ID scenario creato: " + scenarioId);
+
+                if (scenarioId > 0) {
+                    System.out.println("Navigando a descrizione/" + scenarioId);
+                    ui.navigate("descrizione/" + scenarioId);
+                } else {
+                    Notification.show("Errore durante il salvataggio dello scenario",
+                            3000, Notification.Position.MIDDLE);
+                }
+            } catch (Exception e) {
+                Notification.show("Errore: " + e.getMessage(),
+                        5000, Notification.Position.MIDDLE);
+                e.printStackTrace();
+            }
+        });
+    }
+
 
     private TextField createTextField(String label, String placeholder) {
         TextField field = new TextField(label);
         field.setPlaceholder(placeholder);
         field.setWidthFull();
-        field.setRequired(true);
         field.getStyle().set("max-width", "500px");
         field.addClassName(LumoUtility.Margin.Top.LARGE);
         return field;
-    }
-
-    private boolean validateFields(TextField... fields) {
-        boolean isValid = true;
-        for (TextField field : fields) {
-            if (field.getValue() == null || field.getValue().trim().isEmpty()) {
-                field.setInvalid(true);
-                field.setErrorMessage("Campo obbligatorio");
-                isValid = false;
-            } else {
-                field.setInvalid(false);
-            }
-        }
-        return isValid;
     }
 }

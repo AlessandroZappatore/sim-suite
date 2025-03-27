@@ -164,6 +164,56 @@ vaadin-form-layout[empty] {
   min-height: 32px;
 }
 
+@media (max-width: 768px) {
+  .scenario-button {
+    padding: 0.75rem !important;
+  }
+
+  .scenario-button span {
+    font-size: 0.9rem !important;
+  }
+
+  .scenario-button [part="prefix"] {
+    margin-right: 0.3rem !important;
+  }
+}
+
+.scenario-button {
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  height: auto !important; /* Rimuovi l'altezza fissa */
+  min-height: 80px !important; /* Imposta un'altezza minima invece che fissa */
+}
+
+.scenario-button .descSpan {
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+}
+
+@media (max-width: 600px) {
+  .scenario-button {
+    padding: 1rem 0.75rem !important; /* Riduci il padding su mobile */
+    height: auto !important; /* Altezza automatica */
+  }
+
+  .scenario-button content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .scenario-button .buttonIcon {
+    margin-bottom: 0.5rem !important;
+  }
+
+  .scenario-button .titleSpan,
+  .scenario-button .descSpan {
+    width: 100% !important;
+    text-align: left !important;
+  }
+}
 
 
 .scenario-button:hover {

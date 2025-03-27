@@ -1,4 +1,4 @@
-package it.uniupo.simnova.simcreation;
+package it.uniupo.simnova.api.model;
 
 public class Accesso {
     private int id;

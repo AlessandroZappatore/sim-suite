@@ -1,27 +1,38 @@
 package it.uniupo.simnova.views.creation;
 
 import com.vaadin.flow.component.Composite;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.TextArea;
-import com.vaadin.flow.router.Menu;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import it.uniupo.simnova.api.model.Scenario;
+import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
 
-@PageTitle("Obiettivi Didattici")
-@Route("obiettivididattici")
-@Menu(order = 7)
-public class ObiettivididatticiView extends Composite<VerticalLayout> {
+import java.util.Optional;
 
-    public ObiettivididatticiView() {
+@PageTitle("Obiettivi Didattici")
+@Route(value = "obiettivididattici")
+@Menu(order = 7)
+public class ObiettivididatticiView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
+
+    private final ScenarioService scenarioService;
+    private Integer scenarioId;
+    private final TextArea obiettiviArea;
+
+    public ObiettivididatticiView(ScenarioService scenarioService) {
+        this.scenarioService = scenarioService;
+
         // Configurazione layout principale
         VerticalLayout mainLayout = getContent();
         mainLayout.setSizeFull();
@@ -29,13 +40,15 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> {
         mainLayout.setSpacing(false);
         mainLayout.getStyle().set("min-height", "100vh");
 
-        // 1. HEADER con pulsante indietro
+        // 1. HEADER
         AppHeader header = new AppHeader();
 
+        // Pulsante indietro
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         backButton.getStyle().set("margin-right", "auto");
 
+        // Container per header personalizzato
         HorizontalLayout customHeader = new HorizontalLayout();
         customHeader.setWidthFull();
         customHeader.setPadding(true);
@@ -54,13 +67,11 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> {
                 .set("flex-grow", "1");
 
         // Area di testo per gli obiettivi didattici
-        TextArea obiettiviArea = new TextArea("OBIETTIVI DIDATTICI");
+        obiettiviArea = new TextArea("OBIETTIVI DIDATTICI");
         obiettiviArea.setPlaceholder("Inserisci gli obiettivi didattici dello scenario...");
         obiettiviArea.setWidthFull();
         obiettiviArea.setMinHeight("300px");
-        obiettiviArea.getStyle()
-                .set("max-width", "100%")
-                .set("min-width", "280px");
+        obiettiviArea.getStyle().set("max-width", "100%");
         obiettiviArea.addClassName(LumoUtility.Margin.Top.LARGE);
 
         // Istruzioni aggiuntive
@@ -98,10 +109,68 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> {
 
         // Listener per i pulsanti
         backButton.addClickListener(e ->
-                backButton.getUI().ifPresent(ui -> ui.navigate("azionechiave")));
+                backButton.getUI().ifPresent(ui -> ui.navigate("azionechiave/" + scenarioId)));
 
         nextButton.addClickListener(e -> {
-            nextButton.getUI().ifPresent(ui -> ui.navigate("materialenecessario"));
+            if (obiettiviArea.getValue().trim().isEmpty()) {
+                Notification.show("Inserisci gli obiettivi didattici per lo scenario", 3000, Notification.Position.MIDDLE);
+                return;
+            }
+            saveObiettiviAndNavigate(nextButton.getUI());
+        });
+    }
+
+    @Override
+    public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
+        try {
+            if (parameter == null || parameter.trim().isEmpty()) {
+                throw new NumberFormatException();
+            }
+
+            this.scenarioId = Integer.parseInt(parameter);
+            if (scenarioId <= 0) {
+                throw new NumberFormatException();
+            }
+
+            loadExistingObiettivi();
+        } catch (NumberFormatException e) {
+            event.rerouteToError(NotFoundException.class, "ID scenario non valido");
+        }
+    }
+
+    private void loadExistingObiettivi() {
+        Scenario scenario = scenarioService.getScenarioById(scenarioId);
+        if (scenario != null && scenario.getObiettivo() != null && !scenario.getObiettivo().isEmpty()) {
+            obiettiviArea.setValue(scenario.getObiettivo());
+        }
+    }
+
+    private void saveObiettiviAndNavigate(Optional<UI> uiOptional) {
+        uiOptional.ifPresent(ui -> {
+            ProgressBar progressBar = new ProgressBar();
+            progressBar.setIndeterminate(true);
+            getContent().add(progressBar);
+
+            try {
+                boolean success = scenarioService.updateScenarioObiettiviDidattici(
+                        scenarioId, obiettiviArea.getValue()
+                );
+
+                ui.accessSynchronously(() -> {
+                    getContent().remove(progressBar);
+                    if (success) {
+                        ui.navigate("materialenecessario/" + scenarioId);
+                    } else {
+                        Notification.show("Errore durante il salvataggio degli obiettivi didattici", 3000, Notification.Position.MIDDLE);
+                    }
+                });
+            } catch (Exception e) {
+                ui.accessSynchronously(() -> {
+                    getContent().remove(progressBar);
+                    Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
+                    e.printStackTrace();
+                });
+            }
         });
     }
 }

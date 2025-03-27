@@ -1,4 +1,4 @@
-package it.uniupo.simnova.simcreation;
+package it.uniupo.simnova.api.model;
 
 public class Tempo {
     private int id;
@@ -82,6 +82,10 @@ public class Tempo {
 
     public String getAltriDettagli() {
         return altri_dettagli;
+    }
+
+    public float getTimer_tempo(){
+        return timer_tempo;
     }
 
     public void setId(int id) {

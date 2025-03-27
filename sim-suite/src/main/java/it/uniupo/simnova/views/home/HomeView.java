@@ -68,9 +68,7 @@ public class HomeView extends Composite<VerticalLayout> {
         getContent().setSpacing(false);
         getContent().setAlignItems(FlexComponent.Alignment.CENTER);
         getContent().setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
-        getContent().getStyle()
-                .set("background", "linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%)")
-                .set("padding", "2rem");
+        getContent().getStyle().set("padding", "2rem");
 
         // Aggiunta dei componenti al layout
         getContent().add(header, title, subtitle, buttonContainer);

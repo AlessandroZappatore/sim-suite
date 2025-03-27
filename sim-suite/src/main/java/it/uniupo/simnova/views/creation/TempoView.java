@@ -25,11 +25,18 @@ import it.uniupo.simnova.views.home.AppHeader;
 
 import java.time.Duration;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @PageTitle("Tempo")
 @Route("tempo")
 @Menu(order = 14)
 public class TempoView extends Composite<VerticalLayout> {
+
+    private final VerticalLayout timeSectionsContainer;
+    private final List<TimeSection> timeSections = new ArrayList<>();
+    private int timeCount = 1;
+    private Button nextButton;
 
     public TempoView() {
         // Configurazione layout principale
@@ -80,104 +87,31 @@ public class TempoView extends Composite<VerticalLayout> {
 
         // Istruzioni
         Paragraph instructionText = new Paragraph(
-                "Da leggere \"Sono al tempo T0, con Parametri T0, se viene svolta un'azione vado al tempo Tn, " +
-                        "con parametri Tn, se no passo al Tm con parametri Tm.\" Riscrivere qua sotto i parametri inseriti precedentemente.");
+                "Definisci i tempi dello scenario. Per ogni tempo (T0, T1, T2, ecc.) specifica i parametri " +
+                        "e le transizioni possibili. T0 rappresenta lo stato iniziale.");
         instructionText.setWidth("100%");
         instructionText.getStyle().set("font-size", "var(--lumo-font-size-m)");
         instructionText.addClassName(LumoUtility.Margin.Bottom.LARGE);
 
-        // Riga con Tempo corrente e Timer
-        HorizontalLayout timeRow = new HorizontalLayout();
-        timeRow.setWidthFull();
-        timeRow.setSpacing(true);
-        timeRow.setAlignItems(FlexComponent.Alignment.END);
+        // Container per le sezioni dei tempi
+        timeSectionsContainer = new VerticalLayout();
+        timeSectionsContainer.setWidthFull();
+        timeSectionsContainer.setSpacing(true);
 
-        // Campo per il numero del tempo corrente (T0, T1, T2...)
-        IntegerField currentTimeField = new IntegerField("Tempo corrente");
-        currentTimeField.setMin(0);
-        currentTimeField.setValue(0);
-        currentTimeField.setWidth("50%");
+        // Aggiungi la sezione iniziale per T0
+        addTimeSection(0);
 
-        // Timer per il tempo specifico (solo orario)
-        TimePicker timerPicker = new TimePicker("Timer");
-        timerPicker.setStep(Duration.ofMinutes(1));
-        timerPicker.setValue(LocalTime.now());
-        timerPicker.setWidth("50%");
+        // Pulsante per aggiungere nuovi tempi
+        Button addTimeButton = new Button("Aggiungi Tempo", new Icon(VaadinIcon.PLUS));
+        addTimeButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        addTimeButton.addClassName(LumoUtility.Margin.Top.MEDIUM);
+        addTimeButton.addClickListener(event -> addTimeSection(timeCount++));
 
-        timeRow.add(currentTimeField, timerPicker);
-        timeRow.addClassName(LumoUtility.Margin.Bottom.LARGE);
+        contentLayout.add(pageTitle, instructionText, timeSectionsContainer, addTimeButton);
 
-        // Parametri medici con unità di misura
-        FormLayout medicalParamsForm = new FormLayout();
-        medicalParamsForm.setResponsiveSteps(
-                new FormLayout.ResponsiveStep("0", 2),
-                new FormLayout.ResponsiveStep("500px", 3)
-        );
-        medicalParamsForm.setWidthFull();
-
-        NumberField paField = createMedicalField("PA (mmHg)", "mmHg");
-        NumberField fcField = createMedicalField("FC (bpm)", "battiti/min");
-        NumberField rrField = createMedicalField("FR (rpm)", "respiri/min");
-        NumberField tField = createMedicalField("Temperatura (°C)", "°C");
-        NumberField spo2Field = createMedicalField("SpO₂ (%)", "%");
-        NumberField etco2Field = createMedicalField("EtCO₂ (mmHg)", "mmHg");
-
-        medicalParamsForm.add(paField, fcField, rrField, tField, spo2Field, etco2Field);
-        medicalParamsForm.addClassName(LumoUtility.Margin.Bottom.LARGE);
-
-        // Divider
-        Hr divider = new Hr();
-        divider.addClassName(LumoUtility.Margin.Vertical.MEDIUM);
-
-        // Sezione azione
-        Paragraph actionTitle = new Paragraph("AZIONE DA SVOLGERE PER PASSARE AL PROSSIMO Tn");
-        actionTitle.getStyle()
-                .set("font-weight", "bold")
-                .set("text-align", "center")
-                .set("width", "100%");
-        actionTitle.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
-
-        // Area dettagli azione
-        TextArea actionDetailsArea = new TextArea("Descrizione azione da svolgere");
-        actionDetailsArea.setWidthFull();
-        actionDetailsArea.setMinHeight("100px");
-        actionDetailsArea.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
-
-        // Tabella SI | NO con campi per i tempi (T0, T1, T2...)
-        HorizontalLayout timeSelectionContainer = new HorizontalLayout();
-        timeSelectionContainer.setWidthFull();
-        timeSelectionContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
-
-        FormLayout timeSelectionForm = new FormLayout();
-        timeSelectionForm.setResponsiveSteps(
-                new FormLayout.ResponsiveStep("0", 2)
-        );
-        timeSelectionForm.setWidth("auto"); // Larghezza automatica per centrarlo
-
-        // Creazione dei campi per i tempi
-        IntegerField timeIfYesField = new IntegerField("Tempo se SI (Tn)");
-        timeIfYesField.setMin(0);
-        timeIfYesField.setWidth("120px"); // Larghezza fissa per uniformità
-
-        IntegerField timeIfNoField = new IntegerField("Tempo se NO (Tm)");
-        timeIfNoField.setMin(0);
-        timeIfNoField.setWidth("120px"); // Larghezza fissa per uniformità
-
-        // Aggiungi i campi al form
-        timeSelectionForm.add(timeIfYesField, timeIfNoField);
-        timeSelectionContainer.add(timeSelectionForm);
-        timeSelectionContainer.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
-
-        // Area dettagli aggiuntivi
-        TextArea additionalDetailsArea = new TextArea("Eventuali altri dettagli");
-        additionalDetailsArea.setWidthFull();
-        additionalDetailsArea.setMinHeight("150px");
-        additionalDetailsArea.addClassName(LumoUtility.Margin.Bottom.LARGE);
-
-        // Aggiunta componenti al contentLayout
-        contentLayout.add(pageTitle, instructionText, timeRow,
-                medicalParamsForm, divider, actionTitle, actionDetailsArea,
-                timeSelectionForm, additionalDetailsArea);
+        // Listener per i pulsanti
+        backButton.addClickListener(e ->
+                backButton.getUI().ifPresent(ui -> ui.navigate("")));
 
         // 3. FOOTER
         HorizontalLayout footerLayout = new HorizontalLayout();
@@ -186,9 +120,10 @@ public class TempoView extends Composite<VerticalLayout> {
         footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        Button nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
+        nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
         nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         nextButton.setWidth("150px");
+        nextButton.addClickListener(e -> saveAllTimeSections());
 
         Paragraph credits = new Paragraph("Sviluppato e creato da Alessandro Zappatore");
         credits.addClassName(LumoUtility.TextColor.SECONDARY);
@@ -201,11 +136,172 @@ public class TempoView extends Composite<VerticalLayout> {
         mainLayout.add(customHeader, contentLayout, footerLayout);
     }
 
+    private void addTimeSection(int timeNumber) {
+        TimeSection timeSection = new TimeSection(timeNumber);
+        timeSections.add(timeSection);
+        timeSectionsContainer.add(timeSection.getLayout());
+
+        if (timeNumber == 0) {
+            timeSection.hideRemoveButton();
+        }
+    }
+
+    private void saveAllTimeSections() {
+        for (TimeSection section : timeSections) {
+            section.saveData();
+        }
+        nextButton.getUI().ifPresent(ui -> ui.navigate("moulage"));
+    }
+
     private NumberField createMedicalField(String label, String unit) {
         NumberField field = new NumberField(label);
         field.setSuffixComponent(new Paragraph(unit));
         field.setWidthFull();
         field.addClassName(LumoUtility.Margin.Bottom.SMALL);
         return field;
+    }
+
+    private class TimeSection {
+        private final int timeNumber;
+        private final VerticalLayout layout;
+        private final TimePicker timerPicker;
+        private final NumberField paField;
+        private final NumberField fcField;
+        private final NumberField rrField;
+        private final NumberField tField;
+        private final NumberField spo2Field;
+        private final NumberField etco2Field;
+        private final TextArea actionDetailsArea;
+        private final IntegerField timeIfYesField;
+        private final IntegerField timeIfNoField;
+        private final TextArea additionalDetailsArea;
+        private final Button removeButton;
+
+        public TimeSection(int timeNumber) {
+            this.timeNumber = timeNumber;
+
+            layout = new VerticalLayout();
+            layout.addClassName(LumoUtility.Padding.MEDIUM);
+            layout.addClassName(LumoUtility.Border.ALL);
+            layout.addClassName(LumoUtility.BorderColor.CONTRAST_10);
+            layout.addClassName(LumoUtility.BorderRadius.MEDIUM);
+            layout.setPadding(true);
+            layout.setSpacing(false);
+
+            Paragraph sectionTitle = new Paragraph("Tempo T" + timeNumber);
+            sectionTitle.addClassName(LumoUtility.FontWeight.BOLD);
+            sectionTitle.addClassName(LumoUtility.Margin.Bottom.NONE);
+
+            timerPicker = new TimePicker("Timer");
+            timerPicker.setStep(Duration.ofMinutes(1));
+            timerPicker.setValue(LocalTime.parse("00:00"));
+            timerPicker.setWidthFull();
+
+            FormLayout medicalParamsForm = new FormLayout();
+            medicalParamsForm.setResponsiveSteps(
+                    new FormLayout.ResponsiveStep("0", 2),
+                    new FormLayout.ResponsiveStep("500px", 3)
+            );
+            medicalParamsForm.setWidthFull();
+
+            paField = createMedicalField("PA (mmHg)", "mmHg");
+            fcField = createMedicalField("FC (bpm)", "battiti/min");
+            rrField = createMedicalField("FR (rpm)", "respiri/min");
+            tField = createMedicalField("Temperatura (°C)", "°C");
+            spo2Field = createMedicalField("SpO₂ (%)", "%");
+            etco2Field = createMedicalField("EtCO₂ (mmHg)", "mmHg");
+
+            medicalParamsForm.add(paField, fcField, rrField, tField, spo2Field, etco2Field);
+            medicalParamsForm.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
+
+            Hr divider = new Hr();
+            divider.addClassName(LumoUtility.Margin.Vertical.MEDIUM);
+
+            Paragraph actionTitle = new Paragraph(timeNumber == 0 ?
+                    "AZIONE INIZIALE (T0)" : "AZIONE DA SVOLGERE PER PASSARE A T" + timeNumber);
+            actionTitle.getStyle()
+                    .set("font-weight", "bold")
+                    .set("text-align", "center")
+                    .set("width", "100%");
+            actionTitle.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
+
+            actionDetailsArea = new TextArea(timeNumber == 0 ?
+                    "Descrizione situazione iniziale" : "Descrizione azione da svolgere");
+            actionDetailsArea.setWidthFull();
+            actionDetailsArea.setMinHeight("100px");
+            actionDetailsArea.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
+
+            HorizontalLayout timeSelectionContainer = new HorizontalLayout();
+            timeSelectionContainer.setWidthFull();
+            timeSelectionContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+
+            FormLayout timeSelectionForm = new FormLayout();
+            timeSelectionForm.setResponsiveSteps(
+                    new FormLayout.ResponsiveStep("0", 2)
+            );
+            timeSelectionForm.setWidth("auto");
+
+            timeIfYesField = new IntegerField(timeNumber == 0 ?
+                    "Prossimo tempo se SI" : "Tempo se SI (Tn)");
+            timeIfYesField.setMin(0);
+            timeIfYesField.setWidth("120px");
+
+            timeIfNoField = new IntegerField(timeNumber == 0 ?
+                    "Prossimo tempo se NO" : "Tempo se NO (Tm)");
+            timeIfNoField.setMin(0);
+            timeIfNoField.setWidth("120px");
+
+            timeSelectionForm.add(timeIfYesField, timeIfNoField);
+            timeSelectionContainer.add(timeSelectionForm);
+            timeSelectionContainer.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
+
+            additionalDetailsArea = new TextArea("Eventuali altri dettagli");
+            additionalDetailsArea.setWidthFull();
+            additionalDetailsArea.setMinHeight("150px");
+            additionalDetailsArea.addClassName(LumoUtility.Margin.Bottom.LARGE);
+
+            removeButton = new Button("Rimuovi Tempo", new Icon(VaadinIcon.TRASH));
+            removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
+            removeButton.addClickListener(event -> {
+                timeSections.remove(this);
+                timeSectionsContainer.remove(layout);
+            });
+
+            layout.add(sectionTitle, timerPicker, medicalParamsForm, divider,
+                    actionTitle, actionDetailsArea, timeSelectionForm,
+                    additionalDetailsArea, removeButton);
+        }
+
+        public VerticalLayout getLayout() {
+            return layout;
+        }
+
+        public void hideRemoveButton() {
+            removeButton.setVisible(false);
+        }
+
+        public void saveData() {
+            LocalTime time = timerPicker.getValue();
+            double pa = paField.getValue() != null ? paField.getValue() : 0;
+            double fc = fcField.getValue() != null ? fcField.getValue() : 0;
+            double rr = rrField.getValue() != null ? rrField.getValue() : 0;
+            double t = tField.getValue() != null ? tField.getValue() : 0;
+            double spo2 = spo2Field.getValue() != null ? spo2Field.getValue() : 0;
+            double etco2 = etco2Field.getValue() != null ? etco2Field.getValue() : 0;
+
+            String actionDescription = actionDetailsArea.getValue();
+            Integer nextTimeIfYes = timeIfYesField.getValue() != null ? timeIfYesField.getValue() : 0;
+            Integer nextTimeIfNo = timeIfNoField.getValue() != null ? timeIfNoField.getValue() : 0;
+            String additionalDetails = additionalDetailsArea.getValue();
+
+            // Qui puoi implementare la logica per salvare i dati
+            System.out.println("Salvati dati per T" + timeNumber);
+            System.out.println("Timer: " + time);
+            System.out.println("Parametri medici: PA=" + pa + ", FC=" + fc + ", FR=" + rr +
+                    ", T=" + t + ", SpO2=" + spo2 + ", EtCO2=" + etco2);
+            System.out.println("Azione: " + actionDescription);
+            System.out.println("Transizioni: Se SI -> T" + nextTimeIfYes + ", Se NO -> T" + nextTimeIfNo);
+            System.out.println("Dettagli aggiuntivi: " + additionalDetails);
+        }
     }
 }

@@ -1,27 +1,38 @@
 package it.uniupo.simnova.views.creation;
 
 import com.vaadin.flow.component.Composite;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.TextArea;
-import com.vaadin.flow.router.Menu;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import it.uniupo.simnova.api.model.Scenario;
+import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
 
-@PageTitle("Liquidi e Presidi")
-@Route("liquidi")
-@Menu(order = 11)
-public class LiquidiView extends Composite<VerticalLayout> {
+import java.util.Optional;
 
-    public LiquidiView() {
+@PageTitle("Liquidi e Presidi")
+@Route(value = "liquidi")
+@Menu(order = 11)
+public class LiquidiView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
+
+    private final ScenarioService scenarioService;
+    private Integer scenarioId;
+    private TextArea liquidiArea;
+
+    public LiquidiView(ScenarioService scenarioService) {
+        this.scenarioService = scenarioService;
+
         // Configurazione layout principale
         VerticalLayout mainLayout = getContent();
         mainLayout.setSizeFull();
@@ -29,13 +40,15 @@ public class LiquidiView extends Composite<VerticalLayout> {
         mainLayout.setSpacing(false);
         mainLayout.getStyle().set("min-height", "100vh");
 
-        // 1. HEADER con pulsante indietro
+        // 1. HEADER
         AppHeader header = new AppHeader();
 
+        // Pulsante indietro
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         backButton.getStyle().set("margin-right", "auto");
 
+        // Container per header personalizzato
         HorizontalLayout customHeader = new HorizontalLayout();
         customHeader.setWidthFull();
         customHeader.setPadding(true);
@@ -54,13 +67,11 @@ public class LiquidiView extends Composite<VerticalLayout> {
                 .set("flex-grow", "1");
 
         // Area di testo per liquidi e presidi
-        TextArea liquidiArea = new TextArea("LIQUIDI E PRESIDI IN T0");
+        liquidiArea = new TextArea("LIQUIDI E PRESIDI IN T0");
         liquidiArea.setPlaceholder("Indica quantità di liquidi e presidi presenti all'inizio della simulazione...");
         liquidiArea.setWidthFull();
         liquidiArea.setMinHeight("300px");
-        liquidiArea.getStyle()
-                .set("max-width", "100%")
-                .set("min-width", "280px");
+        liquidiArea.getStyle().set("max-width", "100%");
         liquidiArea.addClassName(LumoUtility.Margin.Top.LARGE);
 
         // Esempi di formato
@@ -80,7 +91,7 @@ public class LiquidiView extends Composite<VerticalLayout> {
 
         Button nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
         nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        nextButton.setWidth("min(100%, 250px)");
+        nextButton.setWidth("min(100%, 150px)");
 
         Paragraph credits = new Paragraph("Sviluppato e creato da Alessandro Zappatore");
         credits.addClassName(LumoUtility.TextColor.SECONDARY);
@@ -98,10 +109,68 @@ public class LiquidiView extends Composite<VerticalLayout> {
 
         // Listener per i pulsanti
         backButton.addClickListener(e ->
-                backButton.getUI().ifPresent(ui -> ui.navigate("moulage")));
+                backButton.getUI().ifPresent(ui -> ui.navigate("moulage/" + scenarioId)));
 
         nextButton.addClickListener(e -> {
-            nextButton.getUI().ifPresent(ui -> ui.navigate("pazienteT0"));
+            if (liquidiArea.getValue().trim().isEmpty()) {
+                Notification.show("Inserisci i liquidi e presidi per lo scenario", 3000, Notification.Position.MIDDLE);
+                return;
+            }
+            saveLiquidiAndNavigate(nextButton.getUI());
+        });
+    }
+
+    @Override
+    public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
+        try {
+            if (parameter == null || parameter.trim().isEmpty()) {
+                throw new NumberFormatException();
+            }
+
+            this.scenarioId = Integer.parseInt(parameter);
+            if (scenarioId <= 0) {
+                throw new NumberFormatException();
+            }
+
+            loadExistingLiquidi();
+        } catch (NumberFormatException e) {
+            event.rerouteToError(NotFoundException.class, "ID scenario non valido");
+        }
+    }
+
+    private void loadExistingLiquidi() {
+        Scenario scenario = scenarioService.getScenarioById(scenarioId);
+        if (scenario != null && scenario.getLiquidi() != null && !scenario.getLiquidi().isEmpty()) {
+            liquidiArea.setValue(scenario.getLiquidi());
+        }
+    }
+
+    private void saveLiquidiAndNavigate(Optional<UI> uiOptional) {
+        uiOptional.ifPresent(ui -> {
+            ProgressBar progressBar = new ProgressBar();
+            progressBar.setIndeterminate(true);
+            getContent().add(progressBar);
+
+            try {
+                boolean success = scenarioService.updateScenarioLiquidi(
+                        scenarioId, liquidiArea.getValue()
+                );
+
+                ui.accessSynchronously(() -> {
+                    getContent().remove(progressBar);
+                    if (success) {
+                        ui.navigate("pazienteT0/" + scenarioId);
+                    } else {
+                        Notification.show("Errore durante il salvataggio di liquidi e presidi", 3000, Notification.Position.MIDDLE);
+                    }
+                });
+            } catch (Exception e) {
+                ui.accessSynchronously(() -> {
+                    getContent().remove(progressBar);
+                    Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
+                    e.printStackTrace();
+                });
+            }
         });
     }
 }

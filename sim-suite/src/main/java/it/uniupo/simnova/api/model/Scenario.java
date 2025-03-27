@@ -1,4 +1,6 @@
-package it.uniupo.simnova.simcreation;
+package it.uniupo.simnova.api.model;
+
+import java.util.Map;
 
 public class Scenario {
     private int id;
@@ -38,6 +40,18 @@ public class Scenario {
         }
         this.esame_fisico = esame_fisico;
         this.paziente_t0 = paziente_t0;
+    }
+
+    public Scenario(int id, String titolo, String nome_paziente, String patologia, float timer_generale) {
+        this.id = id;
+        this.titolo = titolo;
+        this.nome_paziente = nome_paziente;
+        this.patologia = patologia;
+        this.timer_generale = timer_generale;
+    }
+
+    public Scenario(){
+
     }
 
     public int getId() {
@@ -88,8 +102,11 @@ public class Scenario {
         return liquidi;
     }
 
-    public EsameFisico getEsameFisico() {
-        return esame_fisico;
+    public float getTimerGenerale(){
+        return timer_generale;
+    }
+
+    public EsameFisico getEsameFisico() {return  esame_fisico;
     }
 
     public PazienteT0 getPazienteT0() {

@@ -9,7 +9,10 @@ public class DBConnect {
     private static final String DB_URL = "jdbc:sqlite:" + System.getProperty("user.dir") + "/database.db";
     private static DBConnect instance = null;
 
+
+
     private DBConnect() {
+        System.out.println(DB_URL);
         try {
             // Explicitly load the driver (optional)
             Class.forName("org.sqlite.JDBC");
