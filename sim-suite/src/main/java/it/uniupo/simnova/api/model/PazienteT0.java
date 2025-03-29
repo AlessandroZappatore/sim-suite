@@ -1,6 +1,5 @@
 package it.uniupo.simnova.api.model;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class PazienteT0 {

@@ -21,8 +21,6 @@ import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.*;
 import it.uniupo.simnova.service.ScenarioService;
-import it.uniupo.simnova.views.home.AppHeader;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -36,12 +34,11 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
     private final ScenarioService scenarioService;
     private Integer scenarioId;
     private Scenario scenario;
-    private UI ui;
 
     @Autowired
     public ScenarioDetailsView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
-        this.ui = UI.getCurrent();
+        UI ui = UI.getCurrent();
         getContent().addClassName("scenario-details-view");
         getContent().setPadding(false);
     }
@@ -176,7 +173,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
         backButton.addClickListener(e -> UI.getCurrent().navigate("scenarios"));
     }
 
-    private @NotNull Paragraph getParagraph() {
+    private Paragraph getParagraph() {
         Paragraph subtitle = new Paragraph(
                 String.format("Paziente: %s | Patologia: %s | Durata: %.1f minuti",
                         scenario.getNomePaziente(),
@@ -459,6 +456,8 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
                 "EtCO2: " + paziente.getEtCO2() + " mmHg",
                 "Monitor: " + paziente.getMonitor()
         );
+        grid.setWidth("250px");
+
         grid.addColumn(s -> s).setHeader("Parametro");
         grid.setAllRowsVisible(true);
         return grid;

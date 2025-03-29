@@ -25,3 +25,9 @@
 [theme~="light"] .app-header {
     border-bottom: 1px solid var(--lumo-contrast-10pct);
 }
+
+vaadin-grid-cell-content {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+}

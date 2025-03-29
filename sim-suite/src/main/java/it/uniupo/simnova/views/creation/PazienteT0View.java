@@ -1,5 +1,6 @@
 package it.uniupo.simnova.views.creation;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -43,10 +44,10 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
     private final NumberField etco2Field;
     private final TextArea monitorArea;
 
-    private final VerticalLayout venosiContainer;
-    private final VerticalLayout arteriosiContainer;
-    private final List<AccessoComponent> venosiAccessi = new ArrayList<>();
-    private final List<AccessoComponent> arteriosiAccessi = new ArrayList<>();
+    private static VerticalLayout venosiContainer = null;
+    private static VerticalLayout arteriosiContainer = null;
+    private static final List<AccessoComponent> venosiAccessi = new ArrayList<>();
+    private static final List<AccessoComponent> arteriosiAccessi = new ArrayList<>();
 
     public PazienteT0View(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
@@ -101,11 +102,6 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         venosiContainer.setPadding(false);
         venosiContainer.setVisible(false);
 
-        Button addVenosiButton = new Button("Aggiungi accesso venoso", new Icon(VaadinIcon.PLUS));
-        addVenosiButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        addVenosiButton.addClassName(LumoUtility.Margin.Top.SMALL);
-        addVenosiButton.addClickListener(e -> addAccessoVenoso());
-
         // Container per accessi arteriosi
         arteriosiContainer = new VerticalLayout();
         arteriosiContainer.setWidthFull();
@@ -113,16 +109,26 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         arteriosiContainer.setPadding(false);
         arteriosiContainer.setVisible(false);
 
-        Button addArteriosiButton = new Button("Aggiungi accesso arterioso", new Icon(VaadinIcon.PLUS));
+        Button addVenosiButton;
+        Button addArteriosiButton;
+
+        addVenosiButton = new Button("Aggiungi accesso venoso", new Icon(VaadinIcon.PLUS));
+        addVenosiButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        addVenosiButton.addClassName(LumoUtility.Margin.Top.SMALL);
+        addVenosiButton.setVisible(false); // Inizialmente nascosto
+        addVenosiButton.addClickListener(e -> addAccessoVenoso());
+
+        addArteriosiButton = new Button("Aggiungi accesso arterioso", new Icon(VaadinIcon.PLUS));
         addArteriosiButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addArteriosiButton.addClassName(LumoUtility.Margin.Top.SMALL);
+        addArteriosiButton.setVisible(false); // Inizialmente nascosto
         addArteriosiButton.addClickListener(e -> addAccessoArterioso());
 
-        // Checkbox per attivare sezioni accessi
         Checkbox venosiCheckbox = new Checkbox("Accessi venosi");
         venosiCheckbox.addClassName(LumoUtility.Margin.Top.MEDIUM);
         venosiCheckbox.addValueChangeListener(e -> {
             venosiContainer.setVisible(e.getValue());
+            addVenosiButton.setVisible(e.getValue()); // Mostra/nascondi il pulsante
             if (!e.getValue()) {
                 venosiAccessi.clear();
                 venosiContainer.removeAll();
@@ -133,6 +139,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         arteriosiCheckbox.addClassName(LumoUtility.Margin.Top.MEDIUM);
         arteriosiCheckbox.addValueChangeListener(e -> {
             arteriosiContainer.setVisible(e.getValue());
+            addArteriosiButton.setVisible(e.getValue()); // Mostra/nascondi il pulsante
             if (!e.getValue()) {
                 arteriosiAccessi.clear();
                 arteriosiContainer.removeAll();
@@ -304,10 +311,11 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
     private static class AccessoComponent extends HorizontalLayout {
         private final Select<String> tipoSelect;
         private final TextField posizioneField;
+        private final Button removeButton;
 
         public AccessoComponent(String tipo, int ignoredNumero) {
             setWidthFull();
-            setAlignItems(FlexComponent.Alignment.BASELINE);
+            setAlignItems(Alignment.BASELINE);
             setSpacing(true);
 
             tipoSelect = new Select<>();
@@ -315,18 +323,38 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
             if (tipo.equals("Venoso")) {
                 tipoSelect.setItems("Periferico", "Centrale", "PICC", "Midline", "Altro");
             } else {
-                tipoSelect.setItems("Radiale", "Femorale", "Umerale", "Altro");
+                tipoSelect.setItems("Radiale", "Femorale", "Omerale", "Altro");
             }
             tipoSelect.setWidth("200px");
 
             posizioneField = new TextField("Posizione");
             posizioneField.setWidthFull();
 
-            Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
+            removeButton = new Button(new Icon(VaadinIcon.TRASH));
             removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
             removeButton.getStyle().set("margin-top", "auto");
+            removeButton.addClickListener(e -> removeSelf()); // Aggiunto il listener
 
             add(tipoSelect, posizioneField, removeButton);
+        }
+
+        private void removeSelf() {
+            // Ottieni il parent (che dovrebbe essere il venosiContainer o arteriosiContainer)
+            Optional<Component> parentOpt = Optional.ofNullable(getParent().orElse(null));
+
+            parentOpt.ifPresent(parent -> {
+                if (parent instanceof VerticalLayout container) {
+                    // Rimuovi questo componente dal container
+                    container.remove(this);
+
+                    // Rimuovi anche dalla lista appropriata
+                    if (container == venosiContainer) {
+                        venosiAccessi.remove(this);
+                    } else if (container == arteriosiContainer) {
+                        arteriosiAccessi.remove(this);
+                    }
+                }
+            });
         }
 
         public AccessoData getData() {

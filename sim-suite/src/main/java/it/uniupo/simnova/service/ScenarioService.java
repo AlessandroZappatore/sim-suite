@@ -14,6 +14,11 @@ import java.util.Map;
 
 @Service
 public class ScenarioService {
+    private final FileStorageService fileStorageService;
+
+    public ScenarioService(FileStorageService fileStorageService) {
+        this.fileStorageService = fileStorageService;
+    }
 
     // 1. Metodi per Scenario (invariati)
     public Scenario getScenarioById(Integer id) {
@@ -490,41 +495,55 @@ public class ScenarioService {
         return esami;
     }
 
+    public List<String> getMediaFilesForScenario(int scenarioId) {
+        final String sql = "SELECT media FROM EsameReferto WHERE id_scenario = ? AND media IS NOT NULL";
+        List<String> files = new ArrayList<>();
+
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, scenarioId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String media = rs.getString("media");
+                if (media != null && !media.isEmpty()) {
+                    files.add(media);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return files;
+    }
+
     public boolean deleteScenario(int scenarioId) {
         Connection conn = null;
         try {
             conn = DBConnect.getInstance().getConnection();
-            conn.setAutoCommit(false); // Inizia una transazione
+            conn.setAutoCommit(false);
 
-            // 1. Elimina gli accessi venosi e arteriosi (tabelle di relazione)
+            // 1. Ottieni la lista dei file media da eliminare PRIMA di cancellare dal DB
+            List<String> mediaFiles = getMediaFilesForScenario(scenarioId);
+
+            // 2. Esegui tutte le operazioni di cancellazione dal DB
             deleteAccessi(conn, scenarioId, "AccessoVenoso");
             deleteAccessi(conn, scenarioId, "AccessoArterioso");
-
-            // 2. Elimina gli accessi stessi (potrebbero essere condivisi, ma li eliminiamo comunque)
             deleteRelatedAccessi(conn, scenarioId);
-
-            // 3. Elimina i tempi (per AdvancedScenario)
             deleteTempi(conn, scenarioId);
-
-            // 4. Elimina PatientSimulatedScenario (se esiste)
             deletePatientSimulatedScenario(conn, scenarioId);
-
-            // 5. Elimina AdvancedScenario (se esiste)
             deleteAdvancedScenario(conn, scenarioId);
-
-            // 6. Elimina esami referti
             deleteEsamiReferti(conn, scenarioId);
-
-            // 7. Elimina esame fisico
             deleteEsameFisico(conn, scenarioId);
-
-            // 8. Elimina paziente T0
             deletePazienteT0(conn, scenarioId);
-
-            // 9. Finalmente elimina lo scenario principale
             deleteScenarioPrincipale(conn, scenarioId);
 
             conn.commit(); // Conferma la transazione
+
+            // 3. Dopo il commit, elimina i file media
+            fileStorageService.deleteFiles(mediaFiles);
+
             return true;
         } catch (SQLException e) {
             if (conn != null) {
@@ -616,4 +635,56 @@ public class ScenarioService {
             stmt.executeUpdate();
         }
     }
+
+    public String getScenarioType(int idScenario) {
+        // Controlla se è uno Scenario base (presente solo nella tabella Scenario)
+        if (isPresentInTable(idScenario, "Scenario") &&
+                !isPresentInTable(idScenario, "AdvancedScenario")) {
+            return "Quick Scenario";
+        }
+
+        // Controlla se è un AdvancedScenario (presente in Scenario e AdvancedScenario)
+        if (isPresentInTable(idScenario, "AdvancedScenario")) {
+            // Verifica se è un PatientSimulatedScenario
+            if (isPresentInTable(idScenario, "PatientSimulatedScenario")) {
+                return "Patient Simulated Scenario";
+            }
+            return "Advanced Scenario";
+        }
+
+        // Se non è presente in nessuna tabella
+        return "ScenarioNotFound";
+    }
+
+    private boolean isPresentInTable(int id, String tableName) {
+        String sql = "SELECT 1 FROM " + tableName + " WHERE ";
+
+        // Costruisce la query in base al nome della tabella
+        switch(tableName) {
+            case "Scenario":
+                sql += "id_scenario = ?";
+                break;
+            case "AdvancedScenario":
+                sql += "id_advanced_scenario = ?";
+                break;
+            case "PatientSimulatedScenario":
+                sql += "id_patient_simulated_scenario = ?";
+                break;
+            default:
+                return false;
+        }
+
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next(); // Restituisce true se c'è almeno un risultato
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 }

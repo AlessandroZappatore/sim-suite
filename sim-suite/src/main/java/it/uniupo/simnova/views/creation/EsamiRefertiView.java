@@ -233,7 +233,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             // Componenti del form
             this.typeSelect = new Select<>();
             typeSelect.setLabel("Tipo Esame");
-            typeSelect.setItems("Emocromo", "Radiografia", "TAC", "RMN", "Ecografia");
+            typeSelect.setItems("Emocromo", "Radiografia", "TC", "RMN", "Ecografia");
             typeSelect.setWidthFull();
             typeSelect.setEmptySelectionAllowed(false); // Sostituisce setRequired(true)
 
