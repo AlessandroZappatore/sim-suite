@@ -1,10 +1,11 @@
 package it.uniupo.simnova.views.creation;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
@@ -15,11 +16,13 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
+import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.*;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -33,13 +36,14 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
     private final ScenarioService scenarioService;
     private Integer scenarioId;
     private Scenario scenario;
-    private UI ui; // Memorizza l'UI corrente
+    private UI ui;
 
     @Autowired
     public ScenarioDetailsView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
-        this.ui = UI.getCurrent(); // Ottieni l'UI nel costruttore
+        this.ui = UI.getCurrent();
         getContent().addClassName("scenario-details-view");
+        getContent().setPadding(false);
     }
 
     @Override
@@ -49,36 +53,41 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        this.ui = UI.getCurrent(); // Aggiorna l'UI prima di ogni accesso
+        if (scenarioId == null) {
+            Notification.show("ID scenario non valido", 3000, Position.MIDDLE);
+            UI.getCurrent().navigate("scenarios");
+            return;
+        }
         loadScenarioData();
     }
 
     private void loadScenarioData() {
-        // Mostra indicatore di caricamento
         getContent().removeAll();
-        getContent().add(new ProgressBar());
+        ProgressBar progressBar = new ProgressBar();
+        progressBar.setIndeterminate(true);
+        getContent().add(progressBar);
+
+        // Ottieni l'UI corrente prima di avviare il thread
+        final UI ui = UI.getCurrent();
 
         new Thread(() -> {
             try {
-                this.scenario = scenarioService.getScenarioById(scenarioId);
+                Scenario loadedScenario = scenarioService.getScenarioById(scenarioId);
 
-                if (ui != null && !ui.isClosing()) {
-                    ui.access(() -> {
-                        if (this.scenario == null) {
-                            Notification.show("Scenario non trovato", 3000, Position.MIDDLE);
-                            ui.navigate("scenarios");
-                            return;
-                        }
-                        initView();
-                    });
-                }
-            } catch (Exception e) {
-                if (ui != null && !ui.isClosing()) {
-                    ui.access(() -> {
-                        Notification.show("Errore nel caricamento dello scenario", 3000, Position.MIDDLE);
+                ui.access(() -> {
+                    if (loadedScenario == null) {
+                        Notification.show("Scenario non trovato", 3000, Position.MIDDLE);
                         ui.navigate("scenarios");
-                    });
-                }
+                        return;
+                    }
+                    this.scenario = loadedScenario;
+                    initView();
+                });
+            } catch (Exception e) {
+                ui.access(() -> {
+                    Notification.show("Errore nel caricamento: " + e.getMessage(), 3000, Position.MIDDLE);
+                    ui.navigate("scenarios");
+                });
             }
         }).start();
     }
@@ -90,9 +99,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
         mainLayout.setPadding(false);
         mainLayout.setSpacing(false);
 
-        // 1. HEADER
-        AppHeader header = new AppHeader();
-
+        // 1. HEADER - Rimuovi AppHeader e usa solo il custom header
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         backButton.getStyle().set("margin-right", "auto");
@@ -102,72 +109,53 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
         editButton.addClickListener(e ->
                 UI.getCurrent().navigate("edit-scenario/" + scenario.getId()));
 
-        HorizontalLayout customHeader = new HorizontalLayout(backButton, header, editButton);
+        // Aggiungi un titolo al posto di AppHeader
+        H2 pageTitle = new H2("Dettaglio Scenario");
+        pageTitle.getStyle()
+                .set("margin", "0 auto")
+                .set("padding", "0 1rem");
+
+        HorizontalLayout customHeader = new HorizontalLayout(backButton, pageTitle, editButton);
         customHeader.setWidthFull();
         customHeader.setPadding(true);
         customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
-        customHeader.expand(header);
+        customHeader.expand(pageTitle); // Centra il titolo
 
-        // 2. CONTENUTO PRINCIPALE
+        // 2. CONTENUTO PRINCIPALE (con accordion)
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.setWidth("100%");
         contentLayout.setMaxWidth("1200px");
-        contentLayout.setPadding(true);
+        contentLayout.setPadding(false);
         contentLayout.setSpacing(false);
-        contentLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        contentLayout.getStyle().set("margin", "0 auto");
 
         // Titolo e sottotitolo
         H2 title = new H2(scenario.getTitolo());
         title.addClassNames(
                 LumoUtility.TextAlignment.CENTER,
-                LumoUtility.Margin.Bottom.NONE
+                LumoUtility.Margin.Bottom.NONE,
+                LumoUtility.FontSize.XXLARGE
         );
 
-        Paragraph subtitle = new Paragraph(
-                String.format("Paziente: %s | Patologia: %s | Durata: %.1f minuti",
-                        scenario.getNomePaziente(),
-                        scenario.getPatologia(),
-                        scenario.getTimerGenerale())
-        );
-        subtitle.addClassNames(
-                LumoUtility.TextColor.SECONDARY,
-                LumoUtility.TextAlignment.CENTER,
-                LumoUtility.Margin.Top.NONE
-        );
+        Paragraph subtitle = getParagraph();
 
-        // Sezioni dettagliate
-        VerticalLayout detailsLayout = new VerticalLayout();
-        detailsLayout.setWidthFull();
-        detailsLayout.setPadding(false);
-        detailsLayout.setSpacing(false);
+        // Accordion principale
+        Accordion accordion = new Accordion();
+        accordion.setWidthFull();
 
-        // Sezioni base
-        addSection(detailsLayout, "Descrizione", scenario.getDescrizione());
-        addSection(detailsLayout, "Briefing", scenario.getBriefing());
-        addSection(detailsLayout, "Patto Aula", scenario.getPattoAula());
-        addSection(detailsLayout, "Azione Chiave", scenario.getAzioneChiave());
-        addSection(detailsLayout, "Obiettivo", scenario.getObiettivo());
-        addSection(detailsLayout, "Materiale", scenario.getMateriale());
-        addSection(detailsLayout, "Moulage", scenario.getMoulage());
-        addSection(detailsLayout, "Liquidi", scenario.getLiquidi());
+        // Aggiungi i pannelli
+        accordion.add("Informazioni Generali", createOverviewContent());
+        accordion.add("Stato Paziente", createPatientContent());
+        accordion.add("Esami e Referti", createExamsContent());
 
-        // Sezione Paziente T0
-        addPazienteT0Section(detailsLayout);
-
-        // Sezione Esame Fisico
-        addEsameFisicoSection(detailsLayout);
-
-        // Sezioni specifiche per tipi di scenario
         if (scenario instanceof AdvancedScenario) {
-            addAdvancedScenarioSections(detailsLayout, (AdvancedScenario) scenario);
+            accordion.add("Timeline", createTimelineContent());
         }
 
-        if (scenario instanceof PatientSimulatedScenario) {
-            addSection(detailsLayout, "Sceneggiatura",
-                    ((PatientSimulatedScenario)scenario).getSceneggiatura());
-        }
+        // Espandi il primo pannello di default
+        accordion.open(0);
 
-        contentLayout.add(title, subtitle, detailsLayout);
+        contentLayout.add(title, subtitle, accordion);
 
         // 3. FOOTER
         HorizontalLayout footerLayout = new HorizontalLayout(
@@ -185,141 +173,310 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
                 footerLayout
         );
 
-        // Listener pulsanti
-        backButton.addClickListener(e ->
-                UI.getCurrent().navigate("scenarios"));
+        backButton.addClickListener(e -> UI.getCurrent().navigate("scenarios"));
     }
 
-    private void addPazienteT0Section(VerticalLayout parentLayout) {
-        Details details = new Details("Stato iniziale paziente (T0)");
-        VerticalLayout content = new VerticalLayout();
-        content.setSpacing(true);
-        content.setPadding(false);
+    private @NotNull Paragraph getParagraph() {
+        Paragraph subtitle = new Paragraph(
+                String.format("Paziente: %s | Patologia: %s | Durata: %.1f minuti",
+                        scenario.getNomePaziente(),
+                        scenario.getPatologia(),
+                        scenario.getTimerGenerale())
+        );
+        subtitle.addClassNames(
+                LumoUtility.TextColor.SECONDARY,
+                LumoUtility.TextAlignment.CENTER,
+                LumoUtility.Margin.Top.NONE,
+                LumoUtility.FontSize.LARGE
+        );
+        return subtitle;
+    }
 
-        PazienteT0 paziente = scenario.getPazienteT0();
+    private VerticalLayout createOverviewContent() {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setPadding(false);
+        layout.setSpacing(true);
+        layout.setWidthFull();
+
+        // Card per informazioni base
+        Div card = new Div();
+        card.addClassName("info-card");
+        card.add(
+                createInfoItem("Descrizione", scenario.getDescrizione()),
+                createInfoItem("Briefing", scenario.getBriefing()),
+                createInfoItem("Patto Aula", scenario.getPattoAula()),
+                createInfoItem("Azione Chiave", scenario.getAzioneChiave()),
+                createInfoItem("Obiettivi Didattici", scenario.getObiettivo())
+        );
+
+        // Card per materiali e preparazione
+        Div prepCard = new Div();
+        prepCard.addClassName("info-card");
+        prepCard.add(
+                createInfoItem("Materiale Necessario", scenario.getMateriale()),
+                createInfoItem("Moulage", scenario.getMoulage()),
+                createInfoItem("Liquidi", scenario.getLiquidi())
+        );
+
+        layout.add(card, prepCard);
+        return layout;
+    }
+
+    private VerticalLayout createPatientContent() {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setPadding(false);
+        layout.setSpacing(true);
+        layout.setWidthFull();
+
+        // Sezione Paziente T0
+        PazienteT0 paziente = scenarioService.getPazienteT0ById(scenarioId);
         if (paziente != null) {
+            Div patientCard = new Div();
+            patientCard.addClassName("info-card");
+
             // Parametri vitali
-            Grid<String> parametriGrid = new Grid<>();
-            parametriGrid.setItems(
-                    "PA: " + paziente.getPA() + " mmHg",
-                    "FC: " + paziente.getFC() + " bpm",
-                    "RR: " + paziente.getRR() + " atti/min",
-                    "Temperatura: " + paziente.getT() + " °C",
-                    "SpO2: " + paziente.getSpO2() + "%",
-                    "EtCO2: " + paziente.getEtCO2() + " mmHg",
-                    "Monitor: " + paziente.getMonitor()
-            );
-            parametriGrid.addColumn(s -> s).setHeader("Parametro");
+            VerticalLayout vitalParams = new VerticalLayout();
+            vitalParams.setPadding(false);
+            vitalParams.setSpacing(false);
+            vitalParams.add(new H3("Parametri Vitali"));
 
-            // Accessi venosi
-            VerticalLayout venosiLayout = new VerticalLayout();
-            venosiLayout.setPadding(false);
-            venosiLayout.add(new H4("Accessi venosi"));
+            Grid<String> paramsGrid = createParamsGrid(paziente);
+            vitalParams.add(paramsGrid);
+
+            // Accessi venosi e arteriosi
+            VerticalLayout accessesLayout = new VerticalLayout();
+            accessesLayout.setPadding(false);
+            accessesLayout.setSpacing(true);
+
             if (!paziente.getAccessiVenosi().isEmpty()) {
-                venosiLayout.add(createAccessiGrid(paziente.getAccessiVenosi()));
-            } else {
-                venosiLayout.add(new Paragraph("Nessun accesso venoso"));
+                accessesLayout.add(new H4("Accessi Venosi"));
+                accessesLayout.add(createAccessiGrid(paziente.getAccessiVenosi()));
             }
 
-            // Accessi arteriosi
-            VerticalLayout arteriosiLayout = new VerticalLayout();
-            arteriosiLayout.setPadding(false);
-            arteriosiLayout.add(new H4("Accessi arteriosi"));
             if (!paziente.getAccessiArteriosi().isEmpty()) {
-                arteriosiLayout.add(createAccessiGrid(paziente.getAccessiArteriosi()));
-            } else {
-                arteriosiLayout.add(new Paragraph("Nessun accesso arterioso"));
+                accessesLayout.add(new H4("Accessi Arteriosi"));
+                accessesLayout.add(createAccessiGrid(paziente.getAccessiArteriosi()));
             }
 
-            content.add(
-                    new H3("Parametri vitali"),
-                    parametriGrid,
-                    venosiLayout,
-                    arteriosiLayout
-            );
+            patientCard.add(vitalParams);
+            if (accessesLayout.getComponentCount() > 0) {
+                patientCard.add(accessesLayout);
+            }
+
+            layout.add(patientCard);
         } else {
-            content.add(new Paragraph("Dati paziente non disponibili"));
+            layout.add(new Paragraph("Dati paziente non disponibili"));
         }
 
-        details.setContent(content);
-        details.setOpened(true);
-        parentLayout.add(details);
-    }
-
-    private void addEsameFisicoSection(VerticalLayout parentLayout) {
-        Details details = new Details("Esame Fisico");
-        VerticalLayout content = new VerticalLayout();
-        content.setSpacing(false);
-        content.setPadding(false);
-
-        EsameFisico esame = scenario.getEsameFisico();
+        // Sezione Esame Fisico
+        EsameFisico esame = scenarioService.getEsameFisicoById(scenarioId);
         if (esame != null && !esame.getSections().isEmpty()) {
-            // Get all sections from the map
+            Div examCard = new Div();
+            examCard.addClassName("info-card");
+            examCard.add(new H3("Esame Fisico"));
+
             Map<String, String> sections = esame.getSections();
+            VerticalLayout examLayout = new VerticalLayout();
+            examLayout.setPadding(false);
+            examLayout.setSpacing(false);
 
-            // Add each section if it has content
-            addSectionIfNotEmpty(content, "Generale", sections.get("Generale"));
-            addSectionIfNotEmpty(content, "Pupille", sections.get("Pupille"));
-            addSectionIfNotEmpty(content, "Collo", sections.get("Collo"));
-            addSectionIfNotEmpty(content, "Torace", sections.get("Torace"));
-            addSectionIfNotEmpty(content, "Cuore", sections.get("Cuore"));
-            addSectionIfNotEmpty(content, "Addome", sections.get("Addome"));
-            addSectionIfNotEmpty(content, "Retto", sections.get("Retto"));
-            addSectionIfNotEmpty(content, "Cute", sections.get("Cute"));
-            addSectionIfNotEmpty(content, "Estremità", sections.get("Estremita"));
-            addSectionIfNotEmpty(content, "Neurologico", sections.get("Neurologico"));
-            addSectionIfNotEmpty(content, "FAST", sections.get("FAST"));
+            addSectionIfNotEmpty(examLayout, "Generale", sections.get("Generale"));
+            addSectionIfNotEmpty(examLayout, "Pupille", sections.get("Pupille"));
+            addSectionIfNotEmpty(examLayout, "Collo", sections.get("Collo"));
+            addSectionIfNotEmpty(examLayout, "Torace", sections.get("Torace"));
+            addSectionIfNotEmpty(examLayout, "Cuore", sections.get("Cuore"));
+            addSectionIfNotEmpty(examLayout, "Addome", sections.get("Addome"));
+            addSectionIfNotEmpty(examLayout, "Retto", sections.get("Retto"));
+            addSectionIfNotEmpty(examLayout, "Cute", sections.get("Cute"));
+            addSectionIfNotEmpty(examLayout, "Estremità", sections.get("Estremità"));
+            addSectionIfNotEmpty(examLayout, "Neurologico", sections.get("Neurologico"));
+            addSectionIfNotEmpty(examLayout, "FAST", sections.get("FAST"));
 
-            // Check if all sections are empty
-            boolean allEmpty = sections.values().stream().allMatch(String::isEmpty);
-            if (allEmpty) {
-                content.add(new Paragraph("Nessun dato inserito per l'esame fisico"));
+            if (examLayout.getComponentCount() > 0) {
+                examCard.add(examLayout);
+                layout.add(examCard);
+            }
+        }
+
+        return layout;
+    }
+
+    private VerticalLayout createExamsContent() {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setPadding(false);
+        layout.setSpacing(true);
+        layout.setWidthFull();
+
+        // Ottieni gli esami/referti dal servizio
+        List<EsameReferto> esami = scenarioService.getEsamiRefertiByScenarioId(scenarioId);
+
+        if (esami != null && !esami.isEmpty()) {
+            for (EsameReferto esame : esami) {
+                Div examCard = new Div();
+                examCard.addClassName("exam-card");
+
+                H3 examTitle = new H3(esame.getTipo());
+
+                VerticalLayout examContent = new VerticalLayout();
+                examContent.setPadding(false);
+                examContent.setSpacing(true);
+
+                // Referto testuale
+                if (esame.getRefertoTestuale() != null && !esame.getRefertoTestuale().isEmpty()) {
+                    examContent.add(createInfoItem("Referto", esame.getRefertoTestuale()));
+                }
+
+                // Anteprima file multimediale
+                if (esame.getMedia() != null && !esame.getMedia().isEmpty()) {
+                    examContent.add(createMediaPreview(esame.getMedia()));
+                }
+
+                examCard.add(examTitle, examContent);
+                layout.add(examCard);
             }
         } else {
-            content.add(new Paragraph("Dati esame fisico non disponibili"));
+            layout.add(new Paragraph("Nessun esame/referto disponibile"));
         }
 
-        details.setContent(content);
-        parentLayout.add(details);
+        return layout;
     }
-    private void addSectionIfNotEmpty(VerticalLayout content, String title, String value) {
-        if (value != null && !value.trim().isEmpty()) {
-            addSection(content, title, value);
+
+    private Component createMediaPreview(String fileName) {
+        String fileExtension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+
+        Div previewContainer = new Div();
+        previewContainer.addClassName("media-preview");
+
+        // Usa il percorso corretto per accedere ai file
+        String mediaPath = "/media/" + fileName; // Percorso relativo alla root delle risorse
+
+        switch (fileExtension) {
+            case "jpg":
+            case "jpeg":
+            case "png":
+            case "gif":
+                Image image = new Image(mediaPath, "Anteprima immagine");
+                image.setMaxWidth("100%");
+                image.setHeight("auto");
+                image.getStyle().set("max-height", "300px");
+                previewContainer.add(image);
+                break;
+
+            case "pdf":
+                // Per PDF, mostriamo un'anteprima con un iframe
+                IFrame pdfPreview = new IFrame();
+                pdfPreview.setSrc(mediaPath);
+                pdfPreview.setWidth("100%");
+                pdfPreview.setHeight("500px");
+                pdfPreview.getStyle().set("border", "none");
+                previewContainer.add(pdfPreview);
+                break;
+
+            case "mp4":
+                // Video con controlli e autoplay disabilitato per l'anteprima
+                NativeVideo video = new NativeVideo();
+                video.setSrc(mediaPath);
+                video.setControls(true);
+                video.setWidth("100%");
+                video.getStyle().set("max-height", "300px");
+                previewContainer.add(video);
+                break;
+
+            case "mp3":
+                // Audio con controlli
+                NativeAudio audio = new NativeAudio();
+                audio.setSrc(mediaPath);
+                audio.setControls(true);
+                audio.setWidth("100%");
+                previewContainer.add(audio);
+                break;
+
+            default:
+                // Per altri formati mostra semplicemente il nome del file
+                previewContainer.add(new Span("File: " + fileName));
+                Button viewButton = new Button("Visualizza", e -> openFullMedia(fileName));
+                previewContainer.add(viewButton);
         }
+
+        // Pulsante per aprire il file a schermo intero
+        Button fullscreenButton = new Button("Apri a schermo intero",
+                new Icon(VaadinIcon.EXPAND_SQUARE));
+        fullscreenButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        fullscreenButton.addClickListener(e -> openFullMedia(fileName));
+
+        previewContainer.add(fullscreenButton);
+        return previewContainer;
     }
-    private void addAdvancedScenarioSections(VerticalLayout parentLayout, AdvancedScenario advancedScenario) {
-        Details details = new Details("Tempi (" + advancedScenario.getTempi().size() + ")");
-        VerticalLayout content = new VerticalLayout();
-        content.setSpacing(true);
-        content.setPadding(false);
 
-        for (Tempo tempo : advancedScenario.getTempi()) {
-            VerticalLayout tempoLayout = new VerticalLayout();
-            tempoLayout.setSpacing(false);
-            tempoLayout.setPadding(false);
+    private void openFullMedia(String fileName) {
+        // Implementa l'apertura del file completo
+        UI.getCurrent().getPage().open("media/" + fileName, "_blank");
+    }
 
-            H4 tempoTitle = new H4("Tempo ID " + tempo.getId() + " - Durata: " + tempo.getTimer_tempo() + " min");
+    private VerticalLayout createTimelineContent() {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setPadding(false);
+        layout.setSpacing(true);
+        layout.setWidthFull();
 
-            Grid<String> parametriGrid = new Grid<>();
-            parametriGrid.setItems(
-                    "Azione: " + tempo.getAzione(),
-                    "PA: " + tempo.getPA() + " mmHg",
-                    "FC: " + tempo.getFC() + " bpm",
-                    "RR: " + tempo.getRR() + " atti/min",
-                    "Temperatura: " + tempo.getT() + " °C",
-                    "SpO2: " + tempo.getSpO2() + "%",
-                    "EtCO2: " + tempo.getEtCO2() + " mmHg",
-                    "Altri dettagli: " + tempo.getAltriDettagli()
-            );
-            parametriGrid.addColumn(s -> s).setHeader("Parametro");
+        if (scenario instanceof AdvancedScenario advancedScenario) {
+            for (Tempo tempo : advancedScenario.getTempi()) {
+                Div timeCard = new Div();
+                timeCard.addClassName("time-card");
 
-            tempoLayout.add(tempoTitle, parametriGrid);
-            content.add(tempoLayout, new Hr());
+                H3 timeTitle = new H3(String.format("Tempo %d - %s (%.1f min)",
+                        tempo.getIdTempo(),
+                        tempo.getAzione(),
+                        tempo.getTimerTempo()));
+
+                Grid<String> paramsGrid = createTimelineParamsGrid(tempo);
+
+                if (tempo.getAltriDettagli() != null && !tempo.getAltriDettagli().isEmpty()) {
+                    timeCard.add(
+                            timeTitle,
+                            paramsGrid,
+                            new Paragraph(tempo.getAltriDettagli())
+                    );
+                } else {
+                    timeCard.add(timeTitle, paramsGrid);
+                }
+
+                layout.add(timeCard);
+            }
         }
 
-        details.setContent(content);
-        details.setOpened(true);
-        parentLayout.add(details);
+        return layout;
+    }
+
+    private Grid<String> createParamsGrid(PazienteT0 paziente) {
+        Grid<String> grid = new Grid<>();
+        grid.setItems(
+                "PA: " + paziente.getPA() + " mmHg",
+                "FC: " + paziente.getFC() + " bpm",
+                "RR: " + paziente.getRR() + " atti/min",
+                "Temperatura: " + paziente.getT() + " °C",
+                "SpO2: " + paziente.getSpO2() + "%",
+                "EtCO2: " + paziente.getEtCO2() + " mmHg",
+                "Monitor: " + paziente.getMonitor()
+        );
+        grid.addColumn(s -> s).setHeader("Parametro");
+        grid.setAllRowsVisible(true);
+        return grid;
+    }
+
+    private Grid<String> createTimelineParamsGrid(Tempo tempo) {
+        Grid<String> grid = new Grid<>();
+        grid.setItems(
+                "PA: " + tempo.getPA() + " mmHg",
+                "FC: " + tempo.getFC() + " bpm",
+                "RR: " + tempo.getRR() + " atti/min",
+                "Temperatura: " + tempo.getT() + " °C",
+                "SpO2: " + tempo.getSpO2() + "%",
+                "EtCO2: " + tempo.getEtCO2() + " mmHg"
+        );
+        grid.addColumn(s -> s).setHeader("Parametro");
+        grid.setAllRowsVisible(true);
+        return grid;
     }
 
     private Grid<Accesso> createAccessiGrid(List<Accesso> accessi) {
@@ -334,25 +491,77 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
                 .setHeader("Posizione")
                 .setAutoWidth(true);
 
-        //grid.setHeightByRows(true);
+        grid.setAllRowsVisible(true);
         return grid;
     }
 
-    private void addSection(VerticalLayout layout, String title, String content) {
-        if (content == null || content.isEmpty()) return;
+    private VerticalLayout createInfoItem(String title, String content) {
+        if (content == null || content.isEmpty()) {
+            return new VerticalLayout();
+        }
 
-        H3 sectionTitle = new H3(title);
-        sectionTitle.addClassNames(
-                LumoUtility.Margin.Top.MEDIUM,
-                LumoUtility.Margin.Bottom.SMALL
-        );
+        VerticalLayout layout = new VerticalLayout();
+        layout.setPadding(false);
+        layout.setSpacing(false);
 
-        Paragraph sectionContent = new Paragraph(content);
-        sectionContent.setWidthFull();
-        sectionContent.getStyle()
+        H4 itemTitle = new H4(title);
+        itemTitle.addClassName(LumoUtility.Margin.Bottom.XSMALL);
+
+        Paragraph itemContent = new Paragraph(content);
+        itemContent.getStyle()
                 .set("white-space", "pre-line")
                 .set("margin-top", "0");
 
-        layout.add(sectionTitle, sectionContent);
+        layout.add(itemTitle, itemContent);
+        return layout;
+    }
+
+    private void addSectionIfNotEmpty(VerticalLayout content, String title, String value) {
+        if (value != null && !value.trim().isEmpty()) {
+            content.add(createInfoItem(title, value));
+        }
+
+    }
+
+    /**
+     * Componente per la riproduzione di video nativo
+     */
+    private static class NativeVideo extends Component {
+        public NativeVideo() {
+            super(new Element("video"));
+        }
+
+        public void setSrc(String src) {
+            getElement().setAttribute("src", src);
+        }
+
+        public void setControls(boolean controls) {
+            getElement().setAttribute("controls", controls);
+        }
+
+        public void setWidth(String width) {
+            getElement().setAttribute("width", width);
+        }
+    }
+
+    /**
+     * Componente per la riproduzione di audio nativo
+     */
+    private static class NativeAudio extends Component {
+        public NativeAudio() {
+            super(new Element("audio"));
+        }
+
+        public void setSrc(String src) {
+            getElement().setAttribute("src", src);
+        }
+
+        public void setControls(boolean controls) {
+            getElement().setAttribute("controls", controls);
+        }
+
+        public void setWidth(String width) {
+            getElement().getStyle().set("width", width);
+        }
     }
 }

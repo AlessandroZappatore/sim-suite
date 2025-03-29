@@ -1,7 +1,5 @@
 package it.uniupo.simnova.api.model;
 
-import java.util.Map;
-
 public class Scenario {
     private int id;
     private String titolo;
@@ -16,10 +14,8 @@ public class Scenario {
     private String moulage;
     private String liquidi;
     private float timer_generale;
-    private EsameFisico esame_fisico;
-    private PazienteT0 paziente_t0;
 
-    public Scenario(int id, String titolo, String nome_paziente, String patologia, String descrizione, String briefing, String patto_aula, String azione_chiave, String obiettivo, String materiale, String moulage, String liquidi, float timer_generale, EsameFisico esame_fisico, PazienteT0 paziente_t0) {
+    public Scenario(int id, String titolo, String nome_paziente, String patologia, String descrizione, String briefing, String patto_aula, String azione_chiave, String obiettivo, String materiale, String moulage, String liquidi, float timer_generale) {
         this.id = id;
         this.titolo = titolo;
         this.nome_paziente = nome_paziente;
@@ -38,8 +34,6 @@ public class Scenario {
         else{
             this.timer_generale = timer_generale;
         }
-        this.esame_fisico = esame_fisico;
-        this.paziente_t0 = paziente_t0;
     }
 
     public Scenario(int id, String titolo, String nome_paziente, String patologia, float timer_generale) {
@@ -106,13 +100,6 @@ public class Scenario {
         return timer_generale;
     }
 
-    public EsameFisico getEsameFisico() {return  esame_fisico;
-    }
-
-    public PazienteT0 getPazienteT0() {
-        return paziente_t0;
-    }
-
     public void setId(int id) {
         this.id = id;
     }
@@ -161,16 +148,8 @@ public class Scenario {
         this.liquidi = liquidi;
     }
 
-    public void setEsameFisico(EsameFisico esame_fisico) {
-        this.esame_fisico = esame_fisico;
-    }
-
-    public void setPazienteT0(PazienteT0 paziente_t0) {
-        this.paziente_t0 = paziente_t0;
-    }
-
     @Override
     public String toString() {
-        return "Scenario{id=" + id + ", titolo=" + titolo + ", nome_paziente=" + nome_paziente + ", patologia=" + patologia + ", descrizione=" + descrizione + ", briefing=" + briefing + ", patto_aula=" + patto_aula + ", azione_chiave=" + azione_chiave + ", obiettivo=" + obiettivo + ", materiale=" + materiale + ", moulage=" + moulage + ", liquidi=" + liquidi + ", esame_fisico=" + esame_fisico + ", paziente_t0=" + paziente_t0 + "}";
+        return "Scenario{id=" + id + ", titolo=" + titolo + ", nome_paziente=" + nome_paziente + ", patologia=" + patologia + ", descrizione=" + descrizione + ", briefing=" + briefing + ", patto_aula=" + patto_aula + ", azione_chiave=" + azione_chiave + ", obiettivo=" + obiettivo + ", materiale=" + materiale + ", moulage=" + moulage + ", liquidi=" + liquidi + "}";
     }
 }

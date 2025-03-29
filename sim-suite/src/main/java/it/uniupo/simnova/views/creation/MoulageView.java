@@ -28,7 +28,7 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
 
     private final ScenarioService scenarioService;
     private Integer scenarioId;
-    private TextArea moulageArea;
+    private final TextArea moulageArea;
 
     public MoulageView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;

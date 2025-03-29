@@ -1,62 +1,72 @@
 package it.uniupo.simnova.api.model;
 
 public class EsameReferto {
-    private int id;
+    private int idEsame;
     private int id_scenario;
     private String tipo;
     private String media;
-    private String referto_testuale;
+    private String refertoTestuale;
 
-    public EsameReferto(int id, int id_scenario, String tipo, String media, String referto_testuale) {
-        this.id = id;
-        this.id_scenario = id_scenario;
+    public EsameReferto(int idEsame, int scenario, String tipo, String media, String refertoTestuale) {
+        this.idEsame = idEsame;
+        this.id_scenario = scenario;
         this.tipo = tipo;
         this.media = media;
-        this.referto_testuale = referto_testuale;
+        this.refertoTestuale = refertoTestuale;
     }
 
-    public int getId() {
-        return id;
+    public EsameReferto(){
+
     }
 
-    public int getIdScenario() {
+    public int getIdEsame() {
+        return idEsame;
+    }
+
+    public void setIdEsame(int idEsame) {
+        this.idEsame = idEsame;
+    }
+
+    public int getScenario() {
         return id_scenario;
-    }
-
-    public String getTipo() {
-        return tipo;
-    }
-
-    public String getMedia() {
-        return media;
-    }
-
-    public String getRefertoTestuale() {
-        return referto_testuale;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public void setIdScenario(int id_scenario) {
         this.id_scenario = id_scenario;
     }
 
+    public String getTipo() {
+        return tipo;
+    }
+
     public void setTipo(String tipo) {
         this.tipo = tipo;
+    }
+
+    public String getMedia() {
+        return media;
     }
 
     public void setMedia(String media) {
         this.media = media;
     }
 
-    public void setRefertoTestuale(String referto_testuale) {
-        this.referto_testuale = referto_testuale;
+    public String getRefertoTestuale() {
+        return refertoTestuale;
+    }
+
+    public void setRefertoTestuale(String refertoTestuale) {
+        this.refertoTestuale = refertoTestuale;
     }
 
     @Override
     public String toString() {
-        return "EsameReferto [id=" + id + ", id_scenario=" + id_scenario + ", tipo=" + tipo + ", media=" + media + ", referto_testuale=" + referto_testuale + "]";
+        return "EsameReferto{" +
+                "idEsame=" + idEsame +
+                ", scenario=" + id_scenario +
+                ", tipo='" + tipo + '\'' +
+                ", media='" + media + '\'' +
+                ", refertoTestuale='" + refertoTestuale + '\'' +
+                '}';
     }
 }

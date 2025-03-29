@@ -28,7 +28,7 @@ public class PattoaulaView extends Composite<VerticalLayout> implements HasUrlPa
 
     private final ScenarioService scenarioService;
     private Integer scenarioId;
-    private TextArea pattoAulaArea;
+    private final TextArea pattoAulaArea;
 
     public PattoaulaView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;

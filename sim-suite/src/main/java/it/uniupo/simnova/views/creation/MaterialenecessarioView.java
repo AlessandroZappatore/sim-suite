@@ -28,7 +28,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
 
     private final ScenarioService scenarioService;
     private Integer scenarioId;
-    private TextArea materialeArea;
+    private final TextArea materialeArea;
 
     public MaterialenecessarioView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;

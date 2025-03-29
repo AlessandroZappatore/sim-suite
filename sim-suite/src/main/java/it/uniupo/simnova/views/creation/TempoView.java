@@ -15,6 +15,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.timepicker.TimePicker;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
@@ -36,7 +37,7 @@ public class TempoView extends Composite<VerticalLayout> {
     private final VerticalLayout timeSectionsContainer;
     private final List<TimeSection> timeSections = new ArrayList<>();
     private int timeCount = 1;
-    private Button nextButton;
+    private final Button nextButton;
 
     public TempoView() {
         // Configurazione layout principale
@@ -161,11 +162,19 @@ public class TempoView extends Composite<VerticalLayout> {
         return field;
     }
 
+    private TextField createTextField(){
+        TextField field = new TextField("PA (mmHg)");
+        field.setSuffixComponent(new Paragraph("mmHg"));
+        field.setWidthFull();
+        field.addClassName(LumoUtility.Margin.Bottom.SMALL);
+        return field;
+    }
+
     private class TimeSection {
         private final int timeNumber;
         private final VerticalLayout layout;
         private final TimePicker timerPicker;
-        private final NumberField paField;
+        private final TextField paField;
         private final NumberField fcField;
         private final NumberField rrField;
         private final NumberField tField;
@@ -204,7 +213,7 @@ public class TempoView extends Composite<VerticalLayout> {
             );
             medicalParamsForm.setWidthFull();
 
-            paField = createMedicalField("PA (mmHg)", "mmHg");
+            paField = createTextField();
             fcField = createMedicalField("FC (bpm)", "battiti/min");
             rrField = createMedicalField("FR (rpm)", "respiri/min");
             tField = createMedicalField("Temperatura (°C)", "°C");
@@ -225,8 +234,7 @@ public class TempoView extends Composite<VerticalLayout> {
                     .set("width", "100%");
             actionTitle.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
 
-            actionDetailsArea = new TextArea(timeNumber == 0 ?
-                    "Descrizione situazione iniziale" : "Descrizione azione da svolgere");
+            actionDetailsArea = new TextArea("Azione da svolgere per passare al prossimo Tn");
             actionDetailsArea.setWidthFull();
             actionDetailsArea.setMinHeight("100px");
             actionDetailsArea.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
@@ -282,7 +290,7 @@ public class TempoView extends Composite<VerticalLayout> {
 
         public void saveData() {
             LocalTime time = timerPicker.getValue();
-            double pa = paField.getValue() != null ? paField.getValue() : 0;
+            String pa = paField.getValue() != null ? paField.getValue() : "0/0";
             double fc = fcField.getValue() != null ? fcField.getValue() : 0;
             double rr = rrField.getValue() != null ? rrField.getValue() : 0;
             double t = tField.getValue() != null ? tField.getValue() : 0;
@@ -290,8 +298,8 @@ public class TempoView extends Composite<VerticalLayout> {
             double etco2 = etco2Field.getValue() != null ? etco2Field.getValue() : 0;
 
             String actionDescription = actionDetailsArea.getValue();
-            Integer nextTimeIfYes = timeIfYesField.getValue() != null ? timeIfYesField.getValue() : 0;
-            Integer nextTimeIfNo = timeIfNoField.getValue() != null ? timeIfNoField.getValue() : 0;
+            int nextTimeIfYes = timeIfYesField.getValue() != null ? timeIfYesField.getValue() : 0;
+            int nextTimeIfNo = timeIfNoField.getValue() != null ? timeIfNoField.getValue() : 0;
             String additionalDetails = additionalDetailsArea.getValue();
 
             // Qui puoi implementare la logica per salvare i dati

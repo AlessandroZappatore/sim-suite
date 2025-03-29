@@ -17,7 +17,6 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.EsameFisico;
-import it.uniupo.simnova.api.model.Scenario;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
 
@@ -32,19 +31,42 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
 
     private final ScenarioService scenarioService;
     private Integer scenarioId;
-    private Map<String, TextArea> examSections = new HashMap<>();
+    private final Map<String, TextArea> examSections = new HashMap<>();
 
     public EsamefisicoView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
+        setupView();
+    }
 
-        // Configurazione layout principale
+    private void setupView() {
         VerticalLayout mainLayout = getContent();
         mainLayout.setSizeFull();
         mainLayout.setPadding(false);
         mainLayout.setSpacing(false);
         mainLayout.getStyle().set("min-height", "100vh");
 
-        // 1. HEADER con pulsante indietro
+        // 1. HEADER
+        setupHeader(mainLayout);
+
+        // 2. CONTENUTO PRINCIPALE
+        VerticalLayout contentLayout = new VerticalLayout();
+        contentLayout.setWidth("100%");
+        contentLayout.setMaxWidth("1200px");
+        contentLayout.setPadding(true);
+        contentLayout.setSpacing(false);
+        contentLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        contentLayout.getStyle()
+                .set("margin", "0 auto")
+                .set("flex-grow", "1");
+
+        setupTitle(contentLayout);
+        setupExamSections(contentLayout);
+
+        // 3. FOOTER
+        setupFooter(mainLayout, contentLayout);
+    }
+
+    private void setupHeader(VerticalLayout mainLayout) {
         AppHeader header = new AppHeader();
 
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
@@ -58,18 +80,13 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
         customHeader.add(backButton, header);
         customHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
-        // 2. CONTENUTO PRINCIPALE
-        VerticalLayout contentLayout = new VerticalLayout();
-        contentLayout.setWidth("100%");
-        contentLayout.setMaxWidth("1200px");
-        contentLayout.setPadding(true);
-        contentLayout.setSpacing(false);
-        contentLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        contentLayout.getStyle()
-                .set("margin", "0 auto")
-                .set("flex-grow", "1");
+        backButton.addClickListener(e ->
+                backButton.getUI().ifPresent(ui -> ui.navigate("pazienteT0/" + scenarioId)));
 
-        // Titolo della pagina
+        mainLayout.add(customHeader);
+    }
+
+    private void setupTitle(VerticalLayout contentLayout) {
         H2 pageTitle = new H2("ESAME FISICO");
         pageTitle.addClassNames(
                 LumoUtility.TextAlignment.CENTER,
@@ -80,13 +97,15 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
                 .set("font-size", "var(--lumo-font-size-xxl)")
                 .set("color", "var(--lumo-primary-text-color)");
 
-        // Creazione delle sezioni di esame
+        contentLayout.add(pageTitle);
+    }
+
+    private void setupExamSections(VerticalLayout contentLayout) {
         VerticalLayout examSectionsLayout = new VerticalLayout();
         examSectionsLayout.setWidthFull();
         examSectionsLayout.setSpacing(true);
         examSectionsLayout.setPadding(false);
 
-        // Definizione delle sezioni dell'esame fisico
         String[][] sections = {
                 {"Generale", "Stato generale, livello di coscienza, etc."},
                 {"Pupille", "Dimensione, reattività, simmetria"},
@@ -101,16 +120,16 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
                 {"FAST", "Focused Assessment with Sonography for Trauma"}
         };
 
-        // Aggiungi tutte le sezioni richieste
         for (String[] section : sections) {
             TextArea area = createExamSection(section[0], section[1]);
             examSections.put(section[0], area);
             examSectionsLayout.add(area);
         }
 
-        contentLayout.add(pageTitle, examSectionsLayout);
+        contentLayout.add(examSectionsLayout);
+    }
 
-        // 3. FOOTER
+    private void setupFooter(VerticalLayout mainLayout, VerticalLayout contentLayout) {
         HorizontalLayout footerLayout = new HorizontalLayout();
         footerLayout.setWidthFull();
         footerLayout.setPadding(true);
@@ -128,16 +147,9 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
 
         footerLayout.add(credits, nextButton);
 
-        // Aggiunta dei layout principali
-        mainLayout.add(customHeader, contentLayout, footerLayout);
+        nextButton.addClickListener(e -> saveExamAndNavigate(nextButton.getUI()));
 
-        // Listener per i pulsanti
-        backButton.addClickListener(e ->
-                backButton.getUI().ifPresent(ui -> ui.navigate("pazienteT0/" + scenarioId)));
-
-        nextButton.addClickListener(e -> {
-            saveExamAndNavigate(nextButton.getUI());
-        });
+        mainLayout.add(contentLayout, footerLayout);
     }
 
     @Override
@@ -168,32 +180,18 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
     }
 
     private void loadExistingExamData() {
-        Scenario scenario = scenarioService.getScenarioById(scenarioId);
-        if (scenario != null) {
-            EsameFisico esameFisico = scenario.getEsameFisico();
+        EsameFisico esameFisico = scenarioService.getEsameFisicoById(scenarioId);
 
-            if (esameFisico != null) {
-                // Get all sections from the exam
-                Map<String, String> savedSections = esameFisico.getSections();
-
-                // Update only the UI fields that exist in our view
-                savedSections.forEach((sectionName, value) -> {
-                    TextArea textArea = examSections.get(sectionName);
-                    if (textArea != null) {
-                        textArea.setValue(value != null ? value : "");
-                    }
-                });
-
-                // Initialize any missing sections with empty values
-                examSections.keySet().forEach(sectionName -> {
-                    if (!savedSections.containsKey(sectionName)) {
-                        examSections.get(sectionName).setValue("");
-                    }
-                });
-            } else {
-                // Initialize all fields with empty values if no exam exists
-                examSections.values().forEach(textArea -> textArea.setValue(""));
-            }
+        if (esameFisico != null) {
+            Map<String, String> savedSections = esameFisico.getSections();
+            savedSections.forEach((sectionName, value) -> {
+                TextArea textArea = examSections.get(sectionName);
+                if (textArea != null) {
+                    textArea.setValue(value != null ? value : "");
+                }
+            });
+        } else {
+            examSections.values().forEach(textArea -> textArea.setValue(""));
         }
     }
 
@@ -205,9 +203,7 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
 
             try {
                 Map<String, String> examData = new HashMap<>();
-                examSections.forEach((section, area) -> {
-                    examData.put(section, area.getValue());
-                });
+                examSections.forEach((section, area) -> examData.put(section, area.getValue()));
 
                 boolean success = scenarioService.addEsameFisico(
                         scenarioId, examData
@@ -216,7 +212,7 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
                     if (success) {
-                        ui.navigate("parametri/" + scenarioId);
+                        ui.navigate("scenario-details/" + scenarioId);
                     } else {
                         Notification.show("Errore durante il salvataggio dell'esame fisico",
                                 3000, Notification.Position.MIDDLE);

@@ -28,7 +28,7 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
 
     private final ScenarioService scenarioService;
     private Integer scenarioId;
-    private TextArea azioniChiaveArea;
+    private final TextArea azioniChiaveArea;
 
     public AzionechiaveView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;

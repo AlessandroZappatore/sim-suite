@@ -1,6 +1,7 @@
 package it.uniupo.simnova.views.creation;
 
 import com.vaadin.flow.component.Composite;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -8,27 +9,48 @@ import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextArea;
-import com.vaadin.flow.router.Menu;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 @PageTitle("Parametri Paziente T0")
-@Route("pazienteT0")
+@Route(value = "pazienteT0")
 @Menu(order = 12)
-public class PazienteT0View extends Composite<VerticalLayout> {
+public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlParameter<String> {
 
-    private Select<String> venosiSelect;
-    private Select<String> arteriosiSelect;
+    private final ScenarioService scenarioService;
+    private Integer scenarioId;
 
-    public PazienteT0View() {
+    private final TextField paField;
+    private final NumberField fcField;
+    private final NumberField rrField;
+    private final NumberField tempField;
+    private final NumberField spo2Field;
+    private final NumberField etco2Field;
+    private final TextArea monitorArea;
+
+    private final VerticalLayout venosiContainer;
+    private final VerticalLayout arteriosiContainer;
+    private final List<AccessoComponent> venosiAccessi = new ArrayList<>();
+    private final List<AccessoComponent> arteriosiAccessi = new ArrayList<>();
+
+    public PazienteT0View(ScenarioService scenarioService) {
+        this.scenarioService = scenarioService;
+
         // Configurazione layout principale
         VerticalLayout mainLayout = getContent();
         mainLayout.setSizeFull();
@@ -65,45 +87,60 @@ public class PazienteT0View extends Composite<VerticalLayout> {
         title.addClassName(LumoUtility.Margin.Bottom.LARGE);
 
         // Campi parametri vitali
-        NumberField paField = createNumberField("PA (mmHg)", "120/80");
-        NumberField fcField = createNumberField("FC (bpm)", "72");
-        NumberField rrField = createNumberField("FR (atti/min)", "16");
-        NumberField tempField = createNumberField("Temperatura (°C)", "36.5");
-        NumberField spo2Field = createNumberField("SpO₂ (%)", "98");
-        NumberField etco2Field = createNumberField("EtCO₂ (mmHg)", "35");
+        paField = createTextField();
+        fcField = createNumberField("FC (bpm)", "72");
+        rrField = createNumberField("FR (atti/min)", "16");
+        tempField = createNumberField("Temperatura (°C)", "36.5");
+        spo2Field = createNumberField("SpO₂ (%)", "98");
+        etco2Field = createNumberField("EtCO₂ (mmHg)", "35");
 
-        // Checkbox e select per accessi
+        // Container per accessi venosi
+        venosiContainer = new VerticalLayout();
+        venosiContainer.setWidthFull();
+        venosiContainer.setSpacing(true);
+        venosiContainer.setPadding(false);
+        venosiContainer.setVisible(false);
+
+        Button addVenosiButton = new Button("Aggiungi accesso venoso", new Icon(VaadinIcon.PLUS));
+        addVenosiButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        addVenosiButton.addClassName(LumoUtility.Margin.Top.SMALL);
+        addVenosiButton.addClickListener(e -> addAccessoVenoso());
+
+        // Container per accessi arteriosi
+        arteriosiContainer = new VerticalLayout();
+        arteriosiContainer.setWidthFull();
+        arteriosiContainer.setSpacing(true);
+        arteriosiContainer.setPadding(false);
+        arteriosiContainer.setVisible(false);
+
+        Button addArteriosiButton = new Button("Aggiungi accesso arterioso", new Icon(VaadinIcon.PLUS));
+        addArteriosiButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        addArteriosiButton.addClassName(LumoUtility.Margin.Top.SMALL);
+        addArteriosiButton.addClickListener(e -> addAccessoArterioso());
+
+        // Checkbox per attivare sezioni accessi
         Checkbox venosiCheckbox = new Checkbox("Accessi venosi");
         venosiCheckbox.addClassName(LumoUtility.Margin.Top.MEDIUM);
-
-        venosiSelect = new Select<>();
-        venosiSelect.setLabel("Tipo accesso venoso");
-        venosiSelect.setItems("Periferico", "Centrale", "PICC", "Midline", "Altro");
-        venosiSelect.setWidthFull();
-        venosiSelect.setVisible(false);
+        venosiCheckbox.addValueChangeListener(e -> {
+            venosiContainer.setVisible(e.getValue());
+            if (!e.getValue()) {
+                venosiAccessi.clear();
+                venosiContainer.removeAll();
+            }
+        });
 
         Checkbox arteriosiCheckbox = new Checkbox("Accessi arteriosi");
         arteriosiCheckbox.addClassName(LumoUtility.Margin.Top.MEDIUM);
-
-        arteriosiSelect = new Select<>();
-        arteriosiSelect.setLabel("Tipo accesso arterioso");
-        arteriosiSelect.setItems("Radiale", "Femorale", "Umerale", "Altro");
-        arteriosiSelect.setWidthFull();
-        arteriosiSelect.setVisible(false);
-
-        // Listener per checkbox
-        venosiCheckbox.addValueChangeListener(e -> {
-            venosiSelect.setVisible(e.getValue());
-            if (!e.getValue()) venosiSelect.clear();
-        });
-
         arteriosiCheckbox.addValueChangeListener(e -> {
-            arteriosiSelect.setVisible(e.getValue());
-            if (!e.getValue()) arteriosiSelect.clear();
+            arteriosiContainer.setVisible(e.getValue());
+            if (!e.getValue()) {
+                arteriosiAccessi.clear();
+                arteriosiContainer.removeAll();
+            }
         });
 
         // Area testo per monitor
-        TextArea monitorArea = new TextArea("Monitoraggio");
+        monitorArea = new TextArea("Monitoraggio");
         monitorArea.setPlaceholder("Specificare dettagli ECG o altri parametri...");
         monitorArea.setWidthFull();
         monitorArea.setMinHeight("150px");
@@ -113,8 +150,8 @@ public class PazienteT0View extends Composite<VerticalLayout> {
         contentLayout.add(
                 title,
                 paField, fcField, rrField, tempField, spo2Field, etco2Field,
-                venosiCheckbox, venosiSelect,
-                arteriosiCheckbox, arteriosiSelect,
+                venosiCheckbox, venosiContainer, addVenosiButton,
+                arteriosiCheckbox, arteriosiContainer, addArteriosiButton,
                 monitorArea
         );
 
@@ -145,12 +182,34 @@ public class PazienteT0View extends Composite<VerticalLayout> {
 
         // Listener per i pulsanti
         backButton.addClickListener(e ->
-                backButton.getUI().ifPresent(ui -> ui.navigate("liquidi")));
+                backButton.getUI().ifPresent(ui -> ui.navigate("liquidi/" + scenarioId)));
 
         nextButton.addClickListener(e -> {
-            // Qui puoi aggiungere la logica per salvare i dati
-            nextButton.getUI().ifPresent(ui -> ui.navigate("esamefisico"));
+            if (!validateInput()) {
+                Notification.show("Compila tutti i campi obbligatori", 3000, Notification.Position.MIDDLE);
+                return;
+            }
+            saveDataAndNavigate(nextButton.getUI());
         });
+    }
+
+    @Override
+    public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
+        try {
+            if (parameter == null || parameter.trim().isEmpty()) {
+                throw new NumberFormatException();
+            }
+
+            this.scenarioId = Integer.parseInt(parameter);
+            if (scenarioId <= 0) {
+                throw new NumberFormatException();
+            }
+
+            // Qui potresti caricare i dati esistenti se presenti
+            // loadExistingData();
+        } catch (NumberFormatException e) {
+            event.rerouteToError(NotFoundException.class, "ID scenario non valido");
+        }
     }
 
     private NumberField createNumberField(String label, String placeholder) {
@@ -161,5 +220,124 @@ public class PazienteT0View extends Composite<VerticalLayout> {
         field.setStep(0.1);
         field.addClassName(LumoUtility.Margin.Bottom.SMALL);
         return field;
+    }
+
+    private TextField createTextField(){
+        TextField field = new TextField("PA (mmHg)");
+        field.setPlaceholder("120/80");
+        field.setWidthFull();
+        field.addClassName(LumoUtility.Margin.Bottom.SMALL);
+        return field;
+    }
+
+    private void addAccessoVenoso() {
+        AccessoComponent accesso = new AccessoComponent("Venoso", venosiAccessi.size() + 1);
+        venosiAccessi.add(accesso);
+        venosiContainer.add(accesso);
+    }
+
+    private void addAccessoArterioso() {
+        AccessoComponent accesso = new AccessoComponent("Arterioso", arteriosiAccessi.size() + 1);
+        arteriosiAccessi.add(accesso);
+        arteriosiContainer.add(accesso);
+    }
+
+    private boolean validateInput() {
+        // Validazione dei campi obbligatori
+        return !paField.isEmpty() && !fcField.isEmpty() && !rrField.isEmpty() &&
+                !tempField.isEmpty() && !spo2Field.isEmpty() && !etco2Field.isEmpty();
+    }
+
+    private void saveDataAndNavigate(Optional<UI> uiOptional) {
+        uiOptional.ifPresent(ui -> {
+            ProgressBar progressBar = new ProgressBar();
+            progressBar.setIndeterminate(true);
+            getContent().add(progressBar);
+
+            try {
+                // Prepara i dati degli accessi venosi
+                List<AccessoData> venosiData = new ArrayList<>();
+                for (AccessoComponent accesso : venosiAccessi) {
+                    venosiData.add(accesso.getData());
+                }
+
+                // Prepara i dati degli accessi arteriosi
+                List<AccessoData> arteriosiData = new ArrayList<>();
+                for (AccessoComponent accesso : arteriosiAccessi) {
+                    arteriosiData.add(accesso.getData());
+                }
+
+                // Salva nel database
+                boolean success = scenarioService.savePazienteT0(
+                        scenarioId,
+                        paField.getValue(),
+                        fcField.getValue().intValue(),
+                        rrField.getValue().intValue(),
+                        tempField.getValue().floatValue(),
+                        spo2Field.getValue().intValue(),
+                        etco2Field.getValue().intValue(),
+                        monitorArea.getValue(),
+                        venosiData,
+                        arteriosiData
+                );
+
+                ui.accessSynchronously(() -> {
+                    getContent().remove(progressBar);
+                    if (success) {
+                        ui.navigate("esamefisico/" + scenarioId);
+                    } else {
+                        Notification.show("Errore durante il salvataggio dei dati",
+                                3000, Notification.Position.MIDDLE);
+                    }
+                });
+            } catch (Exception e) {
+                ui.accessSynchronously(() -> {
+                    getContent().remove(progressBar);
+                    Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
+                    e.printStackTrace();
+                });
+            }
+        });
+    }
+
+    // Classe interna per rappresentare un componente accesso
+    private static class AccessoComponent extends HorizontalLayout {
+        private final Select<String> tipoSelect;
+        private final TextField posizioneField;
+
+        public AccessoComponent(String tipo, int ignoredNumero) {
+            setWidthFull();
+            setAlignItems(FlexComponent.Alignment.BASELINE);
+            setSpacing(true);
+
+            tipoSelect = new Select<>();
+            tipoSelect.setLabel("Tipo accesso " + tipo);
+            if (tipo.equals("Venoso")) {
+                tipoSelect.setItems("Periferico", "Centrale", "PICC", "Midline", "Altro");
+            } else {
+                tipoSelect.setItems("Radiale", "Femorale", "Umerale", "Altro");
+            }
+            tipoSelect.setWidth("200px");
+
+            posizioneField = new TextField("Posizione");
+            posizioneField.setWidthFull();
+
+            Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
+            removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
+            removeButton.getStyle().set("margin-top", "auto");
+
+            add(tipoSelect, posizioneField, removeButton);
+        }
+
+        public AccessoData getData() {
+            return new AccessoData(
+                    tipoSelect.getValue(),
+                    posizioneField.getValue()
+            );
+        }
+    }
+
+    // Classe per rappresentare i dati di un accesso
+        public record AccessoData(String tipo, String posizione) {
     }
 }

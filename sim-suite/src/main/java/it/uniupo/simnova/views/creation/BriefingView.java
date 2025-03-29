@@ -28,7 +28,7 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
 
     private final ScenarioService scenarioService;
     private Integer scenarioId;
-    private TextArea briefingArea;
+    private final TextArea briefingArea;
 
     public BriefingView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;

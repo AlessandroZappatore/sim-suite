@@ -109,8 +109,6 @@ public class SceneggiaturaView extends Composite<VerticalLayout> {
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("")));
 
-        nextButton.addClickListener(e -> {
-            nextButton.getUI().ifPresent(ui -> ui.navigate(""));
-        });
+        nextButton.addClickListener(e -> nextButton.getUI().ifPresent(ui -> ui.navigate("")));
     }
 }

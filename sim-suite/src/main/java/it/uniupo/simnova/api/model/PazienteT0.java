@@ -4,132 +4,140 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PazienteT0 {
-    private int id;
-    private int PA;
-    private int FC;
-    private int RR;
-    private float T;
-    private int SpO2;
-    private int EtCO2;
+    private int idPaziente;
+    private String PA;
+    private Integer FC;
+    private Integer RR;
+    private Float T;
+    private Integer SpO2;
+    private Integer EtCO2;
     private String Monitor;
-    private boolean accesso_venoso;
-    private boolean accesso_arterioso;
-    private List<Accesso> accessi_venosi;
-    private List<Accesso> accessi_arteriosi;
+    private List<Accesso> accessiVenosi;
+    private List<Accesso> accessiArteriosi;
 
-    public PazienteT0(int id, int PA, int FC, int RR, float T, int SpO2, int EtCO2, String Monitor, boolean accesso_venoso, boolean accesso_arterioso, ArrayList<Accesso> accessi_venosi, ArrayList<Accesso> accessi_arteriosi) {
-        this.id = id;
-        this.PA = PA;
+
+    public PazienteT0(int idPaziente, String PA, Integer FC, Integer RR, Float t, Integer spO2, Integer etCO2, String monitor, List<Accesso> accessiVenosi, List<Accesso> accessiArteriosi) {
+        this.idPaziente = idPaziente;
+        if (PA != null) {
+            String trimmedPA = PA.trim();
+            if (!trimmedPA.matches("^\\s*\\d+\\s*/\\s*\\d+\\s*$")) {
+                throw new IllegalArgumentException("Formato PA non valido, atteso 'sistolica/diastolica' (es. '120/80')");
+            }
+            this.PA = trimmedPA;
+        } else {
+            this.PA = null;
+        }
         this.FC = FC;
         this.RR = RR;
-        this.T = T;
-        this.SpO2 = SpO2;
-        this.EtCO2 = EtCO2;
-        this.Monitor = Monitor;
-        this.accesso_venoso = accesso_venoso;
-        this.accesso_arterioso = accesso_arterioso;
-        this.accessi_venosi = accessi_venosi;
-        this.accessi_arteriosi = accessi_arteriosi;
+        T = t;
+        SpO2 = spO2;
+        EtCO2 = etCO2;
+        Monitor = monitor;
+        this.accessiVenosi = accessiVenosi;
+        this.accessiArteriosi = accessiArteriosi;
     }
 
-    public int getId() {
-        return id;
+    public int getIdPaziente() {
+        return idPaziente;
     }
 
-    public int getPA() {
+    public void setIdPaziente(int idPaziente) {
+        this.idPaziente = idPaziente;
+    }
+
+    public String getPA() {
         return PA;
     }
 
-    public int getFC() {
+    public void setPA(String PA) {
+        if (PA != null) {
+            String trimmedPA = PA.trim();
+            if (!trimmedPA.matches("^\\s*\\d+\\s*/\\s*\\d+\\s*$")) {
+                throw new IllegalArgumentException("Formato PA non valido, atteso 'sistolica/diastolica' (es. '120/80')");
+            }
+            this.PA = trimmedPA;
+        } else {
+            this.PA = null;
+        }
+    }
+
+    public Integer getFC() {
         return FC;
     }
 
-    public int getRR() {
+    public void setFC(Integer FC) {
+        this.FC = FC;
+    }
+
+    public Integer getRR() {
         return RR;
     }
 
-    public float getT() {
+    public void setRR(Integer RR) {
+        this.RR = RR;
+    }
+
+    public Float getT() {
         return T;
     }
 
-    public int getSpO2() {
+    public void setT(Float t) {
+        T = t;
+    }
+
+    public Integer getSpO2() {
         return SpO2;
     }
 
-    public int getEtCO2() {
+    public void setSpO2(Integer spO2) {
+        SpO2 = spO2;
+    }
+
+    public Integer getEtCO2() {
         return EtCO2;
+    }
+
+    public void setEtCO2(Integer etCO2) {
+        EtCO2 = etCO2;
     }
 
     public String getMonitor() {
         return Monitor;
     }
 
-    public boolean getAccessoVenoso() {
-        return accesso_venoso;
-    }
-
-    public boolean getAccessoArterioso() {
-        return accesso_arterioso;
+    public void setMonitor(String monitor) {
+        Monitor = monitor;
     }
 
     public List<Accesso> getAccessiVenosi() {
-        return accessi_venosi;
+        return accessiVenosi;
+    }
+
+    public void setAccessiVenosi(List<Accesso> accessiVenosi) {
+        this.accessiVenosi = accessiVenosi;
     }
 
     public List<Accesso> getAccessiArteriosi() {
-        return accessi_arteriosi;
+        return accessiArteriosi;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public void setPA(int PA) {
-        this.PA = PA;
-    }
-
-    public void setFC(int FC) {
-        this.FC = FC;
-    }
-
-    public void setRR(int RR) {
-        this.RR = RR;
-    }
-
-    public void setT(float T) {
-        this.T = T;
-    }
-
-    public void setSpO2(int SpO2) {
-        this.SpO2 = SpO2;
-    }
-
-    public void setEtCO2(int EtCO2) {
-        this.EtCO2 = EtCO2;
-    }
-
-    public void setMonitor(String Monitor) {
-        this.Monitor = Monitor;
-    }
-
-    public void setAccessoVenoso(boolean accesso_venoso) {
-        this.accesso_venoso = accesso_venoso;
-    }
-
-    public void setAccessoArterioso(boolean accesso_arterioso) {
-        this.accesso_arterioso = accesso_arterioso;
-    }
-
-    public void setAccessiVenosi(List<Accesso> accessi_venosi) {
-        this.accessi_venosi = accessi_venosi;
-    }
-
-    public void setAccessiArteriosi(List<Accesso> accessi_arteriosi) {
-        this.accessi_arteriosi = accessi_arteriosi;
+    public void setAccessiArteriosi(List<Accesso> accessiArteriosi) {
+        this.accessiArteriosi = accessiArteriosi;
     }
 
     @Override
     public String toString() {
-        return "PazienteT0 [id=" + id + ", PA=" + PA + ", FC=" + FC + ", RR=" + RR + ", T=" + T + ", SpO2=" + SpO2 + ", EtCO2=" + EtCO2 + ", Monitor=" + Monitor + ", accesso_venoso=" + accesso_venoso + ", accesso_arterioso=" + accesso_arterioso + ", accessi_venosi=" + accessi_venosi + ", accessi_arteriosi=" + accessi_arteriosi + "]";
+        return "PazienteT0{" +
+                "idPaziente=" + idPaziente +
+                ", PA=" + PA +
+                ", FC=" + FC +
+                ", RR=" + RR +
+                ", T=" + T +
+                ", SpO2=" + SpO2 +
+                ", EtCO2=" + EtCO2 +
+                ", Monitor='" + Monitor + '\'' +
+                ", accessiVenosi=" + accessiVenosi +
+                ", accessiArteriosi=" + accessiArteriosi +
+                '}';
     }
 }

@@ -28,7 +28,7 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
 
     private final ScenarioService scenarioService;
     private Integer scenarioId;
-    private TextArea descriptionArea;
+    private final TextArea descriptionArea;
 
     public DescrizioneView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;

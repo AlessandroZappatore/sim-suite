@@ -1,18 +1,18 @@
 package it.uniupo.simnova.api.model;
 
 public class Accesso {
-    private int id;
+    private int idAccesso;
     private String tipologia;
     private String posizione;
 
-    public Accesso(int id, String tipologia, String posizione) {
-        this.id = id;
+    public Accesso(int idAccesso, String tipologia, String posizione) {
+        this.idAccesso = idAccesso;
         this.tipologia = tipologia;
         this.posizione = posizione;
     }
 
     public int getId() {
-        return id;
+        return idAccesso;
     }
 
     public String getTipologia() {
@@ -23,8 +23,8 @@ public class Accesso {
         return posizione;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setId(int idAccesso) {
+        this.idAccesso = idAccesso;
     }
 
     public void setTipologia(String tipologia) {
@@ -37,6 +37,6 @@ public class Accesso {
 
     @Override
     public String toString() {
-        return "Accesso [id=" + id + ", tipologia=" + tipologia + ", posizione=" + posizione + "]";
+        return "Accesso [idAccesso=" + idAccesso + ", tipologia=" + tipologia + ", posizione=" + posizione + "]";
     }
 }

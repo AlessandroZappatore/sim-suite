@@ -28,7 +28,7 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
 
     private final ScenarioService scenarioService;
     private Integer scenarioId;
-    private TextArea liquidiArea;
+    private final TextArea liquidiArea;
 
     public LiquidiView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;

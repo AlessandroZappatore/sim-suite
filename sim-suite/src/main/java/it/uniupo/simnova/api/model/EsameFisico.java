@@ -4,7 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class EsameFisico {
-    private Integer id;
+    private int idEsameFisico;
+    private int scenario;
     private Map<String, String> sections;
 
     public EsameFisico() {
@@ -23,8 +24,9 @@ public class EsameFisico {
         sections.put("FAST", "");
     }
 
-    public EsameFisico(int id, String generale, String pupille, String collo, String torace, String cuore, String addome, String retto, String cute, String estremita, String neurologico, String fast) {
-        this.id = id;
+    public EsameFisico(int idEsameFisico, int scenario, String generale, String pupille, String collo, String torace, String cuore, String addome, String retto, String cute, String estremita, String neurologico, String fast) {
+        this.idEsameFisico = idEsameFisico;
+        this.scenario = scenario;
 
         this.sections = new HashMap<>();
         sections.put("Generale", generale);
@@ -41,12 +43,12 @@ public class EsameFisico {
     }
 
     // Getters and Setters
-    public Integer getId() {
-        return id;
+    public Integer getIdEsameFisico() {
+        return idEsameFisico;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public void setIdEsameFisico(Integer idEsameFisico) {
+        this.idEsameFisico = idEsameFisico;
     }
 
     public Map<String, String> getSections() {
