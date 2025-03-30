@@ -116,19 +116,19 @@ public class CreationView extends Composite<VerticalLayout> {
 
         // Aggiungi il CSS per le media queries
         layout.getElement().executeJs("""
-            const style = document.createElement('style');
-            style.textContent = `
-                @media (max-width: 600px) {
-                    .short-desc { display: block !important; }
-                    .long-desc { display: none !important; }
-                }
-                @media (min-width: 601px) {
-                    .short-desc { display: none !important; }
-                    .long-desc { display: block !important; }
-                }
-            `;
-            document.head.appendChild(style);
-        """);
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        @media (max-width: 600px) {
+                            .short-desc { display: block !important; }
+                            .long-desc { display: none !important; }
+                        }
+                        @media (min-width: 601px) {
+                            .short-desc { display: none !important; }
+                            .long-desc { display: block !important; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                """);
     }
 
     private Button createScenarioButton(String title, VaadinIcon icon, String shortDesc, String longDesc) {

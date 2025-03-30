@@ -15,7 +15,7 @@ public class EsameReferto {
         this.refertoTestuale = refertoTestuale;
     }
 
-    public EsameReferto(){
+    public EsameReferto() {
 
     }
 

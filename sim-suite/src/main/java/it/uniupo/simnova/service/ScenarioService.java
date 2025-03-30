@@ -369,13 +369,21 @@ public class ScenarioService {
             return true;
         } catch (SQLException e) {
             if (conn != null) {
-                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
             }
             e.printStackTrace();
             return false;
         } finally {
             if (conn != null) {
-                try { conn.setAutoCommit(true); } catch (SQLException e) { e.printStackTrace(); }
+                try {
+                    conn.setAutoCommit(true);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -547,13 +555,21 @@ public class ScenarioService {
             return true;
         } catch (SQLException e) {
             if (conn != null) {
-                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
             }
             e.printStackTrace();
             return false;
         } finally {
             if (conn != null) {
-                try { conn.setAutoCommit(true); } catch (SQLException e) { e.printStackTrace(); }
+                try {
+                    conn.setAutoCommit(true);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -660,7 +676,7 @@ public class ScenarioService {
         String sql = "SELECT 1 FROM " + tableName + " WHERE ";
 
         // Costruisce la query in base al nome della tabella
-        switch(tableName) {
+        switch (tableName) {
             case "Scenario":
                 sql += "id_scenario = ?";
                 break;

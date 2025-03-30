@@ -147,7 +147,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                     Span tipoSpan = new Span(tipo);
 
                     // Assegna colori diversi in base al tipo
-                    switch(tipo.toLowerCase()) {
+                    switch (tipo.toLowerCase()) {
                         case "paziente simulato":
                             tipoSpan.addClassNames(
                                     LumoUtility.TextColor.ERROR,

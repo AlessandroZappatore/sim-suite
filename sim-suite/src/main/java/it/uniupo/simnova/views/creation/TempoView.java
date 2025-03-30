@@ -162,7 +162,7 @@ public class TempoView extends Composite<VerticalLayout> {
         return field;
     }
 
-    private TextField createTextField(){
+    private TextField createTextField() {
         TextField field = new TextField("PA (mmHg)");
         field.setSuffixComponent(new Paragraph("mmHg"));
         field.setWidthFull();

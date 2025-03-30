@@ -12,7 +12,7 @@ public class AdvancedScenario extends Scenario {
         this.tempi = tempi;
     }
 
-    public AdvancedScenario(){
+    public AdvancedScenario() {
 
     }
 

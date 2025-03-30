@@ -4,8 +4,10 @@ import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.formlayout.FormLayout.ResponsiveStep;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -14,7 +16,8 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
-import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
@@ -23,11 +26,13 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+import jakarta.validation.constraints.NotNull;
 
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @PageTitle("Esami e Referti")
 @Route(value = "esamiReferti")
@@ -184,7 +189,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
                     EsameRefertoData data = new EsameRefertoData(
                             row.getRowNumber(),
-                            row.getTypeSelect().getValue(),
+                            row.getSelectedExam(),
                             row.getReportField().getValue(),
                             fileName
                     );
@@ -218,9 +223,25 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         private final int rowNumber;
         private final Paragraph rowTitle;
         private final FormLayout rowLayout;
-        private final Select<String> typeSelect;
+        private final Button selectExamButton = new Button("Seleziona", new Icon(VaadinIcon.SEARCH));
+        private final Dialog examDialog = new Dialog();
+        private final TextField selectedExamField = new TextField("Tipo Esame");
         private final Upload upload;
         private final TextField reportField;
+        private final List<String> allLabExams = List.of(
+                "Emocromo con formula", "Glicemia", "Elettroliti sierici (Na⁺, K⁺, Cl⁻, Ca²⁺, Mg²⁺)",
+                "Funzionalità renale (Creatinina, Azotemia)", "Funzionalità epatica (AST, ALT, Bilirubina, ALP, GGT)",
+                "PCR (Proteina C Reattiva)", "Procalcitonina", "D-Dimero", "CK-MB, Troponina I/T",
+                "INR, PTT, PT", "Gas arteriosi (pH, PaO₂, PaCO₂, HCO₃⁻, BE, Lactati)",
+                "Emogas venoso", "Osmolarità sierica", "CPK", "Mioglobina"
+        );
+        private final List<String> allInstrExams = List.of(
+                "ECG (Elettrocardiogramma)", "RX Torace", "TC Torace (con mdc)", "TC Torace (senza mdc)",
+                "TC Addome (con mdc)", "TC Addome (senza mdc)", "Ecografia addominale", "Ecografia polmonare",
+                "Ecocardio (Transtoracico)", "Ecocardio (Transesofageo)", "Spirometria", "EEG (Elettroencefalogramma)",
+                "RM Encefalo", "TC Cranio (con mdc)", "TC Cranio (senza mdc)", "Doppler TSA (Tronchi Sovraortici)",
+                "Angio-TC Polmonare", "Fundus oculi"
+        );
 
         public FormRow(int rowNumber) {
             this.rowNumber = rowNumber;
@@ -230,13 +251,91 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             rowTitle.addClassName(LumoUtility.FontWeight.BOLD);
             rowTitle.addClassName(LumoUtility.Margin.Bottom.NONE);
 
-            // Componenti del form
-            this.typeSelect = new Select<>();
-            typeSelect.setLabel("Tipo Esame");
-            typeSelect.setItems("Emocromo", "Radiografia", "TC", "RMN", "Ecografia");
-            typeSelect.setWidthFull();
-            typeSelect.setEmptySelectionAllowed(false); // Sostituisce setRequired(true)
+            // Configurazione campo esame selezionato
+            selectedExamField.setReadOnly(true);
+            selectedExamField.setWidthFull();
+            selectedExamField.getElement().addEventListener("click", e -> selectExamButton.click());
 
+            // Configurazione pulsante selezione
+            selectExamButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            selectExamButton.addClassName(LumoUtility.Margin.Bottom.NONE);
+
+            // Layout orizzontale per i campi di selezione
+            HorizontalLayout selectionLayout = new HorizontalLayout(selectedExamField, selectExamButton);
+            selectionLayout.setWidthFull();
+            selectionLayout.setFlexGrow(1, selectedExamField);
+            selectionLayout.setAlignItems(FlexComponent.Alignment.END);
+
+            // Configurazione finestra di dialogo
+            examDialog.setHeaderTitle("Seleziona Tipo Esame");
+            examDialog.setWidth("600px");
+            examDialog.setHeight("70vh");
+
+            // Barra di ricerca
+            TextField searchField = new TextField();
+            searchField.setPlaceholder("Cerca esame...");
+            searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
+            searchField.setWidthFull();
+            searchField.setClearButtonVisible(true);
+
+            // Creazione delle schede (tabs) per le categorie
+            Tabs categoryTabs = new Tabs();
+            Tab labTab = new Tab("Laboratorio");
+            Tab instrTab = new Tab("Strumentali");
+            categoryTabs.add(labTab, instrTab);
+
+            // Contenuti delle schede
+            VerticalLayout labContent = createLabExamContent(allLabExams);
+            VerticalLayout instrContent = createInstrumentalExamContent(allInstrExams);
+
+            // Layout a schede
+            Div pages = new Div(labContent, instrContent);
+            pages.setWidthFull();
+
+            // Listener per la ricerca
+            searchField.addValueChangeListener(e -> {
+                String searchTerm = e.getValue().toLowerCase();
+
+                VerticalLayout filteredLabContent = createLabExamContent(
+                        allLabExams.stream()
+                                .filter(exam -> exam.toLowerCase().contains(searchTerm))
+                                .collect(Collectors.toList())
+                );
+
+                VerticalLayout filteredInstrContent = createInstrumentalExamContent(
+                        allInstrExams.stream()
+                                .filter(exam -> exam.toLowerCase().contains(searchTerm))
+                                .collect(Collectors.toList())
+                );
+
+                pages.removeAll();
+                if (categoryTabs.getSelectedTab() == labTab) {
+                    pages.add(filteredLabContent);
+                } else {
+                    pages.add(filteredInstrContent);
+                }
+            });
+
+            categoryTabs.addSelectedChangeListener(event -> {
+                pages.removeAll();
+                if (event.getSelectedTab() == labTab) {
+                    pages.add(createLabExamContent(allLabExams));
+                } else {
+                    pages.add(createInstrumentalExamContent(allInstrExams));
+                }
+            });
+
+            // Pulsante per chiudere
+            Button closeButton = new Button("Chiudi", e -> examDialog.close());
+            examDialog.getFooter().add(closeButton);
+
+            // Aggiunta dei componenti alla finestra
+            examDialog.add(searchField, categoryTabs, pages);
+
+            // Listener per il pulsante di selezione
+            selectExamButton.addClickListener(e -> examDialog.open());
+
+            // Upload file
             MemoryBuffer buffer = new MemoryBuffer();
             this.upload = new Upload(buffer);
             upload.setDropAllowed(true);
@@ -250,7 +349,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             // Configura il layout della riga
             this.rowLayout = new FormLayout();
             rowLayout.setWidthFull();
-            rowLayout.add(typeSelect, upload, reportField);
+            rowLayout.add(selectionLayout, upload, reportField);
             rowLayout.setResponsiveSteps(
                     new ResponsiveStep("0", 1),
                     new ResponsiveStep("600px", 2),
@@ -258,16 +357,70 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             );
         }
 
+        private VerticalLayout createLabExamContent(List<String> exams) {
+            return getVerticalLayout(exams);
+        }
+
+        @NotNull
+        private VerticalLayout getVerticalLayout(List<String> exams) {
+            VerticalLayout layout = new VerticalLayout();
+            layout.setPadding(false);
+            layout.setSpacing(false);
+            layout.setWidthFull();
+
+            for (String exam : exams) {
+                Button examButton = createExamButton(exam);
+                layout.add(examButton);
+            }
+
+            return layout;
+        }
+
+        private VerticalLayout createInstrumentalExamContent(List<String> exams) {
+            return getVerticalLayout(exams);
+        }
+
+        private Button createExamButton(String examName) {
+            Button button = new Button(examName, e -> {
+                selectedExamField.setValue(examName);
+                examDialog.close();
+            });
+            button.setWidthFull();
+            button.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+            button.getStyle().set("text-align", "left");
+            button.getStyle().set("padding-left", "var(--lumo-space-m)");
+            button.getStyle().set("justify-content", "flex-start");
+            return button;
+        }
+
+        // Metodo per ottenere il tipo di esame selezionato
+        public String getSelectedExam() {
+            return selectedExamField.getValue();
+        }
+
         // Getters
-        public int getRowNumber() { return rowNumber; }
-        public Paragraph getRowTitle() { return rowTitle; }
-        public FormLayout getRowLayout() { return rowLayout; }
-        public Select<String> getTypeSelect() { return typeSelect; }
-        public Upload getUpload() { return upload; }
-        public TextField getReportField() { return reportField; }
+        public int getRowNumber() {
+            return rowNumber;
+        }
+
+        public Paragraph getRowTitle() {
+            return rowTitle;
+        }
+
+        public FormLayout getRowLayout() {
+            return rowLayout;
+        }
+
+        public Upload getUpload() {
+            return upload;
+        }
+
+        public TextField getReportField() {
+            return reportField;
+        }
     }
 
     // Classe per rappresentare i dati di un esame/referto
-        public record EsameRefertoData(int idEsame, String tipo, String refertoTestuale, String media) {
+    public record EsameRefertoData(int idEsame, String tipo, String refertoTestuale, String media) {
     }
 }

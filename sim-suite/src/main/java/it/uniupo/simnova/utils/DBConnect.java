@@ -10,7 +10,6 @@ public class DBConnect {
     private static DBConnect instance = null;
 
 
-
     private DBConnect() {
         System.out.println(DB_URL);
         try {

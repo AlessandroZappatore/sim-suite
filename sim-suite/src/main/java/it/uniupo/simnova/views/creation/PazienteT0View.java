@@ -229,7 +229,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         return field;
     }
 
-    private TextField createTextField(){
+    private TextField createTextField() {
         TextField field = new TextField("PA (mmHg)");
         field.setPlaceholder("120/80");
         field.setWidthFull();
@@ -366,6 +366,6 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
     }
 
     // Classe per rappresentare i dati di un accesso
-        public record AccessoData(String tipo, String posizione) {
+    public record AccessoData(String tipo, String posizione) {
     }
 }

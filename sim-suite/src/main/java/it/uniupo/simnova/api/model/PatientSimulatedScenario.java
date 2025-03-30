@@ -14,7 +14,7 @@ public class PatientSimulatedScenario extends AdvancedScenario {
         this.sceneggiatura = sceneggiatura;
     }
 
-    public PatientSimulatedScenario(){
+    public PatientSimulatedScenario() {
 
     }
 

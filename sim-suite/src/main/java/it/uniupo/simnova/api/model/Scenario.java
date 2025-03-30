@@ -28,10 +28,9 @@ public class Scenario {
         this.materiale = materiale;
         this.moulage = moulage;
         this.liquidi = liquidi;
-        if(timer_generale<=0){
+        if (timer_generale <= 0) {
             this.timer_generale = 0;
-        }
-        else{
+        } else {
             this.timer_generale = timer_generale;
         }
     }
@@ -44,7 +43,7 @@ public class Scenario {
         this.timer_generale = timer_generale;
     }
 
-    public Scenario(){
+    public Scenario() {
 
     }
 
@@ -96,7 +95,7 @@ public class Scenario {
         return liquidi;
     }
 
-    public float getTimerGenerale(){
+    public float getTimerGenerale() {
         return timer_generale;
     }
 
