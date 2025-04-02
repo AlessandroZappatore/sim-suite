@@ -21,6 +21,16 @@ import it.uniupo.simnova.views.home.AppHeader;
 
 import java.util.Optional;
 
+/**
+ * Vista per la gestione della descrizione dello scenario di simulazione.
+ * <p>
+ * Permette di inserire e modificare la descrizione testuale dello scenario
+ * durante il processo di creazione. Fa parte del flusso di creazione scenario.
+ * </p>
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @PageTitle("Descrizione")
 @Route(value = "descrizione")
 @Menu(order = 3)
@@ -30,6 +40,11 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
     private Integer scenarioId;
     private final TextArea descriptionArea;
 
+    /**
+     * Costruttore che inizializza l'interfaccia utente.
+     *
+     * @param scenarioService servizio per la gestione degli scenari
+     */
     public DescrizioneView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
 
@@ -40,22 +55,19 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
         mainLayout.setSpacing(false);
         mainLayout.getStyle().set("min-height", "100vh");
 
-        // 1. HEADER
+        // 1. HEADER con pulsante indietro e titolo
         AppHeader header = new AppHeader();
-
-        // Pulsante indietro
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         backButton.getStyle().set("margin-right", "auto");
 
-        // Container per header personalizzato
         HorizontalLayout customHeader = new HorizontalLayout();
         customHeader.setWidthFull();
         customHeader.setPadding(true);
         customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
         customHeader.add(backButton, header);
 
-        // 2. CONTENUTO PRINCIPALE
+        // 2. CONTENUTO PRINCIPALE con area di testo
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.setWidth("100%");
         contentLayout.setMaxWidth("800px");
@@ -66,7 +78,6 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
                 .set("margin", "0 auto")
                 .set("flex-grow", "1");
 
-        // Area di testo per la descrizione
         descriptionArea = new TextArea("DESCRIZIONE SCENARIO");
         descriptionArea.setPlaceholder("Inserisci una descrizione dettagliata dello scenario...");
         descriptionArea.setWidthFull();
@@ -94,14 +105,10 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
 
         footerLayout.add(credits, nextButton);
 
-        // Aggiunta di tutti i componenti al layout principale
-        mainLayout.add(
-                customHeader,
-                contentLayout,
-                footerLayout
-        );
+        // Aggiunta componenti al layout principale
+        mainLayout.add(customHeader, contentLayout, footerLayout);
 
-        // Listener per i pulsanti
+        // Gestione eventi
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("startCreation")));
 
@@ -114,6 +121,12 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
         });
     }
 
+    /**
+     * Gestisce il parametro ricevuto dall'URL (ID scenario).
+     *
+     * @param event l'evento di navigazione
+     * @param parameter l'ID dello scenario come stringa
+     */
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
         try {
@@ -132,6 +145,9 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
         }
     }
 
+    /**
+     * Carica la descrizione esistente per lo scenario corrente.
+     */
     private void loadExistingDescription() {
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
         if (scenario != null && scenario.getDescrizione() != null && !scenario.getDescrizione().isEmpty()) {
@@ -139,6 +155,11 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
         }
     }
 
+    /**
+     * Salva la descrizione e naviga alla vista successiva.
+     *
+     * @param uiOptional l'UI corrente (opzionale)
+     */
     private void saveDescriptionAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {
             ProgressBar progressBar = new ProgressBar();
@@ -155,13 +176,15 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
                     if (success) {
                         ui.navigate("briefing/" + scenarioId);
                     } else {
-                        Notification.show("Errore durante il salvataggio della descrizione", 3000, Notification.Position.MIDDLE);
+                        Notification.show("Errore durante il salvataggio della descrizione",
+                                3000, Notification.Position.MIDDLE);
                     }
                 });
             } catch (Exception e) {
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
-                    Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
+                    Notification.show("Errore: " + e.getMessage(),
+                            5000, Notification.Position.MIDDLE);
                     e.printStackTrace();
                 });
             }

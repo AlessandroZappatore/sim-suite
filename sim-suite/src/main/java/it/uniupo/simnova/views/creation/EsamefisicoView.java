@@ -211,12 +211,20 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
 
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
-                    if (success) {
-                        ui.navigate("scenario-details/" + scenarioId);
-                    } else {
+                    if (!success) {
                         Notification.show("Errore durante il salvataggio dell'esame fisico",
                                 3000, Notification.Position.MIDDLE);
+                        return;
                     }
+
+                    String scenarioType = scenarioService.getScenarioType(scenarioId);
+                    if ("Quick Scenario".equals(scenarioType)) {
+                        ui.navigate("scenario-details/" + scenarioId);
+                    } else if ("Advanced Scenario".equals(scenarioType) ||
+                            "Patient Simulated Scenario".equals(scenarioType)) {
+                        ui.navigate("tempo/" + scenarioId);
+                    }
+                    // Se il tipo non è riconosciuto, rimane sulla stessa pagina
                 });
             } catch (Exception e) {
                 ui.accessSynchronously(() -> {

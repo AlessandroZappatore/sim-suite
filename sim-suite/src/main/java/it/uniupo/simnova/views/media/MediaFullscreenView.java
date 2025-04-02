@@ -13,12 +13,25 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.router.*;
 
+/**
+ * Vista per la visualizzazione a schermo intero di file multimediali.
+ * <p>
+ * Supporta immagini (JPG, PNG, GIF), PDF, video MP4 e audio MP3.
+ * Implementa l'interfaccia HasUrlParameter per ricevere il nome del file come parametro.
+ * </p>
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @Route("media")
 @PageTitle("Visualizzatore File")
 public class MediaFullscreenView extends VerticalLayout implements HasUrlParameter<String> {
 
     private String filename;
 
+    /**
+     * Costruttore che configura il layout base della vista.
+     */
     public MediaFullscreenView() {
         setSizeFull();
         setPadding(false);
@@ -26,12 +39,21 @@ public class MediaFullscreenView extends VerticalLayout implements HasUrlParamet
         setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.CENTER);
     }
 
+    /**
+     * Imposta il parametro ricevuto dall'URL (nome del file) e crea la vista.
+     *
+     * @param event l'evento di navigazione
+     * @param filename il nome del file da visualizzare (può contenere path)
+     */
     @Override
     public void setParameter(BeforeEvent event, @WildcardParameter String filename) {
         this.filename = filename;
         createView();
     }
 
+    /**
+     * Crea la vista con il pulsante "Indietro" e il contenuto multimediale.
+     */
     private void createView() {
         removeAll();
 
@@ -52,6 +74,11 @@ public class MediaFullscreenView extends VerticalLayout implements HasUrlParamet
         expand(mediaContent);
     }
 
+    /**
+     * Crea il componente appropriato in base all'estensione del file.
+     *
+     * @return Componente Vaadin adatto al tipo di file
+     */
     private Component createMediaContent() {
         String fileExtension = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
         String mediaPath = "META-INF/resources/Media/" + filename;
@@ -102,40 +129,72 @@ public class MediaFullscreenView extends VerticalLayout implements HasUrlParamet
         }
     }
 
-    // Componente video nativo
+    /**
+     * Componente personalizzato per la riproduzione di video HTML5.
+     */
     private static class NativeVideo extends Component {
         public NativeVideo() {
             super(new Element("video"));
         }
 
+        /**
+         * Imposta il percorso del file video.
+         *
+         * @param src percorso del file video
+         */
         public void setSrc(String src) {
             getElement().setAttribute("src", src);
         }
 
+        /**
+         * Abilita o disabilita i controlli di riproduzione.
+         *
+         * @param controls true per mostrare i controlli
+         */
         public void setControls(boolean controls) {
             getElement().setAttribute("controls", controls);
         }
 
+        /**
+         * Imposta le dimensioni al 100% del contenitore.
+         */
         public void setSizeFull() {
             getElement().setAttribute("width", "100%");
             getElement().setAttribute("height", "100%");
         }
     }
 
-    // Componente audio nativo
+    /**
+     * Componente personalizzato per la riproduzione di audio HTML5.
+     */
     private static class NativeAudio extends Component {
         public NativeAudio() {
             super(new Element("audio"));
         }
 
+        /**
+         * Imposta il percorso del file audio.
+         *
+         * @param src percorso del file audio
+         */
         public void setSrc(String src) {
             getElement().setAttribute("src", src);
         }
 
+        /**
+         * Abilita o disabilita i controlli di riproduzione.
+         *
+         * @param controls true per mostrare i controlli
+         */
         public void setControls(boolean controls) {
             getElement().setAttribute("controls", controls);
         }
 
+        /**
+         * Imposta la larghezza del componente.
+         *
+         * @param width larghezza (es. "100%" o "300px")
+         */
         public void setWidth(String width) {
             getElement().setAttribute("width", width);
         }

@@ -13,9 +13,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.router.Menu;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
@@ -25,13 +23,14 @@ import java.util.Optional;
 @PageTitle("StartCreation")
 @Route("startCreation")
 @Menu(order = 2)
-public class StartCreationView extends Composite<VerticalLayout> {
+public class StartCreationView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
 
     private final ScenarioService scenarioService;
     private final TextField scenarioTitle;
     private final TextField patientName;
     private final TextField pathology;
     private final NumberField durationField;
+    private String scenarioType;
 
     public StartCreationView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
@@ -126,6 +125,16 @@ public class StartCreationView extends Composite<VerticalLayout> {
         });
     }
 
+    @Override
+    public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
+        if (parameter != null) {
+            this.scenarioType = parameter.toLowerCase();
+        } else {
+            // Default o gestione errore
+            this.scenarioType = "quickScenario";
+        }
+    }
+
     private boolean validateFields() {
         if (scenarioTitle.isEmpty() || patientName.isEmpty() || pathology.isEmpty()) {
             Notification.show("Compila tutti i campi obbligatori", 3000, Notification.Position.MIDDLE);
@@ -137,12 +146,38 @@ public class StartCreationView extends Composite<VerticalLayout> {
     private void saveScenarioAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {
             try {
-                int scenarioId = scenarioService.startScenario(
-                        scenarioTitle.getValue(),
-                        patientName.getValue(),
-                        pathology.getValue(),
-                        durationField.getValue().floatValue()
-                );
+                int scenarioId = -1;
+
+                switch (scenarioType) {
+                    case "quickscenario":
+                        scenarioId = scenarioService.startQuickScenario(
+                                scenarioTitle.getValue(),
+                                patientName.getValue(),
+                                pathology.getValue(),
+                                durationField.getValue().floatValue()
+                        );
+                        break;
+                    case "advancedscenario":
+                        scenarioId = scenarioService.startAdvancedScenario(
+                                scenarioTitle.getValue(),
+                                patientName.getValue(),
+                                pathology.getValue(),
+                                durationField.getValue().floatValue()
+                        );
+                        break;
+                    case "patientsimulatedscenario":
+                        scenarioId = scenarioService.startPatientSimulatedScenario(
+                                scenarioTitle.getValue(),
+                                patientName.getValue(),
+                                pathology.getValue(),
+                                durationField.getValue().floatValue()
+                        );
+                        break;
+                    default:
+                        Notification.show("Tipo di scenario non riconosciuto",
+                                3000, Notification.Position.MIDDLE);
+                        return;
+                }
 
                 System.out.println("ID scenario creato: " + scenarioId);
 
@@ -160,7 +195,6 @@ public class StartCreationView extends Composite<VerticalLayout> {
             }
         });
     }
-
 
     private TextField createTextField(String label, String placeholder) {
         TextField field = new TextField(label);

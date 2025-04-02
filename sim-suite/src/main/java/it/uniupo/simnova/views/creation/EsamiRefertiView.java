@@ -1,6 +1,7 @@
 package it.uniupo.simnova.views.creation;
 
 import com.vaadin.flow.component.Composite;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -16,6 +17,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
@@ -26,7 +28,6 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
-import jakarta.validation.constraints.NotNull;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -48,27 +49,24 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
     public EsamiRefertiView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
-        this.fileStorageService = new FileStorageService(); // Cartella Media
+        this.fileStorageService = new FileStorageService();
 
-        // Configurazione layout principale
         VerticalLayout mainLayout = getContent();
         mainLayout.setSizeFull();
         mainLayout.setPadding(false);
         mainLayout.setSpacing(false);
         mainLayout.getStyle().set("min-height", "100vh");
 
-        // 1. HEADER con pulsante indietro
+        // 1. HEADER
         AppHeader header = new AppHeader();
-
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         backButton.getStyle().set("margin-right", "auto");
 
-        HorizontalLayout customHeader = new HorizontalLayout();
+        HorizontalLayout customHeader = new HorizontalLayout(backButton, header);
         customHeader.setWidthFull();
         customHeader.setPadding(true);
         customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
-        customHeader.add(backButton, header);
 
         // 2. CONTENUTO PRINCIPALE
         VerticalLayout contentLayout = new VerticalLayout();
@@ -84,7 +82,6 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         rowsContainer.setWidthFull();
         rowsContainer.setSpacing(true);
 
-        // Pulsante per aggiungere nuove righe
         Button addButton = new Button("Aggiungi Esame/Referto", new Icon(VaadinIcon.PLUS));
         addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addButton.addClassName(LumoUtility.Margin.Top.MEDIUM);
@@ -92,7 +89,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
         contentLayout.add(rowsContainer, addButton);
 
-        // 3. FOOTER con pulsanti e crediti
+        // 3. FOOTER
         HorizontalLayout footerLayout = new HorizontalLayout();
         footerLayout.setWidthFull();
         footerLayout.setPadding(true);
@@ -110,14 +107,8 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
         footerLayout.add(credits, nextButton);
 
-        // Aggiunta di tutti i componenti al layout principale
-        mainLayout.add(
-                customHeader,
-                contentLayout,
-                footerLayout
-        );
+        mainLayout.add(customHeader, contentLayout, footerLayout);
 
-        // Listener per i pulsanti
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("materialenecessario/" + scenarioId)));
 
@@ -142,7 +133,6 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                 throw new NumberFormatException();
             }
 
-            // Aggiungi una riga vuota all'inizio
             addNewRow();
         } catch (NumberFormatException e) {
             event.rerouteToError(NotFoundException.class, "ID scenario non valido");
@@ -150,11 +140,10 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
     }
 
     private void addNewRow() {
-        // Crea componenti per la nuova riga
         FormRow newRow = new FormRow(rowCount++);
         formRows.add(newRow);
 
-        // Crea container per la riga con bordo
+        // Crea container per la riga con bordo e pulsante di eliminazione
         VerticalLayout rowContainer = new VerticalLayout();
         rowContainer.addClassName(LumoUtility.Padding.MEDIUM);
         rowContainer.addClassName(LumoUtility.Border.ALL);
@@ -162,8 +151,25 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         rowContainer.addClassName(LumoUtility.BorderRadius.MEDIUM);
         rowContainer.setPadding(true);
         rowContainer.setSpacing(false);
-        rowContainer.add(newRow.getRowTitle(), newRow.getRowLayout());
 
+        // Header della riga con titolo e pulsante elimina
+        HorizontalLayout rowHeader = new HorizontalLayout();
+        rowHeader.setWidthFull();
+        rowHeader.setAlignItems(FlexComponent.Alignment.CENTER);
+        rowHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+
+        Button deleteButton = new Button(new Icon(VaadinIcon.TRASH));
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
+        deleteButton.addClickListener(e -> {
+            formRows.remove(newRow);
+            rowsContainer.remove(rowContainer);
+            if (formRows.isEmpty()) {
+                addNewRow(); // Mantieni almeno una riga
+            }
+        });
+
+        rowHeader.add(newRow.getRowTitle(), deleteButton);
+        rowContainer.add(rowHeader, newRow.getRowLayout());
         rowsContainer.add(rowContainer);
     }
 
@@ -174,7 +180,6 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             getContent().add(progressBar);
 
             try {
-                // Prepara i dati da salvare
                 List<EsameRefertoData> esamiData = new ArrayList<>();
                 for (FormRow row : formRows) {
                     String fileName = "";
@@ -196,7 +201,6 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                     esamiData.add(data);
                 }
 
-                // Salva nel database
                 boolean success = scenarioService.saveEsamiReferti(scenarioId, esamiData);
 
                 ui.accessSynchronously(() -> {
@@ -218,7 +222,6 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         });
     }
 
-    // Classe interna per rappresentare una riga del form
     private static class FormRow {
         private final int rowNumber;
         private final Paragraph rowTitle;
@@ -226,6 +229,8 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         private final Button selectExamButton = new Button("Seleziona", new Icon(VaadinIcon.SEARCH));
         private final Dialog examDialog = new Dialog();
         private final TextField selectedExamField = new TextField("Tipo Esame");
+        private final TextField customExamField = new TextField("Esame Personalizzato");
+        private final RadioButtonGroup<String> examTypeGroup = new RadioButtonGroup<>();
         private final Upload upload;
         private final TextField reportField;
         private final List<String> allLabExams = List.of(
@@ -251,25 +256,51 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             rowTitle.addClassName(LumoUtility.FontWeight.BOLD);
             rowTitle.addClassName(LumoUtility.Margin.Bottom.NONE);
 
+            // Configurazione radio button per tipo di esame
+            examTypeGroup.setLabel("Tipo di inserimento");
+            examTypeGroup.setItems("Seleziona da elenco", "Inserisci manualmente");
+            examTypeGroup.setValue("Seleziona da elenco");
+            examTypeGroup.addValueChangeListener(e -> updateExamFieldVisibility());
+
+            // Stile migliorato per i radio button
+            examTypeGroup.getStyle()
+                    .set("margin-top", "0")
+                    .set("margin-bottom", "var(--lumo-space-s)");
+
             // Configurazione campo esame selezionato
             selectedExamField.setReadOnly(true);
             selectedExamField.setWidthFull();
-            selectedExamField.getElement().addEventListener("click", e -> selectExamButton.click());
+            selectedExamField.setPrefixComponent(new Icon(VaadinIcon.FILE_TEXT));
+            selectedExamField.getElement().addEventListener("click", e -> {
+                if ("Seleziona da elenco".equals(examTypeGroup.getValue())) {
+                    selectExamButton.click();
+                }
+            });
+
+            // Configurazione campo esame personalizzato
+            customExamField.setWidthFull();
+            customExamField.setVisible(false);
+            customExamField.setPlaceholder("Inserisci il nome dell'esame");
+            customExamField.setPrefixComponent(new Icon(VaadinIcon.EDIT));
 
             // Configurazione pulsante selezione
             selectExamButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             selectExamButton.addClassName(LumoUtility.Margin.Bottom.NONE);
+            selectExamButton.setWidth("120px");
 
             // Layout orizzontale per i campi di selezione
             HorizontalLayout selectionLayout = new HorizontalLayout(selectedExamField, selectExamButton);
             selectionLayout.setWidthFull();
             selectionLayout.setFlexGrow(1, selectedExamField);
             selectionLayout.setAlignItems(FlexComponent.Alignment.END);
+            selectionLayout.setSpacing(true);
 
             // Configurazione finestra di dialogo
             examDialog.setHeaderTitle("Seleziona Tipo Esame");
             examDialog.setWidth("600px");
             examDialog.setHeight("70vh");
+            examDialog.setDraggable(true);
+            examDialog.setResizable(true);
 
             // Barra di ricerca
             TextField searchField = new TextField();
@@ -277,12 +308,19 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
             searchField.setWidthFull();
             searchField.setClearButtonVisible(true);
+            searchField.addClassName(LumoUtility.Margin.Bottom.SMALL);
 
-            // Creazione delle schede (tabs) per le categorie
+            // Creazione delle schede per le categorie
             Tabs categoryTabs = new Tabs();
             Tab labTab = new Tab("Laboratorio");
             Tab instrTab = new Tab("Strumentali");
             categoryTabs.add(labTab, instrTab);
+            categoryTabs.setWidthFull();
+
+            // Stile migliorato per le tabs
+            categoryTabs.getStyle()
+                    .set("margin-bottom", "0")
+                    .set("box-shadow", "0 -1px 0 0 var(--lumo-contrast-10pct) inset");
 
             // Contenuti delle schede
             VerticalLayout labContent = createLabExamContent(allLabExams);
@@ -291,6 +329,8 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             // Layout a schede
             Div pages = new Div(labContent, instrContent);
             pages.setWidthFull();
+            pages.getStyle().set("overflow-y", "auto");
+            pages.getStyle().set("max-height", "calc(70vh - 150px)");
 
             // Listener per la ricerca
             searchField.addValueChangeListener(e -> {
@@ -327,13 +367,22 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
             // Pulsante per chiudere
             Button closeButton = new Button("Chiudi", e -> examDialog.close());
+            closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             examDialog.getFooter().add(closeButton);
 
             // Aggiunta dei componenti alla finestra
-            examDialog.add(searchField, categoryTabs, pages);
+            VerticalLayout dialogContent = new VerticalLayout();
+            dialogContent.setPadding(false);
+            dialogContent.setSpacing(false);
+            dialogContent.add(searchField, categoryTabs, pages);
+            examDialog.add(dialogContent);
 
             // Listener per il pulsante di selezione
-            selectExamButton.addClickListener(e -> examDialog.open());
+            selectExamButton.addClickListener(e -> {
+                if ("Seleziona da elenco".equals(examTypeGroup.getValue())) {
+                    examDialog.open();
+                }
+            });
 
             // Upload file
             MemoryBuffer buffer = new MemoryBuffer();
@@ -342,42 +391,72 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             upload.setWidthFull();
             upload.setAcceptedFileTypes(".pdf", ".jpg", ".png", ".gif", ".mp4", ".mp3");
             upload.setMaxFiles(1);
+            upload.setUploadButton(new Button("Carica File", new Icon(VaadinIcon.UPLOAD)));
+            upload.setDropLabel(new Div(new Text("Trascina file qui o clicca per selezionare")));
 
             this.reportField = new TextField("Referto Testuale");
             reportField.setWidthFull();
+            reportField.setPrefixComponent(new Icon(VaadinIcon.COMMENT));
+            reportField.setPlaceholder("Inserisci il referto dell'esame...");
 
             // Configura il layout della riga
             this.rowLayout = new FormLayout();
             rowLayout.setWidthFull();
-            rowLayout.add(selectionLayout, upload, reportField);
+            rowLayout.add(examTypeGroup, 2);
+            rowLayout.add(selectionLayout, 2);
+            rowLayout.add(customExamField, 2);
+            rowLayout.add(upload, 2);
+            rowLayout.add(reportField, 2);
             rowLayout.setResponsiveSteps(
                     new ResponsiveStep("0", 1),
                     new ResponsiveStep("600px", 2),
                     new ResponsiveStep("900px", 3)
             );
+
+            // Spaziatura migliorata
+            rowLayout.getChildren().forEach(component -> component.getElement().getStyle().set("margin-bottom", "var(--lumo-space-s)"));
+        }
+
+        private void updateExamFieldVisibility() {
+            boolean isCustom = "Inserisci manualmente".equals(examTypeGroup.getValue());
+            selectedExamField.setVisible(!isCustom);
+            selectExamButton.setVisible(!isCustom);
+            customExamField.setVisible(isCustom);
+
+            if (isCustom) {
+                selectedExamField.clear();
+            } else {
+                customExamField.clear();
+            }
         }
 
         private VerticalLayout createLabExamContent(List<String> exams) {
-            return getVerticalLayout(exams);
+            return createExamContent(exams);
         }
 
-        @NotNull
-        private VerticalLayout getVerticalLayout(List<String> exams) {
+        private VerticalLayout createInstrumentalExamContent(List<String> exams) {
+            return createExamContent(exams);
+        }
+
+        private VerticalLayout createExamContent(List<String> exams) {
             VerticalLayout layout = new VerticalLayout();
             layout.setPadding(false);
             layout.setSpacing(false);
             layout.setWidthFull();
 
-            for (String exam : exams) {
-                Button examButton = createExamButton(exam);
-                layout.add(examButton);
+            if (exams.isEmpty()) {
+                Paragraph noResults = new Paragraph("Nessun risultato trovato");
+                noResults.addClassName(LumoUtility.TextColor.SECONDARY);
+                noResults.getStyle().set("padding", "var(--lumo-space-m)");
+                layout.add(noResults);
+            } else {
+                for (String exam : exams) {
+                    Button examButton = createExamButton(exam);
+                    layout.add(examButton);
+                }
             }
 
             return layout;
-        }
-
-        private VerticalLayout createInstrumentalExamContent(List<String> exams) {
-            return getVerticalLayout(exams);
         }
 
         private Button createExamButton(String examName) {
@@ -387,18 +466,26 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             });
             button.setWidthFull();
             button.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-            button.getStyle().set("text-align", "left");
-            button.getStyle().set("padding-left", "var(--lumo-space-m)");
-            button.getStyle().set("justify-content", "flex-start");
+            button.getStyle()
+                    .set("text-align", "left")
+                    .set("padding", "var(--lumo-space-s) var(--lumo-space-m)")
+                    .set("justify-content", "flex-start")
+                    .set("border-radius", "var(--lumo-border-radius-m)");
+
+            button.addClickListener(e -> {
+                selectedExamField.setValue(examName);
+                examDialog.close();
+            });
+
             return button;
         }
 
-        // Metodo per ottenere il tipo di esame selezionato
         public String getSelectedExam() {
-            return selectedExamField.getValue();
+            return "Inserisci manualmente".equals(examTypeGroup.getValue())
+                    ? customExamField.getValue()
+                    : selectedExamField.getValue();
         }
 
-        // Getters
         public int getRowNumber() {
             return rowNumber;
         }
@@ -420,7 +507,6 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         }
     }
 
-    // Classe per rappresentare i dati di un esame/referto
     public record EsameRefertoData(int idEsame, String tipo, String refertoTestuale, String media) {
     }
 }

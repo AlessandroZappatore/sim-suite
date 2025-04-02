@@ -77,7 +77,7 @@ public class ScenarioService {
         return scenarios;
     }
 
-    public int startScenario(String titolo, String nomePaziente, String patologia, float timerGenerale) {
+    public int startQuickScenario(String titolo, String nomePaziente, String patologia, float timerGenerale) {
         final String sql = "INSERT INTO Scenario (titolo, nome_paziente, patologia, timer_generale) VALUES (?,?,?,?)";
         int generatedId = -1;
 
@@ -102,6 +102,51 @@ public class ScenarioService {
             e.printStackTrace();
         }
         return generatedId;
+    }
+
+    public int startAdvancedScenario(String titolo, String nomePaziente, String patologia, float timerGenerale) {
+        // Prima crea lo scenario base
+        int scenarioId = startQuickScenario(titolo, nomePaziente, patologia, timerGenerale);
+
+        if (scenarioId > 0) {
+            final String sql = "INSERT INTO AdvancedScenario (id_advanced_scenario) VALUES (?)";
+
+            try (Connection conn = DBConnect.getInstance().getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+                stmt.setInt(1, scenarioId);
+                stmt.executeUpdate();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return -1;
+            }
+        }
+        return scenarioId;
+    }
+
+    public int startPatientSimulatedScenario(String titolo, String nomePaziente, String patologia, float timerGenerale) {
+        // Prima crea lo scenario avanzato
+        int scenarioId = startAdvancedScenario(titolo, nomePaziente, patologia, timerGenerale);
+
+        if (scenarioId > 0) {
+            final String sql = "INSERT INTO PatientSimulatedScenario (id_patient_simulated_scenario, id_advanced_scenario, sceneggiatura) VALUES (?,?,?)";
+
+            try (Connection conn = DBConnect.getInstance().getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+                stmt.setInt(1, scenarioId);
+                stmt.setInt(2, scenarioId);
+                stmt.setString(3, ""); // Sceneggiatura vuota inizialmente
+
+                stmt.executeUpdate();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return -1;
+            }
+        }
+        return scenarioId;
     }
 
     // 2. Metodi per EsameFisico (invariati)

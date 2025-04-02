@@ -21,6 +21,16 @@ import it.uniupo.simnova.views.home.AppHeader;
 
 import java.util.Optional;
 
+/**
+ * Vista per la gestione dei liquidi e presidi nello scenario di simulazione.
+ * <p>
+ * Permette di inserire e modificare la lista di liquidi e presidi disponibili
+ * all'inizio della simulazione (T0). Fa parte del flusso di creazione scenario.
+ * </p>
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @PageTitle("Liquidi e Presidi")
 @Route(value = "liquidi")
 @Menu(order = 11)
@@ -30,6 +40,11 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
     private Integer scenarioId;
     private final TextArea liquidiArea;
 
+    /**
+     * Costruttore che inizializza l'interfaccia utente.
+     *
+     * @param scenarioService servizio per la gestione degli scenari
+     */
     public LiquidiView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
 
@@ -120,6 +135,12 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
         });
     }
 
+    /**
+     * Gestisce il parametro ricevuto dall'URL (ID scenario).
+     *
+     * @param event l'evento di navigazione
+     * @param parameter l'ID dello scenario come stringa
+     */
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
         try {
@@ -138,6 +159,9 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
         }
     }
 
+    /**
+     * Carica i liquidi e presidi esistenti per lo scenario.
+     */
     private void loadExistingLiquidi() {
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
         if (scenario != null && scenario.getLiquidi() != null && !scenario.getLiquidi().isEmpty()) {
@@ -145,6 +169,11 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
         }
     }
 
+    /**
+     * Salva i liquidi e presidi e naviga alla vista successiva.
+     *
+     * @param uiOptional l'UI corrente (opzionale)
+     */
     private void saveLiquidiAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {
             ProgressBar progressBar = new ProgressBar();

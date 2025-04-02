@@ -9,11 +9,26 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 
+/**
+ * Componente per l'header dell'applicazione.
+ * <p>
+ * Contiene il titolo dell'applicazione e un pulsante per cambiare il tema (light/dark mode).
+ * Implementato come HorizontalLayout per una disposizione orizzontale degli elementi.
+ * </p>
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 public class AppHeader extends HorizontalLayout {
 
     private final Button toggleThemeButton;
     private boolean isDarkMode = false;
 
+    /**
+     * Costruttore che inizializza l'header con:
+     * - Titolo dell'applicazione
+     * - Pulsante per il cambio tema
+     */
     public AppHeader() {
         // Configurazione layout
         addClassName(LumoUtility.Padding.SMALL);
@@ -44,6 +59,13 @@ public class AppHeader extends HorizontalLayout {
         add(appTitle, toggleThemeButton);
     }
 
+    /**
+     * Verifica il tema iniziale dell'applicazione.
+     * <p>
+     * Esegue uno script JS per determinare se il tema iniziale è dark o light
+     * e aggiorna di conseguenza lo stato e l'icona del pulsante.
+     * </p>
+     */
     private void checkInitialTheme() {
         UI.getCurrent().getPage().executeJs(
                 "return document.documentElement.getAttribute('theme') || 'light';"
@@ -54,6 +76,12 @@ public class AppHeader extends HorizontalLayout {
         });
     }
 
+    /**
+     * Cambia il tema tra light e dark mode.
+     * <p>
+     * Modifica l'attributo 'theme' del documento HTML e aggiorna lo stato interno.
+     * </p>
+     */
     private void toggleTheme() {
         isDarkMode = !isDarkMode;
         UI.getCurrent().getPage().executeJs(
@@ -69,6 +97,12 @@ public class AppHeader extends HorizontalLayout {
         );
     }
 
+    /**
+     * Aggiorna l'icona del pulsante in base al tema corrente.
+     * <p>
+     * Mostra l'icona del sole per il dark mode e l'icona della luna per il light mode.
+     * </p>
+     */
     private void updateThemeIcon() {
         Icon icon = isDarkMode ?
                 VaadinIcon.SUN_O.create() :

@@ -21,6 +21,17 @@ import it.uniupo.simnova.views.home.AppHeader;
 
 import java.util.Optional;
 
+/**
+ * View per la gestione del moulage (trucco ed effetti speciali) nello scenario di simulazione.
+ *
+ * <p>Questa view permette all'utente di inserire o modificare la descrizione del trucco
+ * da applicare al manichino/paziente simulato per lo scenario corrente.</p>
+ *
+ * <p>Implementa {@link HasUrlParameter} per ricevere l'ID dello scenario come parametro nell'URL.</p>
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @PageTitle("Moulage")
 @Route(value = "moulage")
 @Menu(order = 10)
@@ -30,51 +41,55 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
     private Integer scenarioId;
     private final TextArea moulageArea;
 
+    /**
+     * Costruttore della view.
+     *
+     * @param scenarioService il servizio per la gestione degli scenari
+     */
     public MoulageView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
 
-        // Configurazione layout principale
+        // Configurazione del layout principale con altezza piena e senza spazi interni
         VerticalLayout mainLayout = getContent();
         mainLayout.setSizeFull();
         mainLayout.setPadding(false);
         mainLayout.setSpacing(false);
         mainLayout.getStyle().set("min-height", "100vh");
 
-        // 1. HEADER
+        // 1. HEADER con pulsante indietro e header dell'applicazione
         AppHeader header = new AppHeader();
 
-        // Pulsante indietro
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         backButton.getStyle().set("margin-right", "auto");
 
-        // Container per header personalizzato
+        // Layout orizzontale per l'header personalizzato
         HorizontalLayout customHeader = new HorizontalLayout();
         customHeader.setWidthFull();
         customHeader.setPadding(true);
         customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
         customHeader.add(backButton, header);
 
-        // 2. CONTENUTO PRINCIPALE
+        // 2. CONTENUTO PRINCIPALE con area di testo per il moulage
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.setWidth("100%");
-        contentLayout.setMaxWidth("800px");
+        contentLayout.setMaxWidth("800px"); // Limite massimo di larghezza per migliorare la leggibilità
         contentLayout.setPadding(true);
         contentLayout.setSpacing(false);
         contentLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         contentLayout.getStyle()
-                .set("margin", "0 auto")
-                .set("flex-grow", "1");
+                .set("margin", "0 auto") // Centratura orizzontale
+                .set("flex-grow", "1"); // Occupa tutto lo spazio verticale disponibile
 
-        // Area di testo per il moulage
+        // Configurazione dell'area di testo per il moulage
         moulageArea = new TextArea("MOULAGE");
         moulageArea.setPlaceholder("Descrivi il trucco da applicare al manichino/paziente simulato...");
         moulageArea.setWidthFull();
-        moulageArea.setMinHeight("300px");
+        moulageArea.setMinHeight("300px"); // Altezza minima per facilitare la scrittura
         moulageArea.getStyle().set("max-width", "100%");
         moulageArea.addClassName(LumoUtility.Margin.Top.LARGE);
 
-        // Istruzioni aggiuntive
+        // Istruzioni per l'utente
         Paragraph instructions = new Paragraph("Specifica i dettagli del trucco e gli effetti speciali richiesti");
         instructions.addClassName(LumoUtility.TextColor.SECONDARY);
         instructions.addClassName(LumoUtility.FontSize.SMALL);
@@ -82,7 +97,7 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
 
         contentLayout.add(instructions, moulageArea);
 
-        // 3. FOOTER con pulsanti e crediti
+        // 3. FOOTER con pulsante avanti e crediti
         HorizontalLayout footerLayout = new HorizontalLayout();
         footerLayout.setWidthFull();
         footerLayout.setPadding(true);
@@ -91,7 +106,7 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
 
         Button nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
         nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        nextButton.setWidth("150px");
+        nextButton.setWidth("150px"); // Larghezza fissa per uniformità
 
         Paragraph credits = new Paragraph("Sviluppato e creato da Alessandro Zappatore");
         credits.addClassName(LumoUtility.TextColor.SECONDARY);
@@ -107,11 +122,12 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
                 footerLayout
         );
 
-        // Listener per i pulsanti
+        // Gestione degli eventi dei pulsanti
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("esamiReferti/" + scenarioId)));
 
         nextButton.addClickListener(e -> {
+            // Validazione dell'input
             if (moulageArea.getValue().trim().isEmpty()) {
                 Notification.show("Inserisci la descrizione del moulage per lo scenario", 3000, Notification.Position.MIDDLE);
                 return;
@@ -120,9 +136,16 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
         });
     }
 
+    /**
+     * Gestisce il parametro ID scenario ricevuto dall'URL.
+     *
+     * @param event l'evento di navigazione
+     * @param parameter l'ID dello scenario come stringa
+     */
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
         try {
+            // Validazione dell'ID scenario
             if (parameter == null || parameter.trim().isEmpty()) {
                 throw new NumberFormatException();
             }
@@ -132,12 +155,16 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
                 throw new NumberFormatException();
             }
 
+            // Caricamento del moulage esistente se presente
             loadExistingMoulage();
         } catch (NumberFormatException e) {
             event.rerouteToError(NotFoundException.class, "ID scenario non valido");
         }
     }
 
+    /**
+     * Carica il moulage esistente per lo scenario corrente.
+     */
     private void loadExistingMoulage() {
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
         if (scenario != null && scenario.getMoulage() != null && !scenario.getMoulage().isEmpty()) {
@@ -145,13 +172,20 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
         }
     }
 
+    /**
+     * Salva il moulage e naviga alla view successiva.
+     *
+     * @param uiOptional l'istanza UI opzionale per l'accesso alla UI
+     */
     private void saveMoulageAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {
+            // Mostra una progress bar durante l'operazione
             ProgressBar progressBar = new ProgressBar();
             progressBar.setIndeterminate(true);
             getContent().add(progressBar);
 
             try {
+                // Salvataggio del moulage tramite il service
                 boolean success = scenarioService.updateScenarioMoulage(
                         scenarioId, moulageArea.getValue()
                 );
@@ -159,7 +193,7 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
                     if (success) {
-                        ui.navigate("liquidi/" + scenarioId);
+                        ui.navigate("liquidi/" + scenarioId); // Navigazione alla view successiva
                     } else {
                         Notification.show("Errore durante il salvataggio del moulage", 3000, Notification.Position.MIDDLE);
                     }

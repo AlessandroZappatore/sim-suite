@@ -13,10 +13,30 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 
+/**
+ * Vista principale dell'applicazione SIM SUITE.
+ * <p>
+ * Questa classe rappresenta la homepage dell'applicazione, contenente il titolo,
+ * il sottotitolo e i pulsanti principali per navigare verso le altre sezioni.
+ * Implementata utilizzando Vaadin Flow e il tema Lumo.
+ * </p>
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @PageTitle("Home")
 @Route("")
 public class HomeView extends Composite<VerticalLayout> {
 
+    /**
+     * Costruttore della vista Home.
+     * <p>
+     * Inizializza l'interfaccia utente con:
+     * - Un header
+     * - Titolo e sottotitolo centrati
+     * - Pulsanti principali per la navigazione
+     * </p>
+     */
     public HomeView() {
         // Header
         AppHeader header = new AppHeader();
@@ -74,6 +94,13 @@ public class HomeView extends Composite<VerticalLayout> {
         getContent().add(header, title, subtitle, buttonContainer);
     }
 
+    /**
+     * Crea un pulsante principale con stile personalizzato.
+     *
+     * @param text Il testo da visualizzare sul pulsante
+     * @param iconName Il nome dell'icona da visualizzare (dalla libreria Vaadin)
+     * @return Un pulsante configurato con lo stile principale dell'applicazione
+     */
     private Button createMainButton(String text, String iconName) {
         Button button = new Button(text, new Icon(iconName));
         button.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_LARGE);
