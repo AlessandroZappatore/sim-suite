@@ -23,7 +23,9 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.timepicker.TimePicker;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import it.uniupo.simnova.api.model.ParametroAggiuntivo;
 import it.uniupo.simnova.api.model.PazienteT0;
+import it.uniupo.simnova.api.model.Tempo;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
 
@@ -43,8 +45,9 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
     private final Button nextButton;
     private int scenarioId;
     private final ScenarioService scenarioService;
+    public static final String CUSTOM_PARAMETER_KEY = "CUSTOM";
+    public static final Map<String, String> ADDITIONAL_PARAMETERS = new LinkedHashMap<>();
 
-    private static final Map<String, String> ADDITIONAL_PARAMETERS = new LinkedHashMap<>();
     static {
         // Cardiologia / Monitor Multiparametrico
         ADDITIONAL_PARAMETERS.put("PVC", "Pressione Venosa Centrale (cmH₂O)");
@@ -63,8 +66,8 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         ADDITIONAL_PARAMETERS.put("GCS", "Scala di Glasgow (3-15)");
         ADDITIONAL_PARAMETERS.put("ICP", "Pressione Intracranica (mmHg)");
         ADDITIONAL_PARAMETERS.put("PRx", "Indice di Pressione Cerebrale");
-        ADDITIONAL_PARAMETERS.put("BIS", "BIS (0-100)");
-        ADDITIONAL_PARAMETERS.put("TOF", "TOF (0-4)");
+        ADDITIONAL_PARAMETERS.put("BIS", "Bispectral Index (0-100)");
+        ADDITIONAL_PARAMETERS.put("TOF", "Train of Four (%)");
 
         // Emodinamica / Terapia Intensiva
         ADDITIONAL_PARAMETERS.put("CO", "Gittata Cardiaca (L/min)");
@@ -93,6 +96,10 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         ADDITIONAL_PARAMETERS.put("INR", "INR");
         ADDITIONAL_PARAMETERS.put("PTT", "PTT (sec)");
         ADDITIONAL_PARAMETERS.put("PLT", "Piastrine (10³/μL)");
+
+        //Altri Monitoraggi Specializzati
+        ADDITIONAL_PARAMETERS.put("pCO₂ cutanea", "pCO₂ cutanea (mmHg)");
+        ADDITIONAL_PARAMETERS.put("NIRS", "Ossimetria cerebrale (%)");
     }
 
     public TempoView(ScenarioService scenarioService) {
@@ -222,6 +229,16 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Seleziona Parametri Aggiuntivi");
 
+        // Pulsante per aggiungere parametro personalizzato
+        Button addCustomParamButton = new Button("Nuovo Parametro Personalizzato",
+                new Icon(VaadinIcon.PLUS_CIRCLE));
+        addCustomParamButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        addCustomParamButton.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
+        addCustomParamButton.addClickListener(e -> {
+            dialog.close();
+            showCustomParamDialog(timeSection);
+        });
+
         // Ottieni i parametri già selezionati
         Set<String> alreadySelected = timeSection.getCustomParameters().keySet();
 
@@ -230,12 +247,6 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                 .filter(entry -> !alreadySelected.contains(entry.getKey()))
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
-
-        if (availableParams.isEmpty()) {
-            Notification.show("Tutti i parametri aggiuntivi sono già stati aggiunti",
-                    3000, Notification.Position.MIDDLE);
-            return;
-        }
 
         CheckboxGroup<String> paramsSelector = new CheckboxGroup<>();
         paramsSelector.setItems(availableParams);
@@ -263,19 +274,112 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         HorizontalLayout buttons = new HorizontalLayout(confirmButton, cancelButton);
         buttons.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
 
-        dialog.add(paramsSelector, buttons);
+        VerticalLayout dialogContent = new VerticalLayout(
+                addCustomParamButton,
+                new Paragraph("Seleziona dai parametri predefiniti:"),
+                paramsSelector
+        );
+        dialog.add(dialogContent, buttons);
+        dialog.open();
+    }
+
+    private void showCustomParamDialog(TimeSection timeSection) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Aggiungi Parametro Personalizzato");
+
+        TextField nameField = new TextField("Nome parametro");
+        nameField.setWidthFull();
+
+        TextField unitField = new TextField("Unità di misura");
+        unitField.setWidthFull();
+
+        NumberField valueField = new NumberField("Valore");
+        valueField.setWidthFull();
+
+        Button saveButton = new Button("Salva", e -> {
+            String paramName = nameField.getValue();
+            String unit = unitField.getValue();
+
+            if (paramName == null || paramName.isEmpty()) {
+                Notification.show("Inserisci un nome per il parametro",
+                        3000, Notification.Position.MIDDLE);
+                return;
+            }
+
+            // Crea una chiave univoca per il parametro personalizzato
+            String paramKey = CUSTOM_PARAMETER_KEY + "_" + System.currentTimeMillis();
+            String fullLabel = paramName + (unit.isEmpty() ? "" : " (" + unit + ")");
+
+            // Aggiungi alla mappa dei parametri (opzionale, se vuoi tener traccia)
+            ADDITIONAL_PARAMETERS.put(paramKey, fullLabel);
+
+            // Aggiungi il parametro alla sezione
+            timeSection.addCustomParameter(paramKey, fullLabel);
+
+            // Imposta il valore se fornito
+            if (valueField.getValue() != null) {
+                timeSection.getCustomParameters().get(paramKey).setValue(valueField.getValue());
+            }
+
+            dialog.close();
+        });
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        Button cancelButton = new Button("Annulla", e -> dialog.close());
+
+        HorizontalLayout buttons = new HorizontalLayout(saveButton, cancelButton);
+        buttons.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+
+        VerticalLayout dialogContent = new VerticalLayout(
+                new Paragraph("Definisci un nuovo parametro:"),
+                nameField,
+                unitField,
+                valueField
+        );
+        dialog.add(dialogContent, buttons);
         dialog.open();
     }
 
     private void saveAllTimeSections() {
         try {
+            List<ScenarioService.TempoData> allTempiData = new ArrayList<>();
+
             for (TimeSection section : timeSections) {
-                section.saveData();
+                ScenarioService.TempoData tempoData = section.prepareDataForSave();
+                allTempiData.add(tempoData);
+                System.out.println("Preparato tempo T" + tempoData.idTempo() + ": " + tempoData);
             }
-            nextButton.getUI().ifPresent(ui -> ui.navigate("moulage/" + scenarioId));
+
+            // Salva tutti i tempi nel database
+            boolean success = scenarioService.saveTempi(scenarioId, allTempiData);
+
+            if (success) {
+                Notification.show("Tempi salvati con successo!", 3000, Notification.Position.MIDDLE);
+                System.out.println("Tempi salvati con successo per scenario " + scenarioId);
+                switch (scenarioService.getScenarioType(scenarioId)) {
+                    case "Quick Scenario":
+                        Notification.show("Tipo di scenario errato", 3000, Notification.Position.MIDDLE);
+                        System.err.println("Tipo di scenario non riconosciuto per ID " + scenarioId);
+                        break;
+                    case "Advanced Scenario":
+                        nextButton.getUI().ifPresent(ui -> ui.navigate("scenari/" + scenarioId));
+                        break;
+                    case "Patient Simulated Scenario":
+                        nextButton.getUI().ifPresent(ui -> ui.navigate("sceneggiatura/" + scenarioId));
+                        break;
+                    default:
+                        Notification.show("Tipo di scenario non riconosciuto", 3000, Notification.Position.MIDDLE);
+                        System.err.println("Tipo di scenario non riconosciuto per ID " + scenarioId);
+                        break;
+                }
+            } else {
+                Notification.show("Errore durante il salvataggio dei tempi", 5000, Notification.Position.MIDDLE);
+                System.err.println("Errore durante il salvataggio dei tempi per scenario " + scenarioId);
+            }
         } catch (Exception e) {
             Notification.show("Errore durante il salvataggio: " + e.getMessage(),
                     5000, Notification.Position.MIDDLE);
+            System.err.println("Errore durante il salvataggio dei tempi:");
             e.printStackTrace();
         }
     }
@@ -315,6 +419,9 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                 t0Section.setSpo2Value(pazienteT0.getSpO2());
                 t0Section.setEtco2Value(pazienteT0.getEtCO2());
 
+                // Carica anche i tempi esistenti se presenti
+                loadExistingTimes();
+
                 Notification.show("I parametri di T0 sono precompilati e non modificabili",
                         3000, Notification.Position.BOTTOM_START);
             }
@@ -324,6 +431,70 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             e.printStackTrace();
         }
     }
+
+    private void loadExistingTimes() {
+        List<Tempo> existingTempi = scenarioService.getTempiByScenarioId(scenarioId);
+        if (existingTempi != null && !existingTempi.isEmpty()) {
+            // Rimuovi T0 se già caricato da loadInitialData
+            if (!timeSections.isEmpty() && timeSections.getFirst().timeNumber == 0) {
+                timeSections.removeFirst();
+                timeSectionsContainer.removeAll();
+            }
+
+            for (Tempo tempo : existingTempi) {
+                // Aggiungi solo tempi successivi a T0
+                if (tempo.getIdTempo() > 0 || timeSections.isEmpty()) {
+                    addTimeSection(tempo.getIdTempo());
+                    TimeSection section = timeSections.getLast();
+
+                    // Imposta i valori base
+                    section.paField.setValue(tempo.getPA());
+                    section.fcField.setValue((double) tempo.getFC());
+                    section.rrField.setValue((double) tempo.getRR());
+                    section.tField.setValue((double) tempo.getT());
+                    section.spo2Field.setValue((double) tempo.getSpO2());
+                    section.etco2Field.setValue((double) tempo.getEtCO2());
+
+                    // Imposta i campi di azione
+                    section.actionDetailsArea.setValue(tempo.getAzione());
+                    section.timeIfYesField.setValue(tempo.getTSi());
+                    section.timeIfNoField.setValue(tempo.getTNo());
+                    section.additionalDetailsArea.setValue(tempo.getAltriDettagli());
+
+                    // Imposta il timer
+                    if (tempo.getTimerTempo() > 0) {
+                        section.timerPicker.setValue(LocalTime.ofSecondOfDay(tempo.getTimerTempo()));
+                    }
+
+                    // Carica i parametri aggiuntivi
+                    loadAdditionalParameters(section, tempo.getIdTempo());
+                }
+            }
+        }
+    }
+
+    private void loadAdditionalParameters(TimeSection section, int tempoId) {
+        List<ParametroAggiuntivo> params = scenarioService.getParametriAggiuntiviById(tempoId, scenarioId);
+        if (params != null && !params.isEmpty()) {
+            for (ParametroAggiuntivo param : params) {
+                String paramKey = ADDITIONAL_PARAMETERS.entrySet().stream()
+                        .filter(e -> e.getKey().equals(param.getNome()) ||
+                                e.getValue().contains(param.getNome()))
+                        .map(Map.Entry::getKey)
+                        .findFirst()
+                        .orElse(CUSTOM_PARAMETER_KEY + "_" + param.getNome());
+
+                String label = param.getNome();
+                if (param.getUnitaMisura() != null && !param.getUnitaMisura().isEmpty()) {
+                    label += " (" + param.getUnitaMisura() + ")";
+                }
+
+                section.addCustomParameter(paramKey, label);
+                section.customParameters.get(paramKey).setValue(Double.parseDouble(param.getValore()));
+            }
+        }
+    }
+
 
     private class TimeSection {
         private final int timeNumber;
@@ -393,7 +564,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             divider.addClassName(LumoUtility.Margin.Vertical.MEDIUM);
 
             Paragraph actionTitle = new Paragraph(timeNumber == 0 ?
-                    "AZIONE INIZIALE (T0)" : "AZIONE DA SVOLGERE PER PASSARE A T" + timeNumber);
+                    "AZIONE INIZIALE T0" : "AZIONE CORRENTE: T" + timeNumber);
             actionTitle.getStyle()
                     .set("font-weight", "bold")
                     .set("text-align", "center")
@@ -495,7 +666,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             return "";
         }
 
-        public void saveData() {
+        public ScenarioService.TempoData prepareDataForSave() {
             LocalTime time = timerPicker.getValue();
             String pa = paField.getValue() != null ? paField.getValue() : "0/0";
             double fc = fcField.getValue() != null ? fcField.getValue() : 0;
@@ -509,19 +680,28 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             int nextTimeIfNo = timeIfNoField.getValue() != null ? timeIfNoField.getValue() : 0;
             String additionalDetails = additionalDetailsArea.getValue();
 
-            // Salva parametri aggiuntivi
+            // Raccogli parametri aggiuntivi con unità di misura
+            Map<String, Double> additionalParams = new HashMap<>();
             customParameters.forEach((key, field) -> {
                 double value = field.getValue() != null ? field.getValue() : 0;
-                System.out.println("Parametro aggiuntivo " + key + ": " + value);
+                additionalParams.put(key, value);
             });
 
-            System.out.println("Salvati dati per T" + timeNumber);
-            System.out.println("Timer: " + time);
-            System.out.println("Parametri medici: PA=" + pa + ", FC=" + fc + ", FR=" + rr +
-                    ", T=" + t + ", SpO2=" + spo2 + ", EtCO2=" + etco2);
-            System.out.println("Azione: " + actionDescription);
-            System.out.println("Transizioni: Se SI -> T" + nextTimeIfYes + ", Se NO -> T" + nextTimeIfNo);
-            System.out.println("Dettagli aggiuntivi: " + additionalDetails);
+            return new ScenarioService.TempoData(
+                    timeNumber,
+                    pa,
+                    fc,
+                    rr,
+                    t,
+                    spo2,
+                    etco2,
+                    actionDescription,
+                    nextTimeIfYes,
+                    nextTimeIfNo,
+                    additionalDetails,
+                    time != null ? time.toSecondOfDay() : 0,
+                    additionalParams
+            );
         }
 
         // Metodi per impostare i valori dei campi
@@ -532,13 +712,13 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         }
 
         public void setFcValue(int value) {
-            fcField.setValue((double)value);
+            fcField.setValue((double) value);
             fcField.setReadOnly(true);
             fcField.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
 
         public void setRrValue(int value) {
-            rrField.setValue((double)value);
+            rrField.setValue((double) value);
             rrField.setReadOnly(true);
             rrField.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
@@ -550,13 +730,13 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         }
 
         public void setSpo2Value(int value) {
-            spo2Field.setValue((double)value);
+            spo2Field.setValue((double) value);
             spo2Field.setReadOnly(true);
             spo2Field.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
 
         public void setEtco2Value(int value) {
-            etco2Field.setValue((double)value);
+            etco2Field.setValue((double) value);
             etco2Field.setReadOnly(true);
             etco2Field.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }

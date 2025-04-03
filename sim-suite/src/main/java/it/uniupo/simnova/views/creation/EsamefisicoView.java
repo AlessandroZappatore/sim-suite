@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @PageTitle("Esame Fisico")
-@Route(value = "esamefisico")
+@Route(value = "esameFisico")
 @Menu(order = 13)
 public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
 
@@ -219,7 +219,7 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
 
                     String scenarioType = scenarioService.getScenarioType(scenarioId);
                     if ("Quick Scenario".equals(scenarioType)) {
-                        ui.navigate("scenario-details/" + scenarioId);
+                        ui.navigate("scenari/" + scenarioId);
                     } else if ("Advanced Scenario".equals(scenarioType) ||
                             "Patient Simulated Scenario".equals(scenarioType)) {
                         ui.navigate("tempo/" + scenarioId);

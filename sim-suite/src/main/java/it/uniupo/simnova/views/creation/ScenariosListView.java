@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.util.List;
 
 @PageTitle("Lista Scenari")
-@Route(value = "scenarios", layout = MainLayout.class)
+@Route(value = "scenari", layout = MainLayout.class)
 @Menu(order = 3)
 public class ScenariosListView extends Composite<VerticalLayout> {
 
@@ -77,7 +77,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         // Main Content
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.setWidth("100%");
-        contentLayout.setMaxWidth("1200px");
+        contentLayout.setMaxWidth("1300px");
         contentLayout.setPadding(true);
         contentLayout.setSpacing(false);
         contentLayout.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -195,8 +195,11 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         // Colonna Descrizione (con testo troncato)
         scenariosGrid.addColumn(new ComponentRenderer<>(scenario -> {
                     String descrizione = scenario.getDescrizione();
-                    int maxLength = 50;
-                    if (descrizione != null && descrizione.length() > maxLength) {
+                    if (descrizione == null) {
+                        descrizione = "";
+                    }
+                    int maxLength = 40;
+                    if (descrizione.length() > maxLength) {
                         descrizione = descrizione.substring(0, maxLength) + "...";
                     }
                     Span descSpan = new Span(descrizione);
@@ -237,7 +240,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         // Click su riga per dettagli
         scenariosGrid.addItemClickListener(event -> {
             if (event.getItem() != null) {
-                getUI().ifPresent(ui -> ui.navigate("scenario-details/" + event.getItem().getId()));
+                getUI().ifPresent(ui -> ui.navigate("scenari/" + event.getItem().getId()));
             }
         });
     }
@@ -247,22 +250,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
 
         try {
             // Creazione della risorsa PDF
-            StreamResource resource = new StreamResource(
-                    "scenario_" + scenario.getTitolo() + ".pdf",
-                    () -> {
-                        try {
-                            byte[] pdfBytes = pdfExportService.exportScenarioToPdf(scenario.getId());
-                            return new ByteArrayInputStream(pdfBytes);
-                        } catch (IOException e) {
-                            throw new RuntimeException("Failed to generate PDF", e);
-                        }
-                    }
-            );
-
-            resource.setContentType("application/pdf");
-
-            // Creazione e configurazione dell'anchor per il download
-            Anchor downloadLink = new Anchor(resource, "Download PDF");
+            Anchor downloadLink = getAnchor(scenario);
             downloadLink.getElement().setAttribute("download", true);
             downloadLink.getStyle().set("display", "none");
 
@@ -277,6 +265,26 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         } catch (Exception e) {
             Notification.show("Error generating PDF: " + e.getMessage(), 5000, Position.MIDDLE);
         }
+    }
+
+    private Anchor getAnchor(Scenario scenario) {
+        StreamResource resource = new StreamResource(
+                "scenario_" + scenario.getTitolo() + ".pdf",
+                () -> {
+                    try {
+                        byte[] pdfBytes = pdfExportService.exportScenarioToPdf(scenario.getId());
+                        return new ByteArrayInputStream(pdfBytes);
+                    } catch (IOException e) {
+                        throw new RuntimeException("Failed to generate PDF", e);
+                    }
+                }
+        );
+
+        resource.setContentType("application/pdf");
+
+        // Creazione e configurazione dell'anchor per il download
+        Anchor downloadLink = new Anchor(resource, "Download PDF");
+        return downloadLink;
     }
 
 

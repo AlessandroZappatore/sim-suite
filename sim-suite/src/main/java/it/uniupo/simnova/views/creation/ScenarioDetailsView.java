@@ -23,11 +23,12 @@ import it.uniupo.simnova.api.model.*;
 import it.uniupo.simnova.service.ScenarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
 @PageTitle("Dettagli Scenario")
-@Route(value = "scenario-details", layout = MainLayout.class)
+@Route(value = "scenari", layout = MainLayout.class)
 public class ScenarioDetailsView extends Composite<VerticalLayout>
         implements HasUrlParameter<Integer>, BeforeEnterObserver {
 
@@ -38,13 +39,13 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
     @Autowired
     public ScenarioDetailsView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
-        UI ui = UI.getCurrent();
+        UI.getCurrent();
         getContent().addClassName("scenario-details-view");
         getContent().setPadding(false);
     }
 
     @Override
-    public void setParameter(BeforeEvent event, @OptionalParameter Integer scenarioId) {
+    public void setParameter(BeforeEvent event,  Integer scenarioId) {
         this.scenarioId = scenarioId;
     }
 
@@ -52,7 +53,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
     public void beforeEnter(BeforeEnterEvent event) {
         if (scenarioId == null) {
             Notification.show("ID scenario non valido", 3000, Position.MIDDLE);
-            UI.getCurrent().navigate("scenarios");
+            UI.getCurrent().navigate("scenari");
             return;
         }
         loadScenarioData();
@@ -74,7 +75,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
                 ui.access(() -> {
                     if (loadedScenario == null) {
                         Notification.show("Scenario non trovato", 3000, Position.MIDDLE);
-                        ui.navigate("scenarios");
+                        ui.navigate("scenari");
                         return;
                     }
                     this.scenario = loadedScenario;
@@ -83,7 +84,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
             } catch (Exception e) {
                 ui.access(() -> {
                     Notification.show("Errore nel caricamento: " + e.getMessage(), 3000, Position.MIDDLE);
-                    ui.navigate("scenarios");
+                    ui.navigate("scenari");
                 });
             }
         }).start();
@@ -145,7 +146,8 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
         accordion.add("Stato Paziente", createPatientContent());
         accordion.add("Esami e Referti", createExamsContent());
 
-        if (scenario instanceof AdvancedScenario) {
+        List<Tempo> tempi = scenarioService.getTempiByScenarioId(scenarioId);
+        if (tempi != null && !tempi.isEmpty()) {
             accordion.add("Timeline", createTimelineContent());
         }
 
@@ -170,7 +172,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
                 footerLayout
         );
 
-        backButton.addClickListener(e -> UI.getCurrent().navigate("scenarios"));
+        backButton.addClickListener(e -> UI.getCurrent().navigate("scenari"));
     }
 
     private Paragraph getParagraph() {
@@ -416,33 +418,97 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
         layout.setSpacing(true);
         layout.setWidthFull();
 
-        if (scenario instanceof AdvancedScenario advancedScenario) {
-            for (Tempo tempo : advancedScenario.getTempi()) {
-                Div timeCard = new Div();
-                timeCard.addClassName("time-card");
+        // Ottieni tutti i tempi per questo scenario
+        List<Tempo> tempi = scenarioService.getTempiByScenarioId(scenarioId);
+        if (tempi == null || tempi.isEmpty()) {
+            layout.add(new Paragraph("Nessun tempo definito per questo scenario"));
+            return layout;
+        }
 
-                H3 timeTitle = new H3(String.format("Tempo %d - %s (%.1f min)",
-                        tempo.getIdTempo(),
-                        tempo.getAzione(),
-                        tempo.getTimerTempo()));
+        // Ordina i tempi per ID
+        tempi.sort(Comparator.comparingInt(Tempo::getIdTempo));
 
-                Grid<String> paramsGrid = createTimelineParamsGrid(tempo);
+        for (Tempo tempo : tempi) {
+            Div timeCard = new Div();
+            timeCard.addClassName("time-card");
+            timeCard.getStyle().set("margin-bottom", "1em");
 
-                if (tempo.getAltriDettagli() != null && !tempo.getAltriDettagli().isEmpty()) {
-                    timeCard.add(
-                            timeTitle,
-                            paramsGrid,
-                            new Paragraph(tempo.getAltriDettagli())
-                    );
-                } else {
-                    timeCard.add(timeTitle, paramsGrid);
-                }
+            // Intestazione del tempo
+            H3 timeTitle = new H3(String.format("T%d - %s",
+                    tempo.getIdTempo(),
+                    formatTime((int)tempo.getTimerTempo())));
+            timeTitle.addClassName(LumoUtility.Margin.Top.NONE);
 
-                layout.add(timeCard);
+            // Parametri vitali
+            Grid<String> paramsGrid = createTimelineParamsGrid(tempo);
+
+            // Parametri aggiuntivi
+            List<ParametroAggiuntivo> parametriAggiuntivi =
+                    scenarioService.getParametriAggiuntiviById(tempo.getIdTempo(), scenarioId);
+
+            VerticalLayout additionalParamsLayout = new VerticalLayout();
+            additionalParamsLayout.setPadding(false);
+            additionalParamsLayout.setSpacing(false);
+
+            if (!parametriAggiuntivi.isEmpty()) {
+                additionalParamsLayout.add(new H4("Parametri Aggiuntivi"));
+                Grid<ParametroAggiuntivo> additionalParamsGrid = new Grid<>();
+                additionalParamsGrid.setItems(parametriAggiuntivi);
+
+                additionalParamsGrid.addColumn(p -> p.getNome() + (p.getUnitaMisura() != null ? " (" + p.getUnitaMisura() + ")" : ""))
+                        .setHeader("Parametro");
+                additionalParamsGrid.addColumn(ParametroAggiuntivo::getValore)
+                        .setHeader("Valore");
+
+                additionalParamsGrid.setAllRowsVisible(true);
+                additionalParamsLayout.add(additionalParamsGrid);
             }
+
+            // Azione e transizioni
+            VerticalLayout actionLayout = new VerticalLayout();
+            actionLayout.setPadding(false);
+            actionLayout.setSpacing(false);
+
+            actionLayout.add(new H4("Azione"));
+            actionLayout.add(new Paragraph(tempo.getAzione()));
+
+            if (tempo.getTSi() > 0 || tempo.getTNo() > 0) {
+                HorizontalLayout transitions = new HorizontalLayout();
+                transitions.setSpacing(true);
+
+                if (tempo.getTSi() > 0) {
+                    transitions.add(new Span("Se SI → T" + tempo.getTSi()));
+                }
+                if (tempo.getTNo() > 0) {
+                    transitions.add(new Span("Se NO → T" + tempo.getTNo()));
+                }
+                actionLayout.add(transitions);
+            }
+
+            // Dettagli aggiuntivi
+            if (tempo.getAltriDettagli() != null && !tempo.getAltriDettagli().isEmpty()) {
+                actionLayout.add(new H4("Dettagli Aggiuntivi"));
+                actionLayout.add(new Paragraph(tempo.getAltriDettagli()));
+            }
+
+            timeCard.add(
+                    timeTitle,
+                    paramsGrid,
+                    additionalParamsLayout,
+                    new Hr(),
+                    actionLayout
+            );
+
+            layout.add(timeCard);
         }
 
         return layout;
+    }
+
+    private String formatTime(int seconds) {
+        int minutes = seconds / 60;
+        int remainingSeconds = seconds % 60;
+        return String.format("%02d:%02d", minutes, remainingSeconds);
     }
 
     private Grid<String> createParamsGrid(PazienteT0 paziente) {
@@ -466,15 +532,30 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
     private Grid<String> createTimelineParamsGrid(Tempo tempo) {
         Grid<String> grid = new Grid<>();
         grid.setItems(
-                "PA: " + tempo.getPA() + " mmHg",
+                "PA: " + tempo.getPA(),
                 "FC: " + tempo.getFC() + " bpm",
                 "RR: " + tempo.getRR() + " atti/min",
                 "Temperatura: " + tempo.getT() + " °C",
                 "SpO2: " + tempo.getSpO2() + "%",
                 "EtCO2: " + tempo.getEtCO2() + " mmHg"
         );
-        grid.addColumn(s -> s).setHeader("Parametro");
+
+        grid.addColumn(s -> {
+            if (s.contains(":")) {
+                return s.substring(0, s.indexOf(":"));
+            }
+            return s;
+        }).setHeader("Parametro");
+
+        grid.addColumn(s -> {
+            if (s.contains(":")) {
+                return s.substring(s.indexOf(":") + 2);
+            }
+            return s;
+        }).setHeader("Valore");
+
         grid.setAllRowsVisible(true);
+        grid.setWidth("100%");
         return grid;
     }
 

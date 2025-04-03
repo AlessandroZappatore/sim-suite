@@ -10,12 +10,12 @@ public class Tempo {
     private Integer SpO2;
     private Integer EtCO2;
     private String Azione;
-    private Tempo TSi;
-    private Tempo TNo;
+    private int TSi;
+    private int TNo;
     private String altriDettagli;
-    private float timerTempo;
+    private long timerTempo;
 
-    public Tempo(int idTempo, int advancedScenario, String PA, Integer FC, Integer RR, Float t, Integer spO2, Integer etCO2, String azione, Tempo TSi, Tempo TNo, String altriDettagli, float timerTempo) {
+    public Tempo(int idTempo, int advancedScenario, String PA, Integer FC, Integer RR, Float t, Integer spO2, Integer etCO2, String azione, int TSi, int TNo, String altriDettagli, long timerTempo) {
         this.idTempo = idTempo;
         this.advancedScenario = advancedScenario;
         if (PA != null && !PA.matches("\\d+/\\d+")) {
@@ -32,6 +32,10 @@ public class Tempo {
         this.TNo = TNo;
         this.altriDettagli = altriDettagli;
         this.timerTempo = timerTempo;
+    }
+
+    public Tempo() {
+        // Default constructor
     }
 
     public int getIdTempo() {
@@ -109,19 +113,19 @@ public class Tempo {
         Azione = azione;
     }
 
-    public Tempo getTSi() {
+    public int getTSi() {
         return TSi;
     }
 
-    public void setTSi(Tempo TSi) {
+    public void setTSi(int TSi) {
         this.TSi = TSi;
     }
 
-    public Tempo getTNo() {
+    public int getTNo() {
         return TNo;
     }
 
-    public void setTNo(Tempo TNo) {
+    public void setTNo(int TNo) {
         this.TNo = TNo;
     }
 
@@ -133,11 +137,11 @@ public class Tempo {
         this.altriDettagli = altriDettagli;
     }
 
-    public float getTimerTempo() {
+    public long getTimerTempo() {
         return timerTempo;
     }
 
-    public void setTimerTempo(float timerTempo) {
+    public void setTimerTempo(long timerTempo) {
         this.timerTempo = timerTempo;
     }
 

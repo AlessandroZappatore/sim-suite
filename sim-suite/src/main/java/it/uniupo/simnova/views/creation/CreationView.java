@@ -80,7 +80,7 @@ public class CreationView extends Composite<VerticalLayout> {
         patientSimulatedScenarioButton.addClickListener(e ->
                 patientSimulatedScenarioButton.getUI().ifPresent(ui -> ui.navigate("startCreation/patientSimulatedScenario")));
         visualizzaScenari.addClickListener(e ->
-                visualizzaScenari.getUI().ifPresent(ui -> ui.navigate("scenarios")));
+                visualizzaScenari.getUI().ifPresent(ui -> ui.navigate("scenari")));
         // Main content container
         Div contentContainer = new Div();
         contentContainer.addClassName("scenario-container");

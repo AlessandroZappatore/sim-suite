@@ -291,7 +291,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
                     if (success) {
-                        ui.navigate("esamefisico/" + scenarioId);
+                        ui.navigate("esameFisico/" + scenarioId);
                     } else {
                         Notification.show("Errore durante il salvataggio dei dati",
                                 3000, Notification.Position.MIDDLE);

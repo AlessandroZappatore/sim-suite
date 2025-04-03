@@ -4,6 +4,7 @@ import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -11,7 +12,6 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
@@ -29,7 +29,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
     private final TextField scenarioTitle;
     private final TextField patientName;
     private final TextField pathology;
-    private final NumberField durationField;
+    private final ComboBox<Integer> durationField;
     private String scenarioType;
 
     public StartCreationView(ScenarioService scenarioService) {
@@ -74,10 +74,9 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         pathology = createTextField("PATOLOGIA/MALATTIA", "Inserisci la patologia");
 
         // Campo durata timer
-        durationField = new NumberField("DURATA SIMULAZIONE (minuti)");
-        durationField.setMin(1);
-        durationField.setValue(10.0);
-        durationField.setStep(1);
+        durationField = new ComboBox<>("DURATA SIMULAZIONE (minuti)");
+        durationField.setItems(5, 10, 15, 20, 25, 30);
+        durationField.setValue(10);
         durationField.setWidthFull();
         durationField.addClassName(LumoUtility.Margin.Top.LARGE);
         durationField.getStyle().set("max-width", "500px");
@@ -136,7 +135,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
     }
 
     private boolean validateFields() {
-        if (scenarioTitle.isEmpty() || patientName.isEmpty() || pathology.isEmpty()) {
+        if (scenarioTitle.isEmpty() || patientName.isEmpty() || pathology.isEmpty() || durationField.isEmpty()) {
             Notification.show("Compila tutti i campi obbligatori", 3000, Notification.Position.MIDDLE);
             return false;
         }
@@ -146,7 +145,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
     private void saveScenarioAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {
             try {
-                int scenarioId = -1;
+                int scenarioId;
 
                 switch (scenarioType) {
                     case "quickscenario":

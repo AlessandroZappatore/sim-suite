@@ -12,6 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static it.uniupo.simnova.views.creation.TempoView.ADDITIONAL_PARAMETERS;
+import static it.uniupo.simnova.views.creation.TempoView.CUSTOM_PARAMETER_KEY;
+
 @Service
 public class ScenarioService {
     private final FileStorageService fileStorageService;
@@ -641,14 +644,6 @@ public class ScenarioService {
         }
     }
 
-    private void deleteTempi(Connection conn, int scenarioId) throws SQLException {
-        final String sql = "DELETE FROM Tempo WHERE id_advanced_scenario = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, scenarioId);
-            stmt.executeUpdate();
-        }
-    }
-
     private void deletePatientSimulatedScenario(Connection conn, int scenarioId) throws SQLException {
         final String sql = "DELETE FROM PatientSimulatedScenario WHERE id_patient_simulated_scenario = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -748,4 +743,279 @@ public class ScenarioService {
         }
     }
 
+    public boolean saveTempi(int scenarioId, List<TempoData> tempiData) {
+        Connection conn = null;
+        try {
+            conn = DBConnect.getInstance().getConnection();
+            conn.setAutoCommit(false); // Disabilita l'autocommit
+
+            // Prima elimina i tempi esistenti per questo scenario
+            if (!deleteTempi(conn, scenarioId)) {
+                conn.rollback();
+                return false;
+            }
+
+            final String sql = "INSERT INTO Tempo (id_tempo, id_advanced_scenario, PA, FC, RR, T, SpO2, EtCO2, Azione, TSi_id, TNo_id, altri_dettagli, timer_tempo) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                for (TempoData tempo : tempiData) {
+                    stmt.setInt(1, tempo.idTempo());
+                    stmt.setInt(2, scenarioId);
+                    stmt.setString(3, tempo.pa());
+                    stmt.setInt(4, (int) tempo.fc());
+                    stmt.setInt(5, (int) tempo.rr());
+                    stmt.setDouble(6, tempo.t());
+                    stmt.setInt(7, (int) tempo.spo2());
+                    stmt.setInt(8, (int) tempo.etco2());
+                    stmt.setString(9, tempo.azione());
+                    stmt.setInt(10, tempo.tSiId());
+                    stmt.setInt(11, tempo.tNoId());
+                    stmt.setString(12, tempo.altriDettagli());
+                    stmt.setInt(13, tempo.timerTempo());
+
+                    stmt.addBatch();
+                }
+
+                int[] results = stmt.executeBatch();
+                for (int result : results) {
+                    if (result <= 0) {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+            }
+
+            // Salva anche i parametri aggiuntivi
+            if (!saveParametriAggiuntivi(conn, scenarioId, tempiData)) {
+                conn.rollback();
+                return false;
+            }
+
+            conn.commit(); // Conferma la transazione
+            return true;
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            e.printStackTrace();
+            return false;
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private boolean deleteTempi(Connection conn, int scenarioId) throws SQLException {
+        // Prima elimina i parametri aggiuntivi
+        if (!deleteParametriAggiuntivi(conn, scenarioId)) {
+            return false;
+        }
+
+        // Poi elimina i tempi
+        final String sql = "DELETE FROM Tempo WHERE id_advanced_scenario = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, scenarioId);
+            return stmt.executeUpdate() >= 0;
+        }
+    }
+
+    private boolean deleteParametriAggiuntivi(Connection conn, int scenarioId) throws SQLException {
+        // Ora possiamo eliminare direttamente per scenario_id
+        final String sql = "DELETE FROM ParametriAggiuntivi WHERE scenario_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, scenarioId);
+            return stmt.executeUpdate() >= 0;
+        }
+    }
+
+    private boolean saveParametriAggiuntivi(Connection conn, int scenarioId, List<TempoData> tempiData) throws SQLException {
+        final String sql = "INSERT INTO ParametriAggiuntivi (parametri_aggiuntivi_id, tempo_id, scenario_id, nome, valore, unità_misura) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            int paramId = 1;
+            for (TempoData tempo : tempiData) {
+                for (Map.Entry<String, Double> param : tempo.parametriAggiuntivi().entrySet()) {
+                    String paramKey = param.getKey();
+                    String paramName = paramKey.startsWith(CUSTOM_PARAMETER_KEY) ?
+                            paramKey.substring(paramKey.indexOf('_') + 1) :
+                            paramKey;
+
+                    String unit = ADDITIONAL_PARAMETERS.containsKey(paramKey) ?
+                            ADDITIONAL_PARAMETERS.get(paramKey).substring(
+                                    ADDITIONAL_PARAMETERS.get(paramKey).indexOf('(') + 1,
+                                    ADDITIONAL_PARAMETERS.get(paramKey).indexOf(')')
+                            ) : "";
+
+                    stmt.setInt(1, paramId++);
+                    stmt.setInt(2, tempo.idTempo());
+                    stmt.setInt(3, scenarioId); // Aggiunto scenario_id
+                    stmt.setString(4, paramName);
+                    stmt.setDouble(5, param.getValue());
+                    stmt.setString(6, unit);
+
+                    stmt.addBatch();
+                }
+            }
+
+            int[] results = stmt.executeBatch();
+            for (int result : results) {
+                if (result <= 0) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    public boolean updateScenarioSceneggiatura(Integer scenarioId, String sceneggiatura) {
+        // First check if this is a PatientSimulatedScenario
+        if (!isPresentInTable(scenarioId, "PatientSimulatedScenario")) {
+            return false;
+        }
+
+        final String sql = "UPDATE PatientSimulatedScenario SET sceneggiatura = ? WHERE id_patient_simulated_scenario = ?";
+
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, sceneggiatura);
+            stmt.setInt(2, scenarioId);
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public PatientSimulatedScenario getPatientSimulatedScenarioById(Integer id) {
+        final String sql = "SELECT * FROM PatientSimulatedScenario pss " +
+                "JOIN Scenario s ON pss.id_patient_simulated_scenario = s.id_scenario " +
+                "WHERE pss.id_patient_simulated_scenario = ?";
+        PatientSimulatedScenario scenario = null;
+
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                scenario = new PatientSimulatedScenario(
+                        rs.getInt("id_scenario"),
+                        rs.getString("titolo"),
+                        rs.getString("nome_paziente"),
+                        rs.getString("patologia"),
+                        rs.getString("descrizione"),
+                        rs.getString("briefing"),
+                        rs.getString("patto_aula"),
+                        rs.getString("azione_chiave"),
+                        rs.getString("obiettivo"),
+                        rs.getString("materiale"),
+                        rs.getString("moulage"),
+                        rs.getString("liquidi"),
+                        rs.getFloat("timer_generale"),
+                        rs.getInt("id_advanced_scenario"),
+                        new ArrayList<>(), // Tempi vuoti inizialmente
+                        rs.getInt("id_patient_simulated_scenario"),
+                        rs.getInt("id_advanced_scenario"),
+                        rs.getString("sceneggiatura")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return scenario;
+    }
+
+    // Record per rappresentare i dati di un tempo
+    public record TempoData(
+            int idTempo,
+            String pa,
+            double fc,
+            double rr,
+            double t,
+            double spo2,
+            double etco2,
+            String azione,
+            int tSiId,
+            int tNoId,
+            String altriDettagli,
+            int timerTempo,
+            Map<String, Double> parametriAggiuntivi
+    ) {
+    }
+
+    public List<Tempo> getTempiByScenarioId(int scenarioId) {
+        final String sql = "SELECT * FROM Tempo WHERE id_advanced_scenario = ? ORDER BY id_tempo";
+        List<Tempo> tempi = new ArrayList<>();
+
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, scenarioId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Tempo tempo = new Tempo();
+                tempo.setIdTempo(rs.getInt("id_tempo"));
+                tempo.setAdvancedScenario(rs.getInt("id_advanced_scenario"));
+                tempo.setPA(rs.getString("PA"));
+                tempo.setFC(rs.getInt("FC"));
+                tempo.setRR(rs.getInt("RR"));
+                tempo.setT(rs.getFloat("T"));
+                tempo.setSpO2(rs.getInt("SpO2"));
+                tempo.setEtCO2(rs.getInt("EtCO2"));
+                tempo.setAzione(rs.getString("Azione"));
+                tempo.setTSi(rs.getInt("TSi_id"));
+                tempo.setTNo(rs.getInt("TNo_id"));
+                tempo.setAltriDettagli(rs.getString("altri_dettagli"));
+                tempo.setTimerTempo(rs.getInt("timer_tempo"));
+
+                tempi.add(tempo);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return tempi;
+    }
+
+    public List<ParametroAggiuntivo> getParametriAggiuntiviById(int tempoId, int scenarioId) {
+        final String sql = "SELECT * FROM ParametriAggiuntivi WHERE tempo_id = ? AND scenario_id = ?";
+        List<ParametroAggiuntivo> parametri = new ArrayList<>();
+
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, tempoId);
+            stmt.setInt(2, scenarioId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                ParametroAggiuntivo param = new ParametroAggiuntivo();
+                param.setId(rs.getInt("parametri_aggiuntivi_id"));
+                param.setTempoId(rs.getInt("tempo_id"));
+                param.setScenarioId(rs.getInt("scenario_id"));
+                param.setNome(rs.getString("nome"));
+                param.setValore(rs.getString("valore"));
+                param.setUnitaMisura(rs.getString("unità_misura"));
+
+                parametri.add(param);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return parametri;
+    }
 }
