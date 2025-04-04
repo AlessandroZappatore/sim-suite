@@ -18,18 +18,37 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
+/**
+ * Vista per la gestione del materiale necessario nello scenario di simulazione.
+ * <p>
+ * Permette di definire il materiale necessario per l'allestimento della sala.
+ * Fa parte del flusso di creazione dello scenario.
+ * </p>
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @PageTitle("Materiale Necessario")
 @Route(value = "materialenecessario")
 @Menu(order = 8)
 public class MaterialenecessarioView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
 
+    private static final Logger logger = LoggerFactory.getLogger(MaterialenecessarioView.class);
+
     private final ScenarioService scenarioService;
     private Integer scenarioId;
     private final TextArea materialeArea;
 
+    /**
+     * Costruttore che inizializza l'interfaccia utente.
+     *
+     * @param scenarioService servizio per la gestione degli scenari
+     */
     public MaterialenecessarioView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
 
@@ -120,6 +139,12 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         });
     }
 
+    /**
+     * Gestisce il parametro ricevuto dall'URL (ID scenario).
+     *
+     * @param event     l'evento di navigazione
+     * @param parameter l'ID dello scenario come stringa
+     */
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
         try {
@@ -134,10 +159,14 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
 
             loadExistingMateriale();
         } catch (NumberFormatException e) {
+            logger.error("ID scenario non valido: {}", parameter, e);
             event.rerouteToError(NotFoundException.class, "ID scenario non valido");
         }
     }
 
+    /**
+     * Carica il materiale necessario esistente per lo scenario corrente.
+     */
     private void loadExistingMateriale() {
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
         if (scenario != null && scenario.getMateriale() != null && !scenario.getMateriale().isEmpty()) {
@@ -145,6 +174,11 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         }
     }
 
+    /**
+     * Salva il materiale necessario e naviga alla vista successiva.
+     *
+     * @param uiOptional l'UI corrente (opzionale)
+     */
     private void saveMaterialeAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {
             ProgressBar progressBar = new ProgressBar();
@@ -168,7 +202,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
                     Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
-                    e.printStackTrace();
+                    logger.error("Errore durante il salvataggio del materiale necessario", e);
                 });
             }
         });

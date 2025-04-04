@@ -23,15 +23,29 @@ import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Vista per la gestione dei parametri del paziente T0 nello scenario di simulazione.
+ * <p>
+ * Permette di definire i parametri vitali principali e gli accessi venosi e arteriosi.
+ * Fa parte del flusso di creazione dello scenario.
+ * </p>
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @PageTitle("Parametri Paziente T0")
 @Route(value = "pazienteT0")
 @Menu(order = 12)
 public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlParameter<String> {
+
+    private static final Logger logger = LoggerFactory.getLogger(PazienteT0View.class);
 
     private final ScenarioService scenarioService;
     private Integer scenarioId;
@@ -49,6 +63,11 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
     private static final List<AccessoComponent> venosiAccessi = new ArrayList<>();
     private static final List<AccessoComponent> arteriosiAccessi = new ArrayList<>();
 
+    /**
+     * Costruttore che inizializza l'interfaccia utente.
+     *
+     * @param scenarioService servizio per la gestione degli scenari
+     */
     public PazienteT0View(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
 
@@ -89,11 +108,11 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
 
         // Campi parametri vitali
         paField = createTextField();
-        fcField = createNumberField("FC (bpm)", "72");
-        rrField = createNumberField("FR (atti/min)", "16");
-        tempField = createNumberField("Temperatura (°C)", "36.5");
-        spo2Field = createNumberField("SpO₂ (%)", "98");
-        etco2Field = createNumberField("EtCO₂ (mmHg)", "35");
+        fcField = createNumberField("FC (bpm)", "(es. 72)");
+        rrField = createNumberField("FR (atti/min)", "(es. 16)");
+        tempField = createNumberField("Temperatura (°C)", "(es. 36.5)");
+        spo2Field = createNumberField("SpO₂ (%)", "(es. 98)");
+        etco2Field = createNumberField("EtCO₂ (mmHg)", "(es. 35)");
 
         // Container per accessi venosi
         venosiContainer = new VerticalLayout();
@@ -200,6 +219,12 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         });
     }
 
+    /**
+     * Gestisce il parametro ricevuto dall'URL (ID scenario).
+     *
+     * @param event     l'evento di navigazione
+     * @param parameter l'ID dello scenario come stringa
+     */
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
         try {
@@ -215,6 +240,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
             // Qui potresti caricare i dati esistenti se presenti
             // loadExistingData();
         } catch (NumberFormatException e) {
+            logger.error("ID scenario non valido: {}", parameter, e);
             event.rerouteToError(NotFoundException.class, "ID scenario non valido");
         }
     }
@@ -231,7 +257,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
 
     private TextField createTextField() {
         TextField field = new TextField("PA (mmHg)");
-        field.setPlaceholder("120/80");
+        field.setPlaceholder("(es. 120/80)");
         field.setWidthFull();
         field.addClassName(LumoUtility.Margin.Bottom.SMALL);
         return field;
@@ -280,7 +306,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                         paField.getValue(),
                         fcField.getValue().intValue(),
                         rrField.getValue().intValue(),
-                        tempField.getValue().floatValue(),
+                        tempField.getValue(),
                         spo2Field.getValue().intValue(),
                         etco2Field.getValue().intValue(),
                         monitorArea.getValue(),
@@ -301,7 +327,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
                     Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
-                    e.printStackTrace();
+                    logger.error("Errore durante il salvataggio dei dati", e);
                 });
             }
         });
@@ -311,7 +337,6 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
     private static class AccessoComponent extends HorizontalLayout {
         private final Select<String> tipoSelect;
         private final TextField posizioneField;
-        private final Button removeButton;
 
         public AccessoComponent(String tipo, int ignoredNumero) {
             setWidthFull();
@@ -330,7 +355,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
             posizioneField = new TextField("Posizione");
             posizioneField.setWidthFull();
 
-            removeButton = new Button(new Icon(VaadinIcon.TRASH));
+            Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
             removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
             removeButton.getStyle().set("margin-top", "auto");
             removeButton.addClickListener(e -> removeSelf()); // Aggiunto il listener
@@ -340,7 +365,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
 
         private void removeSelf() {
             // Ottieni il parent (che dovrebbe essere il venosiContainer o arteriosiContainer)
-            Optional<Component> parentOpt = Optional.ofNullable(getParent().orElse(null));
+            Optional<Component> parentOpt = getParent();
 
             parentOpt.ifPresent(parent -> {
                 if (parent instanceof VerticalLayout container) {

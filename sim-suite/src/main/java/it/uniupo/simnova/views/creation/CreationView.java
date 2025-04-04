@@ -15,11 +15,28 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.views.home.AppHeader;
 
+/**
+ * Vista principale per la creazione di nuovi scenari di simulazione.
+ * <p>
+ * Offre diverse opzioni per la creazione di scenari:
+ * - Scenario veloce
+ * - Scenario avanzato
+ * - Scenario con paziente simulato
+ * - Accesso alla libreria degli scenari salvati
+ * </p>
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @PageTitle("Creation")
 @Route("creation")
 public class CreationView extends Composite<VerticalLayout> {
 
+    /**
+     * Costruttore che inizializza l'interfaccia per la selezione del tipo di scenario.
+     */
     public CreationView() {
+        // Header dell'applicazione
         AppHeader header = new AppHeader();
 
         // Titolo della pagina
@@ -34,7 +51,7 @@ public class CreationView extends Composite<VerticalLayout> {
                 .set("color", "var(--lumo-primary-text-color)")
                 .set("text-shadow", "1px 1px 2px rgba(0,0,0,0.1)");
 
-        // Create buttons with icons
+        // Creazione dei pulsanti per i diversi tipi di scenario
         Button quickScenarioButton = createScenarioButton(
                 "Quick Scenario",
                 VaadinIcon.BOLT,
@@ -63,7 +80,7 @@ public class CreationView extends Composite<VerticalLayout> {
                 "Accedi alla libreria degli scenari creati"
         );
 
-        // Configure back button
+        // Configurazione pulsante indietro
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         backButton.addClickListener(e -> backButton.getUI().ifPresent(ui -> ui.navigate("")));
@@ -72,7 +89,7 @@ public class CreationView extends Composite<VerticalLayout> {
                 LumoUtility.Margin.Left.AUTO
         );
 
-        // Button click listeners
+        // Gestori degli eventi per i pulsanti
         quickScenarioButton.addClickListener(e ->
                 quickScenarioButton.getUI().ifPresent(ui -> ui.navigate("startCreation/quickScenario")));
         advancedScenarioButton.addClickListener(e ->
@@ -81,7 +98,8 @@ public class CreationView extends Composite<VerticalLayout> {
                 patientSimulatedScenarioButton.getUI().ifPresent(ui -> ui.navigate("startCreation/patientSimulatedScenario")));
         visualizzaScenari.addClickListener(e ->
                 visualizzaScenari.getUI().ifPresent(ui -> ui.navigate("scenari")));
-        // Main content container
+
+        // Contenitore principale
         Div contentContainer = new Div();
         contentContainer.addClassName("scenario-container");
         contentContainer.getStyle()
@@ -90,7 +108,7 @@ public class CreationView extends Composite<VerticalLayout> {
                 .set("padding", "1rem")
                 .set("height", "100%");
 
-        // Add buttons to container
+        // Aggiunta pulsanti al contenitore
         contentContainer.add(
                 quickScenarioButton,
                 advancedScenarioButton,
@@ -98,7 +116,7 @@ public class CreationView extends Composite<VerticalLayout> {
                 visualizzaScenari
         );
 
-        // Configure main layout
+        // Configurazione layout principale
         VerticalLayout layout = getContent();
         layout.addClassName("creation-view");
         layout.setPadding(false);
@@ -107,14 +125,14 @@ public class CreationView extends Composite<VerticalLayout> {
         layout.setAlignItems(FlexComponent.Alignment.CENTER);
         layout.getStyle().set("min-height", "100vh");
 
-        // Add components to layout
+        // Aggiunta componenti al layout
         layout.add(header, backButton, pageTitle, contentContainer);
 
-        // Aggiungi stili CSS personalizzati
+        // Stili CSS personalizzati per la gestione responsive
         layout.getElement().getStyle().set("--short-desc-display", "none");
         layout.getElement().getStyle().set("--long-desc-display", "block");
 
-        // Aggiungi il CSS per le media queries
+        // Media queries per la visualizzazione responsive
         layout.getElement().executeJs("""
                     const style = document.createElement('style');
                     style.textContent = `
@@ -131,24 +149,33 @@ public class CreationView extends Composite<VerticalLayout> {
                 """);
     }
 
+    /**
+     * Crea un pulsante personalizzato per la selezione del tipo di scenario.
+     *
+     * @param title     Titolo del pulsante
+     * @param icon      Icona da visualizzare
+     * @param shortDesc Descrizione breve (per mobile)
+     * @param longDesc  Descrizione estesa (per desktop)
+     * @return Pulsante configurato
+     */
     private Button createScenarioButton(String title, VaadinIcon icon, String shortDesc, String longDesc) {
         Div content = new Div();
         content.addClassName("button-content");
 
-        // Icon
+        // Icona
         Icon buttonIcon = icon.create();
         buttonIcon.setSize("24px");
         buttonIcon.getStyle().set("margin-right", "0.5rem");
         buttonIcon.addClassName("buttonIcon");
 
-        // Title
+        // Titolo
         Span titleSpan = new Span(title);
         titleSpan.getStyle()
                 .set("font-weight", "600")
                 .set("font-size", "1.2rem");
         titleSpan.addClassName("titleSpan");
 
-        // Short description (for mobile)
+        // Descrizione breve (mobile)
         Span shortDescSpan = new Span(shortDesc);
         shortDescSpan.addClassNames(
                 LumoUtility.FontSize.SMALL,
@@ -161,7 +188,7 @@ public class CreationView extends Composite<VerticalLayout> {
                 .set("margin-top", "0.5rem")
                 .set("text-align", "center");
 
-        // Long description (for desktop)
+        // Descrizione estesa (desktop)
         Span longDescSpan = new Span(longDesc);
         longDescSpan.addClassNames(
                 LumoUtility.FontSize.SMALL,
@@ -188,10 +215,10 @@ public class CreationView extends Composite<VerticalLayout> {
                 .set("transition", "all 0.2s ease")
                 .set("text-align", "center")
                 .set("justify-content", "flex-start")
-                .set("height", "auto") // Cambiato da 80px ad auto per adattarsi al contenuto
+                .set("height", "auto")
                 .set("min-height", "80px");
 
-        // Hover effect
+        // Effetto hover
         button.addClickListener(e -> button.getStyle().set("transform", "translateY(2px)"));
 
         return button;

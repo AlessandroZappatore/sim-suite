@@ -21,6 +21,16 @@ import it.uniupo.simnova.views.home.AppHeader;
 
 import java.util.Optional;
 
+/**
+ * Vista per la gestione delle azioni chiave nello scenario di simulazione.
+ * <p>
+ * Permette di definire le azioni principali che saranno valutate durante il debriefing.
+ * Fa parte del flusso di creazione dello scenario.
+ * </p>
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @PageTitle("Azioni Chiave")
 @Route(value = "azionechiave")
 @Menu(order = 6)
@@ -30,6 +40,11 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
     private Integer scenarioId;
     private final TextArea azioniChiaveArea;
 
+    /**
+     * Costruttore che inizializza l'interfaccia utente.
+     *
+     * @param scenarioService servizio per la gestione degli scenari
+     */
     public AzionechiaveView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
 
@@ -40,22 +55,19 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
         mainLayout.setSpacing(false);
         mainLayout.getStyle().set("min-height", "100vh");
 
-        // 1. HEADER
+        // 1. HEADER con pulsante indietro e titolo
         AppHeader header = new AppHeader();
-
-        // Pulsante indietro
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         backButton.getStyle().set("margin-right", "auto");
 
-        // Container per header personalizzato
         HorizontalLayout customHeader = new HorizontalLayout();
         customHeader.setWidthFull();
         customHeader.setPadding(true);
         customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
         customHeader.add(backButton, header);
 
-        // 2. CONTENUTO PRINCIPALE
+        // 2. CONTENUTO PRINCIPALE con area di testo
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.setWidth("100%");
         contentLayout.setMaxWidth("800px");
@@ -100,26 +112,29 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
 
         footerLayout.add(credits, nextButton);
 
-        // Aggiunta di tutti i componenti al layout principale
-        mainLayout.add(
-                customHeader,
-                contentLayout,
-                footerLayout
-        );
+        // Aggiunta componenti al layout principale
+        mainLayout.add(customHeader, contentLayout, footerLayout);
 
-        // Listener per i pulsanti
+        // Gestione eventi
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("pattoaula/" + scenarioId)));
 
         nextButton.addClickListener(e -> {
             if (azioniChiaveArea.getValue().trim().isEmpty()) {
-                Notification.show("Inserisci le azioni chiave per lo scenario", 3000, Notification.Position.MIDDLE);
+                Notification.show("Inserisci le azioni chiave per lo scenario",
+                        3000, Notification.Position.MIDDLE);
                 return;
             }
             saveAzioniChiaveAndNavigate(nextButton.getUI());
         });
     }
 
+    /**
+     * Gestisce il parametro ricevuto dall'URL (ID scenario).
+     *
+     * @param event     l'evento di navigazione
+     * @param parameter l'ID dello scenario come stringa
+     */
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
         try {
@@ -138,6 +153,9 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
         }
     }
 
+    /**
+     * Carica le azioni chiave esistenti per lo scenario corrente.
+     */
     private void loadExistingAzioniChiave() {
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
         if (scenario != null && scenario.getAzioneChiave() != null && !scenario.getAzioneChiave().isEmpty()) {
@@ -145,6 +163,11 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
         }
     }
 
+    /**
+     * Salva le azioni chiave e naviga alla vista successiva.
+     *
+     * @param uiOptional l'UI corrente (opzionale)
+     */
     private void saveAzioniChiaveAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {
             ProgressBar progressBar = new ProgressBar();
@@ -161,13 +184,15 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
                     if (success) {
                         ui.navigate("obiettivididattici/" + scenarioId);
                     } else {
-                        Notification.show("Errore durante il salvataggio delle azioni chiave", 3000, Notification.Position.MIDDLE);
+                        Notification.show("Errore durante il salvataggio delle azioni chiave",
+                                3000, Notification.Position.MIDDLE);
                     }
                 });
             } catch (Exception e) {
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
-                    Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
+                    Notification.show("Errore: " + e.getMessage(),
+                            5000, Notification.Position.MIDDLE);
                     e.printStackTrace();
                 });
             }

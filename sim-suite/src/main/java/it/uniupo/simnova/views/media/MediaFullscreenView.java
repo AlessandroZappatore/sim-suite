@@ -42,7 +42,7 @@ public class MediaFullscreenView extends VerticalLayout implements HasUrlParamet
     /**
      * Imposta il parametro ricevuto dall'URL (nome del file) e crea la vista.
      *
-     * @param event l'evento di navigazione
+     * @param event    l'evento di navigazione
      * @param filename il nome del file da visualizzare (può contenere path)
      */
     @Override

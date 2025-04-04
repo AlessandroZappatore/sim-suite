@@ -451,7 +451,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                     section.paField.setValue(tempo.getPA());
                     section.fcField.setValue((double) tempo.getFC());
                     section.rrField.setValue((double) tempo.getRR());
-                    section.tField.setValue((double) tempo.getT());
+                    section.tField.setValue(tempo.getT());
                     section.spo2Field.setValue((double) tempo.getSpO2());
                     section.etco2Field.setValue((double) tempo.getEtCO2());
 
@@ -671,7 +671,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             String pa = paField.getValue() != null ? paField.getValue() : "0/0";
             double fc = fcField.getValue() != null ? fcField.getValue() : 0;
             double rr = rrField.getValue() != null ? rrField.getValue() : 0;
-            double t = tField.getValue() != null ? tField.getValue() : 0;
+            double t = tField.getValue() != null ? Math.round(tField.getValue() * 10) / 10.0 : 0;
             double spo2 = spo2Field.getValue() != null ? spo2Field.getValue() : 0;
             double etco2 = etco2Field.getValue() != null ? etco2Field.getValue() : 0;
 
@@ -724,7 +724,8 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         }
 
         public void setTValue(double value) {
-            tField.setValue(value);
+            double roundedValue = Math.round(value * 10) / 10.0;
+            tField.setValue(roundedValue);
             tField.setReadOnly(true);
             tField.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }

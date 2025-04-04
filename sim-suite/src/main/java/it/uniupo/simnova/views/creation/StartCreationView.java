@@ -17,13 +17,27 @@ import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
+/**
+ * Vista per l'inizio della creazione di uno scenario.
+ * <p>
+ * Permette di inserire i dettagli iniziali dello scenario come titolo, nome del paziente, patologia e durata.
+ * Fa parte del flusso di creazione dello scenario.
+ * </p>
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @PageTitle("StartCreation")
 @Route("startCreation")
 @Menu(order = 2)
 public class StartCreationView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
+
+    private static final Logger logger = LoggerFactory.getLogger(StartCreationView.class);
 
     private final ScenarioService scenarioService;
     private final TextField scenarioTitle;
@@ -32,6 +46,11 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
     private final ComboBox<Integer> durationField;
     private String scenarioType;
 
+    /**
+     * Costruttore che inizializza l'interfaccia utente.
+     *
+     * @param scenarioService servizio per la gestione degli scenari
+     */
     public StartCreationView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
 
@@ -124,6 +143,12 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         });
     }
 
+    /**
+     * Gestisce il parametro ricevuto dall'URL (tipo di scenario).
+     *
+     * @param event     l'evento di navigazione
+     * @param parameter il tipo di scenario come stringa
+     */
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
         if (parameter != null) {
@@ -134,6 +159,11 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         }
     }
 
+    /**
+     * Valida i campi del form.
+     *
+     * @return true se tutti i campi sono validi, false altrimenti
+     */
     private boolean validateFields() {
         if (scenarioTitle.isEmpty() || patientName.isEmpty() || pathology.isEmpty() || durationField.isEmpty()) {
             Notification.show("Compila tutti i campi obbligatori", 3000, Notification.Position.MIDDLE);
@@ -142,6 +172,11 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         return true;
     }
 
+    /**
+     * Salva lo scenario e naviga alla vista successiva.
+     *
+     * @param uiOptional l'UI corrente (opzionale)
+     */
     private void saveScenarioAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {
             try {
@@ -178,10 +213,10 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
                         return;
                 }
 
-                System.out.println("ID scenario creato: " + scenarioId);
+                logger.info("ID scenario creato: {}", scenarioId);
 
                 if (scenarioId > 0) {
-                    System.out.println("Navigando a descrizione/" + scenarioId);
+                    logger.info("Navigando a descrizione/{}", scenarioId);
                     ui.navigate("descrizione/" + scenarioId);
                 } else {
                     Notification.show("Errore durante il salvataggio dello scenario",
@@ -190,11 +225,18 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
             } catch (Exception e) {
                 Notification.show("Errore: " + e.getMessage(),
                         5000, Notification.Position.MIDDLE);
-                e.printStackTrace();
+                logger.error("Errore durante il salvataggio dello scenario", e);
             }
         });
     }
 
+    /**
+     * Crea un campo di testo con etichetta e placeholder.
+     *
+     * @param label       l'etichetta del campo
+     * @param placeholder il placeholder del campo
+     * @return il campo di testo creato
+     */
     private TextField createTextField(String label, String placeholder) {
         TextField field = new TextField(label);
         field.setPlaceholder(placeholder);

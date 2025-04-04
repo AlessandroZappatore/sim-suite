@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static it.uniupo.simnova.views.creation.TempoView.ADDITIONAL_PARAMETERS;
 import static it.uniupo.simnova.views.creation.TempoView.CUSTOM_PARAMETER_KEY;
@@ -18,12 +20,18 @@ import static it.uniupo.simnova.views.creation.TempoView.CUSTOM_PARAMETER_KEY;
 @Service
 public class ScenarioService {
     private final FileStorageService fileStorageService;
+    private static final Logger logger = LoggerFactory.getLogger(ScenarioService.class);
 
     public ScenarioService(FileStorageService fileStorageService) {
         this.fileStorageService = fileStorageService;
     }
 
-    // 1. Metodi per Scenario (invariati)
+    /**
+     * Recupera uno scenario dal database utilizzando il suo identificativo.
+     *
+     * @param id l'identificativo dello scenario da recuperare
+     * @return lo scenario corrispondente all'identificativo fornito, o null se non trovato
+     */
     public Scenario getScenarioById(Integer id) {
         final String sql = "SELECT * FROM Scenario WHERE id_scenario = ?";
         Scenario scenario = null;
@@ -50,13 +58,21 @@ public class ScenarioService {
                         rs.getString("liquidi"),
                         rs.getFloat("timer_generale")
                 );
+                logger.info("Scenario con ID {} recuperato con successo", id);
+            } else {
+                logger.warn("Nessuno scenario trovato con ID {}", id);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Errore durante il recupero dello scenario con ID {}", id, e);
         }
         return scenario;
     }
 
+    /**
+     * Recupera tutti gli scenari dal database.
+     *
+     * @return una lista di tutti gli scenari presenti nel database
+     */
     public List<Scenario> getAllScenarios() {
         final String sql = "SELECT id_scenario, titolo, nome_paziente, patologia, descrizione FROM Scenario";
         List<Scenario> scenarios = new ArrayList<>();
@@ -74,8 +90,9 @@ public class ScenarioService {
                 scenario.setDescrizione(rs.getString("descrizione"));
                 scenarios.add(scenario);
             }
+            logger.info("Recuperati {} scenari dal database", scenarios.size());
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Errore durante il recupero degli scenari", e);
         }
         return scenarios;
     }
@@ -385,7 +402,7 @@ public class ScenarioService {
     }
 
     public boolean savePazienteT0(int scenarioId,
-                                  String pa, int fc, int rr, float temp,
+                                  String pa, int fc, int rr, double temp,
                                   int spo2, int etco2, String monitor,
                                   List<PazienteT0View.AccessoData> venosiData,
                                   List<PazienteT0View.AccessoData> arteriosiData) {
@@ -437,7 +454,7 @@ public class ScenarioService {
     }
 
     private boolean savePazienteParams(Connection conn, int scenarioId,
-                                       String pa, int fc, int rr, float temp,
+                                       String pa, int fc, int rr, double temp,
                                        int spo2, int etco2, String monitor) throws SQLException {
         // Verifica se esiste già
         boolean exists = getPazienteT0ById(scenarioId) != null;
@@ -465,11 +482,11 @@ public class ScenarioService {
         }
     }
 
-    private int getParamIndex(String pa, int fc, int rr, float temp, int spo2, int etco2, PreparedStatement stmt, int paramIndex) throws SQLException {
+    private int getParamIndex(String pa, int fc, int rr, double temp, int spo2, int etco2, PreparedStatement stmt, int paramIndex) throws SQLException {
         stmt.setString(paramIndex++, pa);
         stmt.setInt(paramIndex++, fc);
         stmt.setInt(paramIndex++, rr);
-        stmt.setFloat(paramIndex++, temp);
+        stmt.setDouble(paramIndex++, temp);
         stmt.setInt(paramIndex++, spo2);
         stmt.setInt(paramIndex++, etco2);
         return paramIndex;

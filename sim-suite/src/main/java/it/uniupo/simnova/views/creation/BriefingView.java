@@ -21,6 +21,16 @@ import it.uniupo.simnova.views.home.AppHeader;
 
 import java.util.Optional;
 
+/**
+ * Vista per la gestione del briefing dello scenario di simulazione.
+ * <p>
+ * Permette di definire il testo introduttivo che verrà presentato ai discenti
+ * prima dell'inizio della simulazione. Fa parte del flusso di creazione scenario.
+ * </p>
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @PageTitle("Briefing")
 @Route(value = "briefing")
 @Menu(order = 4)
@@ -30,32 +40,34 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
     private Integer scenarioId;
     private final TextArea briefingArea;
 
+    /**
+     * Costruttore che inizializza l'interfaccia utente.
+     *
+     * @param scenarioService servizio per la gestione degli scenari
+     */
     public BriefingView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
 
-        // Configurazione layout principale
+        // Configurazione del layout principale
         VerticalLayout mainLayout = getContent();
         mainLayout.setSizeFull();
         mainLayout.setPadding(false);
         mainLayout.setSpacing(false);
         mainLayout.getStyle().set("min-height", "100vh");
 
-        // 1. HEADER
+        // 1. HEADER con pulsante indietro e titolo
         AppHeader header = new AppHeader();
-
-        // Pulsante indietro
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         backButton.getStyle().set("margin-right", "auto");
 
-        // Container per header personalizzato
         HorizontalLayout customHeader = new HorizontalLayout();
         customHeader.setWidthFull();
         customHeader.setPadding(true);
         customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
         customHeader.add(backButton, header);
 
-        // 2. CONTENUTO PRINCIPALE
+        // 2. CONTENUTO PRINCIPALE con area di testo
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.setWidth("100%");
         contentLayout.setMaxWidth("800px");
@@ -94,26 +106,29 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
 
         footerLayout.add(credits, nextButton);
 
-        // Aggiunta di tutti i componenti al layout principale
-        mainLayout.add(
-                customHeader,
-                contentLayout,
-                footerLayout
-        );
+        // Aggiunta componenti al layout principale
+        mainLayout.add(customHeader, contentLayout, footerLayout);
 
-        // Listener per i pulsanti
+        // Gestione eventi
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("descrizione/" + scenarioId)));
 
         nextButton.addClickListener(e -> {
             if (briefingArea.getValue().trim().isEmpty()) {
-                Notification.show("Inserisci un briefing per lo scenario", 3000, Notification.Position.MIDDLE);
+                Notification.show("Inserisci un briefing per lo scenario",
+                        3000, Notification.Position.MIDDLE);
                 return;
             }
             saveBriefingAndNavigate(nextButton.getUI());
         });
     }
 
+    /**
+     * Gestisce il parametro ricevuto dall'URL (ID scenario).
+     *
+     * @param event     l'evento di navigazione
+     * @param parameter l'ID dello scenario come stringa
+     */
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
         try {
@@ -132,6 +147,9 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
         }
     }
 
+    /**
+     * Carica il briefing esistente per lo scenario corrente.
+     */
     private void loadExistingBriefing() {
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
         if (scenario != null && scenario.getBriefing() != null && !scenario.getBriefing().isEmpty()) {
@@ -139,6 +157,11 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
         }
     }
 
+    /**
+     * Salva il briefing e naviga alla vista successiva.
+     *
+     * @param uiOptional l'UI corrente (opzionale)
+     */
     private void saveBriefingAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {
             ProgressBar progressBar = new ProgressBar();
@@ -155,13 +178,15 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
                     if (success) {
                         ui.navigate("pattoaula/" + scenarioId);
                     } else {
-                        Notification.show("Errore durante il salvataggio del briefing", 3000, Notification.Position.MIDDLE);
+                        Notification.show("Errore durante il salvataggio del briefing",
+                                3000, Notification.Position.MIDDLE);
                     }
                 });
             } catch (Exception e) {
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
-                    Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
+                    Notification.show("Errore: " + e.getMessage(),
+                            5000, Notification.Position.MIDDLE);
                     e.printStackTrace();
                 });
             }

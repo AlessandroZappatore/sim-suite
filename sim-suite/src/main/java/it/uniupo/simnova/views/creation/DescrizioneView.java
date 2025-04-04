@@ -124,7 +124,7 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
     /**
      * Gestisce il parametro ricevuto dall'URL (ID scenario).
      *
-     * @param event l'evento di navigazione
+     * @param event     l'evento di navigazione
      * @param parameter l'ID dello scenario come stringa
      */
     @Override

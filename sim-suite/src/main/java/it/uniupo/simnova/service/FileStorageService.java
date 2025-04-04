@@ -1,5 +1,7 @@
 package it.uniupo.simnova.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
@@ -7,10 +9,23 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.List;
 
+/**
+ * Servizio per la gestione dello storage dei file.
+ * <p>
+ * Fornisce metodi per memorizzare, eliminare e gestire file all'interno di una directory specificata.
+ * </p>
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @Service
 public class FileStorageService {
+    private static final Logger logger = LoggerFactory.getLogger(FileStorageService.class);
     private final Path rootLocation;
 
+    /**
+     * Costruttore che inizializza la directory di root per lo storage dei file.
+     */
     public FileStorageService() {
         try {
             // Ottieni il percorso assoluto della directory resources
@@ -20,15 +35,25 @@ public class FileStorageService {
             // Crea la directory se non esiste (solo in sviluppo)
             if (!resourcesDir.exists()) {
                 Files.createDirectories(rootLocation);
+                logger.info("Directory di storage creata: {}", rootLocation);
             }
         } catch (IOException e) {
+            logger.error("Impossibile inizializzare lo storage", e);
             throw new RuntimeException("Could not initialize storage", e);
         }
     }
 
+    /**
+     * Memorizza un file nella directory di root.
+     *
+     * @param file     l'InputStream del file da memorizzare
+     * @param filename il nome del file
+     * @return il nome del file memorizzato
+     */
     public String storeFile(InputStream file, String filename) {
         try {
             if (file == null || filename == null || filename.isEmpty()) {
+                logger.warn("File o nome file non valido");
                 return null;
             }
 
@@ -39,18 +64,27 @@ public class FileStorageService {
 
             // Verifica che il percorso sia valido
             if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {
+                logger.error("Tentativo di memorizzare il file fuori dalla directory corrente");
                 throw new RuntimeException("Cannot store file outside current directory");
             }
 
             Files.copy(file, destinationFile, StandardCopyOption.REPLACE_EXISTING);
+            logger.info("File memorizzato con successo: {}", sanitizedFilename);
             return sanitizedFilename;
         } catch (IOException e) {
+            logger.error("Errore durante la memorizzazione del file {}", filename, e);
             throw new RuntimeException("Failed to store file " + filename, e);
         }
     }
 
+    /**
+     * Elimina una lista di file dalla directory di root.
+     *
+     * @param filenames la lista dei nomi dei file da eliminare
+     */
     public void deleteFiles(List<String> filenames) {
         if (filenames == null || filenames.isEmpty()) {
+            logger.warn("Lista di file da eliminare vuota o nulla");
             return;
         }
 
@@ -58,15 +92,20 @@ public class FileStorageService {
             try {
                 deleteFile(filename);
             } catch (Exception e) {
-                // Logga l'errore ma continua con gli altri file
-                e.printStackTrace();
+                logger.error("Errore durante l'eliminazione del file {}", filename, e);
             }
         }
     }
 
-    public boolean deleteFile(String filename) {
+    /**
+     * Elimina un file dalla directory di root.
+     *
+     * @param filename il nome del file da eliminare
+     */
+    public void deleteFile(String filename) {
         if (filename == null || filename.isEmpty()) {
-            return false;
+            logger.warn("Nome file non valido per l'eliminazione");
+            return;
         }
 
         try {
@@ -74,13 +113,14 @@ public class FileStorageService {
 
             // Verifica che il file sia dentro la directory consentita
             if (!filePath.getParent().equals(this.rootLocation.toAbsolutePath())) {
-                return false;
+                logger.error("Tentativo di eliminare il file fuori dalla directory corrente");
+                return;
             }
 
-            return Files.deleteIfExists(filePath);
+            Files.deleteIfExists(filePath);
+            logger.info("File eliminato con successo: {}", filename);
         } catch (IOException e) {
-            e.printStackTrace();
-            return false;
+            logger.error("Errore durante l'eliminazione del file {}", filename, e);
         }
     }
 }

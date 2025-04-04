@@ -18,18 +18,37 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
+/**
+ * Vista per la gestione degli obiettivi didattici nello scenario di simulazione.
+ * <p>
+ * Permette di definire gli obiettivi di apprendimento per la simulazione.
+ * Fa parte del flusso di creazione dello scenario.
+ * </p>
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @PageTitle("Obiettivi Didattici")
 @Route(value = "obiettivididattici")
 @Menu(order = 7)
 public class ObiettivididatticiView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
 
+    private static final Logger logger = LoggerFactory.getLogger(ObiettivididatticiView.class);
+
     private final ScenarioService scenarioService;
     private Integer scenarioId;
     private final TextArea obiettiviArea;
 
+    /**
+     * Costruttore che inizializza l'interfaccia utente.
+     *
+     * @param scenarioService servizio per la gestione degli scenari
+     */
     public ObiettivididatticiView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
 
@@ -120,6 +139,12 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> implements
         });
     }
 
+    /**
+     * Gestisce il parametro ricevuto dall'URL (ID scenario).
+     *
+     * @param event     l'evento di navigazione
+     * @param parameter l'ID dello scenario come stringa
+     */
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
         try {
@@ -134,10 +159,14 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> implements
 
             loadExistingObiettivi();
         } catch (NumberFormatException e) {
+            logger.error("ID scenario non valido: {}", parameter, e);
             event.rerouteToError(NotFoundException.class, "ID scenario non valido");
         }
     }
 
+    /**
+     * Carica gli obiettivi didattici esistenti per lo scenario corrente.
+     */
     private void loadExistingObiettivi() {
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
         if (scenario != null && scenario.getObiettivo() != null && !scenario.getObiettivo().isEmpty()) {
@@ -145,6 +174,11 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> implements
         }
     }
 
+    /**
+     * Salva gli obiettivi didattici e naviga alla vista successiva.
+     *
+     * @param uiOptional l'UI corrente (opzionale)
+     */
     private void saveObiettiviAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {
             ProgressBar progressBar = new ProgressBar();
@@ -168,7 +202,7 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> implements
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
                     Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
-                    e.printStackTrace();
+                    logger.error("Errore durante il salvataggio degli obiettivi didattici", e);
                 });
             }
         });

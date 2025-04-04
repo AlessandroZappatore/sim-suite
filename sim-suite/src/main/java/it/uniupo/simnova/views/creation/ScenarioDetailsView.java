@@ -436,7 +436,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
             // Intestazione del tempo
             H3 timeTitle = new H3(String.format("T%d - %s",
                     tempo.getIdTempo(),
-                    formatTime((int)tempo.getTimerTempo())));
+                    formatTime((int)tempo.getTimerTempo() / 60)));
             timeTitle.addClassName(LumoUtility.Margin.Top.NONE);
 
             // Parametri vitali
@@ -517,7 +517,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
                 "PA: " + paziente.getPA() + " mmHg",
                 "FC: " + paziente.getFC() + " bpm",
                 "RR: " + paziente.getRR() + " atti/min",
-                "Temperatura: " + paziente.getT() + " °C",
+                String.format("Temperatura: %.1f °C", paziente.getT()),
                 "SpO2: " + paziente.getSpO2() + "%",
                 "EtCO2: " + paziente.getEtCO2() + " mmHg",
                 "Monitor: " + paziente.getMonitor()
@@ -535,7 +535,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
                 "PA: " + tempo.getPA(),
                 "FC: " + tempo.getFC() + " bpm",
                 "RR: " + tempo.getRR() + " atti/min",
-                "Temperatura: " + tempo.getT() + " °C",
+                String.format("Temperatura: %.1f °C", tempo.getT()),
                 "SpO2: " + tempo.getSpO2() + "%",
                 "EtCO2: " + tempo.getEtCO2() + " mmHg"
         );

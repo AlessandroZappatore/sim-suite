@@ -24,6 +24,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Vista per la gestione dell'esame fisico del paziente nello scenario di simulazione.
+ * <p>
+ * Permette di inserire e modificare i risultati dell'esame fisico divisi per sezioni anatomiche.
+ * Fa parte del flusso di creazione dello scenario.
+ * </p>
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @PageTitle("Esame Fisico")
 @Route(value = "esameFisico")
 @Menu(order = 13)
@@ -33,11 +43,19 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
     private Integer scenarioId;
     private final Map<String, TextArea> examSections = new HashMap<>();
 
+    /**
+     * Costruttore che inizializza l'interfaccia utente.
+     *
+     * @param scenarioService servizio per la gestione degli scenari
+     */
     public EsamefisicoView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
         setupView();
     }
 
+    /**
+     * Configura la struttura principale della vista.
+     */
     private void setupView() {
         VerticalLayout mainLayout = getContent();
         mainLayout.setSizeFull();
@@ -66,6 +84,11 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
         setupFooter(mainLayout, contentLayout);
     }
 
+    /**
+     * Configura l'header della vista con pulsante indietro e titolo.
+     *
+     * @param mainLayout layout principale a cui aggiungere l'header
+     */
     private void setupHeader(VerticalLayout mainLayout) {
         AppHeader header = new AppHeader();
 
@@ -86,6 +109,11 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
         mainLayout.add(customHeader);
     }
 
+    /**
+     * Configura il titolo della vista.
+     *
+     * @param contentLayout layout a cui aggiungere il titolo
+     */
     private void setupTitle(VerticalLayout contentLayout) {
         H2 pageTitle = new H2("ESAME FISICO");
         pageTitle.addClassNames(
@@ -100,12 +128,18 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
         contentLayout.add(pageTitle);
     }
 
+    /**
+     * Configura le sezioni dell'esame fisico.
+     *
+     * @param contentLayout layout a cui aggiungere le sezioni
+     */
     private void setupExamSections(VerticalLayout contentLayout) {
         VerticalLayout examSectionsLayout = new VerticalLayout();
         examSectionsLayout.setWidthFull();
         examSectionsLayout.setSpacing(true);
         examSectionsLayout.setPadding(false);
 
+        // Definizione delle sezioni dell'esame fisico
         String[][] sections = {
                 {"Generale", "Stato generale, livello di coscienza, etc."},
                 {"Pupille", "Dimensione, reattività, simmetria"},
@@ -120,6 +154,7 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
                 {"FAST", "Focused Assessment with Sonography for Trauma"}
         };
 
+        // Creazione delle aree di testo per ogni sezione
         for (String[] section : sections) {
             TextArea area = createExamSection(section[0], section[1]);
             examSections.put(section[0], area);
@@ -129,6 +164,12 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
         contentLayout.add(examSectionsLayout);
     }
 
+    /**
+     * Configura il footer con pulsante avanti e crediti.
+     *
+     * @param mainLayout    layout principale
+     * @param contentLayout layout del contenuto
+     */
     private void setupFooter(VerticalLayout mainLayout, VerticalLayout contentLayout) {
         HorizontalLayout footerLayout = new HorizontalLayout();
         footerLayout.setWidthFull();
@@ -152,6 +193,12 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
         mainLayout.add(contentLayout, footerLayout);
     }
 
+    /**
+     * Gestisce il parametro ricevuto dall'URL (ID scenario).
+     *
+     * @param event     l'evento di navigazione
+     * @param parameter l'ID dello scenario come stringa
+     */
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
         try {
@@ -170,6 +217,13 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
         }
     }
 
+    /**
+     * Crea un'area di testo per una sezione specifica dell'esame fisico.
+     *
+     * @param title       titolo della sezione
+     * @param placeholder testo descrittivo della sezione
+     * @return TextArea configurata
+     */
     private TextArea createExamSection(String title, String placeholder) {
         TextArea area = new TextArea(title);
         area.setPlaceholder(placeholder);
@@ -179,6 +233,9 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
         return area;
     }
 
+    /**
+     * Carica i dati dell'esame fisico esistente per lo scenario corrente.
+     */
     private void loadExistingExamData() {
         EsameFisico esameFisico = scenarioService.getEsameFisicoById(scenarioId);
 
@@ -195,6 +252,11 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
         }
     }
 
+    /**
+     * Salva l'esame fisico e naviga alla vista successiva in base al tipo di scenario.
+     *
+     * @param uiOptional l'UI corrente (opzionale)
+     */
     private void saveExamAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {
             ProgressBar progressBar = new ProgressBar();
@@ -217,6 +279,7 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
                         return;
                     }
 
+                    // Navigazione differenziata in base al tipo di scenario
                     String scenarioType = scenarioService.getScenarioType(scenarioId);
                     if ("Quick Scenario".equals(scenarioType)) {
                         ui.navigate("scenari/" + scenarioId);
@@ -224,7 +287,6 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
                             "Patient Simulated Scenario".equals(scenarioType)) {
                         ui.navigate("tempo/" + scenarioId);
                     }
-                    // Se il tipo non è riconosciuto, rimane sulla stessa pagina
                 });
             } catch (Exception e) {
                 ui.accessSynchronously(() -> {

@@ -97,7 +97,7 @@ public class HomeView extends Composite<VerticalLayout> {
     /**
      * Crea un pulsante principale con stile personalizzato.
      *
-     * @param text Il testo da visualizzare sul pulsante
+     * @param text     Il testo da visualizzare sul pulsante
      * @param iconName Il nome dell'icona da visualizzare (dalla libreria Vaadin)
      * @return Un pulsante configurato con lo stile principale dell'applicazione
      */

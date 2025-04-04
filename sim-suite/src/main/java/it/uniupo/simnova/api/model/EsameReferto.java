@@ -23,10 +23,10 @@ public class EsameReferto {
     /**
      * Costruttore completo per creare un nuovo esame con referto.
      *
-     * @param idEsame identificativo univoco dell'esame
-     * @param scenario identificativo dello scenario associato
-     * @param tipo tipologia dell'esame (es. "Radiografia", "Ecografia")
-     * @param media percorso del file multimediale associato (opzionale)
+     * @param idEsame         identificativo univoco dell'esame
+     * @param scenario        identificativo dello scenario associato
+     * @param tipo            tipologia dell'esame (es. "Radiografia", "Ecografia")
+     * @param media           percorso del file multimediale associato (opzionale)
      * @param refertoTestuale contenuto testuale del referto
      */
     public EsameReferto(int idEsame, int scenario, String tipo, String media, String refertoTestuale) {

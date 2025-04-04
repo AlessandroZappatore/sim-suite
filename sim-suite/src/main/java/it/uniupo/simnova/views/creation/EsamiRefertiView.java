@@ -35,6 +35,17 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * Vista per la gestione degli esami e referti nello scenario di simulazione.
+ * <p>
+ * Permette di aggiungere, modificare e rimuovere esami clinici e relativi referti,
+ * sia testuali che multimediali. Supporta l'upload di file e la selezione da un elenco
+ * predefinito di esami di laboratorio e strumentali.
+ * </p>
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @PageTitle("Esami e Referti")
 @Route(value = "esamiReferti")
 @Menu(order = 9)
@@ -47,6 +58,11 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
     private final List<FormRow> formRows = new ArrayList<>();
     private final FileStorageService fileStorageService;
 
+    /**
+     * Costruttore che inizializza l'interfaccia utente.
+     *
+     * @param scenarioService servizio per la gestione degli scenari
+     */
     public EsamiRefertiView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
         this.fileStorageService = new FileStorageService();
@@ -57,7 +73,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         mainLayout.setSpacing(false);
         mainLayout.getStyle().set("min-height", "100vh");
 
-        // 1. HEADER
+        // 1. HEADER con pulsante indietro
         AppHeader header = new AppHeader();
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -68,7 +84,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         customHeader.setPadding(true);
         customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        // 2. CONTENUTO PRINCIPALE
+        // 2. CONTENUTO PRINCIPALE con righe degli esami
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.setWidth("100%");
         contentLayout.setMaxWidth("1200px");
@@ -89,7 +105,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
         contentLayout.add(rowsContainer, addButton);
 
-        // 3. FOOTER
+        // 3. FOOTER con pulsante avanti
         HorizontalLayout footerLayout = new HorizontalLayout();
         footerLayout.setWidthFull();
         footerLayout.setPadding(true);
@@ -121,6 +137,12 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         });
     }
 
+    /**
+     * Gestisce il parametro ricevuto dall'URL (ID scenario).
+     *
+     * @param event     l'evento di navigazione
+     * @param parameter l'ID dello scenario come stringa
+     */
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
         try {
@@ -139,6 +161,9 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         }
     }
 
+    /**
+     * Aggiunge una nuova riga per l'inserimento di un esame/referto.
+     */
     private void addNewRow() {
         FormRow newRow = new FormRow(rowCount++);
         formRows.add(newRow);
@@ -173,6 +198,11 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         rowsContainer.add(rowContainer);
     }
 
+    /**
+     * Salva gli esami/referti e naviga alla vista successiva.
+     *
+     * @param uiOptional l'UI corrente (opzionale)
+     */
     private void saveEsamiRefertiAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {
             ProgressBar progressBar = new ProgressBar();
@@ -183,6 +213,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                 List<EsameRefertoData> esamiData = new ArrayList<>();
                 for (FormRow row : formRows) {
                     String fileName = "";
+                    // Gestione upload file
 
                     if (row.getUpload().getReceiver() instanceof MemoryBuffer buffer) {
                         if (buffer.getFileName() != null && !buffer.getFileName().isEmpty()) {
@@ -222,6 +253,9 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         });
     }
 
+    /**
+     * Classe interna che rappresenta una riga del form per l'inserimento di un esame/referto.
+     */
     private static class FormRow {
         private final int rowNumber;
         private final Paragraph rowTitle;
@@ -248,6 +282,11 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                 "Angio-TC Polmonare", "Fundus oculi"
         );
 
+        /**
+         * Costruttore per una riga del form.
+         *
+         * @param rowNumber numero della riga
+         */
         public FormRow(int rowNumber) {
             this.rowNumber = rowNumber;
 
@@ -417,6 +456,9 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             rowLayout.getChildren().forEach(component -> component.getElement().getStyle().set("margin-bottom", "var(--lumo-space-s)"));
         }
 
+        /**
+         * Aggiorna la visibilità dei campi in base al tipo di inserimento selezionato.
+         */
         private void updateExamFieldVisibility() {
             boolean isCustom = "Inserisci manualmente".equals(examTypeGroup.getValue());
             selectedExamField.setVisible(!isCustom);
@@ -430,14 +472,32 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             }
         }
 
+        /**
+         * Crea il contenuto per gli esami di laboratorio.
+         *
+         * @param exams lista degli esami da visualizzare
+         * @return layout con i pulsanti degli esami
+         */
         private VerticalLayout createLabExamContent(List<String> exams) {
             return createExamContent(exams);
         }
 
+        /**
+         * Crea il contenuto per gli esami strumentali.
+         *
+         * @param exams lista degli esami da visualizzare
+         * @return layout con i pulsanti degli esami
+         */
         private VerticalLayout createInstrumentalExamContent(List<String> exams) {
             return createExamContent(exams);
         }
 
+        /**
+         * Crea il layout con i pulsanti per la selezione degli esami.
+         *
+         * @param exams lista degli esami da visualizzare
+         * @return layout configurato
+         */
         private VerticalLayout createExamContent(List<String> exams) {
             VerticalLayout layout = new VerticalLayout();
             layout.setPadding(false);
@@ -459,6 +519,12 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             return layout;
         }
 
+        /**
+         * Crea un pulsante per la selezione di un esame specifico.
+         *
+         * @param examName nome dell'esame
+         * @return pulsante configurato
+         */
         private Button createExamButton(String examName) {
             Button button = new Button(examName, e -> {
                 selectedExamField.setValue(examName);
@@ -479,6 +545,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
             return button;
         }
+        // Metodi getter
 
         public String getSelectedExam() {
             return "Inserisci manualmente".equals(examTypeGroup.getValue())
@@ -507,6 +574,14 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         }
     }
 
+    /**
+     * Record per il trasferimento dei dati degli esami/referti.
+     *
+     * @param idEsame         identificativo dell'esame
+     * @param tipo            tipologia dell'esame
+     * @param refertoTestuale contenuto testuale del referto
+     * @param media           percorso del file multimediale associato
+     */
     public record EsameRefertoData(int idEsame, String tipo, String refertoTestuale, String media) {
     }
 }
