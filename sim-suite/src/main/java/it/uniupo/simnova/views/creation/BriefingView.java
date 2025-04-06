@@ -18,6 +18,8 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
@@ -39,6 +41,8 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
     private final ScenarioService scenarioService;
     private Integer scenarioId;
     private final TextArea briefingArea;
+
+    private static final Logger logger = LoggerFactory.getLogger(BriefingView.class);
 
     /**
      * Costruttore che inizializza l'interfaccia utente.
@@ -137,13 +141,14 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
             }
 
             this.scenarioId = Integer.parseInt(parameter);
-            if (scenarioId <= 0) {
+            if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
                 throw new NumberFormatException();
             }
 
             loadExistingBriefing();
         } catch (NumberFormatException e) {
-            event.rerouteToError(NotFoundException.class, "ID scenario non valido");
+            logger.error("ID scenario non valido: {}", parameter, e);
+            event.rerouteToError(NotFoundException.class, "ID scenario "+scenarioId+ " non valido");
         }
     }
 
@@ -187,7 +192,7 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
                     getContent().remove(progressBar);
                     Notification.show("Errore: " + e.getMessage(),
                             5000, Notification.Position.MIDDLE);
-                    e.printStackTrace();
+                    logger.error("Errore durante il salvataggio del briefing", e);
                 });
             }
         });

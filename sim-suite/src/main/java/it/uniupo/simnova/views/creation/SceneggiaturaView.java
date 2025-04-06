@@ -18,6 +18,8 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.PatientSimulatedScenario;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
@@ -40,6 +42,8 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
     private final ScenarioService scenarioService;
     private Integer scenarioId;
     private final TextArea sceneggiaturaArea;
+
+    private static final Logger logger = LoggerFactory.getLogger(SceneggiaturaView.class);
 
     /**
      * Costruttore della view.
@@ -151,7 +155,7 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
             }
 
             this.scenarioId = Integer.parseInt(parameter);
-            if (scenarioId <= 0) {
+            if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
                 throw new NumberFormatException();
             }
 
@@ -165,6 +169,7 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
             // Caricamento della sceneggiatura esistente se presente
             loadExistingSceneggiatura();
         } catch (NumberFormatException e) {
+            logger.error("ID scenario non valido: {}", parameter, e);
             event.rerouteToError(NotFoundException.class, "ID scenario non valido");
         }
     }
@@ -200,16 +205,18 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
                     if (success) {
+                        logger.info("Sceneggiatura salvata con successo per lo scenario con ID: {}", scenarioId);
                         ui.navigate("scenari/" + scenarioId); // Navigazione alla view successiva
                     } else {
                         Notification.show("Errore durante il salvataggio della sceneggiatura", 3000, Notification.Position.MIDDLE);
+                        logger.error("Errore durante il salvataggio della sceneggiatura per lo scenario con ID: {}", scenarioId);
                     }
                 });
             } catch (Exception e) {
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
                     Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
-                    e.printStackTrace();
+                    logger.error("Errore durante il salvataggio della sceneggiatura per lo scenario con ID: {}", scenarioId, e);
                 });
             }
         });

@@ -28,6 +28,8 @@ import it.uniupo.simnova.api.model.PazienteT0;
 import it.uniupo.simnova.api.model.Tempo;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.LocalTime;
@@ -37,7 +39,7 @@ import java.util.stream.Collectors;
 @PageTitle("Tempo")
 @Route("tempo")
 @Menu(order = 14)
-public class TempoView extends Composite<VerticalLayout> implements HasUrlParameter<Integer> {
+public class TempoView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
 
     private final VerticalLayout timeSectionsContainer;
     private final List<TimeSection> timeSections = new ArrayList<>();
@@ -47,6 +49,8 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
     private final ScenarioService scenarioService;
     public static final String CUSTOM_PARAMETER_KEY = "CUSTOM";
     public static final Map<String, String> ADDITIONAL_PARAMETERS = new LinkedHashMap<>();
+
+    private static final Logger logger = LoggerFactory.getLogger(TempoView.class);
 
     static {
         // Cardiologia / Monitor Multiparametrico
@@ -195,14 +199,21 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
     }
 
     @Override
-    public void setParameter(BeforeEvent event, @OptionalParameter Integer parameter) {
-        if (parameter != null) {
-            this.scenarioId = parameter;
-            System.out.println("Scenario ID ricevuto: " + scenarioId);
+    public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
+        try {
+            if (parameter == null || parameter.trim().isEmpty()) {
+                throw new NumberFormatException();
+            }
+
+            this.scenarioId = Integer.parseInt(parameter);
+            if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
+                throw new NumberFormatException();
+            }
+
             loadInitialData();
-        } else {
-            Notification.show("ID scenario mancante", 3000, Notification.Position.MIDDLE);
-            event.getUI().navigate("creation");
+        } catch (NumberFormatException e) {
+            logger.error("ID scenario non valido: {}", parameter, e);
+            event.rerouteToError(NotFoundException.class, "ID scenario " + scenarioId + " non valido");
         }
     }
 
@@ -347,7 +358,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             for (TimeSection section : timeSections) {
                 ScenarioService.TempoData tempoData = section.prepareDataForSave();
                 allTempiData.add(tempoData);
-                System.out.println("Preparato tempo T" + tempoData.idTempo() + ": " + tempoData);
+                logger.info("Preparato tempo T{}: {}", tempoData.idTempo(), tempoData);
             }
 
             // Salva tutti i tempi nel database
@@ -355,12 +366,8 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
 
             if (success) {
                 Notification.show("Tempi salvati con successo!", 3000, Notification.Position.MIDDLE);
-                System.out.println("Tempi salvati con successo per scenario " + scenarioId);
+                logger.info("Tempi salvati con successo per scenario {}", scenarioId);
                 switch (scenarioService.getScenarioType(scenarioId)) {
-                    case "Quick Scenario":
-                        Notification.show("Tipo di scenario errato", 3000, Notification.Position.MIDDLE);
-                        System.err.println("Tipo di scenario non riconosciuto per ID " + scenarioId);
-                        break;
                     case "Advanced Scenario":
                         nextButton.getUI().ifPresent(ui -> ui.navigate("scenari/" + scenarioId));
                         break;
@@ -369,18 +376,16 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                         break;
                     default:
                         Notification.show("Tipo di scenario non riconosciuto", 3000, Notification.Position.MIDDLE);
-                        System.err.println("Tipo di scenario non riconosciuto per ID " + scenarioId);
+                        logger.error("Tipo di scenario non riconosciuto per ID {}", scenarioId);
                         break;
                 }
             } else {
                 Notification.show("Errore durante il salvataggio dei tempi", 5000, Notification.Position.MIDDLE);
-                System.err.println("Errore durante il salvataggio dei tempi per scenario " + scenarioId);
+                logger.error("Errore durante il salvataggio dei tempi per scenario {}", scenarioId);
             }
         } catch (Exception e) {
-            Notification.show("Errore durante il salvataggio: " + e.getMessage(),
-                    5000, Notification.Position.MIDDLE);
-            System.err.println("Errore durante il salvataggio dei tempi:");
-            e.printStackTrace();
+            Notification.show("Errore durante il salvataggio: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
+            logger.error("Errore durante il salvataggio dei tempi", e);
         }
     }
 
@@ -428,7 +433,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         } catch (Exception e) {
             Notification.show("Errore nel caricamento dei dati iniziali: " + e.getMessage(),
                     5000, Notification.Position.MIDDLE);
-            e.printStackTrace();
+            logger.error("Errore nel caricamento dei dati iniziali", e);
         }
     }
 

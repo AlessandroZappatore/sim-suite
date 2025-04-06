@@ -28,6 +28,8 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -57,6 +59,8 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
     private int rowCount = 1;
     private final List<FormRow> formRows = new ArrayList<>();
     private final FileStorageService fileStorageService;
+
+    private static final Logger logger = LoggerFactory.getLogger(EsamiRefertiView.class);
 
     /**
      * Costruttore che inizializza l'interfaccia utente.
@@ -151,13 +155,14 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             }
 
             this.scenarioId = Integer.parseInt(parameter);
-            if (scenarioId <= 0) {
+            if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
                 throw new NumberFormatException();
             }
 
             addNewRow();
         } catch (NumberFormatException e) {
-            event.rerouteToError(NotFoundException.class, "ID scenario non valido");
+            logger.error("ID scenario non valido: {}", parameter, e);
+            event.rerouteToError(NotFoundException.class, "ID scenario " + scenarioId + " non valido");
         }
     }
 
@@ -247,7 +252,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
                     Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
-                    e.printStackTrace();
+                    logger.error("Errore durante il salvataggio degli esami/referti", e);
                 });
             }
         });

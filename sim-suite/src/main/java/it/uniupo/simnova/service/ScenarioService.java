@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1034,5 +1035,20 @@ public class ScenarioService {
             e.printStackTrace();
         }
         return parametri;
+    }
+
+    public boolean existScenario(int scenarioId) {
+        final String sql = "SELECT 1 FROM Scenario WHERE id_scenario = ?";
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, scenarioId);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next(); // Restituisce true se c'è almeno un risultato
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

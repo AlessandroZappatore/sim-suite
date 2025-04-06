@@ -283,8 +283,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         resource.setContentType("application/pdf");
 
         // Creazione e configurazione dell'anchor per il download
-        Anchor downloadLink = new Anchor(resource, "Download PDF");
-        return downloadLink;
+        return new Anchor(resource, "Download PDF");
     }
 
 

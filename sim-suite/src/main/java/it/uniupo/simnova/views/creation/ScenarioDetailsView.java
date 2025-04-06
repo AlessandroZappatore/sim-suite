@@ -21,6 +21,8 @@ import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.*;
 import it.uniupo.simnova.service.ScenarioService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Comparator;
@@ -29,12 +31,13 @@ import java.util.Map;
 
 @PageTitle("Dettagli Scenario")
 @Route(value = "scenari", layout = MainLayout.class)
-public class ScenarioDetailsView extends Composite<VerticalLayout>
-        implements HasUrlParameter<Integer>, BeforeEnterObserver {
+public class ScenarioDetailsView extends Composite<VerticalLayout> implements HasUrlParameter<String>, BeforeEnterObserver {
 
     private final ScenarioService scenarioService;
     private Integer scenarioId;
     private Scenario scenario;
+
+    private static final Logger logger = LoggerFactory.getLogger(ScenarioDetailsView.class);
 
     @Autowired
     public ScenarioDetailsView(ScenarioService scenarioService) {
@@ -45,9 +48,22 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
     }
 
     @Override
-    public void setParameter(BeforeEvent event,  Integer scenarioId) {
-        this.scenarioId = scenarioId;
+    public void setParameter(BeforeEvent event, String parameter) {
+        try {
+            if (parameter == null || parameter.trim().isEmpty()) {
+                throw new NumberFormatException();
+            }
+
+            this.scenarioId = Integer.parseInt(parameter);
+            if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
+                throw new NumberFormatException();
+            }
+        } catch (NumberFormatException e) {
+            logger.error("ID scenario non valido: {}", parameter, e);
+            event.rerouteToError(NotFoundException.class, "ID scenario " + scenarioId + " non valido");
+        }
     }
+
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
@@ -436,7 +452,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout>
             // Intestazione del tempo
             H3 timeTitle = new H3(String.format("T%d - %s",
                     tempo.getIdTempo(),
-                    formatTime((int)tempo.getTimerTempo() / 60)));
+                    formatTime((int) tempo.getTimerTempo() / 60)));
             timeTitle.addClassName(LumoUtility.Margin.Top.NONE);
 
             // Parametri vitali

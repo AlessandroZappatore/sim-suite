@@ -233,15 +233,12 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
             }
 
             this.scenarioId = Integer.parseInt(parameter);
-            if (scenarioId <= 0) {
+            if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
                 throw new NumberFormatException();
             }
-
-            // Qui potresti caricare i dati esistenti se presenti
-            // loadExistingData();
         } catch (NumberFormatException e) {
             logger.error("ID scenario non valido: {}", parameter, e);
-            event.rerouteToError(NotFoundException.class, "ID scenario non valido");
+            event.rerouteToError(NotFoundException.class, "ID scenario " + scenarioId + " non valido");
         }
     }
 

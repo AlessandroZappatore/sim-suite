@@ -18,6 +18,8 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
@@ -39,6 +41,8 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
     private final ScenarioService scenarioService;
     private Integer scenarioId;
     private final TextArea liquidiArea;
+
+    private static final Logger logger = LoggerFactory.getLogger(LiquidiView.class);
 
     /**
      * Costruttore che inizializza l'interfaccia utente.
@@ -149,13 +153,14 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
             }
 
             this.scenarioId = Integer.parseInt(parameter);
-            if (scenarioId <= 0) {
+            if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
                 throw new NumberFormatException();
             }
 
             loadExistingLiquidi();
         } catch (NumberFormatException e) {
-            event.rerouteToError(NotFoundException.class, "ID scenario non valido");
+            logger.error("ID scenario non valido: {}", parameter, e);
+            event.rerouteToError(NotFoundException.class, "ID scenario " + scenarioId + " non valido");
         }
     }
 
@@ -191,13 +196,14 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
                         ui.navigate("pazienteT0/" + scenarioId);
                     } else {
                         Notification.show("Errore durante il salvataggio di liquidi e presidi", 3000, Notification.Position.MIDDLE);
+                        logger.error("Errore durante il salvataggio di liquidi e presidi per lo scenario con ID: {}", scenarioId);
                     }
                 });
             } catch (Exception e) {
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
                     Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
-                    e.printStackTrace();
+                    logger.error("Errore durante il salvataggio di liquidi e presidi per lo scenario con ID: {}", scenarioId, e);
                 });
             }
         });

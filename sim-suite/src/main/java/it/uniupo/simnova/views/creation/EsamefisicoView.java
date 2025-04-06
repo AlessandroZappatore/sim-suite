@@ -19,6 +19,8 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.EsameFisico;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -42,6 +44,8 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
     private final ScenarioService scenarioService;
     private Integer scenarioId;
     private final Map<String, TextArea> examSections = new HashMap<>();
+
+    private static final Logger logger = LoggerFactory.getLogger(EsamefisicoView.class);
 
     /**
      * Costruttore che inizializza l'interfaccia utente.
@@ -207,13 +211,14 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
             }
 
             this.scenarioId = Integer.parseInt(parameter);
-            if (scenarioId <= 0) {
+            if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
                 throw new NumberFormatException();
             }
 
             loadExistingExamData();
         } catch (NumberFormatException e) {
-            event.rerouteToError(NotFoundException.class, "ID scenario non valido");
+            logger.error("ID scenario non valido: {}", parameter, e);
+            event.rerouteToError(NotFoundException.class, "ID scenario " + scenarioId + " non valido");
         }
     }
 
@@ -276,6 +281,7 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
                     if (!success) {
                         Notification.show("Errore durante il salvataggio dell'esame fisico",
                                 3000, Notification.Position.MIDDLE);
+                        logger.error("Errore durante il salvataggio dell'esame fisico per lo scenario con ID: {}", scenarioId);
                         return;
                     }
 
@@ -293,7 +299,7 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
                     getContent().remove(progressBar);
                     Notification.show("Errore: " + e.getMessage(),
                             5000, Notification.Position.MIDDLE);
-                    e.printStackTrace();
+                    logger.error("Errore durante il salvataggio dell'esame fisico per lo scenario con ID: {}", scenarioId, e);
                 });
             }
         });

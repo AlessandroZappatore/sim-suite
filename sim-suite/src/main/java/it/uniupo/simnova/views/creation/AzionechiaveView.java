@@ -18,6 +18,8 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
@@ -39,6 +41,8 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
     private final ScenarioService scenarioService;
     private Integer scenarioId;
     private final TextArea azioniChiaveArea;
+
+    private static final Logger logger = LoggerFactory.getLogger(AzionechiaveView.class);
 
     /**
      * Costruttore che inizializza l'interfaccia utente.
@@ -143,13 +147,14 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
             }
 
             this.scenarioId = Integer.parseInt(parameter);
-            if (scenarioId <= 0) {
+            if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
                 throw new NumberFormatException();
             }
 
             loadExistingAzioniChiave();
         } catch (NumberFormatException e) {
-            event.rerouteToError(NotFoundException.class, "ID scenario non valido");
+            logger.error("ID scenario non valido: {}", parameter, e);
+            event.rerouteToError(NotFoundException.class, "ID scenario " + scenarioId + " non valido");
         }
     }
 
@@ -193,7 +198,7 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
                     getContent().remove(progressBar);
                     Notification.show("Errore: " + e.getMessage(),
                             5000, Notification.Position.MIDDLE);
-                    e.printStackTrace();
+                    logger.error("Errore durante il salvataggio delle azioni chiave", e);
                 });
             }
         });

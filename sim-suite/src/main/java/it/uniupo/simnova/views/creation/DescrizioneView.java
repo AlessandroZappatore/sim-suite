@@ -18,6 +18,8 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
@@ -35,6 +37,8 @@ import java.util.Optional;
 @Route(value = "descrizione")
 @Menu(order = 3)
 public class DescrizioneView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
+
+    private static final Logger logger = LoggerFactory.getLogger(DescrizioneView.class);
 
     private final ScenarioService scenarioService;
     private Integer scenarioId;
@@ -135,13 +139,14 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
             }
 
             this.scenarioId = Integer.parseInt(parameter);
-            if (scenarioId <= 0) {
+            if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
                 throw new NumberFormatException();
             }
 
             loadExistingDescription();
         } catch (NumberFormatException e) {
-            event.rerouteToError(NotFoundException.class, "ID scenario non valido");
+            logger.error("ID scenario non valido: {}", parameter, e);
+            event.rerouteToError(NotFoundException.class, "ID scenario "+scenarioId+ " non valido");
         }
     }
 
@@ -185,7 +190,7 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
                     getContent().remove(progressBar);
                     Notification.show("Errore: " + e.getMessage(),
                             5000, Notification.Position.MIDDLE);
-                    e.printStackTrace();
+                    logger.error("Errore durante il salvataggio della descrizione", e);
                 });
             }
         });
