@@ -38,11 +38,21 @@ import java.util.Optional;
 @Route(value = "sceneggiatura")
 @Menu(order = 15)
 public class SceneggiaturaView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-
+    /**
+     * Servizio per la gestione degli scenari.
+     */
     private final ScenarioService scenarioService;
+    /**
+     * ID dello scenario corrente.
+     */
     private Integer scenarioId;
+    /**
+     * Area di testo per l'inserimento della sceneggiatura.
+     */
     private final TextArea sceneggiaturaArea;
-
+    /**
+     * Logger per la registrazione delle operazioni.
+     */
     private static final Logger logger = LoggerFactory.getLogger(SceneggiaturaView.class);
 
     /**

@@ -37,11 +37,21 @@ import java.util.Optional;
 @Route(value = "liquidi")
 @Menu(order = 11)
 public class LiquidiView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-
+    /**
+     * Servizio per la gestione degli scenari.
+     */
     private final ScenarioService scenarioService;
+    /**
+     * ID dello scenario corrente.
+     */
     private Integer scenarioId;
+    /**
+     * Area di testo per l'inserimento dei liquidi e presidi.
+     */
     private final TextArea liquidiArea;
-
+    /**
+     * Logger per la registrazione degli eventi.
+     */
     private static final Logger logger = LoggerFactory.getLogger(LiquidiView.class);
 
     /**

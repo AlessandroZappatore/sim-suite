@@ -10,18 +10,57 @@ package it.uniupo.simnova.api.model;
  * @version 1.0
  */
 public class Tempo {
+    /**
+     * Identificativo univoco del tempo.
+     */
     private int idTempo;
+    /**
+     * Identificativo dello scenario avanzato associato.
+     */
     private int advancedScenario;
+    /**
+     * Pressione arteriosa del paziente.
+     */
     private String PA;
+    /**
+     * Frequenza cardiaca del paziente.
+     */
     private Integer FC;
+    /**
+     * Frequenza respiratoria del paziente.
+     */
     private Integer RR;
+    /**
+     * Temperatura del paziente.
+     */
     private double T;
+    /**
+     * Saturazione di ossigeno del paziente.
+     */
     private Integer SpO2;
+    /**
+     * Pressione parziale di CO2 espirata del paziente.
+     */
     private Integer EtCO2;
+    /**
+     * Azione associata a questo tempo.
+     */
     private String Azione;
+    /**
+     * Tempo di simulazione in secondi.
+     */
     private int TSi;
+    /**
+     * Tempo di non simulazione in secondi.
+     */
     private int TNo;
+    /**
+     * Altri dettagli rilevanti per questo tempo.
+     */
     private String altriDettagli;
+    /**
+     * Timer del tempo in millisecondi.
+     */
     private long timerTempo;
 
     /**
@@ -68,6 +107,8 @@ public class Tempo {
     }
 
     /**
+     * Restituisce l'identificativo univoco del tempo.
+     *
      * @return l'identificativo univoco del tempo
      */
     public int getIdTempo() {
@@ -84,6 +125,8 @@ public class Tempo {
     }
 
     /**
+     * Restituisce l'identificativo dello scenario avanzato associato.
+     *
      * @return l'identificativo dello scenario avanzato associato
      */
     public int getAdvancedScenario() {
@@ -100,6 +143,8 @@ public class Tempo {
     }
 
     /**
+     * Restituisce la pressione arteriosa del paziente.
+     *
      * @return la pressione arteriosa del paziente
      */
     public String getPA() {
@@ -119,6 +164,8 @@ public class Tempo {
     }
 
     /**
+     * Restituisce la frequenza cardiaca del paziente.
+     *
      * @return la frequenza cardiaca del paziente
      */
     public Integer getFC() {
@@ -135,6 +182,8 @@ public class Tempo {
     }
 
     /**
+     * Restituisce la frequenza respiratoria del paziente.
+     *
      * @return la frequenza respiratoria del paziente
      */
     public Integer getRR() {
@@ -151,6 +200,8 @@ public class Tempo {
     }
 
     /**
+     * Restituisce la temperatura del paziente.
+     *
      * @return la temperatura del paziente
      */
     public double getT() {
@@ -167,6 +218,8 @@ public class Tempo {
     }
 
     /**
+     * Restituisce la saturazione di ossigeno del paziente.
+     *
      * @return la saturazione di ossigeno del paziente
      */
     public Integer getSpO2() {
@@ -183,6 +236,8 @@ public class Tempo {
     }
 
     /**
+     * Restituisce la pressione parziale di CO2 espirata del paziente.
+     *
      * @return la pressione parziale di CO2 espirata del paziente
      */
     public Integer getEtCO2() {
@@ -199,6 +254,8 @@ public class Tempo {
     }
 
     /**
+     * Restituisce l'azione associata a questo tempo.
+     *
      * @return l'azione associata a questo tempo
      */
     public String getAzione() {
@@ -215,6 +272,8 @@ public class Tempo {
     }
 
     /**
+     * Restituisce il tempo di simulazione in secondi.
+     *
      * @return il tempo di simulazione in secondi
      */
     public int getTSi() {
@@ -231,6 +290,8 @@ public class Tempo {
     }
 
     /**
+     * Restituisce il tempo di non simulazione in secondi.
+     *
      * @return il tempo di non simulazione in secondi
      */
     public int getTNo() {
@@ -247,6 +308,8 @@ public class Tempo {
     }
 
     /**
+     * Restituisce altri dettagli rilevanti per questo tempo.
+     *
      * @return altri dettagli rilevanti per questo tempo
      */
     public String getAltriDettagli() {
@@ -263,6 +326,8 @@ public class Tempo {
     }
 
     /**
+     * Restituisce il timer del tempo in millisecondi.
+     *
      * @return il timer del tempo in millisecondi
      */
     public long getTimerTempo() {

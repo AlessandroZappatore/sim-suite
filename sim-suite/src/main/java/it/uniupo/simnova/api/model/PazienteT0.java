@@ -12,15 +12,45 @@ import java.util.List;
  * @version 1.0
  */
 public class PazienteT0 {
+    /**
+     * Identificativo univoco del paziente.
+     */
     private int idPaziente;
+    /**
+     * Pressione arteriosa del paziente.
+     */
     private String PA;
+    /**
+     * Frequenza cardiaca del paziente.
+     */
     private Integer FC;
+    /**
+     * Frequenza respiratoria del paziente.
+     */
     private Integer RR;
+    /**
+     * Temperatura del paziente.
+     */
     private double T;
+    /**
+     * Saturazione di ossigeno del paziente.
+     */
     private Integer SpO2;
+    /**
+     * Pressione parziale di CO2 espirata del paziente.
+     */
     private Integer EtCO2;
+    /**
+     * Monitoraggio del paziente.
+     */
     private String Monitor;
+    /**
+     * Lista degli accessi venosi del paziente.
+     */
     private List<Accesso> accessiVenosi;
+    /**
+     * Lista degli accessi arteriosi del paziente.
+     */
     private List<Accesso> accessiArteriosi;
 
     /**
@@ -59,6 +89,8 @@ public class PazienteT0 {
     }
 
     /**
+     * Restituisce l'identificativo univoco del paziente.
+     *
      * @return l'identificativo univoco del paziente
      */
     public int getIdPaziente() {
@@ -75,6 +107,8 @@ public class PazienteT0 {
     }
 
     /**
+     * Restituisce la pressione arteriosa del paziente.
+     *
      * @return la pressione arteriosa del paziente
      */
     public String getPA() {
@@ -99,6 +133,8 @@ public class PazienteT0 {
     }
 
     /**
+     * Restituisce la frequenza cardiaca del paziente.
+     *
      * @return la frequenza cardiaca del paziente
      */
     public Integer getFC() {
@@ -115,6 +151,8 @@ public class PazienteT0 {
     }
 
     /**
+     * Restituisce la frequenza respiratoria del paziente.
+     *
      * @return la frequenza respiratoria del paziente
      */
     public Integer getRR() {
@@ -131,6 +169,8 @@ public class PazienteT0 {
     }
 
     /**
+     * Restituisce la temperatura del paziente.
+     *
      * @return la temperatura del paziente
      */
     public double getT() {
@@ -147,6 +187,8 @@ public class PazienteT0 {
     }
 
     /**
+     * Restituisce la saturazione di ossigeno del paziente.
+     *
      * @return la saturazione di ossigeno del paziente
      */
     public Integer getSpO2() {
@@ -163,6 +205,8 @@ public class PazienteT0 {
     }
 
     /**
+     * Restituisce la pressione parziale di CO2 espirata del paziente.
+     *
      * @return la pressione parziale di CO2 espirata del paziente
      */
     public Integer getEtCO2() {
@@ -179,6 +223,8 @@ public class PazienteT0 {
     }
 
     /**
+     * Restituisce il monitoraggio del paziente.
+     *
      * @return il monitoraggio del paziente
      */
     public String getMonitor() {
@@ -195,6 +241,8 @@ public class PazienteT0 {
     }
 
     /**
+     * Restituisce la lista degli accessi venosi del paziente.
+     *
      * @return la lista degli accessi venosi del paziente
      */
     public List<Accesso> getAccessiVenosi() {
@@ -211,6 +259,8 @@ public class PazienteT0 {
     }
 
     /**
+     * Restituisce la lista degli accessi arteriosi del paziente.
+     *
      * @return la lista degli accessi arteriosi del paziente
      */
     public List<Accesso> getAccessiArteriosi() {

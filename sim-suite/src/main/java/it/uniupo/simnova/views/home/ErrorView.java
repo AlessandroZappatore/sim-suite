@@ -23,6 +23,9 @@ import jakarta.servlet.http.HttpServletResponse;
 public class ErrorView extends Composite<VerticalLayout>
         implements HasErrorParameter<NotFoundException> {
 
+    /**
+     * Messaggio di errore visualizzato nella pagina.
+     */
     private final Paragraph message;
 
     /**

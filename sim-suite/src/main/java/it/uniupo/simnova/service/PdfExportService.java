@@ -15,23 +15,62 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Servizio per l'esportazione di scenari in formato PDF.
+ * <p>
+ * Questo servizio utilizza Apache PDFBox per generare documenti PDF contenenti informazioni dettagliate sugli scenari.
+ * </p>
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @Service
 public class PdfExportService {
-
-    // Layout constants
+    /**
+     * Margini e spaziatura per il layout del PDF.
+     */
     private static final float MARGIN = 50;
+    /**
+     * Spaziatura tra le righe.
+     */
     private static final float LEADING = 15;
+    /**
+     * Dimensioni dei font per i vari elementi del PDF.
+     */
     private static final float TITLE_FONT_SIZE = 16;
+    /**
+     * Font size for the title.
+     */
     private static final float HEADER_FONT_SIZE = 14;
+    /**
+     * Font size for the body text.
+     */
     private static final float BODY_FONT_SIZE = 11;
+    /**
+     * Font size for the small text.
+     */
     private static final float SMALL_FONT_SIZE = 9;
-
+    /**
+     * Font size for the title.
+     */
     private final ScenarioService scenarioService;
 
+    /**
+     * Costruttore del servizio PdfExportService.
+     *
+     * @param scenarioService il servizio per la gestione degli scenari
+     */
     public PdfExportService(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
     }
 
+    /**
+     * Esporta uno scenario in formato PDF.
+     *
+     * @param scenarioId l'ID dello scenario da esportare
+     * @return un array di byte contenente il PDF generato
+     * @throws IOException se si verifica un errore durante la creazione del PDF
+     */
     public byte[] exportScenarioToPdf(int scenarioId) throws IOException {
         try (PDDocument document = new PDDocument()) {
             // Load fonts
@@ -62,6 +101,14 @@ public class PdfExportService {
         }
     }
 
+    /**
+     * Carica un font da un file di risorse.
+     *
+     * @param document il documento PDF in cui caricare il font
+     * @param fontPath il percorso del file del font
+     * @return il font caricato
+     * @throws IOException se si verifica un errore durante il caricamento del font
+     */
     private PDFont loadFont(PDDocument document, String fontPath) throws IOException {
         try (InputStream fontStream = getClass().getResourceAsStream(fontPath)) {
             if (fontStream == null) {
@@ -71,6 +118,15 @@ public class PdfExportService {
         }
     }
 
+    /**
+     * Crea la pagina di copertura del PDF con i dettagli dello scenario.
+     *
+     * @param document    il documento PDF
+     * @param scenario    lo scenario da esportare
+     * @param fontBold    il font in grassetto
+     * @param fontRegular il font normale
+     * @throws IOException se si verifica un errore durante la creazione della pagina
+     */
     private void createCoverPage(PDDocument document, Scenario scenario,
                                  PDFont fontBold, PDFont fontRegular) throws IOException {
         PDPage page = new PDPage(PDRectangle.A4);
@@ -119,6 +175,15 @@ public class PdfExportService {
         }
     }
 
+    /**
+     * Crea la pagina dello stato del paziente nel PDF.
+     *
+     * @param document    il documento PDF
+     * @param scenarioId  l'ID dello scenario
+     * @param fontBold    il font in grassetto
+     * @param fontRegular il font normale
+     * @throws IOException se si verifica un errore durante la creazione della pagina
+     */
     private void createPatientPage(PDDocument document, Integer scenarioId,
                                    PDFont fontBold, PDFont fontRegular) throws IOException {
         PDPage page = new PDPage(PDRectangle.A4);
@@ -193,6 +258,15 @@ public class PdfExportService {
         }
     }
 
+    /**
+     * Crea la pagina degli esami e referti nel PDF.
+     *
+     * @param document    il documento PDF
+     * @param scenarioId  l'ID dello scenario
+     * @param fontBold    il font in grassetto
+     * @param fontRegular il font normale
+     * @throws IOException se si verifica un errore durante la creazione della pagina
+     */
     private void createExamsPage(PDDocument document, Integer scenarioId,
                                  PDFont fontBold, PDFont fontRegular) throws IOException {
         List<EsameReferto> esami = scenarioService.getEsamiRefertiByScenarioId(scenarioId);
@@ -232,6 +306,15 @@ public class PdfExportService {
         }
     }
 
+    /**
+     * Crea le pagine della timeline nel PDF.
+     *
+     * @param document    il documento PDF
+     * @param scenario    lo scenario avanzato
+     * @param fontBold    il font in grassetto
+     * @param fontRegular il font normale
+     * @throws IOException se si verifica un errore durante la creazione delle pagine
+     */
     private void createTimelinePages(PDDocument document, AdvancedScenario scenario,
                                      PDFont fontBold, PDFont fontRegular) throws IOException {
         List<Tempo> tempi = scenario.getTempi();
@@ -274,7 +357,18 @@ public class PdfExportService {
         }
     }
 
-    // Helper methods for text drawing
+    /**
+     * Disegna una sezione con titolo e contenuto nel PDF.
+     *
+     * @param contentStream il flusso di contenuto della pagina
+     * @param title         il titolo della sezione
+     * @param content       il contenuto della sezione
+     * @param fontBold      il font in grassetto
+     * @param fontRegular   il font normale
+     * @param yPosition     la posizione Y corrente
+     * @return la nuova posizione Y dopo aver disegnato la sezione
+     * @throws IOException se si verifica un errore durante il disegno della sezione
+     */
     private float drawSection(PDPageContentStream contentStream, String title, String content,
                               PDFont fontBold, PDFont fontRegular,
                               float yPosition) throws IOException {
@@ -291,6 +385,18 @@ public class PdfExportService {
         return yPosition - LEADING;
     }
 
+    /**
+     * Disegna del testo avvolto in una posizione specificata.
+     *
+     * @param contentStream il flusso di contenuto della pagina
+     * @param font          il font da utilizzare
+     * @param fontSize      la dimensione del font
+     * @param x             la posizione X
+     * @param y             la posizione Y
+     * @param text          il testo da disegnare
+     * @return la nuova posizione Y dopo aver disegnato il testo
+     * @throws IOException se si verifica un errore durante il disegno del testo
+     */
     private float drawWrappedText(PDPageContentStream contentStream, PDFont font,
                                   float fontSize, float x, float y, String text) throws IOException {
         if (text == null || text.isEmpty()) {
@@ -340,6 +446,16 @@ public class PdfExportService {
         return currentY;
     }
 
+    /**
+     * Disegna del testo centrato in una posizione specificata.
+     *
+     * @param contentStream il flusso di contenuto della pagina
+     * @param font          il font da utilizzare
+     * @param fontSize      la dimensione del font
+     * @param text          il testo da disegnare
+     * @param y             la posizione Y
+     * @throws IOException se si verifica un errore durante il disegno del testo
+     */
     private void drawCenteredText(PDPageContentStream contentStream, PDFont font,
                                   float fontSize, String text, float y) throws IOException {
         float titleWidth = font.getStringWidth(text) / 1000 * fontSize;

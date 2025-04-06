@@ -13,8 +13,17 @@ import java.util.ArrayList;
  * @version 1.0
  */
 public class PatientSimulatedScenario extends AdvancedScenario {
+    /**
+     * Identificativo univoco dello scenario simulato con paziente.
+     */
     private int idPatientSimulatedScenario;
+    /**
+     * Identificativo dello scenario avanzato associato.
+     */
     private int advancedScenario;
+    /**
+     * Sceneggiatura dello scenario simulato con paziente.
+     */
     private String sceneggiatura;
 
     /**
@@ -54,6 +63,8 @@ public class PatientSimulatedScenario extends AdvancedScenario {
     }
 
     /**
+     * Restituisce l'identificativo univoco dello scenario simulato con paziente.
+     *
      * @return l'identificativo univoco dello scenario simulato con paziente
      */
     public int getIdPatientSimulatedScenario() {
@@ -70,6 +81,8 @@ public class PatientSimulatedScenario extends AdvancedScenario {
     }
 
     /**
+     * Restituisce l'identificativo dello scenario avanzato associato.
+     *
      * @return l'identificativo dello scenario avanzato associato
      */
     public int getAdvancedScenario() {
@@ -86,6 +99,8 @@ public class PatientSimulatedScenario extends AdvancedScenario {
     }
 
     /**
+     * Restituisce la sceneggiatura dello scenario.
+     *
      * @return la sceneggiatura dello scenario
      */
     public String getSceneggiatura() {

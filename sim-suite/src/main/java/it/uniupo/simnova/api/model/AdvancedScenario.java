@@ -14,7 +14,15 @@ import java.util.ArrayList;
  * @version 1.0
  */
 public class AdvancedScenario extends Scenario {
+    /**
+     * Identificativo specifico per lo scenario avanzato.
+     */
     private int id_advanced_scenario;
+    /**
+     * Lista dei tempi/fasi dello scenario.
+     * Ogni tempo rappresenta una fase distinta dello scenario con le proprie
+     * caratteristiche e parametri.
+     */
     private ArrayList<Tempo> tempi;
 
     /**
@@ -55,6 +63,8 @@ public class AdvancedScenario extends Scenario {
     }
 
     /**
+     * Restituisce l'identificativo specifico dello scenario avanzato.
+     *
      * @return l'identificativo specifico dello scenario avanzato
      */
     public int getId_advanced_scenario() {
@@ -71,6 +81,8 @@ public class AdvancedScenario extends Scenario {
     }
 
     /**
+     * Restituisce la lista dei tempi/fasi dello scenario.
+     *
      * @return la lista dei tempi/fasi dello scenario
      */
     public ArrayList<Tempo> getTempi() {

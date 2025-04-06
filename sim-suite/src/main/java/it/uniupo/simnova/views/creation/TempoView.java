@@ -35,21 +35,58 @@ import java.time.Duration;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
-
+/**
+ * Classe che rappresenta la vista per la creazione e gestione dei tempi in uno scenario avanzato.
+ * <p>
+ * Permette di definire i parametri vitali e le azioni da eseguire in diversi momenti dello scenario.
+ * </p>
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @PageTitle("Tempo")
 @Route("tempo")
 @Menu(order = 14)
 public class TempoView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-
+    /**
+     * Container principale per le sezioni temporali
+     * Ogni sezione rappresenta un tempo con i relativi parametri e azioni.
+     */
     private final VerticalLayout timeSectionsContainer;
+    /**
+     * Lista di sezioni temporali (T0, T1, T2, ecc.)
+     * Ogni sezione rappresenta un tempo con i relativi parametri e azioni.
+     */
     private final List<TimeSection> timeSections = new ArrayList<>();
+    /**
+     * Contatore per il numero di tempo corrente
+     * Inizializzato a 1 per rappresentare T1.
+     */
     private int timeCount = 1;
+    /**
+     * Pulsante per navigare alla schermata successiva
+     */
     private final Button nextButton;
+    /**
+     * ID dello scenario corrente.
+     */
     private int scenarioId;
+    /**
+     * Servizio per la gestione degli scenari.
+     */
     private final ScenarioService scenarioService;
+    /**
+     * Chiave per i parametri personalizzati.
+     */
     public static final String CUSTOM_PARAMETER_KEY = "CUSTOM";
+    /**
+     * Mappa per i parametri aggiuntivi con le relative etichette.
+     * Contiene i parametri predefiniti e le loro descrizioni.
+     */
     public static final Map<String, String> ADDITIONAL_PARAMETERS = new LinkedHashMap<>();
-
+    /**
+     * Logger per la registrazione delle attività e degli errori.
+     */
     private static final Logger logger = LoggerFactory.getLogger(TempoView.class);
 
     static {
@@ -105,7 +142,12 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         ADDITIONAL_PARAMETERS.put("pCO₂ cutanea", "pCO₂ cutanea (mmHg)");
         ADDITIONAL_PARAMETERS.put("NIRS", "Ossimetria cerebrale (%)");
     }
-
+    /**
+     * Costruttore della vista TempoView.
+     * Inizializza il layout principale e i componenti della vista.
+     *
+     * @param scenarioService servizio per la gestione degli scenari
+     */
     public TempoView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
 
@@ -197,7 +239,13 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         // Aggiunta dei layout principali
         mainLayout.add(customHeader, contentLayout, footerLayout);
     }
-
+    /**
+     * Imposta il parametro URL per la vista.
+     * Carica i dati iniziali e gestisce eventuali errori di formato.
+     *
+     * @param event     evento di navigazione
+     * @param parameter parametro passato nell'URL
+     */
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
         try {
@@ -216,7 +264,12 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             event.rerouteToError(NotFoundException.class, "ID scenario " + scenarioId + " non valido");
         }
     }
-
+    /**
+     * Aggiunge una nuova sezione temporale (T1, T2, ecc.) al layout.
+     * Ogni sezione contiene campi per i parametri vitali e le azioni da eseguire.
+     *
+     * @param timeNumber numero del tempo corrente (T0, T1, T2, ecc.)
+     */
     private void addTimeSection(int timeNumber) {
         TimeSection timeSection = new TimeSection(timeNumber);
         timeSections.add(timeSection);
@@ -235,7 +288,12 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         // Aggiungi il pulsante al form layout
         timeSection.getMedicalParamsForm().add(addParamsButton);
     }
-
+    /**
+     * Mostra un dialog per selezionare i parametri aggiuntivi.
+     * Permette di aggiungere parametri predefiniti o personalizzati.
+     *
+     * @param timeSection sezione temporale corrente
+     */
     private void showAdditionalParamsDialog(TimeSection timeSection) {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Seleziona Parametri Aggiuntivi");
@@ -293,7 +351,12 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         dialog.add(dialogContent, buttons);
         dialog.open();
     }
-
+    /**
+     * Mostra un dialog per aggiungere un parametro personalizzato.
+     * Permette di definire il nome, l'unità di misura e il valore del parametro.
+     *
+     * @param timeSection sezione temporale corrente
+     */
     private void showCustomParamDialog(TimeSection timeSection) {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Aggiungi Parametro Personalizzato");
@@ -350,7 +413,10 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         dialog.add(dialogContent, buttons);
         dialog.open();
     }
-
+    /**
+     * Salva tutte le sezioni temporali nel database.
+     * In caso di successo, naviga alla schermata successiva.
+     */
     private void saveAllTimeSections() {
         try {
             List<ScenarioService.TempoData> allTempiData = new ArrayList<>();
@@ -388,7 +454,14 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             logger.error("Errore durante il salvataggio dei tempi", e);
         }
     }
-
+    /**
+     * Crea un campo numerico per i parametri medici.
+     * Aggiunge un'unità di misura come suffisso.
+     *
+     * @param label etichetta del campo
+     * @param unit  unità di misura
+     * @return campo numerico configurato
+     */
     private NumberField createMedicalField(String label, String unit) {
         NumberField field = new NumberField(label);
         field.setSuffixComponent(new Paragraph(unit));
@@ -396,7 +469,12 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         field.addClassName(LumoUtility.Margin.Bottom.SMALL);
         return field;
     }
-
+    /**
+     * Crea un campo di testo per i parametri medici.
+     * Aggiunge un'unità di misura come suffisso.
+     *
+     * @return campo di testo configurato
+     */
     private TextField createTextField() {
         TextField field = new TextField("PA (mmHg)");
         field.setSuffixComponent(new Paragraph("mmHg"));
@@ -404,7 +482,10 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         field.addClassName(LumoUtility.Margin.Bottom.SMALL);
         return field;
     }
-
+    /**
+     * Carica i dati iniziali per la sezione T0.
+     * Se i dati sono già presenti, li precompila nei campi.
+     */
     private void loadInitialData() {
         try {
             PazienteT0 pazienteT0 = scenarioService.getPazienteT0ById(scenarioId);
@@ -436,7 +517,10 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             logger.error("Errore nel caricamento dei dati iniziali", e);
         }
     }
-
+    /**
+     * Carica i tempi esistenti dallo scenario.
+     * Se T0 è già presente, lo rimuove e lo sostituisce con i dati esistenti.
+     */
     private void loadExistingTimes() {
         List<Tempo> existingTempi = scenarioService.getTempiByScenarioId(scenarioId);
         if (existingTempi != null && !existingTempi.isEmpty()) {
@@ -477,7 +561,13 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             }
         }
     }
-
+    /**
+     * Carica i parametri aggiuntivi per il tempo corrente.
+     * Se i parametri esistono, li precompila nei campi.
+     *
+     * @param section sezione temporale corrente
+     * @param tempoId ID del tempo corrente
+     */
     private void loadAdditionalParameters(TimeSection section, int tempoId) {
         List<ParametroAggiuntivo> params = scenarioService.getParametriAggiuntiviById(tempoId, scenarioId);
         if (params != null && !params.isEmpty()) {
@@ -500,27 +590,89 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         }
     }
 
-
+    /**
+     * Classe interna che rappresenta una sezione temporale (T0, T1, T2, ecc.).
+     * Contiene i campi per i parametri vitali e le azioni da eseguire.
+     */
     private class TimeSection {
+        /**
+         * Numero del tempo corrente (T0, T1, T2, ecc.)
+         */
         private final int timeNumber;
+        /**
+         * Layout principale per la sezione del tempo
+         */
         private final VerticalLayout layout;
+        /**
+         * Picker per il timer
+         */
         private final TimePicker timerPicker;
+        /**
+         * Campo di testo per la pressione arteriosa
+         */
         private final TextField paField;
+        /**
+         * Campo numerico per la frequenza cardiaca
+         */
         private final NumberField fcField;
+        /**
+         * Campo numerico per la frequenza respiratoria
+         */
         private final NumberField rrField;
+        /**
+         * Campo numerico per la temperatura
+         */
         private final NumberField tField;
+        /**
+         * Campo numerico per la saturazione di ossigeno
+         */
         private final NumberField spo2Field;
+        /**
+         * Campo numerico per la pressione parziale di CO2
+         */
         private final NumberField etco2Field;
+        /**
+         * Campo di testo per i dettagli dell'azione
+         */
         private final TextArea actionDetailsArea;
+        /**
+         * Campo numerico per il tempo se la risposta è "sì"
+         */
         private final IntegerField timeIfYesField;
+        /**
+         * Campo numerico per il tempo se la risposta è "no"
+         */
         private final IntegerField timeIfNoField;
+        /**
+         * Campo di testo per eventuali dettagli aggiuntivi
+         */
         private final TextArea additionalDetailsArea;
+        /**
+         * Pulsante per rimuovere la sezione del tempo
+         */
         private final Button removeButton;
+        /**
+         * Form layout per i parametri medici
+         */
         private final FormLayout medicalParamsForm;
+        /**
+         * Container per i parametri personalizzati
+         */
         private final VerticalLayout customParamsContainer;
+        /**
+         * Mappa per i parametri personalizzati
+         */
         private final Map<String, NumberField> customParameters = new HashMap<>();
+        /**
+         * Layout per i parametri personalizzati
+         */
         private final Map<String, HorizontalLayout> customParameterLayouts = new HashMap<>();
-
+        /**
+         * Costruttore per la sezione temporale.
+         * Inizializza i campi e il layout della sezione.
+         *
+         * @param timeNumber numero del tempo corrente (T0, T1, T2, ecc.)
+         */
         public TimeSection(int timeNumber) {
             this.timeNumber = timeNumber;
 
@@ -621,23 +773,44 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                     actionTitle, actionDetailsArea, timeSelectionContainer,
                     additionalDetailsArea, removeButton);
         }
-
+        /**
+         * Restituisce il layout principale della sezione temporale.
+         *
+         * @return layout principale
+         */
         public VerticalLayout getLayout() {
             return layout;
         }
-
+        /**
+         * Restituisce il numero del tempo corrente.
+         *
+         * @return numero del tempo
+         */
         public FormLayout getMedicalParamsForm() {
             return medicalParamsForm;
         }
-
+        /**
+         * Restituisce il campo di testo per la pressione arteriosa.
+         *
+         * @return campo di testo per la pressione arteriosa
+         */
         public Map<String, NumberField> getCustomParameters() {
             return customParameters;
         }
 
+        /**
+         * Nasconde il pulsante di rimozione della sezione temporale.
+         */
         public void hideRemoveButton() {
             removeButton.setVisible(false);
         }
-
+        /**
+         * Aggiunge un parametro personalizzato alla sezione temporale.
+         * Crea un campo numerico e un pulsante per rimuovere il parametro.
+         *
+         * @param key   chiave del parametro
+         * @param label etichetta del parametro
+         */
         public void addCustomParameter(String key, String label) {
             if (!customParameters.containsKey(key)) {
                 NumberField field = createMedicalField(label, getUnitFromLabel(label));
@@ -663,14 +836,24 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                 customParamsContainer.add(paramLayout);
             }
         }
-
+        /**
+         * Estrae l'unità di misura dall'etichetta del parametro.
+         *
+         * @param label etichetta del parametro
+         * @return unità di misura
+         */
         private String getUnitFromLabel(String label) {
             if (label.contains("(") && label.contains(")")) {
                 return label.substring(label.indexOf("(") + 1, label.indexOf(")"));
             }
             return "";
         }
-
+        /**
+         * Prepara i dati per il salvataggio nel database.
+         * Raccoglie i valori dai campi e li restituisce in un oggetto TempoData.
+         *
+         * @return oggetto TempoData con i dati da salvare
+         */
         public ScenarioService.TempoData prepareDataForSave() {
             LocalTime time = timerPicker.getValue();
             String pa = paField.getValue() != null ? paField.getValue() : "0/0";
@@ -709,38 +892,68 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             );
         }
 
-        // Metodi per impostare i valori dei campi
+        /**
+         * Imposta i valori nei campi della sezione temporale.
+         * Rende i campi di input non modificabili e cambia il colore di sfondo.
+         *
+         * @param value valore da impostare
+         */
         public void setPaValue(String value) {
             paField.setValue(value);
             paField.setReadOnly(true);
             paField.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
-
+        /**
+         * Imposta i valori nei campi della sezione temporale.
+         * Rende i campi di input non modificabili e cambia il colore di sfondo.
+         *
+         * @param value valore da impostare
+         */
         public void setFcValue(int value) {
             fcField.setValue((double) value);
             fcField.setReadOnly(true);
             fcField.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
-
+        /**
+         * Imposta i valori nei campi della sezione temporale.
+         * Rende i campi di input non modificabili e cambia il colore di sfondo.
+         *
+         * @param value valore da impostare
+         */
         public void setRrValue(int value) {
             rrField.setValue((double) value);
             rrField.setReadOnly(true);
             rrField.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
-
+        /**
+         * Imposta i valori nei campi della sezione temporale.
+         * Rende i campi di input non modificabili e cambia il colore di sfondo.
+         *
+         * @param value valore da impostare
+         */
         public void setTValue(double value) {
             double roundedValue = Math.round(value * 10) / 10.0;
             tField.setValue(roundedValue);
             tField.setReadOnly(true);
             tField.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
-
+        /**
+         * Imposta i valori nei campi della sezione temporale.
+         * Rende i campi di input non modificabili e cambia il colore di sfondo.
+         *
+         * @param value valore da impostare
+         */
         public void setSpo2Value(int value) {
             spo2Field.setValue((double) value);
             spo2Field.setReadOnly(true);
             spo2Field.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
-
+        /**
+         * Imposta i valori nei campi della sezione temporale.
+         * Rende i campi di input non modificabili e cambia il colore di sfondo.
+         *
+         * @param value valore da impostare
+         */
         public void setEtco2Value(int value) {
             etco2Field.setValue((double) value);
             etco2Field.setReadOnly(true);

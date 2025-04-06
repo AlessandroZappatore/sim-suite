@@ -7,10 +7,25 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import it.uniupo.simnova.views.home.AppHeader;
 
+/**
+ * Classe che rappresenta la vista di esecuzione dell'applicazione.
+ * <p>
+ * Questa classe estende Composite e rappresenta una vista di esecuzione
+ * con un'intestazione e un messaggio centrale.
+ * </p>
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @PageTitle("Execution")
 @Route("execution")
 public class ExecutionView extends Composite<VerticalLayout> {
-
+    /**
+     * Costruttore della vista di esecuzione.
+     * <p>
+     * Inizializza l'intestazione e aggiunge un messaggio centrale alla vista.
+     * </p>
+     */
     public ExecutionView() {
         AppHeader header = new AppHeader();
         getContent().setWidth("100%");

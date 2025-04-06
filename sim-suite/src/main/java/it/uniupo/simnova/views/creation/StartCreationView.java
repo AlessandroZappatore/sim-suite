@@ -36,14 +36,33 @@ import java.util.Optional;
 @Route("startCreation")
 @Menu(order = 2)
 public class StartCreationView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-
+    /**
+     * Logger per la registrazione delle informazioni e degli errori.
+     */
     private static final Logger logger = LoggerFactory.getLogger(StartCreationView.class);
-
+    /**
+     * Servizio per la gestione degli scenari.
+     */
     private final ScenarioService scenarioService;
+    /**
+     * Campi di input per il titolo dello scenario, nome del paziente, patologia e durata.
+     */
     private final TextField scenarioTitle;
+    /**
+     * Campo di input per il nome del paziente.
+     */
     private final TextField patientName;
+    /**
+     * Campo di input per la patologia.
+     */
     private final TextField pathology;
+    /**
+     * Campo di input per la durata della simulazione.
+     */
     private final ComboBox<Integer> durationField;
+    /**
+     * Tipo di scenario selezionato.
+     */
     private String scenarioType;
 
     /**

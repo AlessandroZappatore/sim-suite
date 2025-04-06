@@ -38,7 +38,7 @@ public class HomeView extends Composite<VerticalLayout> {
      * </p>
      */
     public HomeView() {
-        // Header
+        // Header dell'applicazione
         AppHeader header = new AppHeader();
 
         // Titoli

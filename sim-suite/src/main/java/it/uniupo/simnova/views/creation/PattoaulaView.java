@@ -37,11 +37,21 @@ import java.util.Optional;
 @Route(value = "pattoaula")
 @Menu(order = 5)
 public class PattoaulaView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-
+    /**
+     * Logger per la registrazione degli eventi.
+     */
     private static final Logger logger = LoggerFactory.getLogger(PattoaulaView.class);
-
+    /**
+     * Servizio per la gestione degli scenari.
+     */
     private final ScenarioService scenarioService;
+    /**
+     * ID dello scenario corrente.
+     */
     private Integer scenarioId;
+    /**
+     * Area di testo per il patto d'aula.
+     */
     private final TextArea pattoAulaArea;
 
     /**

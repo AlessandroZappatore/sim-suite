@@ -26,7 +26,10 @@ import com.vaadin.flow.router.*;
 @Route("media")
 @PageTitle("Visualizzatore File")
 public class MediaFullscreenView extends VerticalLayout implements HasUrlParameter<String> {
-
+    /**
+     * Nome del file da visualizzare.
+     * Può contenere anche il percorso relativo.
+     */
     private String filename;
 
     /**
@@ -133,6 +136,9 @@ public class MediaFullscreenView extends VerticalLayout implements HasUrlParamet
      * Componente personalizzato per la riproduzione di video HTML5.
      */
     private static class NativeVideo extends Component {
+        /**
+         * Costruttore che crea un elemento video HTML.
+         */
         public NativeVideo() {
             super(new Element("video"));
         }
@@ -168,6 +174,9 @@ public class MediaFullscreenView extends VerticalLayout implements HasUrlParamet
      * Componente personalizzato per la riproduzione di audio HTML5.
      */
     private static class NativeAudio extends Component {
+        /**
+         * Costruttore che crea un elemento audio HTML.
+         */
         public NativeAudio() {
             super(new Element("audio"));
         }

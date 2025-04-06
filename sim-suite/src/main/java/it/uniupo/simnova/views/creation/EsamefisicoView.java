@@ -40,11 +40,21 @@ import java.util.Optional;
 @Route(value = "esameFisico")
 @Menu(order = 13)
 public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-
+    /**
+     * Servizio per la gestione degli scenari.
+     */
     private final ScenarioService scenarioService;
+    /**
+     * ID dello scenario corrente.
+     */
     private Integer scenarioId;
+    /**
+     * Mappa per memorizzare le aree di testo delle sezioni dell'esame fisico.
+     */
     private final Map<String, TextArea> examSections = new HashMap<>();
-
+    /**
+     * Logger per la registrazione degli eventi.
+     */
     private static final Logger logger = LoggerFactory.getLogger(EsamefisicoView.class);
 
     /**

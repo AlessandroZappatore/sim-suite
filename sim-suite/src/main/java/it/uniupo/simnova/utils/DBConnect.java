@@ -14,8 +14,16 @@ import java.sql.SQLException;
  * @version 1.0
  */
 public class DBConnect {
-    // Posizione del database (percorso assoluto per maggiore affidabilità)
+    /**
+     * URL del database SQLite.
+     * <p>
+     * Il database viene creato nella directory corrente dell'applicazione.
+     * </p>
+     */
     private static final String DB_URL = "jdbc:sqlite:" + System.getProperty("user.dir") + "/database.db";
+    /**
+     * Istanza Singleton della classe DBConnect.
+     */
     private static DBConnect instance = null;
 
     /**

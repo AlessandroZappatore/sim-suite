@@ -21,7 +21,19 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
  */
 public class AppHeader extends HorizontalLayout {
 
+    /**
+     * Pulsante per il cambio tema.
+     * <p>
+     * Utilizza le icone di Vaadin per rappresentare il tema corrente.
+     * </p>
+     */
     private final Button toggleThemeButton;
+    /**
+     * Variabile per tenere traccia dello stato del tema (dark/light).
+     * <p>
+     * Inizialmente impostato su false (light mode).
+     * </p>
+     */
     private boolean isDarkMode = false;
 
     /**

@@ -38,10 +38,21 @@ import java.util.Optional;
 @Menu(order = 6)
 public class AzionechiaveView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
 
+    /**
+     * Servizio per la gestione degli scenari.
+     */
     private final ScenarioService scenarioService;
+    /**
+     * ID dello scenario corrente.
+     */
     private Integer scenarioId;
+    /**
+     * Area di testo per l'inserimento delle azioni chiave.
+     */
     private final TextArea azioniChiaveArea;
-
+    /**
+     * Logger per la registrazione degli eventi.
+     */
     private static final Logger logger = LoggerFactory.getLogger(AzionechiaveView.class);
 
     /**

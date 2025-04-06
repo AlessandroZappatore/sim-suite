@@ -13,8 +13,17 @@ package it.uniupo.simnova.api.model;
  * @version 1.0
  */
 public class Accesso {
+    /**
+     * Identificativo univoco dell'accesso venoso.
+     */
     private int idAccesso;
+    /**
+     * Tipologia dell'accesso venoso (es. CVC, Agocannula).
+     */
     private String tipologia;
+    /**
+     * Posizione anatomica dell'accesso venoso (es. Giugulare destra, Cubitale sinistro).
+     */
     private String posizione;
 
     /**
@@ -31,6 +40,8 @@ public class Accesso {
     }
 
     /**
+     * Restituisce l'identificativo univoco dell'accesso.
+     *
      * @return l'identificativo univoco dell'accesso
      */
     public int getId() {
@@ -38,6 +49,8 @@ public class Accesso {
     }
 
     /**
+     * Restituisce la tipologia dell'accesso.
+     *
      * @return la tipologia dell'accesso
      */
     public String getTipologia() {
@@ -45,6 +58,8 @@ public class Accesso {
     }
 
     /**
+     * Restituisce la posizione anatomica dell'accesso.
+     *
      * @return la posizione anatomica dell'accesso
      */
     public String getPosizione() {

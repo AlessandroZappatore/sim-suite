@@ -37,11 +37,21 @@ import java.util.Optional;
 @Route(value = "obiettivididattici")
 @Menu(order = 7)
 public class ObiettivididatticiView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-
+    /**
+     * Logger per la registrazione degli eventi.
+     */
     private static final Logger logger = LoggerFactory.getLogger(ObiettivididatticiView.class);
-
+    /**
+     * Servizio per la gestione degli scenari.
+     */
     private final ScenarioService scenarioService;
+    /**
+     * ID dello scenario corrente.
+     */
     private Integer scenarioId;
+    /**
+     * Area di testo per l'inserimento degli obiettivi didattici.
+     */
     private final TextArea obiettiviArea;
 
     /**

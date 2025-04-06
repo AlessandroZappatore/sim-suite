@@ -14,8 +14,15 @@ import java.util.Map;
  * @version 1.0
  */
 public class EsameFisico {
+    /**
+     * Identificativo univoco dell'esame fisico.
+     */
     private int idEsameFisico;
-    private int scenario;
+    /**
+     * Mappa che associa il nome di ogni sezione dell'esame fisico al suo risultato.
+     * Le chiavi della mappa sono i nomi delle sezioni, mentre i valori sono le
+     * descrizioni testuali dei risultati.
+     */
     private Map<String, String> sections;
 
     /**
@@ -59,7 +66,6 @@ public class EsameFisico {
                        String retto, String cute, String estremita,
                        String neurologico, String fast) {
         this.idEsameFisico = idEsameFisico;
-        this.scenario = scenario;
 
         this.sections = new HashMap<>();
         sections.put("Generale", generale);
@@ -76,6 +82,8 @@ public class EsameFisico {
     }
 
     /**
+     * Restituisce l'identificativo univoco dell'esame fisico.
+     *
      * @return l'identificativo univoco dell'esame fisico
      */
     public Integer getIdEsameFisico() {
@@ -92,6 +100,8 @@ public class EsameFisico {
     }
 
     /**
+     * Recupera la mappa completa di tutte le sezioni dell'esame fisico.
+     *
      * @return la mappa completa di tutte le sezioni dell'esame con i relativi risultati
      */
     public Map<String, String> getSections() {

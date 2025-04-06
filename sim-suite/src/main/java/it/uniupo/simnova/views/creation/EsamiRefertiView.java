@@ -52,14 +52,33 @@ import java.util.stream.Collectors;
 @Route(value = "esamiReferti")
 @Menu(order = 9)
 public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-
+    /**
+     * Servizio per la gestione degli scenari.
+     */
     private final ScenarioService scenarioService;
+    /**
+     * ID dello scenario corrente.
+     */
     private Integer scenarioId;
+    /**
+     * Layout principale per la visualizzazione delle righe degli esami.
+     */
     private final VerticalLayout rowsContainer;
+    /**
+     * Contatore per il numero di righe degli esami.
+     */
     private int rowCount = 1;
+    /**
+     * Lista di righe degli esami/referti.
+     */
     private final List<FormRow> formRows = new ArrayList<>();
+    /**
+     * Servizio per la gestione del caricamento dei file.
+     */
     private final FileStorageService fileStorageService;
-
+    /**
+     * Logger per la registrazione degli eventi.
+     */
     private static final Logger logger = LoggerFactory.getLogger(EsamiRefertiView.class);
 
     /**
@@ -262,16 +281,50 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
      * Classe interna che rappresenta una riga del form per l'inserimento di un esame/referto.
      */
     private static class FormRow {
+        /**
+         * Numero della riga.
+         */
         private final int rowNumber;
+        /**
+         * Titolo della riga.
+         */
         private final Paragraph rowTitle;
+        /**
+         * Layout della riga.
+         */
         private final FormLayout rowLayout;
+        /**
+         * Pulsante per selezionare l'esame.
+         */
         private final Button selectExamButton = new Button("Seleziona", new Icon(VaadinIcon.SEARCH));
+        /**
+         * Finestra di dialogo per la selezione dell'esame.
+         */
         private final Dialog examDialog = new Dialog();
+        /**
+         * Campo di testo per l'esame selezionato.
+         */
         private final TextField selectedExamField = new TextField("Tipo Esame");
+        /**
+         * Campo di testo per l'esame personalizzato.
+         */
         private final TextField customExamField = new TextField("Esame Personalizzato");
+        /**
+         * Gruppo di radio button per la selezione del tipo di esame.
+         */
         private final RadioButtonGroup<String> examTypeGroup = new RadioButtonGroup<>();
+        /**
+         * Campo di upload per il file del referto.
+         */
         private final Upload upload;
+        /**
+         * Campo di testo per il referto testuale.
+         */
         private final TextField reportField;
+        /**
+         * Lista di esami di laboratorio disponibili.
+         * Questi esami possono essere selezionati dall'utente tramite un dialogo.
+         */
         private final List<String> allLabExams = List.of(
                 "Emocromo con formula", "Glicemia", "Elettroliti sierici (Na⁺, K⁺, Cl⁻, Ca²⁺, Mg²⁺)",
                 "Funzionalità renale (Creatinina, Azotemia)", "Funzionalità epatica (AST, ALT, Bilirubina, ALP, GGT)",
@@ -279,6 +332,10 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                 "INR, PTT, PT", "Gas arteriosi (pH, PaO₂, PaCO₂, HCO₃⁻, BE, Lactati)",
                 "Emogas venoso", "Osmolarità sierica", "CPK", "Mioglobina"
         );
+        /**
+         * Lista di esami strumentali disponibili.
+         * Questi esami possono essere selezionati dall'utente tramite un dialogo.
+         */
         private final List<String> allInstrExams = List.of(
                 "ECG (Elettrocardiogramma)", "RX Torace", "TC Torace (con mdc)", "TC Torace (senza mdc)",
                 "TC Addome (con mdc)", "TC Addome (senza mdc)", "Ecografia addominale", "Ecografia polmonare",
@@ -550,30 +607,59 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
             return button;
         }
-        // Metodi getter
 
+        /**
+         * Restituisce il nome dell'esame selezionato.
+         *
+         * @return nome dell'esame selezionato
+         */
         public String getSelectedExam() {
             return "Inserisci manualmente".equals(examTypeGroup.getValue())
                     ? customExamField.getValue()
                     : selectedExamField.getValue();
         }
 
+        /**
+         * Restituisce il numero della riga.
+         *
+         * @return numero della riga
+         */
         public int getRowNumber() {
             return rowNumber;
         }
 
+        /**
+         * Restituisce il titolo della riga.
+         *
+         * @return titolo della riga
+         */
         public Paragraph getRowTitle() {
             return rowTitle;
         }
 
+        /**
+         * Restituisce il layout della riga.
+         *
+         * @return layout della riga
+         */
         public FormLayout getRowLayout() {
             return rowLayout;
         }
 
+        /**
+         * Restituisce il pulsante di upload.
+         *
+         * @return pulsante di upload
+         */
         public Upload getUpload() {
             return upload;
         }
 
+        /**
+         * Restituisce il campo di testo per il referto.
+         *
+         * @return campo di testo per il referto
+         */
         public TextField getReportField() {
             return reportField;
         }

@@ -37,11 +37,21 @@ import java.util.Optional;
 @Route(value = "briefing")
 @Menu(order = 4)
 public class BriefingView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-
+    /**
+     * Servizio per la gestione degli scenari.
+     */
     private final ScenarioService scenarioService;
+    /**
+     * ID dello scenario corrente.
+     */
     private Integer scenarioId;
+    /**
+     * Area di testo per il briefing.
+     */
     private final TextArea briefingArea;
-
+    /**
+     * Logger per la registrazione degli eventi.
+     */
     private static final Logger logger = LoggerFactory.getLogger(BriefingView.class);
 
     /**

@@ -37,11 +37,21 @@ import java.util.Optional;
 @Route(value = "materialenecessario")
 @Menu(order = 8)
 public class MaterialenecessarioView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-
+    /**
+     * Logger per la registrazione degli eventi e degli errori.
+     */
     private static final Logger logger = LoggerFactory.getLogger(MaterialenecessarioView.class);
-
+    /**
+     * Servizio per la gestione degli scenari.
+     */
     private final ScenarioService scenarioService;
+    /**
+     * ID dello scenario corrente.
+     */
     private Integer scenarioId;
+    /**
+     * Area di testo per l'inserimento del materiale necessario.
+     */
     private final TextArea materialeArea;
 
     /**

@@ -38,11 +38,21 @@ import java.util.Optional;
 @Route(value = "moulage")
 @Menu(order = 10)
 public class MoulageView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-
+    /**
+     * Servizio per la gestione degli scenari.
+     */
     private final ScenarioService scenarioService;
+    /**
+     * ID dello scenario corrente.
+     */
     private Integer scenarioId;
+    /**
+     * Area di testo per la descrizione del moulage.
+     */
     private final TextArea moulageArea;
-
+    /**
+     * Logger per la registrazione degli eventi.
+     */
     private static final Logger logger = LoggerFactory.getLogger(MoulageView.class);
 
     /**

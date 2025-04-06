@@ -2,6 +2,7 @@ package it.uniupo.simnova.views.creation;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Composite;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
@@ -28,17 +29,53 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * Vista per la visualizzazione dei dettagli di uno scenario.
+ * <p>
+ * Questa classe gestisce il caricamento e la visualizzazione dei dettagli di uno scenario specifico,
+ * inclusi i parametri vitali, gli esami e i referti, e altre informazioni pertinenti.
+ * </p>
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @PageTitle("Dettagli Scenario")
 @Route(value = "scenari", layout = MainLayout.class)
 public class ScenarioDetailsView extends Composite<VerticalLayout> implements HasUrlParameter<String>, BeforeEnterObserver {
-
+    /**
+     * Servizio per la gestione degli scenari.
+     */
     private final ScenarioService scenarioService;
+    /**
+     * ID dello scenario attualmente visualizzato.
+     */
     private Integer scenarioId;
+    /**
+     * Oggetto Scenario caricato.
+     */
     private Scenario scenario;
-
+    /**
+     * Flag per verificare se la vista è stata staccata.
+     */
+    private final AtomicBoolean detached = new AtomicBoolean(false);
+    /**
+     * Logger per la registrazione delle informazioni e degli errori.
+     */
     private static final Logger logger = LoggerFactory.getLogger(ScenarioDetailsView.class);
+    /**
+     * ExecutorService per gestire i task in background.
+     */
+    private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
+    /**
+     * Costruttore della vista dei dettagli dello scenario.
+     *
+     * @param scenarioService servizio per la gestione degli scenari
+     */
     @Autowired
     public ScenarioDetailsView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
@@ -47,6 +84,12 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         getContent().setPadding(false);
     }
 
+    /**
+     * Imposta il parametro dell'URL per la vista.
+     *
+     * @param event     evento di navigazione
+     * @param parameter parametro passato nell'URL
+     */
     @Override
     public void setParameter(BeforeEvent event, String parameter) {
         try {
@@ -64,7 +107,12 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         }
     }
 
-
+    /**
+     * Metodo chiamato prima di entrare nella vista.
+     * Carica i dati dello scenario e gestisce eventuali errori.
+     *
+     * @param event evento di navigazione
+     */
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         if (scenarioId == null) {
@@ -75,18 +123,41 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         loadScenarioData();
     }
 
+    /**
+     * Metodo chiamato quando la vista viene staccata.
+     * Ferma l'esecuzione dei task in background.
+     *
+     * @param detachEvent evento di distacco
+     */
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        detached.set(true);
+        executorService.shutdownNow();
+    }
+
+    /**
+     * Carica i dati dello scenario in un thread separato.
+     * Mostra una barra di progresso durante il caricamento.
+     */
     private void loadScenarioData() {
+        if (detached.get()) {
+            return;
+        }
+
         getContent().removeAll();
         ProgressBar progressBar = new ProgressBar();
         progressBar.setIndeterminate(true);
         getContent().add(progressBar);
 
-        // Ottieni l'UI corrente prima di avviare il thread
-        final UI ui = UI.getCurrent();
-
-        new Thread(() -> {
+        UI ui = UI.getCurrent();
+        executorService.submit(() -> {
             try {
                 Scenario loadedScenario = scenarioService.getScenarioById(scenarioId);
+
+                if (detached.get()) {
+                    return;
+                }
 
                 ui.access(() -> {
                     if (loadedScenario == null) {
@@ -98,15 +169,31 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                     initView();
                 });
             } catch (Exception e) {
+                if (detached.get()) {
+                    return;
+                }
+
                 ui.access(() -> {
                     Notification.show("Errore nel caricamento: " + e.getMessage(), 3000, Position.MIDDLE);
                     ui.navigate("scenari");
                 });
+            } finally {
+                if (!detached.get()) {
+                    ui.access(() -> progressBar.setVisible(false));
+                }
             }
-        }).start();
+        });
     }
 
+    /**
+     * Inizializza la vista con i dati dello scenario.
+     * Crea e aggiunge i componenti alla vista.
+     */
     private void initView() {
+        if (detached.get()) {
+            return;
+        }
+
         VerticalLayout mainLayout = getContent();
         mainLayout.removeAll();
         mainLayout.setSizeFull();
@@ -167,6 +254,11 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
             accordion.add("Timeline", createTimelineContent());
         }
 
+        String scenarioType = scenarioService.getScenarioType(scenarioId);
+        if ("Patient Simulated Scenario".equalsIgnoreCase(scenarioType)) {
+            accordion.add("Sceneggiatura", createSceneggiaturaContent(scenarioId));
+        }
+
         // Espandi il primo pannello di default
         accordion.open(0);
 
@@ -191,6 +283,11 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         backButton.addClickListener(e -> UI.getCurrent().navigate("scenari"));
     }
 
+    /**
+     * Crea un paragrafo con le informazioni del paziente e della patologia.
+     *
+     * @return il paragrafo creato
+     */
     private Paragraph getParagraph() {
         Paragraph subtitle = new Paragraph(
                 String.format("Paziente: %s | Patologia: %s | Durata: %.1f minuti",
@@ -207,6 +304,11 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         return subtitle;
     }
 
+    /**
+     * Crea il contenuto per la sezione "Informazioni Generali".
+     *
+     * @return il layout con le informazioni generali
+     */
     private VerticalLayout createOverviewContent() {
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(false);
@@ -237,6 +339,11 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         return layout;
     }
 
+    /**
+     * Crea il contenuto per la sezione "Stato Paziente".
+     *
+     * @return il layout con le informazioni sul paziente
+     */
     private VerticalLayout createPatientContent() {
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(false);
@@ -316,6 +423,11 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         return layout;
     }
 
+    /**
+     * Crea il contenuto per la sezione "Esami e Referti".
+     *
+     * @return il layout con gli esami e referti
+     */
     private VerticalLayout createExamsContent() {
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(false);
@@ -356,6 +468,12 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         return layout;
     }
 
+    /**
+     * Crea un'anteprima per i file multimediali.
+     *
+     * @param fileName nome del file
+     * @return il componente di anteprima
+     */
     private Component createMediaPreview(String fileName) {
         String fileExtension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
 
@@ -423,11 +541,21 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         return previewContainer;
     }
 
+    /**
+     * Apre il file multimediale completo in una nuova scheda.
+     *
+     * @param fileName nome del file
+     */
     private void openFullMedia(String fileName) {
         // Implementa l'apertura del file completo
         UI.getCurrent().getPage().open("media/" + fileName, "_blank");
     }
 
+    /**
+     * Crea il contenuto per la sezione "Timeline".
+     *
+     * @return il layout con la timeline
+     */
     private VerticalLayout createTimelineContent() {
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(false);
@@ -521,12 +649,24 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         return layout;
     }
 
+    /**
+     * Formatta il tempo in minuti e secondi.
+     *
+     * @param seconds tempo in secondi
+     * @return stringa formattata
+     */
     private String formatTime(int seconds) {
         int minutes = seconds / 60;
         int remainingSeconds = seconds % 60;
         return String.format("%02d:%02d", minutes, remainingSeconds);
     }
 
+    /**
+     * Crea una griglia per visualizzare i parametri vitali del paziente.
+     *
+     * @param paziente oggetto PazienteT0
+     * @return la griglia creata
+     */
     private Grid<String> createParamsGrid(PazienteT0 paziente) {
         Grid<String> grid = new Grid<>();
         grid.setItems(
@@ -545,6 +685,12 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         return grid;
     }
 
+    /**
+     * Crea una griglia per visualizzare i parametri vitali della timeline.
+     *
+     * @param tempo oggetto Tempo
+     * @return la griglia creata
+     */
     private Grid<String> createTimelineParamsGrid(Tempo tempo) {
         Grid<String> grid = new Grid<>();
         grid.setItems(
@@ -575,6 +721,12 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         return grid;
     }
 
+    /**
+     * Crea una griglia per visualizzare gli accessi venosi o arteriosi.
+     *
+     * @param accessi lista di accessi
+     * @return la griglia creata
+     */
     private Grid<Accesso> createAccessiGrid(List<Accesso> accessi) {
         Grid<Accesso> grid = new Grid<>();
         grid.setItems(accessi);
@@ -591,6 +743,13 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         return grid;
     }
 
+    /**
+     * Crea un elemento informativo con titolo e contenuto.
+     *
+     * @param title   il titolo dell'elemento
+     * @param content il contenuto dell'elemento
+     * @return il layout creato
+     */
     private VerticalLayout createInfoItem(String title, String content) {
         if (content == null || content.isEmpty()) {
             return new VerticalLayout();
@@ -612,29 +771,53 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         return layout;
     }
 
+    /**
+     * Aggiunge una sezione se il valore non è vuoto.
+     *
+     * @param content il layout di contenuto
+     * @param title   il titolo della sezione
+     * @param value   il valore da visualizzare
+     */
     private void addSectionIfNotEmpty(VerticalLayout content, String title, String value) {
         if (value != null && !value.trim().isEmpty()) {
             content.add(createInfoItem(title, value));
         }
-
     }
 
     /**
      * Componente per la riproduzione di video nativo
      */
     private static class NativeVideo extends Component {
+        /**
+         * Costruttore per il video nativo.
+         */
         public NativeVideo() {
             super(new Element("video"));
         }
 
+        /**
+         * Imposta l'attributo src del video.
+         *
+         * @param src il percorso del video
+         */
         public void setSrc(String src) {
             getElement().setAttribute("src", src);
         }
 
+        /**
+         * Imposta l'attributo controls del video.
+         *
+         * @param controls true per mostrare i controlli, false altrimenti
+         */
         public void setControls(boolean controls) {
             getElement().setAttribute("controls", controls);
         }
 
+        /**
+         * Imposta la larghezza del video.
+         *
+         * @param width la larghezza del video
+         */
         public void setWidth(String width) {
             getElement().setAttribute("width", width);
         }
@@ -644,20 +827,55 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * Componente per la riproduzione di audio nativo
      */
     private static class NativeAudio extends Component {
+        /**
+         * Costruttore per l'audio nativo.
+         */
         public NativeAudio() {
             super(new Element("audio"));
         }
 
+        /**
+         * Imposta l'attributo src dell'audio.
+         *
+         * @param src il percorso dell'audio
+         */
         public void setSrc(String src) {
             getElement().setAttribute("src", src);
         }
 
+        /**
+         * Imposta l'attributo controls dell'audio.
+         *
+         * @param controls true per mostrare i controlli, false altrimenti
+         */
         public void setControls(boolean controls) {
             getElement().setAttribute("controls", controls);
         }
 
+        /**
+         * Imposta la larghezza dell'audio.
+         *
+         * @param width la larghezza dell'audio
+         */
         public void setWidth(String width) {
             getElement().getStyle().set("width", width);
         }
+    }
+
+    /**
+     * Crea il contenuto per la sezione "Sceneggiatura".
+     *
+     * @param scenarioId ID dello scenario
+     * @return il layout con la sceneggiatura
+     */
+    private Component createSceneggiaturaContent(int scenarioId) {
+        VerticalLayout layout = new VerticalLayout();
+        String sceneggiatura = scenarioService.getSceneggiatura(scenarioId);
+        if (sceneggiatura == null || sceneggiatura.trim().isEmpty()) {
+            layout.add(new Paragraph("Nessuna sceneggiatura disponibile"));
+        } else {
+            layout.add(new Paragraph(sceneggiatura));
+        }
+        return layout;
     }
 }

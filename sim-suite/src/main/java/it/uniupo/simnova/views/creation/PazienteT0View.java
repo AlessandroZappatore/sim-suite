@@ -44,23 +44,62 @@ import java.util.Optional;
 @Route(value = "pazienteT0")
 @Menu(order = 12)
 public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-
+    /**
+     * Logger per la registrazione degli eventi e degli errori.
+     */
     private static final Logger logger = LoggerFactory.getLogger(PazienteT0View.class);
-
+    /**
+     * Servizio per la gestione degli scenari.
+     */
     private final ScenarioService scenarioService;
+    /**
+     * ID dello scenario corrente.
+     */
     private Integer scenarioId;
 
+    /**
+     * Campi per i parametri vitali principali.
+     */
     private final TextField paField;
+    /**
+     * Campo per la frequenza cardiaca (FC).
+     */
     private final NumberField fcField;
+    /**
+     * Campo per la frequenza respiratoria (FR).
+     */
     private final NumberField rrField;
+    /**
+     * Campo per la temperatura corporea.
+     */
     private final NumberField tempField;
+    /**
+     * Campo per la saturazione di ossigeno (SpO₂).
+     */
     private final NumberField spo2Field;
+    /**
+     * Campo per la pressione parziale di anidride carbonica (EtCO₂).
+     */
     private final NumberField etco2Field;
+    /**
+     * Area di testo per il monitoraggio.
+     */
     private final TextArea monitorArea;
-
+    /**
+     * Container per gli accessi venosi.
+     */
     private static VerticalLayout venosiContainer = null;
+    /**
+     * Container per gli accessi arteriosi.
+     */
     private static VerticalLayout arteriosiContainer = null;
+    /**
+     * Lista per memorizzare gli accessi venosi.
+     */
     private static final List<AccessoComponent> venosiAccessi = new ArrayList<>();
+    /**
+     * Lista per memorizzare gli accessi arteriosi.
+     */
     private static final List<AccessoComponent> arteriosiAccessi = new ArrayList<>();
 
     /**
@@ -242,6 +281,13 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         }
     }
 
+    /**
+     * Crea un campo di input numerico con etichetta e segnaposto.
+     *
+     * @param label      l'etichetta del campo
+     * @param placeholder il testo segnaposto
+     * @return il campo di input numerico creato
+     */
     private NumberField createNumberField(String label, String placeholder) {
         NumberField field = new NumberField(label);
         field.setPlaceholder(placeholder);
@@ -251,7 +297,11 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         field.addClassName(LumoUtility.Margin.Bottom.SMALL);
         return field;
     }
-
+    /**
+     * Crea un campo di input di testo con etichetta e segnaposto.
+     *
+     * @return il campo di input di testo creato
+     */
     private TextField createTextField() {
         TextField field = new TextField("PA (mmHg)");
         field.setPlaceholder("(es. 120/80)");
@@ -259,25 +309,39 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         field.addClassName(LumoUtility.Margin.Bottom.SMALL);
         return field;
     }
-
+    /**
+     * Aggiunge un accesso venoso al layout e alla lista degli accessi.
+     */
     private void addAccessoVenoso() {
         AccessoComponent accesso = new AccessoComponent("Venoso", venosiAccessi.size() + 1);
         venosiAccessi.add(accesso);
         venosiContainer.add(accesso);
     }
 
+    /**
+     * Aggiunge un accesso arterioso al layout e alla lista degli accessi.
+     */
     private void addAccessoArterioso() {
         AccessoComponent accesso = new AccessoComponent("Arterioso", arteriosiAccessi.size() + 1);
         arteriosiAccessi.add(accesso);
         arteriosiContainer.add(accesso);
     }
 
+    /**
+     * Valida i campi di input per assicurarsi che siano compilati correttamente.
+     *
+     * @return true se tutti i campi sono validi, false altrimenti
+     */
     private boolean validateInput() {
         // Validazione dei campi obbligatori
         return !paField.isEmpty() && !fcField.isEmpty() && !rrField.isEmpty() &&
                 !tempField.isEmpty() && !spo2Field.isEmpty() && !etco2Field.isEmpty();
     }
-
+    /**
+     * Salva i dati del paziente e naviga alla vista successiva.
+     *
+     * @param uiOptional l'oggetto UI opzionale per la navigazione
+     */
     private void saveDataAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {
             ProgressBar progressBar = new ProgressBar();
@@ -330,11 +394,26 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         });
     }
 
-    // Classe interna per rappresentare un componente accesso
+    /**
+     * Componente per la gestione degli accessi venosi e arteriosi.
+     * Contiene un campo di selezione per il tipo di accesso e un campo di testo per la posizione.
+     */
     private static class AccessoComponent extends HorizontalLayout {
+        /**
+         * Campo di selezione per il tipo di accesso (venoso o arterioso).
+         */
         private final Select<String> tipoSelect;
+        /**
+         * Campo di testo per la posizione dell'accesso.
+         */
         private final TextField posizioneField;
 
+        /**
+         * Costruttore del componente di accesso.
+         *
+         * @param tipo          il tipo di accesso (venoso o arterioso)
+         * @param ignoredNumero numero di accessi (non utilizzato)
+         */
         public AccessoComponent(String tipo, int ignoredNumero) {
             setWidthFull();
             setAlignItems(Alignment.BASELINE);
@@ -360,6 +439,9 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
             add(tipoSelect, posizioneField, removeButton);
         }
 
+        /**
+         * Rimuove il componente di accesso dalla vista e dalla lista appropriata.
+         */
         private void removeSelf() {
             // Ottieni il parent (che dovrebbe essere il venosiContainer o arteriosiContainer)
             Optional<Component> parentOpt = getParent();
@@ -379,6 +461,11 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
             });
         }
 
+        /**
+         * Restituisce i dati dell'accesso come oggetto AccessoData.
+         *
+         * @return i dati dell'accesso
+         */
         public AccessoData getData() {
             return new AccessoData(
                     tipoSelect.getValue(),
@@ -387,7 +474,12 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         }
     }
 
-    // Classe per rappresentare i dati di un accesso
+    /**
+     * Classe record per rappresentare i dati di un accesso.
+     *
+     * @param tipo      il tipo di accesso (venoso o arterioso)
+     * @param posizione la posizione dell'accesso
+     */
     public record AccessoData(String tipo, String posizione) {
     }
 }

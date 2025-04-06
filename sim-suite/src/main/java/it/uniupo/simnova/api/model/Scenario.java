@@ -10,18 +10,57 @@ package it.uniupo.simnova.api.model;
  * @version 1.0
  */
 public class Scenario {
+    /**
+     * Identificativo univoco dello scenario.
+     */
     private int id;
+    /**
+     * Titolo dello scenario.
+     */
     private String titolo;
+    /**
+     * Nome del paziente.
+     */
     private String nome_paziente;
+    /**
+     * Patologia del paziente.
+     */
     private String patologia;
+    /**
+     * Descrizione dello scenario.
+     */
     private String descrizione;
+    /**
+     * Briefing dello scenario.
+     */
     private String briefing;
+    /**
+     * Patto d'aula dello scenario.
+     */
     private String patto_aula;
+    /**
+     * Azione chiave dello scenario.
+     */
     private String azione_chiave;
+    /**
+     * Obiettivo dello scenario.
+     */
     private String obiettivo;
+    /**
+     * Materiale necessario per lo scenario.
+     */
     private String materiale;
+    /**
+     * Moulage dello scenario.
+     */
     private String moulage;
+    /**
+     * Liquidi dello scenario.
+     */
     private String liquidi;
+    /**
+     * Timer generale dello scenario.
+     */
     private float timer_generale;
 
     /**
@@ -86,6 +125,8 @@ public class Scenario {
     }
 
     /**
+     * Restituisce l'identificativo univoco dello scenario.
+     *
      * @return l'identificativo univoco dello scenario
      */
     public int getId() {
@@ -102,6 +143,8 @@ public class Scenario {
     }
 
     /**
+     * Restituisce il titolo dello scenario.
+     *
      * @return il titolo dello scenario
      */
     public String getTitolo() {
@@ -118,6 +161,8 @@ public class Scenario {
     }
 
     /**
+     * Restituisce il nome del paziente.
+     *
      * @return il nome del paziente
      */
     public String getNomePaziente() {
@@ -134,6 +179,8 @@ public class Scenario {
     }
 
     /**
+     * Restituisce la patologia del paziente.
+     *
      * @return la patologia del paziente
      */
     public String getPatologia() {
@@ -150,6 +197,8 @@ public class Scenario {
     }
 
     /**
+     * Restituisce la descrizione dello scenario.
+     *
      * @return la descrizione dello scenario
      */
     public String getDescrizione() {
@@ -166,6 +215,8 @@ public class Scenario {
     }
 
     /**
+     * Restituisce il briefing dello scenario.
+     *
      * @return il briefing dello scenario
      */
     public String getBriefing() {
@@ -182,6 +233,8 @@ public class Scenario {
     }
 
     /**
+     * Restituisce il patto d'aula dello scenario.
+     *
      * @return il patto d'aula dello scenario
      */
     public String getPattoAula() {
@@ -198,6 +251,8 @@ public class Scenario {
     }
 
     /**
+     * Restituisce l'azione chiave dello scenario.
+     *
      * @return l'azione chiave dello scenario
      */
     public String getAzioneChiave() {
@@ -214,6 +269,8 @@ public class Scenario {
     }
 
     /**
+     * Restituisce l'obiettivo dello scenario.
+     *
      * @return l'obiettivo dello scenario
      */
     public String getObiettivo() {
@@ -230,6 +287,8 @@ public class Scenario {
     }
 
     /**
+     * Restituisce il materiale necessario per lo scenario.
+     *
      * @return il materiale necessario per lo scenario
      */
     public String getMateriale() {
@@ -246,6 +305,8 @@ public class Scenario {
     }
 
     /**
+     * Restituisce il moulage dello scenario.
+     *
      * @return il moulage dello scenario
      */
     public String getMoulage() {
@@ -262,6 +323,8 @@ public class Scenario {
     }
 
     /**
+     * Restituisce i liquidi dello scenario.
+     *
      * @return i liquidi dello scenario
      */
     public String getLiquidi() {
@@ -278,6 +341,8 @@ public class Scenario {
     }
 
     /**
+     * Restituisce il timer generale dello scenario.
+     *
      * @return il timer generale dello scenario
      */
     public float getTimerGenerale() {

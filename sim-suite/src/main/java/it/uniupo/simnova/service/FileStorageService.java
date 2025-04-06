@@ -20,7 +20,13 @@ import java.util.List;
  */
 @Service
 public class FileStorageService {
+    /**
+     * Logger per la registrazione delle operazioni del servizio.
+     */
     private static final Logger logger = LoggerFactory.getLogger(FileStorageService.class);
+    /**
+     * Directory di root per lo storage dei file.
+     */
     private final Path rootLocation;
 
     /**

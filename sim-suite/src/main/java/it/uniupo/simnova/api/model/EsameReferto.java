@@ -14,10 +14,25 @@ package it.uniupo.simnova.api.model;
  * @version 1.0
  */
 public class EsameReferto {
+    /**
+     * Identificativo univoco dell'esame.
+     */
     private int idEsame;
+    /**
+     * Identificativo dello scenario associato all'esame.
+     */
     private int id_scenario;
+    /**
+     * Tipologia dell'esame (es. "Radiografia", "Ecografia").
+     */
     private String tipo;
+    /**
+     * Percorso del file multimediale associato all'esame (opzionale).
+     */
     private String media;
+    /**
+     * Contenuto testuale del referto.
+     */
     private String refertoTestuale;
 
     /**
@@ -47,6 +62,8 @@ public class EsameReferto {
     // Metodi getter e setter
 
     /**
+     * Restituisce l'identificativo univoco dell'esame.
+     *
      * @return l'identificativo univoco dell'esame
      */
     public int getIdEsame() {
@@ -54,6 +71,8 @@ public class EsameReferto {
     }
 
     /**
+     * Imposta un nuovo identificativo per l'esame.
+     *
      * @param idEsame il nuovo identificativo dell'esame
      */
     public void setIdEsame(int idEsame) {
@@ -61,6 +80,8 @@ public class EsameReferto {
     }
 
     /**
+     * Restituisce l'identificativo dello scenario associato all'esame.
+     *
      * @return l'identificativo dello scenario associato
      */
     public int getScenario() {
@@ -68,6 +89,8 @@ public class EsameReferto {
     }
 
     /**
+     * Imposta un nuovo identificativo per lo scenario associato all'esame.
+     *
      * @param id_scenario il nuovo identificativo dello scenario
      */
     public void setIdScenario(int id_scenario) {
@@ -75,6 +98,8 @@ public class EsameReferto {
     }
 
     /**
+     * Restituisce la tipologia dell'esame.
+     *
      * @return la tipologia dell'esame
      */
     public String getTipo() {
@@ -82,6 +107,8 @@ public class EsameReferto {
     }
 
     /**
+     * Imposta una nuova tipologia per l'esame.
+     *
      * @param tipo la nuova tipologia dell'esame
      */
     public void setTipo(String tipo) {
@@ -89,6 +116,8 @@ public class EsameReferto {
     }
 
     /**
+     * Restituisce il percorso del file multimediale associato all'esame.
+     *
      * @return il percorso del file multimediale associato
      */
     public String getMedia() {
@@ -96,6 +125,8 @@ public class EsameReferto {
     }
 
     /**
+     * Imposta un nuovo percorso per il file multimediale associato all'esame.
+     *
      * @param media il nuovo percorso del file multimediale
      */
     public void setMedia(String media) {
@@ -103,6 +134,8 @@ public class EsameReferto {
     }
 
     /**
+     * Restituisce il contenuto testuale del referto.
+     *
      * @return il contenuto testuale del referto
      */
     public String getRefertoTestuale() {
@@ -110,6 +143,8 @@ public class EsameReferto {
     }
 
     /**
+     * Imposta un nuovo contenuto testuale per il referto.
+     *
      * @param refertoTestuale il nuovo contenuto testuale del referto
      */
     public void setRefertoTestuale(String refertoTestuale) {

@@ -18,11 +18,31 @@ import org.slf4j.LoggerFactory;
 import static it.uniupo.simnova.views.creation.TempoView.ADDITIONAL_PARAMETERS;
 import static it.uniupo.simnova.views.creation.TempoView.CUSTOM_PARAMETER_KEY;
 
+/**
+ * Servizio per la gestione degli scenari.
+ * <p>
+ * Fornisce metodi per recuperare, creare e aggiornare gli scenari nel database.
+ * </p>
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @Service
 public class ScenarioService {
+    /**
+     * Servizio per la gestione del caricamento dei file.
+     */
     private final FileStorageService fileStorageService;
+    /**
+     * Logger per la registrazione delle operazioni del servizio.
+     */
     private static final Logger logger = LoggerFactory.getLogger(ScenarioService.class);
 
+    /**
+     * Costruttore del servizio ScenarioService.
+     *
+     * @param fileStorageService il servizio per la gestione del caricamento dei file
+     */
     public ScenarioService(FileStorageService fileStorageService) {
         this.fileStorageService = fileStorageService;
     }
@@ -98,6 +118,15 @@ public class ScenarioService {
         return scenarios;
     }
 
+    /**
+     * Inizia uno scenario rapido e restituisce il suo ID.
+     *
+     * @param titolo        il titolo dello scenario
+     * @param nomePaziente  il nome del paziente
+     * @param patologia     la patologia
+     * @param timerGenerale il timer generale
+     * @return l'ID dello scenario creato, o -1 in caso di errore
+     */
     public int startQuickScenario(String titolo, String nomePaziente, String patologia, float timerGenerale) {
         final String sql = "INSERT INTO Scenario (titolo, nome_paziente, patologia, timer_generale) VALUES (?,?,?,?)";
         int generatedId = -1;
@@ -111,20 +140,31 @@ public class ScenarioService {
             stmt.setFloat(4, timerGenerale);
 
             int affectedRows = stmt.executeUpdate();
+            logger.info("Inserimento scenario: {} righe interessate", affectedRows);
 
             if (affectedRows > 0) {
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         generatedId = generatedKeys.getInt(1);
+                        logger.info("Scenario creato con ID: {}", generatedId);
                     }
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Errore durante l'inserimento dello scenario", e);
         }
         return generatedId;
     }
 
+    /**
+     * Inizia uno scenario avanzato e restituisce il suo ID.
+     *
+     * @param titolo        il titolo dello scenario
+     * @param nomePaziente  il nome del paziente
+     * @param patologia     la patologia
+     * @param timerGenerale il timer generale
+     * @return l'ID dello scenario avanzato creato, o -1 in caso di errore
+     */
     public int startAdvancedScenario(String titolo, String nomePaziente, String patologia, float timerGenerale) {
         // Prima crea lo scenario base
         int scenarioId = startQuickScenario(titolo, nomePaziente, patologia, timerGenerale);
@@ -137,15 +177,25 @@ public class ScenarioService {
 
                 stmt.setInt(1, scenarioId);
                 stmt.executeUpdate();
+                logger.info("Scenario avanzato creato con ID: {}", scenarioId);
 
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Errore durante l'inserimento dello scenario avanzato con ID: {}", scenarioId, e);
                 return -1;
             }
         }
         return scenarioId;
     }
 
+    /**
+     * Inizia uno scenario simulato per pazienti e restituisce il suo ID.
+     *
+     * @param titolo        il titolo dello scenario
+     * @param nomePaziente  il nome del paziente
+     * @param patologia     la patologia
+     * @param timerGenerale il timer generale
+     * @return l'ID dello scenario simulato per pazienti creato, o -1 in caso di errore
+     */
     public int startPatientSimulatedScenario(String titolo, String nomePaziente, String patologia, float timerGenerale) {
         // Prima crea lo scenario avanzato
         int scenarioId = startAdvancedScenario(titolo, nomePaziente, patologia, timerGenerale);
@@ -161,16 +211,22 @@ public class ScenarioService {
                 stmt.setString(3, ""); // Sceneggiatura vuota inizialmente
 
                 stmt.executeUpdate();
+                logger.info("Scenario simulato per pazienti creato con ID: {}", scenarioId);
 
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Errore durante l'inserimento dello scenario simulato per pazienti con ID: {}", scenarioId, e);
                 return -1;
             }
         }
         return scenarioId;
     }
 
-    // 2. Metodi per EsameFisico (invariati)
+    /**
+     * Recupera un esame fisico dal database utilizzando il suo ID.
+     *
+     * @param id l'identificativo dell'esame fisico da recuperare
+     * @return l'esame fisico corrispondente all'ID fornito, o null se non trovato
+     */
     public EsameFisico getEsameFisicoById(Integer id) {
         final String sql = "SELECT * FROM EsameFisico WHERE id_esame_fisico = ?";
         EsameFisico esameFisico = null;
@@ -199,13 +255,23 @@ public class ScenarioService {
                 sections.put("FAST", rs.getString("FAST"));
 
                 esameFisico.setSections(sections);
+                logger.info("Esame fisico con ID {} recuperato con successo", id);
+            } else {
+                logger.warn("Nessun esame fisico trovato con ID {}", id);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Errore durante il recupero dell'esame fisico con ID {}", id, e);
         }
         return esameFisico;
     }
 
+    /**
+     * Aggiunge o aggiorna un esame fisico nel database.
+     *
+     * @param scenarioId l'ID dello scenario a cui associare l'esame fisico
+     * @param examData   i dati dell'esame fisico da salvare
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     */
     public boolean addEsameFisico(int scenarioId, Map<String, String> examData) {
         // Verifica se esiste già
         boolean exists = getEsameFisicoById(scenarioId) != null;
@@ -242,14 +308,25 @@ public class ScenarioService {
                 stmt.setInt(paramIndex, scenarioId);
             }
 
-            return stmt.executeUpdate() > 0;
+            boolean result = stmt.executeUpdate() > 0;
+            if (result) {
+                logger.info("Esame fisico {} con ID {} salvato con successo", exists ? "aggiornato" : "inserito", scenarioId);
+            } else {
+                logger.warn("Nessun esame fisico {} con ID {}", exists ? "aggiornato" : "inserito", scenarioId);
+            }
+            return result;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Errore durante il salvataggio dell'esame fisico con ID {}", scenarioId, e);
             return false;
         }
     }
 
-    // 3. Metodi per PazienteT0 (invariati)
+    /**
+     * Recupera un paziente T0 dal database utilizzando il suo ID.
+     *
+     * @param scenarioId l'ID dello scenario a cui è associato il paziente T0
+     * @return il paziente T0 corrispondente all'ID fornito, o null se non trovato
+     */
     public PazienteT0 getPazienteT0ById(Integer scenarioId) {
         final String sqlPaziente = "SELECT * FROM PazienteT0 WHERE id_paziente = ?";
         final String sqlAccessiVenosi = "SELECT a.* FROM Accesso a JOIN AccessoVenoso av ON a.id_accesso = av.accesso_id WHERE av.paziente_t0_id = ?";
@@ -279,13 +356,25 @@ public class ScenarioService {
                         accessiVenosi,
                         accessiArteriosi
                 );
+                logger.info("Paziente T0 con ID {} recuperato con successo", scenarioId);
+            } else {
+                logger.warn("Nessun paziente T0 trovato con ID {}", scenarioId);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Errore durante il recupero del paziente T0 con ID {}", scenarioId, e);
         }
         return pazienteT0;
     }
 
+    /**
+     * Recupera gli accessi dal database utilizzando l'ID dello scenario.
+     *
+     * @param conn       la connessione al database
+     * @param sql        la query SQL per recuperare gli accessi
+     * @param scenarioId l'ID dello scenario a cui sono associati gli accessi
+     * @return una lista di oggetti Accesso
+     * @throws SQLException in caso di errore durante l'esecuzione della query
+     */
     private List<Accesso> getAccessi(Connection conn, String sql, int scenarioId) throws SQLException {
         List<Accesso> accessi = new ArrayList<>();
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -299,43 +388,110 @@ public class ScenarioService {
                         rs.getString("posizione")
                 ));
             }
+            logger.info("Recuperati {} accessi per lo scenario con ID {}", accessi.size(), scenarioId);
+        } catch (SQLException e) {
+            logger.error("Errore durante il recupero degli accessi per lo scenario con ID {}", scenarioId, e);
+            throw e;
         }
         return accessi;
     }
 
-    // 4. Metodi di aggiornamento (invariati)
+    /**
+     * Aggiorna la descrizione dello scenario.
+     *
+     * @param scenarioId  l'ID dello scenario da aggiornare
+     * @param descrizione la nuova descrizione
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     */
     public boolean updateScenarioDescription(int scenarioId, String descrizione) {
         return updateScenarioField(scenarioId, "descrizione", descrizione);
     }
 
+    /**
+     * Aggiorna il briefing dello scenario.
+     *
+     * @param scenarioId l'ID dello scenario da aggiornare
+     * @param briefing   il nuovo briefing
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     */
     public boolean updateScenarioBriefing(int scenarioId, String briefing) {
         return updateScenarioField(scenarioId, "briefing", briefing);
     }
 
+    /**
+     * Aggiorna il patto aula dello scenario.
+     *
+     * @param scenarioId l'ID dello scenario da aggiornare
+     * @param patto_aula il nuovo patto aula
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     */
     public boolean updateScenarioPattoAula(int scenarioId, String patto_aula) {
         return updateScenarioField(scenarioId, "patto_aula", patto_aula);
     }
 
+    /**
+     * Aggiorna l'azione chiave dello scenario.
+     *
+     * @param scenarioId    l'ID dello scenario da aggiornare
+     * @param azione_chiave il nuovo azione chiave
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     */
     public boolean updateScenarioAzioneChiave(int scenarioId, String azione_chiave) {
         return updateScenarioField(scenarioId, "azione_chiave", azione_chiave);
     }
 
+    /**
+     * Aggiorna gli obiettivi didattici dello scenario.
+     *
+     * @param scenarioId l'ID dello scenario da aggiornare
+     * @param obiettivo  il nuovo obiettivo didattico
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     */
     public boolean updateScenarioObiettiviDidattici(int scenarioId, String obiettivo) {
         return updateScenarioField(scenarioId, "obiettivo", obiettivo);
     }
 
+    /**
+     * Aggiorna il materiale necessario dello scenario.
+     *
+     * @param scenarioId l'ID dello scenario da aggiornare
+     * @param materiale  il nuovo materiale necessario
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     */
     public boolean updateScenarioMaterialeNecessario(int scenarioId, String materiale) {
         return updateScenarioField(scenarioId, "materiale", materiale);
     }
 
+    /**
+     * Aggiorna il moulage dello scenario.
+     *
+     * @param scenarioId l'ID dello scenario da aggiornare
+     * @param moulage    il nuovo moulage
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     */
     public boolean updateScenarioMoulage(int scenarioId, String moulage) {
         return updateScenarioField(scenarioId, "moulage", moulage);
     }
 
+    /**
+     * Aggiorna i liquidi dello scenario.
+     *
+     * @param scenarioId l'ID dello scenario da aggiornare
+     * @param liquidi    i nuovi liquidi
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     */
     public boolean updateScenarioLiquidi(int scenarioId, String liquidi) {
         return updateScenarioField(scenarioId, "liquidi", liquidi);
     }
 
+    /**
+     * Aggiorna un campo specifico dello scenario.
+     *
+     * @param scenarioId l'ID dello scenario da aggiornare
+     * @param fieldName  il nome del campo da aggiornare
+     * @param value      il nuovo valore del campo
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     */
     private boolean updateScenarioField(int scenarioId, String fieldName, String value) {
         final String sql = "UPDATE Scenario SET " + fieldName + " = ? WHERE id_scenario = ?";
 
@@ -345,22 +501,32 @@ public class ScenarioService {
             stmt.setString(1, value);
             stmt.setInt(2, scenarioId);
 
-            return stmt.executeUpdate() > 0;
+            boolean result = stmt.executeUpdate() > 0;
+            if (result) {
+                logger.info("Campo {} dello scenario con ID {} aggiornato con successo", fieldName, scenarioId);
+            } else {
+                logger.warn("Nessun campo {} dello scenario con ID {} aggiornato", fieldName, scenarioId);
+            }
+            return result;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Errore durante l'aggiornamento del campo {} dello scenario con ID {}", fieldName, scenarioId, e);
             return false;
         }
     }
 
-    // Aggiungi questi metodi alla classe ScenarioService
-
+    /**
+     * Salva gli esami e i referti associati a uno scenario.
+     *
+     * @param scenarioId l'ID dello scenario
+     * @param esamiData  la lista di esami e referti da salvare
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     */
     public boolean saveEsamiReferti(int scenarioId, List<EsamiRefertiView.EsameRefertoData> esamiData) {
-        // Prima elimina gli esami esistenti per questo scenario
         if (!deleteEsamiReferti(scenarioId)) {
+            logger.warn("Impossibile eliminare i referti esistenti per lo scenario con ID {}", scenarioId);
             return false;
         }
 
-        // Poi inserisci i nuovi esami
         final String sql = "INSERT INTO EsameReferto (id_esame, id_scenario, tipo, media, referto_testuale) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnect.getInstance().getConnection();
@@ -378,16 +544,24 @@ public class ScenarioService {
             int[] results = stmt.executeBatch();
             for (int result : results) {
                 if (result <= 0) {
+                    logger.warn("Nessun referto salvato per lo scenario con ID {}", scenarioId);
                     return false;
                 }
             }
+            logger.info("Referti salvati con successo per lo scenario con ID {}", scenarioId);
             return true;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Errore durante il salvataggio dei referti per lo scenario con ID {}", scenarioId, e);
             return false;
         }
     }
 
+    /**
+     * Elimina gli esami e i referti associati a uno scenario.
+     *
+     * @param scenarioId l'ID dello scenario
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     */
     private boolean deleteEsamiReferti(int scenarioId) {
         final String sql = "DELETE FROM EsameReferto WHERE id_scenario = ?";
 
@@ -395,20 +569,41 @@ public class ScenarioService {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, scenarioId);
-            return stmt.executeUpdate() >= 0; // Ritorna true anche se non c'era nulla da cancellare
+            boolean result = stmt.executeUpdate() >= 0; // Ritorna true anche se non c'era nulla da cancellare
+            if (result) {
+                logger.info("Referti esami eliminati con successo per lo scenario con ID {}", scenarioId);
+            } else {
+                logger.warn("Nessun referto esami trovato per lo scenario con ID {}", scenarioId);
+            }
+            return result;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Errore durante l'eliminazione dei referti esami per lo scenario con ID {}", scenarioId, e);
             return false;
         }
     }
 
+    /**
+     * Salva i dati del paziente T0 e gli accessi associati.
+     *
+     * @param scenarioId    l'ID dello scenario
+     * @param pa            la pressione arteriosa
+     * @param fc            la frequenza cardiaca
+     * @param rr            la frequenza respiratoria
+     * @param temp          la temperatura
+     * @param spo2          la saturazione di ossigeno
+     * @param etco2         il valore di EtCO2
+     * @param monitor       il monitoraggio
+     * @param venosiData    i dati degli accessi venosi
+     * @param arteriosiData i dati degli accessi arteriosi
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     */
     public boolean savePazienteT0(int scenarioId,
                                   String pa, int fc, int rr, double temp,
                                   int spo2, int etco2, String monitor,
                                   List<PazienteT0View.AccessoData> venosiData,
                                   List<PazienteT0View.AccessoData> arteriosiData) {
         Connection conn = null;
-        System.out.println("PA:" + pa);
+        logger.debug("PA: {}", pa);
         try {
             conn = DBConnect.getInstance().getConnection();
             conn.setAutoCommit(false);
@@ -416,44 +611,63 @@ public class ScenarioService {
             // 1. Salva i parametri vitali del paziente
             if (!savePazienteParams(conn, scenarioId, pa, fc, rr, temp, spo2, etco2, monitor)) {
                 conn.rollback();
+                logger.warn("Rollback: impossibile salvare i parametri vitali per lo scenario con ID {}", scenarioId);
                 return false;
             }
 
             // 2. Salva gli accessi venosi
-            if (!saveAccessi(conn, scenarioId, venosiData, true)) {
+            if (saveAccessi(conn, scenarioId, venosiData, true)) {
                 conn.rollback();
+                logger.warn("Rollback: impossibile salvare gli accessi venosi per lo scenario con ID {}", scenarioId);
                 return false;
             }
 
             // 3. Salva gli accessi arteriosi
-            if (!saveAccessi(conn, scenarioId, arteriosiData, false)) {
+            if (saveAccessi(conn, scenarioId, arteriosiData, false)) {
                 conn.rollback();
+                logger.warn("Rollback: impossibile salvare gli accessi arteriosi per lo scenario con ID {}", scenarioId);
                 return false;
             }
 
             conn.commit();
+            logger.info("Paziente T0 con ID {} salvato con successo", scenarioId);
             return true;
         } catch (SQLException e) {
             if (conn != null) {
                 try {
                     conn.rollback();
                 } catch (SQLException ex) {
-                    ex.printStackTrace();
+                    logger.error("Errore durante il rollback per lo scenario con ID {}", scenarioId, ex);
                 }
             }
-            e.printStackTrace();
+            logger.error("Errore durante il salvataggio del paziente T0 con ID {}", scenarioId, e);
             return false;
         } finally {
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    logger.error("Errore durante il ripristino dell'autocommit per lo scenario con ID {}", scenarioId, e);
                 }
             }
         }
     }
 
+    /**
+     * Salva i parametri vitali del paziente T0.
+     *
+     * @param conn       la connessione al database
+     * @param scenarioId l'ID dello scenario
+     * @param pa         la pressione arteriosa
+     * @param fc         la frequenza cardiaca
+     * @param rr         la frequenza respiratoria
+     * @param temp       la temperatura
+     * @param spo2       la saturazione di ossigeno
+     * @param etco2      il valore di EtCO2
+     * @param monitor    il monitoraggio
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     * @throws SQLException in caso di errore durante l'esecuzione della query
+     */
     private boolean savePazienteParams(Connection conn, int scenarioId,
                                        String pa, int fc, int rr, double temp,
                                        int spo2, int etco2, String monitor) throws SQLException {
@@ -479,10 +693,33 @@ public class ScenarioService {
                 stmt.setString(paramIndex, monitor);
             }
 
-            return stmt.executeUpdate() > 0;
+            boolean result = stmt.executeUpdate() > 0;
+            if (result) {
+                logger.info("Parametri del paziente T0 {} con ID {} salvati con successo", exists ? "aggiornati" : "inseriti", scenarioId);
+            } else {
+                logger.warn("Nessun parametro del paziente T0 {} con ID {}", exists ? "aggiornato" : "inserito", scenarioId);
+            }
+            return result;
+        } catch (SQLException e) {
+            logger.error("Errore durante il salvataggio dei parametri del paziente T0 con ID {}", scenarioId, e);
+            throw e;
         }
     }
 
+    /**
+     * Imposta i parametri vitali del paziente T0 nella query.
+     *
+     * @param pa         la pressione arteriosa
+     * @param fc         la frequenza cardiaca
+     * @param rr         la frequenza respiratoria
+     * @param temp       la temperatura
+     * @param spo2       la saturazione di ossigeno
+     * @param etco2      il valore di EtCO2
+     * @param stmt       lo statement preparato
+     * @param paramIndex l'indice del parametro corrente
+     * @return l'indice del prossimo parametro
+     * @throws SQLException in caso di errore durante l'esecuzione della query
+     */
     private int getParamIndex(String pa, int fc, int rr, double temp, int spo2, int etco2, PreparedStatement stmt, int paramIndex) throws SQLException {
         stmt.setString(paramIndex++, pa);
         stmt.setInt(paramIndex++, fc);
@@ -493,11 +730,22 @@ public class ScenarioService {
         return paramIndex;
     }
 
+    /**
+     * Salva gli accessi venosi o arteriosi associati a uno scenario.
+     *
+     * @param conn        la connessione al database
+     * @param scenarioId  l'ID dello scenario
+     * @param accessiData la lista di accessi da salvare
+     * @param isVenoso    true se si tratta di accessi venosi, false per accessi arteriosi
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     * @throws SQLException in caso di errore durante l'esecuzione della query
+     */
     private boolean saveAccessi(Connection conn, int scenarioId,
                                 List<PazienteT0View.AccessoData> accessiData,
                                 boolean isVenoso) throws SQLException {
         if (accessiData == null || accessiData.isEmpty()) {
-            return true; // Nessun accesso da salvare
+            logger.warn("Nessun accesso da salvare per lo scenario con ID {}", scenarioId);
+            return false;
         }
 
         // 1. Prima elimina gli accessi esistenti di questo tipo
@@ -508,6 +756,7 @@ public class ScenarioService {
         try (PreparedStatement stmt = conn.prepareStatement(deleteRelSql)) {
             stmt.setInt(1, scenarioId);
             stmt.executeUpdate();
+            logger.info("Accessi {} eliminati per lo scenario con ID {}", isVenoso ? "venosi" : "arteriosi", scenarioId);
         }
 
         // 2. Inserisci i nuovi accessi
@@ -528,7 +777,8 @@ public class ScenarioService {
                     if (rs.next()) {
                         accessoId = rs.getInt(1);
                     } else {
-                        return false;
+                        logger.warn("Impossibile ottenere l'ID generato per l'accesso");
+                        return true;
                     }
                 }
             }
@@ -538,12 +788,19 @@ public class ScenarioService {
                 stmt.setInt(1, scenarioId);
                 stmt.setInt(2, accessoId);
                 stmt.executeUpdate();
+                logger.info("Accesso {} inserito con ID {} per lo scenario con ID {}", isVenoso ? "venoso" : "arterioso", accessoId, scenarioId);
             }
         }
 
-        return true;
+        return false;
     }
 
+    /**
+     * Recupera gli esami e i referti associati a uno scenario.
+     *
+     * @param scenarioId l'ID dello scenario
+     * @return una lista di oggetti EsameReferto
+     */
     public List<EsameReferto> getEsamiRefertiByScenarioId(int scenarioId) {
         final String sql = "SELECT * FROM EsameReferto WHERE id_scenario = ? ORDER BY id_esame";
         List<EsameReferto> esami = new ArrayList<>();
@@ -563,12 +820,19 @@ public class ScenarioService {
                 esame.setRefertoTestuale(rs.getString("referto_testuale"));
                 esami.add(esame);
             }
+            logger.info("Recuperati {} esami referti per lo scenario con ID {}", esami.size(), scenarioId);
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Errore durante il recupero degli esami referti per lo scenario con ID {}", scenarioId, e);
         }
         return esami;
     }
 
+    /**
+     * Recupera i file media associati a uno scenario.
+     *
+     * @param scenarioId l'ID dello scenario
+     * @return una lista di nomi di file media
+     */
     public List<String> getMediaFilesForScenario(int scenarioId) {
         final String sql = "SELECT media FROM EsameReferto WHERE id_scenario = ? AND media IS NOT NULL";
         List<String> files = new ArrayList<>();
@@ -585,13 +849,20 @@ public class ScenarioService {
                     files.add(media);
                 }
             }
+            logger.info("Recuperati {} file media per lo scenario con ID {}", files.size(), scenarioId);
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Errore durante il recupero dei file media per lo scenario con ID {}", scenarioId, e);
         }
 
         return files;
     }
 
+    /**
+     * Elimina uno scenario e i suoi file media associati.
+     *
+     * @param scenarioId l'ID dello scenario da eliminare
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     */
     public boolean deleteScenario(int scenarioId) {
         Connection conn = null;
         try {
@@ -604,7 +875,7 @@ public class ScenarioService {
             // 2. Esegui tutte le operazioni di cancellazione dal DB
             deleteAccessi(conn, scenarioId, "AccessoVenoso");
             deleteAccessi(conn, scenarioId, "AccessoArterioso");
-            deleteRelatedAccessi(conn, scenarioId);
+            deleteRelatedAccessi(conn);
             deleteTempi(conn, scenarioId);
             deletePatientSimulatedScenario(conn, scenarioId);
             deleteAdvancedScenario(conn, scenarioId);
@@ -614,6 +885,7 @@ public class ScenarioService {
             deleteScenarioPrincipale(conn, scenarioId);
 
             conn.commit(); // Conferma la transazione
+            logger.info("Scenario con ID {} eliminato con successo", scenarioId);
 
             // 3. Dopo il commit, elimina i file media
             fileStorageService.deleteFiles(mediaFiles);
@@ -624,24 +896,30 @@ public class ScenarioService {
                 try {
                     conn.rollback();
                 } catch (SQLException ex) {
-                    ex.printStackTrace();
+                    logger.error("Errore durante il rollback per lo scenario con ID {}", scenarioId, ex);
                 }
             }
-            e.printStackTrace();
+            logger.error("Errore durante l'eliminazione dello scenario con ID {}", scenarioId, e);
             return false;
         } finally {
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    logger.error("Errore durante il ripristino dell'autocommit per lo scenario con ID {}", scenarioId, e);
                 }
             }
         }
     }
 
-// Metodi helper per le operazioni di cancellazione
-
+    /**
+     * Elimina gli accessi associati a uno scenario.
+     *
+     * @param conn       la connessione al database
+     * @param scenarioId l'ID dello scenario
+     * @param tableName  il nome della tabella degli accessi (AccessoVenoso o AccessoArterioso)
+     * @throws SQLException in caso di errore durante l'esecuzione della query
+     */
     private void deleteAccessi(Connection conn, int scenarioId, String tableName) throws SQLException {
         final String sql = "DELETE FROM " + tableName + " WHERE paziente_t0_id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -650,7 +928,13 @@ public class ScenarioService {
         }
     }
 
-    private void deleteRelatedAccessi(Connection conn, int scenarioId) throws SQLException {
+    /**
+     * Elimina gli accessi che non sono più referenziati.
+     *
+     * @param conn la connessione al database
+     * @throws SQLException in caso di errore durante l'esecuzione della query
+     */
+    private void deleteRelatedAccessi(Connection conn) throws SQLException {
         // Elimina gli accessi che non sono più referenziati
         final String sql = "DELETE FROM Accesso WHERE id_accesso IN (" +
                 "SELECT a.id_accesso FROM Accesso a " +
@@ -662,6 +946,13 @@ public class ScenarioService {
         }
     }
 
+    /**
+     * Elimina i tempi associati a uno scenario.
+     *
+     * @param conn       la connessione al database
+     * @param scenarioId l'ID dello scenario
+     * @throws SQLException in caso di errore durante l'esecuzione della query
+     */
     private void deletePatientSimulatedScenario(Connection conn, int scenarioId) throws SQLException {
         final String sql = "DELETE FROM PatientSimulatedScenario WHERE id_patient_simulated_scenario = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -670,6 +961,13 @@ public class ScenarioService {
         }
     }
 
+    /**
+     * Elimina i tempi associati a uno scenario.
+     *
+     * @param conn       la connessione al database
+     * @param scenarioId l'ID dello scenario
+     * @throws SQLException in caso di errore durante l'esecuzione della query
+     */
     private void deleteAdvancedScenario(Connection conn, int scenarioId) throws SQLException {
         final String sql = "DELETE FROM AdvancedScenario WHERE id_advanced_scenario = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -678,6 +976,13 @@ public class ScenarioService {
         }
     }
 
+    /**
+     * Elimina i tempi associati a uno scenario.
+     *
+     * @param conn       la connessione al database
+     * @param scenarioId l'ID dello scenario
+     * @throws SQLException in caso di errore durante l'esecuzione della query
+     */
     private void deleteEsamiReferti(Connection conn, int scenarioId) throws SQLException {
         final String sql = "DELETE FROM EsameReferto WHERE id_scenario = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -686,6 +991,13 @@ public class ScenarioService {
         }
     }
 
+    /**
+     * Elimina l'esame fisico associato a uno scenario.
+     *
+     * @param conn       la connessione al database
+     * @param scenarioId l'ID dello scenario
+     * @throws SQLException in caso di errore durante l'esecuzione della query
+     */
     private void deleteEsameFisico(Connection conn, int scenarioId) throws SQLException {
         final String sql = "DELETE FROM EsameFisico WHERE id_esame_fisico = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -694,6 +1006,13 @@ public class ScenarioService {
         }
     }
 
+    /**
+     * Elimina il paziente T0 associato a uno scenario.
+     *
+     * @param conn       la connessione al database
+     * @param scenarioId l'ID dello scenario
+     * @throws SQLException in caso di errore durante l'esecuzione della query
+     */
     private void deletePazienteT0(Connection conn, int scenarioId) throws SQLException {
         final String sql = "DELETE FROM PazienteT0 WHERE id_paziente = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -702,6 +1021,13 @@ public class ScenarioService {
         }
     }
 
+    /**
+     * Elimina lo scenario principale associato a uno scenario.
+     *
+     * @param conn       la connessione al database
+     * @param scenarioId l'ID dello scenario
+     * @throws SQLException in caso di errore durante l'esecuzione della query
+     */
     private void deleteScenarioPrincipale(Connection conn, int scenarioId) throws SQLException {
         final String sql = "DELETE FROM Scenario WHERE id_scenario = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -710,6 +1036,12 @@ public class ScenarioService {
         }
     }
 
+    /**
+     * Recupera il tipo di scenario in base all'ID.
+     *
+     * @param idScenario l'ID dello scenario
+     * @return il tipo di scenario come stringa
+     */
     public String getScenarioType(int idScenario) {
         // Controlla se è uno Scenario base (presente solo nella tabella Scenario)
         if (isPresentInTable(idScenario, "Scenario") &&
@@ -730,6 +1062,13 @@ public class ScenarioService {
         return "ScenarioNotFound";
     }
 
+    /**
+     * Controlla se un ID è presente in una tabella specificata.
+     *
+     * @param id        l'ID da controllare
+     * @param tableName il nome della tabella
+     * @return true se l'ID è presente, false altrimenti
+     */
     private boolean isPresentInTable(int id, String tableName) {
         String sql = "SELECT 1 FROM " + tableName + " WHERE ";
 
@@ -745,6 +1084,7 @@ public class ScenarioService {
                 sql += "id_patient_simulated_scenario = ?";
                 break;
             default:
+                logger.warn("Tabella non riconosciuta: {}", tableName);
                 return false;
         }
 
@@ -753,14 +1093,23 @@ public class ScenarioService {
 
             stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
-            return rs.next(); // Restituisce true se c'è almeno un risultato
+            boolean exists = rs.next();
+            logger.info("Presenza dell'ID {} nella tabella {}: {}", id, tableName, exists);
+            return exists; // Restituisce true se c'è almeno un risultato
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Errore durante la verifica della presenza dell'ID {} nella tabella {}", id, tableName, e);
             return false;
         }
     }
 
+    /**
+     * Salva i tempi associati a uno scenario.
+     *
+     * @param scenarioId l'ID dello scenario
+     * @param tempiData  la lista di dati dei tempi da salvare
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     */
     public boolean saveTempi(int scenarioId, List<TempoData> tempiData) {
         Connection conn = null;
         try {
@@ -770,6 +1119,7 @@ public class ScenarioService {
             // Prima elimina i tempi esistenti per questo scenario
             if (!deleteTempi(conn, scenarioId)) {
                 conn.rollback();
+                logger.warn("Rollback: impossibile eliminare i tempi esistenti per lo scenario con ID {}", scenarioId);
                 return false;
             }
 
@@ -799,6 +1149,7 @@ public class ScenarioService {
                 for (int result : results) {
                     if (result <= 0) {
                         conn.rollback();
+                        logger.warn("Rollback: impossibile inserire i tempi per lo scenario con ID {}", scenarioId);
                         return false;
                     }
                 }
@@ -807,32 +1158,43 @@ public class ScenarioService {
             // Salva anche i parametri aggiuntivi
             if (!saveParametriAggiuntivi(conn, scenarioId, tempiData)) {
                 conn.rollback();
+                logger.warn("Rollback: impossibile salvare i parametri aggiuntivi per lo scenario con ID {}", scenarioId);
                 return false;
             }
 
             conn.commit(); // Conferma la transazione
+            logger.info("Tempi salvati con successo per lo scenario con ID {}", scenarioId);
             return true;
         } catch (SQLException e) {
             if (conn != null) {
                 try {
                     conn.rollback();
+                    logger.error("Errore durante il rollback per lo scenario con ID {}", scenarioId, e);
                 } catch (SQLException ex) {
-                    ex.printStackTrace();
+                    logger.error("Errore durante il rollback per lo scenario con ID {}", scenarioId, ex);
                 }
             }
-            e.printStackTrace();
+            logger.error("Errore durante il salvataggio dei tempi per lo scenario con ID {}", scenarioId, e);
             return false;
         } finally {
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    logger.error("Errore durante il ripristino dell'autocommit per lo scenario con ID {}", scenarioId, e);
                 }
             }
         }
     }
 
+    /**
+     * Elimina i tempi associati a uno scenario.
+     *
+     * @param conn       la connessione al database
+     * @param scenarioId l'ID dello scenario
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     * @throws SQLException in caso di errore durante l'esecuzione della query
+     */
     private boolean deleteTempi(Connection conn, int scenarioId) throws SQLException {
         // Prima elimina i parametri aggiuntivi
         if (!deleteParametriAggiuntivi(conn, scenarioId)) {
@@ -847,6 +1209,14 @@ public class ScenarioService {
         }
     }
 
+    /**
+     * Elimina i parametri aggiuntivi associati a uno scenario.
+     *
+     * @param conn       la connessione al database
+     * @param scenarioId l'ID dello scenario
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     * @throws SQLException in caso di errore durante l'esecuzione della query
+     */
     private boolean deleteParametriAggiuntivi(Connection conn, int scenarioId) throws SQLException {
         // Ora possiamo eliminare direttamente per scenario_id
         final String sql = "DELETE FROM ParametriAggiuntivi WHERE scenario_id = ?";
@@ -856,6 +1226,15 @@ public class ScenarioService {
         }
     }
 
+    /**
+     * Salva i parametri aggiuntivi associati a uno scenario.
+     *
+     * @param conn       la connessione al database
+     * @param scenarioId l'ID dello scenario
+     * @param tempiData  la lista di dati dei tempi da salvare
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     * @throws SQLException in caso di errore durante l'esecuzione della query
+     */
     private boolean saveParametriAggiuntivi(Connection conn, int scenarioId, List<TempoData> tempiData) throws SQLException {
         final String sql = "INSERT INTO ParametriAggiuntivi (parametri_aggiuntivi_id, tempo_id, scenario_id, nome, valore, unità_misura) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
@@ -889,16 +1268,28 @@ public class ScenarioService {
             int[] results = stmt.executeBatch();
             for (int result : results) {
                 if (result <= 0) {
+                    logger.warn("Nessun parametro aggiuntivo salvato per lo scenario con ID {}", scenarioId);
                     return false;
                 }
             }
+            logger.info("Parametri aggiuntivi salvati con successo per lo scenario con ID {}", scenarioId);
             return true;
+        } catch (SQLException e) {
+            logger.error("Errore durante il salvataggio dei parametri aggiuntivi per lo scenario con ID {}", scenarioId, e);
+            throw e;
         }
     }
 
+    /**
+     * Aggiorna la sceneggiatura di uno scenario simulato.
+     *
+     * @param scenarioId    l'ID dello scenario
+     * @param sceneggiatura la nuova sceneggiatura
+     * @return true se l'operazione ha avuto successo, false altrimenti
+     */
     public boolean updateScenarioSceneggiatura(Integer scenarioId, String sceneggiatura) {
-        // First check if this is a PatientSimulatedScenario
         if (!isPresentInTable(scenarioId, "PatientSimulatedScenario")) {
+            logger.warn("Lo scenario con ID {} non è un PatientSimulatedScenario", scenarioId);
             return false;
         }
 
@@ -910,13 +1301,25 @@ public class ScenarioService {
             stmt.setString(1, sceneggiatura);
             stmt.setInt(2, scenarioId);
 
-            return stmt.executeUpdate() > 0;
+            boolean result = stmt.executeUpdate() > 0;
+            if (result) {
+                logger.info("Sceneggiatura aggiornata con successo per lo scenario con ID {}", scenarioId);
+            } else {
+                logger.warn("Nessuna sceneggiatura aggiornata per lo scenario con ID {}", scenarioId);
+            }
+            return result;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Errore durante l'aggiornamento della sceneggiatura per lo scenario con ID {}", scenarioId, e);
             return false;
         }
     }
 
+    /**
+     * Recupera uno scenario simulato in base all'ID.
+     *
+     * @param id l'ID dello scenario
+     * @return lo scenario simulato
+     */
     public PatientSimulatedScenario getPatientSimulatedScenarioById(Integer id) {
         final String sql = "SELECT * FROM PatientSimulatedScenario pss " +
                 "JOIN Scenario s ON pss.id_patient_simulated_scenario = s.id_scenario " +
@@ -950,14 +1353,33 @@ public class ScenarioService {
                         rs.getInt("id_advanced_scenario"),
                         rs.getString("sceneggiatura")
                 );
+                logger.info("Scenario simulato per pazienti con ID {} recuperato con successo", id);
+            } else {
+                logger.warn("Nessuno scenario simulato per pazienti trovato con ID {}", id);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Errore durante il recupero dello scenario simulato per pazienti con ID {}", id, e);
         }
         return scenario;
     }
 
-    // Record per rappresentare i dati di un tempo
+    /**
+     * Rappresenta i dati di un tempo associato a uno scenario.
+     *
+     * @param idTempo l'ID del tempo
+     * @param pa la pressione arteriosa
+     * @param fc la frequenza cardiaca
+     * @param rr la frequenza respiratoria
+     * @param t la temperatura
+     * @param spo2 la saturazione di ossigeno
+     * @param etco2     il valore di EtCO2
+     * @param azione l'azione associata
+     * @param tSiId l'ID del tempo di inizio
+     * @param tNoId l'ID del tempo di fine
+     * @param altriDettagli altri dettagli
+     * @param timerTempo il timer del tempo
+     * @param parametriAggiuntivi i parametri aggiuntivi
+     */
     public record TempoData(
             int idTempo,
             String pa,
@@ -975,6 +1397,12 @@ public class ScenarioService {
     ) {
     }
 
+    /**
+     * Recupera i tempi associati a uno scenario.
+     *
+     * @param scenarioId l'ID dello scenario
+     * @return una lista di oggetti Tempo
+     */
     public List<Tempo> getTempiByScenarioId(int scenarioId) {
         final String sql = "SELECT * FROM Tempo WHERE id_advanced_scenario = ? ORDER BY id_tempo";
         List<Tempo> tempi = new ArrayList<>();
@@ -1003,12 +1431,20 @@ public class ScenarioService {
 
                 tempi.add(tempo);
             }
+            logger.info("Recuperati {} tempi per lo scenario con ID {}", tempi.size(), scenarioId);
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Errore durante il recupero dei tempi per lo scenario con ID {}", scenarioId, e);
         }
         return tempi;
     }
 
+    /**
+     * Recupera i parametri aggiuntivi associati a uno scenario.
+     *
+     * @param tempoId    l'ID del tempo
+     * @param scenarioId l'ID dello scenario
+     * @return una lista di oggetti ParametroAggiuntivo
+     */
     public List<ParametroAggiuntivo> getParametriAggiuntiviById(int tempoId, int scenarioId) {
         final String sql = "SELECT * FROM ParametriAggiuntivi WHERE tempo_id = ? AND scenario_id = ?";
         List<ParametroAggiuntivo> parametri = new ArrayList<>();
@@ -1031,12 +1467,19 @@ public class ScenarioService {
 
                 parametri.add(param);
             }
+            logger.info("Recuperati {} parametri aggiuntivi per il tempo con ID {} e lo scenario con ID {}", parametri.size(), tempoId, scenarioId);
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Errore durante il recupero dei parametri aggiuntivi per il tempo con ID {} e lo scenario con ID {}", tempoId, scenarioId, e);
         }
         return parametri;
     }
 
+    /**
+     * Controlla se uno scenario esiste in base all'ID.
+     *
+     * @param scenarioId l'ID dello scenario
+     * @return true se lo scenario esiste, false altrimenti
+     */
     public boolean existScenario(int scenarioId) {
         final String sql = "SELECT 1 FROM Scenario WHERE id_scenario = ?";
         try (Connection conn = DBConnect.getInstance().getConnection();
@@ -1044,11 +1487,40 @@ public class ScenarioService {
 
             stmt.setInt(1, scenarioId);
             ResultSet rs = stmt.executeQuery();
-            return rs.next(); // Restituisce true se c'è almeno un risultato
+            boolean exists = rs.next(); // Restituisce true se c'è almeno un risultato
+            logger.info("Presenza dello scenario con ID {}: {}", scenarioId, exists);
+            return exists;
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Errore durante la verifica dell'esistenza dello scenario con ID {}", scenarioId, e);
             return false;
         }
+    }
+
+    /**
+     * Recupera la sceneggiatura di uno scenario simulato in base all'ID.
+     *
+     * @param scenarioId l'ID dello scenario
+     * @return la sceneggiatura come stringa
+     */
+    public String getSceneggiatura(int scenarioId) {
+        final String sql = "SELECT sceneggiatura FROM PatientSimulatedScenario WHERE id_patient_simulated_scenario = ?";
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, scenarioId);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                String sceneggiatura = rs.getString("sceneggiatura");
+                logger.info("Sceneggiatura recuperata per lo scenario con ID {}", scenarioId);
+                return sceneggiatura;
+            } else {
+                logger.warn("Nessuna sceneggiatura trovata per lo scenario con ID {}", scenarioId);
+            }
+        } catch (SQLException e) {
+            logger.error("Errore durante il recupero della sceneggiatura per lo scenario con ID {}", scenarioId, e);
+        }
+        return "";
     }
 }

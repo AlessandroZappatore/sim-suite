@@ -16,15 +16,17 @@ import java.sql.SQLException;
 /**
  * Classe principale dell'applicazione Spring Boot.
  * Configura l'applicazione e gestisce l'inizializzazione del database.
+ * AppShellConfigurator Configura le impostazioni della pagina dell'applicazione
  *
  * @author Alessandro Zappatore
  * @version 1.0
  */
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
-// Disabilita la configurazione automatica del DataSource
-@Theme(value = "sim.suite") // Imposta il tema dell'applicazione
+@Theme(value = "sim.suite")
 public class Application implements AppShellConfigurator {
-
+    /**
+     * Logger per la registrazione delle informazioni e degli errori.
+     */
     private static final Logger logger = LoggerFactory.getLogger(Application.class);
 
     /**

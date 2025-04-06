@@ -12,11 +12,29 @@ package it.uniupo.simnova.api.model;
  * @version 1.0
  */
 public class ParametroAggiuntivo {
+    /**
+     * Identificativo univoco del parametro.
+     */
     private int id;
+    /**
+     * Identificativo del tempo a cui appartiene il parametro.
+     */
     private int tempoId;
+    /**
+     * Identificativo dello scenario a cui appartiene il parametro.
+     */
     private int scenarioId;
+    /**
+     * Nome del parametro (es. "Pressione venosa centrale").
+     */
     private String nome;
+    /**
+     * Valore del parametro (es. "12").
+     */
     private String valore;
+    /**
+     * Unità di misura del parametro (es. "mmHg").
+     */
     private String unitaMisura;
 
     /**
@@ -44,6 +62,8 @@ public class ParametroAggiuntivo {
     }
 
     /**
+     * Restituisce l'identificativo univoco del parametro.
+     *
      * @return l'identificativo univoco del parametro
      */
     public int getId() {
@@ -60,6 +80,8 @@ public class ParametroAggiuntivo {
     }
 
     /**
+     * Restituisce l'identificativo del tempo a cui appartiene il parametro.
+     *
      * @return l'identificativo del tempo a cui appartiene il parametro
      */
     public int getTempoId() {
@@ -76,6 +98,8 @@ public class ParametroAggiuntivo {
     }
 
     /**
+     * Restituisce l'identificativo dello scenario a cui appartiene il parametro.
+     *
      * @return l'identificativo dello scenario a cui appartiene il parametro
      */
     public int getScenarioId() {
@@ -92,6 +116,8 @@ public class ParametroAggiuntivo {
     }
 
     /**
+     * Restituisce il nome del parametro.
+     *
      * @return il nome del parametro
      */
     public String getNome() {
@@ -108,6 +134,8 @@ public class ParametroAggiuntivo {
     }
 
     /**
+     * Restituisce il valore del parametro.
+     *
      * @return il valore del parametro
      */
     public String getValore() {
@@ -124,6 +152,8 @@ public class ParametroAggiuntivo {
     }
 
     /**
+     * Restituisce l'unità di misura del parametro.
+     *
      * @return l'unità di misura del parametro
      */
     public String getUnitaMisura() {
