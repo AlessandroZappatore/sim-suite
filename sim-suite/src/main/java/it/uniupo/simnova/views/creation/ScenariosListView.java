@@ -437,42 +437,46 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         if (detached.get()) {
             return;
         }
-        progressBar.setVisible(true);
-        scenariosGrid.setVisible(false);
+
+        // Show loading state
+        UI ui = UI.getCurrent();
+        if (ui == null) return;
+
+        ui.access(() -> {
+            progressBar.setVisible(true);
+            scenariosGrid.setVisible(false);
+        });
 
         executorService.submit(() -> {
             try {
                 List<Scenario> scenarios = scenarioService.getAllScenarios();
-                if (detached.get()) {
+
+                // Check if view is still attached before updating UI
+                if (detached.get() || ui.isClosing()) {
                     return;
                 }
 
-                getUI().ifPresent(ui -> ui.access(() -> {
-                    if (detached.get()) {
-                        return;
-                    }
-
+                ui.access(() -> {
                     try {
                         if (scenarios != null) {
                             this.dataProvider = new ListDataProvider<>(scenarios);
                             scenariosGrid.setDataProvider(dataProvider);
                         } else {
-                            Notification.show("Errore durante il caricamento", 3000, Position.MIDDLE);
+                            Notification.show("Error loading data", 3000, Position.MIDDLE);
                         }
-                    } catch (Exception e) {
-                        Notification.show("Errore durante l'aggiornamento: " + e.getMessage(), 3000, Position.MIDDLE);
                     } finally {
+                        // Always ensure loading indicators are hidden
                         progressBar.setVisible(false);
                         scenariosGrid.setVisible(true);
                     }
-                }));
+                });
             } catch (Exception e) {
-                if (!detached.get()) {
-                    getUI().ifPresent(ui -> ui.access(() -> {
-                        Notification.show("Errore durante il recupero: " + e.getMessage(), 3000, Position.MIDDLE);
+                if (!detached.get() && !ui.isClosing()) {
+                    ui.access(() -> {
+                        Notification.show("Error: " + e.getMessage(), 3000, Position.MIDDLE);
                         progressBar.setVisible(false);
                         scenariosGrid.setVisible(true);
-                    }));
+                    });
                 }
             }
         });

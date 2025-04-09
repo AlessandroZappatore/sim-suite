@@ -151,35 +151,45 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         getContent().add(progressBar);
 
         UI ui = UI.getCurrent();
+        if (ui == null) return;
+
+        // Add timeout and better error handling
         executorService.submit(() -> {
             try {
+                // Add timeout to prevent infinite loading
+                long startTime = System.currentTimeMillis();
+                long timeout = 30000; // 30 seconds timeout
+
                 Scenario loadedScenario = scenarioService.getScenarioById(scenarioId);
 
-                if (detached.get()) {
+                if (System.currentTimeMillis() - startTime > timeout) {
+                    throw new RuntimeException("Loading timeout exceeded");
+                }
+
+                if (detached.get() || ui.isClosing()) {
                     return;
                 }
 
                 ui.access(() -> {
-                    if (loadedScenario == null) {
-                        Notification.show("Scenario non trovato", 3000, Position.MIDDLE);
-                        ui.navigate("scenari");
-                        return;
+                    try {
+                        if (loadedScenario == null) {
+                            Notification.show("Scenario non trovato", 3000, Position.MIDDLE);
+                            ui.navigate("scenari");
+                            return;
+                        }
+                        this.scenario = loadedScenario;
+                        initView();
+                    } finally {
+                        progressBar.setVisible(false);
                     }
-                    this.scenario = loadedScenario;
-                    initView();
                 });
             } catch (Exception e) {
-                if (detached.get()) {
-                    return;
-                }
-
-                ui.access(() -> {
-                    Notification.show("Errore nel caricamento: " + e.getMessage(), 3000, Position.MIDDLE);
-                    ui.navigate("scenari");
-                });
-            } finally {
-                if (!detached.get()) {
-                    ui.access(() -> progressBar.setVisible(false));
+                if (!detached.get() && !ui.isClosing()) {
+                    ui.access(() -> {
+                        Notification.show("Errore nel caricamento: " + e.getMessage(), 3000, Position.MIDDLE);
+                        progressBar.setVisible(false);
+                        ui.navigate("scenari");
+                    });
                 }
             }
         });
@@ -249,8 +259,8 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         accordion.add("Stato Paziente", createPatientContent());
         accordion.add("Esami e Referti", createExamsContent());
 
-        List<Tempo> tempi = scenarioService.getTempiByScenarioId(scenarioId);
-        if (tempi != null && !tempi.isEmpty()) {
+        List<Tempo> tempi = ScenarioService.getTempiByScenarioId(scenarioId);
+        if (!tempi.isEmpty()) {
             accordion.add("Timeline", createTimelineContent());
         }
 
@@ -563,8 +573,8 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         layout.setWidthFull();
 
         // Ottieni tutti i tempi per questo scenario
-        List<Tempo> tempi = scenarioService.getTempiByScenarioId(scenarioId);
-        if (tempi == null || tempi.isEmpty()) {
+        List<Tempo> tempi = ScenarioService.getTempiByScenarioId(scenarioId);
+        if (tempi.isEmpty()) {
             layout.add(new Paragraph("Nessun tempo definito per questo scenario"));
             return layout;
         }

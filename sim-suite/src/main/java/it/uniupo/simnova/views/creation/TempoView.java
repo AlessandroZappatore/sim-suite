@@ -298,7 +298,12 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Seleziona Parametri Aggiuntivi");
 
-        // Pulsante per aggiungere parametro personalizzato
+        // Add search field
+        TextField searchField = new TextField();
+        searchField.setPlaceholder("Cerca parametri...");
+        searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
+        searchField.setWidthFull();
+
         Button addCustomParamButton = new Button("Nuovo Parametro Personalizzato",
                 new Icon(VaadinIcon.PLUS_CIRCLE));
         addCustomParamButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -321,6 +326,15 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         paramsSelector.setItems(availableParams);
         paramsSelector.addThemeVariants(CheckboxGroupVariant.LUMO_VERTICAL);
         paramsSelector.setWidthFull();
+
+        // Add search functionality
+        searchField.addValueChangeListener(e -> {
+            String searchTerm = e.getValue().toLowerCase();
+            List<String> filteredParams = availableParams.stream()
+                    .filter(param -> param.toLowerCase().contains(searchTerm))
+                    .collect(Collectors.toList());
+            paramsSelector.setItems(filteredParams);
+        });
 
         Button confirmButton = new Button("Conferma", e -> {
             paramsSelector.getSelectedItems().forEach(param -> {
@@ -345,6 +359,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
 
         VerticalLayout dialogContent = new VerticalLayout(
                 addCustomParamButton,
+                searchField,
                 new Paragraph("Seleziona dai parametri predefiniti:"),
                 paramsSelector
         );
@@ -363,36 +378,41 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
 
         TextField nameField = new TextField("Nome parametro");
         nameField.setWidthFull();
+        nameField.setRequired(true);
 
         TextField unitField = new TextField("Unità di misura");
         unitField.setWidthFull();
 
-        NumberField valueField = new NumberField("Valore");
+        TextField valueField = new TextField("Valore");
         valueField.setWidthFull();
 
         Button saveButton = new Button("Salva", e -> {
             String paramName = nameField.getValue();
             String unit = unitField.getValue();
+            String value = valueField.getValue();
 
-            if (paramName == null || paramName.isEmpty()) {
+            if (paramName == null || paramName.trim().isEmpty()) {
                 Notification.show("Inserisci un nome per il parametro",
                         3000, Notification.Position.MIDDLE);
                 return;
             }
 
-            // Crea una chiave univoca per il parametro personalizzato
-            String paramKey = CUSTOM_PARAMETER_KEY + "_" + System.currentTimeMillis();
+            // Create a unique key for custom parameter
+            String paramKey = CUSTOM_PARAMETER_KEY + "_" + paramName.replaceAll("\\s+", "_");
             String fullLabel = paramName + (unit.isEmpty() ? "" : " (" + unit + ")");
 
-            // Aggiungi alla mappa dei parametri (opzionale, se vuoi tener traccia)
-            ADDITIONAL_PARAMETERS.put(paramKey, fullLabel);
-
-            // Aggiungi il parametro alla sezione
+            // Add to parameters map
             timeSection.addCustomParameter(paramKey, fullLabel);
 
-            // Imposta il valore se fornito
-            if (valueField.getValue() != null) {
-                timeSection.getCustomParameters().get(paramKey).setValue(valueField.getValue());
+            // Set the value if provided
+            if (value != null && !value.isEmpty()) {
+                try {
+                    double numericValue = Double.parseDouble(value);
+                    timeSection.getCustomParameters().get(paramKey).setValue(numericValue);
+                } catch (NumberFormatException ex) {
+                    // If value is not numeric, store it as is
+                    timeSection.getCustomParameters().get(paramKey).setValue(0.0);
+                }
             }
 
             dialog.close();
@@ -522,8 +542,8 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
      * Se T0 è già presente, lo rimuove e lo sostituisce con i dati esistenti.
      */
     private void loadExistingTimes() {
-        List<Tempo> existingTempi = scenarioService.getTempiByScenarioId(scenarioId);
-        if (existingTempi != null && !existingTempi.isEmpty()) {
+        List<Tempo> existingTempi = ScenarioService.getTempiByScenarioId(scenarioId);
+        if (!existingTempi.isEmpty()) {
             // Rimuovi T0 se già caricato da loadInitialData
             if (!timeSections.isEmpty() && timeSections.getFirst().timeNumber == 0) {
                 timeSections.removeFirst();
@@ -872,7 +892,13 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             Map<String, Double> additionalParams = new HashMap<>();
             customParameters.forEach((key, field) -> {
                 double value = field.getValue() != null ? field.getValue() : 0;
-                additionalParams.put(key, value);
+                // If it's a custom parameter, use the original name
+                if (key.startsWith(CUSTOM_PARAMETER_KEY)) {
+                    String originalName = key.substring(CUSTOM_PARAMETER_KEY.length() + 1);
+                    additionalParams.put(originalName, value);
+                } else {
+                    additionalParams.put(key, value);
+                }
             });
 
             return new ScenarioService.TempoData(

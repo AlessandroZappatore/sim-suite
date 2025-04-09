@@ -1363,6 +1363,7 @@ public class ScenarioService {
         return scenario;
     }
 
+
     /**
      * Rappresenta i dati di un tempo associato a uno scenario.
      *
@@ -1403,7 +1404,7 @@ public class ScenarioService {
      * @param scenarioId l'ID dello scenario
      * @return una lista di oggetti Tempo
      */
-    public List<Tempo> getTempiByScenarioId(int scenarioId) {
+    public static List<Tempo> getTempiByScenarioId(int scenarioId) {
         final String sql = "SELECT * FROM Tempo WHERE id_advanced_scenario = ? ORDER BY id_tempo";
         List<Tempo> tempi = new ArrayList<>();
 

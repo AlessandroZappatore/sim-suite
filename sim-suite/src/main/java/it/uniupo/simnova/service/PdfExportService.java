@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Servizio per l'esportazione di scenari in formato PDF.
@@ -79,7 +80,6 @@ public class PdfExportService {
 
             // Get complete scenario data
             Scenario scenario = scenarioService.getScenarioById(scenarioId);
-            //AdvancedScenario advancedScenario = scenarioService.getAdvancedScenarioById(scenarioId);
 
             // Create cover page with scenario details
             createCoverPage(document, scenario, fontBold, fontRegular);
@@ -91,9 +91,10 @@ public class PdfExportService {
             createExamsPage(document, scenarioId, fontBold, fontRegular);
 
             // Create timeline pages if any
-            //if (advancedScenario != null) {
-            //    createTimelinePages(document, advancedScenario, fontBold, fontRegular);
-            //}
+            String scenarioType = scenarioService.getScenarioType(scenarioId);
+            if (scenarioType != null && scenarioType.equals("Advanced Scenario") || Objects.equals(scenarioType, "Patient Simulated Scenario")) {
+                createTimelinePages(document, scenario, fontBold, fontRegular);
+            }
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             document.save(outputStream);
@@ -168,7 +169,7 @@ public class PdfExportService {
 
             // Briefing
             if (scenario.getBriefing() != null && !scenario.getBriefing().isEmpty()) {
-                yPosition = drawSection(contentStream, "Briefing",
+                drawSection(contentStream, "Briefing",
                         scenario.getBriefing(),
                         fontBold, fontRegular, yPosition);
             }
@@ -315,10 +316,10 @@ public class PdfExportService {
      * @param fontRegular il font normale
      * @throws IOException se si verifica un errore durante la creazione delle pagine
      */
-    private void createTimelinePages(PDDocument document, AdvancedScenario scenario,
+    private void createTimelinePages(PDDocument document, Scenario scenario,
                                      PDFont fontBold, PDFont fontRegular) throws IOException {
-        List<Tempo> tempi = scenario.getTempi();
-        if (tempi == null || tempi.isEmpty()) {
+        List<Tempo> tempi = ScenarioService.getTempiByScenarioId(scenario.getId());
+        if (tempi.isEmpty()) {
             return;
         }
 
@@ -331,7 +332,10 @@ public class PdfExportService {
 
                 // Time title
                 String title = String.format("Timeline - Tempo %d: %s (%.1f min)",
-                        tempo.getIdTempo(), tempo.getAzione(), tempo.getTimerTempo());
+                    tempo.getIdTempo(),
+                    tempo.getAzione(),
+                    tempo.getTimerTempo() / 60.0
+                );
                 drawCenteredText(contentStream, fontBold, TITLE_FONT_SIZE, title, yPosition);
                 yPosition -= LEADING * 3;
 
@@ -349,7 +353,7 @@ public class PdfExportService {
                 if (tempo.getAltriDettagli() != null && !tempo.getAltriDettagli().isEmpty()) {
                     yPosition = drawSection(contentStream, "Dettagli", "",
                             fontBold, fontRegular, yPosition);
-                    yPosition = drawWrappedText(contentStream, fontRegular, BODY_FONT_SIZE,
+                    drawWrappedText(contentStream, fontRegular, BODY_FONT_SIZE,
                             MARGIN + 20, yPosition - LEADING,
                             tempo.getAltriDettagli());
                 }
@@ -415,7 +419,7 @@ public class PdfExportService {
             contentStream.newLineAtOffset(x, currentY);
 
             for (String word : words) {
-                String testLine = currentLine.length() > 0 ? currentLine + " " + word : word;
+                String testLine = !currentLine.isEmpty() ? currentLine + " " + word : word;
                 float width = font.getStringWidth(testLine) / 1000 * fontSize;
 
                 if (width > (PDRectangle.A4.getWidth() - 2 * MARGIN - 10)) {
@@ -431,12 +435,12 @@ public class PdfExportService {
                     contentStream.newLineAtOffset(x, currentY);
                     currentLine = new StringBuilder(word);
                 } else {
-                    if (currentLine.length() > 0) currentLine.append(" ");
+                    if (!currentLine.isEmpty()) currentLine.append(" ");
                     currentLine.append(word);
                 }
             }
 
-            if (currentLine.length() > 0) {
+            if (!currentLine.isEmpty()) {
                 contentStream.showText(currentLine.toString());
             }
             contentStream.endText();
