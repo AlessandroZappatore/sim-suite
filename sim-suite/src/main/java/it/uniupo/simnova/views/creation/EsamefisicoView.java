@@ -301,7 +301,7 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
                         ui.navigate("scenari/" + scenarioId);
                     } else if ("Advanced Scenario".equals(scenarioType) ||
                             "Patient Simulated Scenario".equals(scenarioType)) {
-                        ui.navigate("tempo/" + scenarioId);
+                        ui.navigate("tempi/" + scenarioId + "?mode=create");
                     }
                 });
             } catch (Exception e) {

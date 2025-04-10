@@ -4,6 +4,7 @@ import it.uniupo.simnova.api.model.*;
 import it.uniupo.simnova.utils.DBConnect;
 import it.uniupo.simnova.views.creation.EsamiRefertiView;
 import it.uniupo.simnova.views.creation.PazienteT0View;
+import it.uniupo.simnova.views.creation.ScenarioEditView;
 import org.springframework.stereotype.Service;
 
 import java.sql.*;
@@ -1363,22 +1364,26 @@ public class ScenarioService {
         return scenario;
     }
 
+    public boolean updateAccessiPazienteT0(Integer scenarioId, List<ScenarioEditView.AccessoData> venosiData, List<ScenarioEditView.AccessoData> arteriosiData) {
+    return true;
+    }
+
 
     /**
      * Rappresenta i dati di un tempo associato a uno scenario.
      *
-     * @param idTempo l'ID del tempo
-     * @param pa la pressione arteriosa
-     * @param fc la frequenza cardiaca
-     * @param rr la frequenza respiratoria
-     * @param t la temperatura
-     * @param spo2 la saturazione di ossigeno
-     * @param etco2     il valore di EtCO2
-     * @param azione l'azione associata
-     * @param tSiId l'ID del tempo di inizio
-     * @param tNoId l'ID del tempo di fine
-     * @param altriDettagli altri dettagli
-     * @param timerTempo il timer del tempo
+     * @param idTempo             l'ID del tempo
+     * @param pa                  la pressione arteriosa
+     * @param fc                  la frequenza cardiaca
+     * @param rr                  la frequenza respiratoria
+     * @param t                   la temperatura
+     * @param spo2                la saturazione di ossigeno
+     * @param etco2               il valore di EtCO2
+     * @param azione              l'azione associata
+     * @param tSiId               l'ID del tempo di inizio
+     * @param tNoId               l'ID del tempo di fine
+     * @param altriDettagli       altri dettagli
+     * @param timerTempo          il timer del tempo
      * @param parametriAggiuntivi i parametri aggiuntivi
      */
     public record TempoData(
@@ -1523,5 +1528,41 @@ public class ScenarioService {
             logger.error("Errore durante il recupero della sceneggiatura per lo scenario con ID {}", scenarioId, e);
         }
         return "";
+    }
+
+    public void update(Scenario scenario) {
+        final String sql = "UPDATE Scenario SET titolo = ?, nome_paziente = ?, patologia = ?, descrizione = ?, " +
+                "briefing = ?, patto_aula = ?, azione_chiave = ?, obiettivo = ?, " +
+                "materiale = ?, moulage = ?, liquidi = ?, timer_generale = ? " +
+                "WHERE id_scenario = ?";
+
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, scenario.getTitolo());
+            stmt.setString(2, scenario.getNomePaziente());
+            stmt.setString(3, scenario.getPatologia());
+            stmt.setString(4, scenario.getDescrizione());
+            stmt.setString(5, scenario.getBriefing());
+            stmt.setString(6, scenario.getPattoAula());
+            stmt.setString(7, scenario.getAzioneChiave());
+            stmt.setString(8, scenario.getObiettivo());
+            stmt.setString(9, scenario.getMateriale());
+            stmt.setString(10, scenario.getMoulage());
+            stmt.setString(11, scenario.getLiquidi());
+            stmt.setFloat(12, scenario.getTimerGenerale());
+            stmt.setInt(13, scenario.getId());
+
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected > 0) {
+                logger.info("Scenario with ID {} updated successfully", scenario.getId());
+            } else {
+                logger.warn("No scenario found with ID {}", scenario.getId());
+            }
+        } catch (SQLException e) {
+            logger.error("Error updating scenario with ID {}", scenario.getId(), e);
+            throw new RuntimeException("Failed to update scenario", e);
+        }
+        throw new UnsupportedOperationException("Unimplemented method 'update'");
     }
 }

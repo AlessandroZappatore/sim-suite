@@ -66,7 +66,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
      */
     private final NumberField fcField;
     /**
-     * Campo per la frequenza respiratoria (FR).
+     * Campo per la frequenza respiratoria (RR).
      */
     private final NumberField rrField;
     /**
@@ -148,7 +148,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         // Campi parametri vitali
         paField = createTextField();
         fcField = createNumberField("FC (bpm)", "(es. 72)");
-        rrField = createNumberField("FR (atti/min)", "(es. 16)");
+        rrField = createNumberField("RR (atti/min)", "(es. 16)");
         tempField = createNumberField("Temperatura (°C)", "(es. 36.5)");
         spo2Field = createNumberField("SpO₂ (%)", "(es. 98)");
         etco2Field = createNumberField("EtCO₂ (mmHg)", "(es. 35)");

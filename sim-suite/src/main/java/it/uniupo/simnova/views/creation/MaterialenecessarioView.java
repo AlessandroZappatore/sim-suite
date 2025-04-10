@@ -203,7 +203,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
                     if (success) {
-                        ui.navigate("esamiReferti/" + scenarioId);
+                        ui.navigate("esamiReferti/" + scenarioId+"?mode=create");
                     } else {
                         Notification.show("Errore durante il salvataggio del materiale necessario", 3000, Notification.Position.MIDDLE);
                     }

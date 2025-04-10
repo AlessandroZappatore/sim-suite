@@ -35,6 +35,7 @@ import java.time.Duration;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
+
 /**
  * Classe che rappresenta la vista per la creazione e gestione dei tempi in uno scenario avanzato.
  * <p>
@@ -44,8 +45,8 @@ import java.util.stream.Collectors;
  * @author Alessandro Zappatore
  * @version 1.0
  */
-@PageTitle("Tempo")
-@Route("tempo")
+@PageTitle("Tempi")
+@Route("tempi")
 @Menu(order = 14)
 public class TempoView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     /**
@@ -71,6 +72,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
      * ID dello scenario corrente.
      */
     private int scenarioId;
+    private String mode;
     /**
      * Servizio per la gestione degli scenari.
      */
@@ -142,6 +144,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         ADDITIONAL_PARAMETERS.put("pCO₂ cutanea", "pCO₂ cutanea (mmHg)");
         ADDITIONAL_PARAMETERS.put("NIRS", "Ossimetria cerebrale (%)");
     }
+
     /**
      * Costruttore della vista TempoView.
      * Inizializza il layout principale e i componenti della vista.
@@ -164,7 +167,8 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         // Pulsante indietro con RouterLink
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        backButton.addClickListener(e -> backButton.getUI().ifPresent(ui -> ui.navigate("descrizione/" + scenarioId)));
+        backButton.addClickListener(e -> backButton.getUI().ifPresent(ui -> ui.navigate("esameFisico/" + scenarioId)));
+
 
         HorizontalLayout customHeader = new HorizontalLayout();
         customHeader.setWidthFull();
@@ -239,6 +243,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         // Aggiunta dei layout principali
         mainLayout.add(customHeader, contentLayout, footerLayout);
     }
+
     /**
      * Imposta il parametro URL per la vista.
      * Carica i dati iniziali e gestisce eventuali errori di formato.
@@ -250,20 +255,50 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
         try {
             if (parameter == null || parameter.trim().isEmpty()) {
-                throw new NumberFormatException();
+                logger.warn("Scenario ID mancante nell'URL.");
+                throw new NumberFormatException("Scenario ID è richiesto");
             }
 
             this.scenarioId = Integer.parseInt(parameter);
             if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
-                throw new NumberFormatException();
+                logger.warn("Scenario ID non valido o non esistente: {}", scenarioId);
+                throw new NumberFormatException("Scenario ID non valido");
             }
+            logger.info("Scenario ID impostato a: {}", this.scenarioId);
 
-            loadInitialData();
         } catch (NumberFormatException e) {
-            logger.error("ID scenario non valido: {}", parameter, e);
-            event.rerouteToError(NotFoundException.class, "ID scenario " + scenarioId + " non valido");
+            logger.error("Errore nel parsing o validazione dello Scenario ID: {}", parameter, e);
+            event.rerouteToError(NotFoundException.class, "ID scenario " + parameter + " non valido o mancante.");
+            return; // Interrompi l'esecuzione se l'ID non è valido
+        }
+
+        Location location = event.getLocation();
+        QueryParameters queryParameters = location.getQueryParameters();
+        Map<String, List<String>> parametersMap = queryParameters.getParameters();
+
+        Optional<String> modeOptional = Optional.ofNullable(parametersMap.get("mode"))
+                .filter(list -> !list.isEmpty() && list.getFirst() != null && !list.getFirst().isBlank()) // Assicurati che la lista e il primo elemento non siano null/vuoti
+                .map(list -> list.getFirst().trim().toLowerCase()); // Prendi il primo, togli spazi, metti in minuscolo
+
+        mode = modeOptional.orElse("create");
+
+        logger.info("Navigato a EsamiRefertiView. Scenario ID: {}, Mode: {}", this.scenarioId, mode);
+
+        if ("edit".equals(mode)) {
+            logger.info("Modalità EDIT: caricamento dati esistenti per scenario {}", this.scenarioId);
+            loadExistingTimes(); // Implementa questo metodo
+        } else if ("create".equals(mode)) {
+            loadInitialData();
+            logger.info("Modalità CREATE: aggiunta prima riga vuota per scenario {}", this.scenarioId);
+        } else {
+            // Gestisci modalità non riconosciute, se necessario
+            Notification.show("Modalità non riconosciuta. Utilizzo modalità 'create' di default.", 3000, Notification.Position.MIDDLE);
+            logger.warn("Modalità '{}' non riconosciuta. Verrà utilizzata la modalità 'create'.", mode);
+            mode = "create"; // Fallback a uno stato noto
+            loadInitialData();
         }
     }
+
     /**
      * Aggiunge una nuova sezione temporale (T1, T2, ecc.) al layout.
      * Ogni sezione contiene campi per i parametri vitali e le azioni da eseguire.
@@ -288,6 +323,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         // Aggiungi il pulsante al form layout
         timeSection.getMedicalParamsForm().add(addParamsButton);
     }
+
     /**
      * Mostra un dialog per selezionare i parametri aggiuntivi.
      * Permette di aggiungere parametri predefiniti o personalizzati.
@@ -366,6 +402,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         dialog.add(dialogContent, buttons);
         dialog.open();
     }
+
     /**
      * Mostra un dialog per aggiungere un parametro personalizzato.
      * Permette di definire il nome, l'unità di misura e il valore del parametro.
@@ -433,6 +470,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         dialog.add(dialogContent, buttons);
         dialog.open();
     }
+
     /**
      * Salva tutte le sezioni temporali nel database.
      * In caso di successo, naviga alla schermata successiva.
@@ -453,18 +491,27 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             if (success) {
                 Notification.show("Tempi salvati con successo!", 3000, Notification.Position.MIDDLE);
                 logger.info("Tempi salvati con successo per scenario {}", scenarioId);
-                switch (scenarioService.getScenarioType(scenarioId)) {
-                    case "Advanced Scenario":
-                        nextButton.getUI().ifPresent(ui -> ui.navigate("scenari/" + scenarioId));
-                        break;
-                    case "Patient Simulated Scenario":
-                        nextButton.getUI().ifPresent(ui -> ui.navigate("sceneggiatura/" + scenarioId));
-                        break;
-                    default:
-                        Notification.show("Tipo di scenario non riconosciuto", 3000, Notification.Position.MIDDLE);
-                        logger.error("Tipo di scenario non riconosciuto per ID {}", scenarioId);
-                        break;
+                switch (mode) {
+                    case "create" -> {
+                        switch (scenarioService.getScenarioType(scenarioId)) {
+                            case "Advanced Scenario":
+                                nextButton.getUI().ifPresent(ui -> ui.navigate("scenari/" + scenarioId));
+                                break;
+                            case "Patient Simulated Scenario":
+                                nextButton.getUI().ifPresent(ui -> ui.navigate("sceneggiatura/" + scenarioId));
+                                break;
+                            default:
+                                Notification.show("Tipo di scenario non riconosciuto", 3000, Notification.Position.MIDDLE);
+                                logger.error("Tipo di scenario non riconosciuto per ID {}", scenarioId);
+                                break;
+                        }
+                    }
+                    case "edit" -> {
+                        Notification.show("Modifiche salvate con successo!", 3000, Notification.Position.MIDDLE);
+                        logger.info("Modifiche salvate con successo per scenario {}", scenarioId);
+                    }
                 }
+
             } else {
                 Notification.show("Errore durante il salvataggio dei tempi", 5000, Notification.Position.MIDDLE);
                 logger.error("Errore durante il salvataggio dei tempi per scenario {}", scenarioId);
@@ -474,6 +521,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             logger.error("Errore durante il salvataggio dei tempi", e);
         }
     }
+
     /**
      * Crea un campo numerico per i parametri medici.
      * Aggiunge un'unità di misura come suffisso.
@@ -489,6 +537,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         field.addClassName(LumoUtility.Margin.Bottom.SMALL);
         return field;
     }
+
     /**
      * Crea un campo di testo per i parametri medici.
      * Aggiunge un'unità di misura come suffisso.
@@ -502,6 +551,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         field.addClassName(LumoUtility.Margin.Bottom.SMALL);
         return field;
     }
+
     /**
      * Carica i dati iniziali per la sezione T0.
      * Se i dati sono già presenti, li precompila nei campi.
@@ -537,6 +587,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             logger.error("Errore nel caricamento dei dati iniziali", e);
         }
     }
+
     /**
      * Carica i tempi esistenti dallo scenario.
      * Se T0 è già presente, lo rimuove e lo sostituisce con i dati esistenti.
@@ -581,6 +632,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             }
         }
     }
+
     /**
      * Carica i parametri aggiuntivi per il tempo corrente.
      * Se i parametri esistono, li precompila nei campi.
@@ -687,6 +739,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
          * Layout per i parametri personalizzati
          */
         private final Map<String, HorizontalLayout> customParameterLayouts = new HashMap<>();
+
         /**
          * Costruttore per la sezione temporale.
          * Inizializza i campi e il layout della sezione.
@@ -793,6 +846,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                     actionTitle, actionDetailsArea, timeSelectionContainer,
                     additionalDetailsArea, removeButton);
         }
+
         /**
          * Restituisce il layout principale della sezione temporale.
          *
@@ -801,6 +855,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         public VerticalLayout getLayout() {
             return layout;
         }
+
         /**
          * Restituisce il numero del tempo corrente.
          *
@@ -809,6 +864,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         public FormLayout getMedicalParamsForm() {
             return medicalParamsForm;
         }
+
         /**
          * Restituisce il campo di testo per la pressione arteriosa.
          *
@@ -824,6 +880,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         public void hideRemoveButton() {
             removeButton.setVisible(false);
         }
+
         /**
          * Aggiunge un parametro personalizzato alla sezione temporale.
          * Crea un campo numerico e un pulsante per rimuovere il parametro.
@@ -856,6 +913,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                 customParamsContainer.add(paramLayout);
             }
         }
+
         /**
          * Estrae l'unità di misura dall'etichetta del parametro.
          *
@@ -868,6 +926,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             }
             return "";
         }
+
         /**
          * Prepara i dati per il salvataggio nel database.
          * Raccoglie i valori dai campi e li restituisce in un oggetto TempoData.
@@ -929,6 +988,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             paField.setReadOnly(true);
             paField.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
+
         /**
          * Imposta i valori nei campi della sezione temporale.
          * Rende i campi di input non modificabili e cambia il colore di sfondo.
@@ -940,6 +1000,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             fcField.setReadOnly(true);
             fcField.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
+
         /**
          * Imposta i valori nei campi della sezione temporale.
          * Rende i campi di input non modificabili e cambia il colore di sfondo.
@@ -951,6 +1012,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             rrField.setReadOnly(true);
             rrField.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
+
         /**
          * Imposta i valori nei campi della sezione temporale.
          * Rende i campi di input non modificabili e cambia il colore di sfondo.
@@ -963,6 +1025,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             tField.setReadOnly(true);
             tField.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
+
         /**
          * Imposta i valori nei campi della sezione temporale.
          * Rende i campi di input non modificabili e cambia il colore di sfondo.
@@ -974,6 +1037,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             spo2Field.setReadOnly(true);
             spo2Field.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
+
         /**
          * Imposta i valori nei campi della sezione temporale.
          * Rende i campi di input non modificabili e cambia il colore di sfondo.

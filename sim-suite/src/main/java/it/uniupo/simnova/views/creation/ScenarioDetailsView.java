@@ -210,7 +210,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         mainLayout.setPadding(false);
         mainLayout.setSpacing(false);
 
-        // 1. HEADER - Rimuovi AppHeader e usa solo il custom header
+        // 1. HEADER
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         backButton.getStyle().set("margin-right", "auto");
@@ -218,9 +218,8 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         Button editButton = new Button("Modifica", new Icon(VaadinIcon.EDIT));
         editButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         editButton.addClickListener(e ->
-                UI.getCurrent().navigate("edit-scenario/" + scenario.getId()));
+                UI.getCurrent().navigate("modificaScenario/" + scenario.getId()));
 
-        // Aggiungi un titolo al posto di AppHeader
         H2 pageTitle = new H2("Dettaglio Scenario");
         pageTitle.getStyle()
                 .set("margin", "0 auto")

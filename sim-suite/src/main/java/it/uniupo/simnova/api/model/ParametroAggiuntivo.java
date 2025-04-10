@@ -176,7 +176,6 @@ public class ParametroAggiuntivo {
      */
     @Override
     public String toString() {
-        return "ParametroAggiuntivo [id=" + id + ", tempoId=" + tempoId + ", nome=" + nome + ", valore=" + valore
-                + ", unitaMisura=" + unitaMisura + "]";
+        return nome+": "+valore+" "+unitaMisura;
     }
 }
