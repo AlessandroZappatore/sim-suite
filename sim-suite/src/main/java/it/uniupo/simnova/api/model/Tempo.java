@@ -1,5 +1,8 @@
 package it.uniupo.simnova.api.model;
 
+import java.util.List;
+
+
 /**
  * Classe che rappresenta un tempo in uno scenario avanzato.
  * <p>
@@ -62,6 +65,8 @@ public class Tempo {
      * Timer del tempo in millisecondi.
      */
     private long timerTempo;
+
+    private List<ParametroAggiuntivo> parametriAggiuntivi;
 
     /**
      * Costruttore completo per creare un nuovo tempo.
@@ -341,6 +346,24 @@ public class Tempo {
      */
     public void setTimerTempo(long timerTempo) {
         this.timerTempo = timerTempo;
+    }
+
+    /**
+     * Restituisce la lista dei parametri aggiuntivi associati a questo tempo.
+     *
+     * @return la lista dei parametri aggiuntivi
+     */
+    public List<ParametroAggiuntivo> getParametriAggiuntivi() {
+        return parametriAggiuntivi;
+    }
+
+    /**
+     * Imposta la lista dei parametri aggiuntivi associati a questo tempo.
+     *
+     * @param parametriAggiuntivi la nuova lista di parametri aggiuntivi
+     */
+    public void setParametriAggiuntivi(List<ParametroAggiuntivo> parametriAggiuntivi) {
+        this.parametriAggiuntivi = parametriAggiuntivi;
     }
 
     /**

@@ -389,29 +389,25 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                 boolean success = scenarioService.saveEsamiReferti(scenarioId, esamiData);
 
                 switch (mode) {
-                    case "create" -> {
-                        ui.accessSynchronously(() -> {
-                            getContent().remove(progressBar);
-                            if (success) {
-                                ui.navigate("moulage/" + scenarioId);
-                            } else {
-                                Notification.show("Errore durante il salvataggio degli esami/referti",
-                                        3000, Notification.Position.MIDDLE);
-                            }
-                        });
-                    }
-                    case "edit" -> {
-                        ui.accessSynchronously(() -> {
-                            getContent().remove(progressBar);
-                            if (success) {
-                                Notification.show("Esami/referti salvati correttamente",
-                                        3000, Notification.Position.MIDDLE);
-                            } else {
-                                Notification.show("Errore durante il salvataggio degli esami/referti",
-                                        3000, Notification.Position.MIDDLE);
-                            }
-                        });
-                    }
+                    case "create" -> ui.accessSynchronously(() -> {
+                        getContent().remove(progressBar);
+                        if (success) {
+                            ui.navigate("moulage/" + scenarioId);
+                        } else {
+                            Notification.show("Errore durante il salvataggio degli esami/referti",
+                                    3000, Notification.Position.MIDDLE);
+                        }
+                    });
+                    case "edit" -> ui.accessSynchronously(() -> {
+                        getContent().remove(progressBar);
+                        if (success) {
+                            Notification.show("Esami/referti salvati correttamente",
+                                    3000, Notification.Position.MIDDLE);
+                        } else {
+                            Notification.show("Errore durante il salvataggio degli esami/referti",
+                                    3000, Notification.Position.MIDDLE);
+                        }
+                    });
                     default -> {
                         logger.warn("Modalità non riconosciuta: {}", mode);
                         Notification.show("Modalità non riconosciuta", 3000, Notification.Position.MIDDLE);
@@ -538,7 +534,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             // Configurazione pulsante selezione
             selectExamButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             selectExamButton.addClassName(LumoUtility.Margin.Bottom.NONE);
-            selectExamButton.setWidth("120px");
+            selectExamButton.setWidth("auto");
 
             // Layout orizzontale per i campi di selezione
             HorizontalLayout selectionLayout = new HorizontalLayout(selectedExamField, selectExamButton);

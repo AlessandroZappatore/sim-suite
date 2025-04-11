@@ -16,9 +16,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static it.uniupo.simnova.views.creation.TempoView.ADDITIONAL_PARAMETERS;
-import static it.uniupo.simnova.views.creation.TempoView.CUSTOM_PARAMETER_KEY;
-
 /**
  * Servizio per la gestione degli scenari.
  * <p>
@@ -1237,47 +1234,79 @@ public class ScenarioService {
      * @throws SQLException in caso di errore durante l'esecuzione della query
      */
     private boolean saveParametriAggiuntivi(Connection conn, int scenarioId, List<TempoData> tempiData) throws SQLException {
+        // Ensure the table name and columns are correct
         final String sql = "INSERT INTO ParametriAggiuntivi (parametri_aggiuntivi_id, tempo_id, scenario_id, nome, valore, unità_misura) " +
-                "VALUES (?, ?, ?, ?, ?, ?)";
+                "VALUES (?, ?, ?, ?, ?, ?)"; // Assuming manual ID or adjust if auto-increment
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            int paramId = 1;
+            // Determine starting ID - CAUTION: This is prone to race conditions if concurrent access occurs.
+            // A sequence or auto-increment PK is strongly recommended.
+            // If parametri_aggiuntivi_id is auto-increment, remove it from INSERT and don't set param 1.
+            int paramId = getMaxParamId(conn) + 1; // Helper function needed if manual ID
+
             for (TempoData tempo : tempiData) {
-                for (Map.Entry<String, Double> param : tempo.parametriAggiuntivi().entrySet()) {
-                    String paramKey = param.getKey();
-                    String paramName = paramKey.startsWith(CUSTOM_PARAMETER_KEY) ?
-                            paramKey.substring(paramKey.indexOf('_') + 1) :
-                            paramKey;
+                // Check if the map is not null and not empty before iterating
+                if (tempo.parametriAggiuntivi() != null && !tempo.parametriAggiuntivi().isEmpty()) {
+                    for (Map.Entry<String, ParameterValueUnit> param : tempo.parametriAggiuntivi().entrySet()) {
+                        String paramName = param.getKey(); // This is the base name (e.g., "Glicemia" or "CustomParam")
+                        ParameterValueUnit paramData = param.getValue();
 
-                    String unit = ADDITIONAL_PARAMETERS.containsKey(paramKey) ?
-                            ADDITIONAL_PARAMETERS.get(paramKey).substring(
-                                    ADDITIONAL_PARAMETERS.get(paramKey).indexOf('(') + 1,
-                                    ADDITIONAL_PARAMETERS.get(paramKey).indexOf(')')
-                            ) : "";
+                        // If parametri_aggiuntivi_id is AUTO_INCREMENT, remove this line and adjust indices below
+                        stmt.setInt(1, paramId++); // Set manual ID (or remove if auto)
 
-                    stmt.setInt(1, paramId++);
-                    stmt.setInt(2, tempo.idTempo());
-                    stmt.setInt(3, scenarioId); // Aggiunto scenario_id
-                    stmt.setString(4, paramName);
-                    stmt.setDouble(5, param.getValue());
-                    stmt.setString(6, unit);
+                        stmt.setInt(2, tempo.idTempo()); // tempo_id
+                        stmt.setInt(3, scenarioId); // scenario_id
+                        stmt.setString(4, paramName); // nome (base name)
+                        stmt.setDouble(5, paramData.value()); // valore
+                        // *** Use the unit from ParameterValueUnit ***
+                        stmt.setString(6, paramData.unit()); // unità_misura
 
-                    stmt.addBatch();
+                        stmt.addBatch();
+                    }
+                } else {
+                    // Log if a tempo has no additional parameters, if desired
+                    // logger.debug("Tempo {} for scenario {} has no additional parameters.", tempo.idTempo(), scenarioId);
                 }
             }
 
-            int[] results = stmt.executeBatch();
-            for (int result : results) {
-                if (result <= 0) {
-                    logger.warn("Nessun parametro aggiuntivo salvato per lo scenario con ID {}", scenarioId);
-                    return false;
+            if (stmt.getParameterMetaData().getParameterCount() > 0) { // Check if any batches were added
+                int[] results = stmt.executeBatch();
+                boolean allSuccess = true;
+                for (int result : results) {
+                    if (result <= 0 && result != Statement.SUCCESS_NO_INFO) { // Check for failures
+                        allSuccess = false;
+                        logger.warn("Failed to insert at least one additional parameter batch for scenario {}", scenarioId);
+                        // Decide if this should cause a rollback (return false)
+                    }
                 }
+                if (allSuccess && results.length > 0) {
+                    logger.info("Saved {} additional parameter entries for scenario {}", results.length, scenarioId);
+                } else if (results.length == 0) {
+                    logger.info("No additional parameters to save for scenario {}", scenarioId);
+                }
+                return allSuccess; // Or true if partial success is acceptable
+            } else {
+                logger.info("No additional parameters batched for scenario {}", scenarioId);
+                return true; // Nothing to save, so technically successful
             }
-            logger.info("Parametri aggiuntivi salvati con successo per lo scenario con ID {}", scenarioId);
-            return true;
+
         } catch (SQLException e) {
-            logger.error("Errore durante il salvataggio dei parametri aggiuntivi per lo scenario con ID {}", scenarioId, e);
-            throw e;
+            logger.error("Error during batch insert of additional parameters for scenario {}", scenarioId, e);
+            throw e; // Re-throw to trigger rollback in saveTempi
+        }
+    }
+
+    // Helper function if using manual ID (Needs implementation based on your DB)
+    // **Strongly recommend using Auto-Increment Primary Key instead**
+    private int getMaxParamId(Connection conn) throws SQLException {
+        // Example: SELECT MAX(parametri_aggiuntivi_id) FROM ParametriAggiuntivi
+        // Handle case where table is empty (return 0)
+        final String sql = "SELECT MAX(parametri_aggiuntivi_id) FROM ParametriAggiuntivi";
+        try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt(1); // Returns 0 if table is empty and MAX returns NULL
+            }
+            return 0;
         }
     }
 
@@ -1368,6 +1397,8 @@ public class ScenarioService {
     return true;
     }
 
+    public record ParameterValueUnit(double value, String unit) {}
+
 
     /**
      * Rappresenta i dati di un tempo associato a uno scenario.
@@ -1399,7 +1430,7 @@ public class ScenarioService {
             int tNoId,
             String altriDettagli,
             int timerTempo,
-            Map<String, Double> parametriAggiuntivi
+            Map<String, ParameterValueUnit> parametriAggiuntivi
     ) {
     }
 
@@ -1435,6 +1466,11 @@ public class ScenarioService {
                 tempo.setAltriDettagli(rs.getString("altri_dettagli"));
                 tempo.setTimerTempo(rs.getInt("timer_tempo"));
 
+                // Recupera i parametri aggiuntivi per questo tempo
+                int tempoId = tempo.getIdTempo();
+                List<ParametroAggiuntivo> parametriAggiuntivi = getParametriAggiuntiviByTempoId(tempoId, scenarioId);
+                tempo.setParametriAggiuntivi(parametriAggiuntivi);
+
                 tempi.add(tempo);
             }
             logger.info("Recuperati {} tempi per lo scenario con ID {}", tempi.size(), scenarioId);
@@ -1445,13 +1481,13 @@ public class ScenarioService {
     }
 
     /**
-     * Recupera i parametri aggiuntivi associati a uno scenario.
+     * Recupera i parametri aggiuntivi associati a un tempo specifico di uno scenario.
      *
      * @param tempoId    l'ID del tempo
      * @param scenarioId l'ID dello scenario
      * @return una lista di oggetti ParametroAggiuntivo
      */
-    public List<ParametroAggiuntivo> getParametriAggiuntiviById(int tempoId, int scenarioId) {
+    public static List<ParametroAggiuntivo> getParametriAggiuntiviByTempoId(int tempoId, int scenarioId) {
         final String sql = "SELECT * FROM ParametriAggiuntivi WHERE tempo_id = ? AND scenario_id = ?";
         List<ParametroAggiuntivo> parametri = new ArrayList<>();
 
@@ -1473,7 +1509,7 @@ public class ScenarioService {
 
                 parametri.add(param);
             }
-            logger.info("Recuperati {} parametri aggiuntivi per il tempo con ID {} e lo scenario con ID {}", parametri.size(), tempoId, scenarioId);
+            logger.debug("Recuperati {} parametri aggiuntivi per il tempo con ID {} e lo scenario con ID {}", parametri.size(), tempoId, scenarioId);
         } catch (SQLException e) {
             logger.error("Errore durante il recupero dei parametri aggiuntivi per il tempo con ID {} e lo scenario con ID {}", tempoId, scenarioId, e);
         }
@@ -1509,7 +1545,7 @@ public class ScenarioService {
      * @param scenarioId l'ID dello scenario
      * @return la sceneggiatura come stringa
      */
-    public String getSceneggiatura(int scenarioId) {
+    public static String getSceneggiatura(int scenarioId) {
         final String sql = "SELECT sceneggiatura FROM PatientSimulatedScenario WHERE id_patient_simulated_scenario = ?";
         try (Connection conn = DBConnect.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

@@ -504,9 +504,9 @@ public class PdfExportService {
                     tempo.getT(), tempo.getSpO2(), tempo.getEtCO2()
             ));
 
-            List<ParametroAggiuntivo> parametriAggiuntivo = scenarioService.getParametriAggiuntiviById(tempo.getIdTempo(), scenario.getId());
+            List<ParametroAggiuntivo> parametriAggiuntivo = ScenarioService.getParametriAggiuntiviByTempoId(tempo.getIdTempo(), scenario.getId());
 
-            if (parametriAggiuntivo != null && !parametriAggiuntivo.isEmpty()) {
+            if (!parametriAggiuntivo.isEmpty()) {
                 for (ParametroAggiuntivo parametro : parametriAggiuntivo) {
                     params.append(String.format("\n%s: %s %s", parametro.getNome(), parametro.getValore(), parametro.getUnitaMisura()));
                 }

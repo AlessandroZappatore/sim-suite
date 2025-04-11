@@ -597,7 +597,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
 
             // Parametri aggiuntivi
             List<ParametroAggiuntivo> parametriAggiuntivi =
-                    scenarioService.getParametriAggiuntiviById(tempo.getIdTempo(), scenarioId);
+                    ScenarioService.getParametriAggiuntiviByTempoId(tempo.getIdTempo(), scenarioId);
 
             VerticalLayout additionalParamsLayout = new VerticalLayout();
             additionalParamsLayout.setPadding(false);
@@ -879,7 +879,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      */
     private Component createSceneggiaturaContent(int scenarioId) {
         VerticalLayout layout = new VerticalLayout();
-        String sceneggiatura = scenarioService.getSceneggiatura(scenarioId);
+        String sceneggiatura = ScenarioService.getSceneggiatura(scenarioId);
         if (sceneggiatura == null || sceneggiatura.trim().isEmpty()) {
             layout.add(new Paragraph("Nessuna sceneggiatura disponibile"));
         } else {

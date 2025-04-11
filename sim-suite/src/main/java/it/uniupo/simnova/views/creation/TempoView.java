@@ -43,47 +43,50 @@ import java.util.stream.Collectors;
  * </p>
  *
  * @author Alessandro Zappatore
- * @version 1.0
+ * @version 1.1 (con gestione unità di misura per parametri custom)
  */
 @PageTitle("Tempi")
 @Route("tempi")
 @Menu(order = 14)
 public class TempoView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     /**
-     * Container principale per le sezioni temporali
+     * Container principale per le sezioni temporali.
      * Ogni sezione rappresenta un tempo con i relativi parametri e azioni.
      */
     private final VerticalLayout timeSectionsContainer;
     /**
-     * Lista di sezioni temporali (T0, T1, T2, ecc.)
+     * Lista di sezioni temporali (T0, T1, T2, ecc.).
      * Ogni sezione rappresenta un tempo con i relativi parametri e azioni.
      */
     private final List<TimeSection> timeSections = new ArrayList<>();
     /**
-     * Contatore per il numero di tempo corrente
-     * Inizializzato a 1 per rappresentare T1.
+     * Contatore per il numero di tempo corrente.
+     * Inizializzato a 1 per rappresentare T1 (T0 viene aggiunto separatamente se necessario).
      */
     private int timeCount = 1;
     /**
-     * Pulsante per navigare alla schermata successiva
+     * Pulsante per navigare alla schermata successiva.
      */
     private final Button nextButton;
     /**
      * ID dello scenario corrente.
      */
     private int scenarioId;
+    /**
+     * Modalità di apertura della vista ("create" o "edit").
+     */
     private String mode;
     /**
      * Servizio per la gestione degli scenari.
      */
     private final ScenarioService scenarioService;
     /**
-     * Chiave per i parametri personalizzati.
+     * Chiave per identificare i parametri personalizzati.
      */
     public static final String CUSTOM_PARAMETER_KEY = "CUSTOM";
     /**
-     * Mappa per i parametri aggiuntivi con le relative etichette.
-     * Contiene i parametri predefiniti e le loro descrizioni.
+     * Mappa per i parametri aggiuntivi predefiniti con le relative etichette (incluse unità).
+     * Contiene i parametri standard e le loro descrizioni.
      */
     public static final Map<String, String> ADDITIONAL_PARAMETERS = new LinkedHashMap<>();
     /**
@@ -92,55 +95,56 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
     private static final Logger logger = LoggerFactory.getLogger(TempoView.class);
 
     static {
-        // Cardiologia / Monitor Multiparametrico
+        // Popolamento della mappa dei parametri aggiuntivi predefiniti
+        // (Cardiologia / Monitor Multiparametrico)
         ADDITIONAL_PARAMETERS.put("PVC", "Pressione Venosa Centrale (cmH₂O)");
         ADDITIONAL_PARAMETERS.put("QTc", "QT/QTc (ms)");
         ADDITIONAL_PARAMETERS.put("ST", "Segmento ST (mV)");
         ADDITIONAL_PARAMETERS.put("SI", "Indice di Shock (FC/PA sistolica)");
 
-        // Pneumologia / Ventilazione
+        // (Pneumologia / Ventilazione)
         ADDITIONAL_PARAMETERS.put("PIP", "Pressione Inspiratoria Positiva (cmH₂O)");
         ADDITIONAL_PARAMETERS.put("VT", "Volume Corrente (mL/kg)");
         ADDITIONAL_PARAMETERS.put("COMP", "Compliance Polmonare (mL/cmH₂O)");
         ADDITIONAL_PARAMETERS.put("RAW", "Resistenza Vie Aeree (cmH₂O/L/s)");
         ADDITIONAL_PARAMETERS.put("RSBI", "Indice di Tobin (atti/min/L)");
 
-        // Neurologia / Neuro Monitoraggio
+        // (Neurologia / Neuro Monitoraggio)
         ADDITIONAL_PARAMETERS.put("GCS", "Scala di Glasgow (3-15)");
         ADDITIONAL_PARAMETERS.put("ICP", "Pressione Intracranica (mmHg)");
-        ADDITIONAL_PARAMETERS.put("PRx", "Indice di Pressione Cerebrale");
+        ADDITIONAL_PARAMETERS.put("PRx", "Indice di Pressione Cerebrale"); // Unità? Aggiungere se nota
         ADDITIONAL_PARAMETERS.put("BIS", "Bispectral Index (0-100)");
         ADDITIONAL_PARAMETERS.put("TOF", "Train of Four (%)");
 
-        // Emodinamica / Terapia Intensiva
+        // (Emodinamica / Terapia Intensiva)
         ADDITIONAL_PARAMETERS.put("CO", "Gittata Cardiaca (L/min)");
         ADDITIONAL_PARAMETERS.put("CI", "Indice Cardiaco (L/min/m²)");
         ADDITIONAL_PARAMETERS.put("PCWP", "Pressione Capillare Polmonare (mmHg)");
         ADDITIONAL_PARAMETERS.put("SvO2", "Saturazione Venosa Mista (%)");
         ADDITIONAL_PARAMETERS.put("SVR", "Resistenza Vascolare Sistemica (dyn·s·cm⁻⁵)");
 
-        // Metabolismo / Elettroliti
+        // (Metabolismo / Elettroliti)
         ADDITIONAL_PARAMETERS.put("GLY", "Glicemia (mg/dL)");
         ADDITIONAL_PARAMETERS.put("LAC", "Lattati (mmol/L)");
         ADDITIONAL_PARAMETERS.put("NA", "Sodio (mmol/L)");
         ADDITIONAL_PARAMETERS.put("K", "Potassio (mmol/L)");
         ADDITIONAL_PARAMETERS.put("CA", "Calcio ionizzato (mmol/L)");
 
-        // Nefrologia / Diuresi
+        // (Nefrologia / Diuresi)
         ADDITIONAL_PARAMETERS.put("UO", "Diuresi oraria (mL/h)");
         ADDITIONAL_PARAMETERS.put("CR", "Creatinina (mg/dL)");
         ADDITIONAL_PARAMETERS.put("BUN", "Azotemia (mg/dL)");
 
-        // Infettivologia / Stato Infettivo
+        // (Infettivologia / Stato Infettivo)
         ADDITIONAL_PARAMETERS.put("WBC", "Globuli Bianchi (10³/μL)");
-        ADDITIONAL_PARAMETERS.put("qSOFA", "qSOFA (0-4)");
+        ADDITIONAL_PARAMETERS.put("qSOFA", "qSOFA (0-4)"); // Unità? Scala numerica
 
-        // Coagulazione / Ematologia
-        ADDITIONAL_PARAMETERS.put("INR", "INR");
+        // (Coagulazione / Ematologia)
+        ADDITIONAL_PARAMETERS.put("INR", "INR"); // Adimensionale
         ADDITIONAL_PARAMETERS.put("PTT", "PTT (sec)");
         ADDITIONAL_PARAMETERS.put("PLT", "Piastrine (10³/μL)");
 
-        //Altri Monitoraggi Specializzati
+        //(Altri Monitoraggi Specializzati)
         ADDITIONAL_PARAMETERS.put("pCO₂ cutanea", "pCO₂ cutanea (mmHg)");
         ADDITIONAL_PARAMETERS.put("NIRS", "Ossimetria cerebrale (%)");
     }
@@ -159,17 +163,25 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         mainLayout.setSizeFull();
         mainLayout.setPadding(false);
         mainLayout.setSpacing(false);
-        mainLayout.getStyle().set("min-height", "100vh");
+        mainLayout.getStyle().set("min-height", "100vh"); // Assicura altezza minima
 
-        // 1. HEADER con pulsante indietro e titolo
+        // 1. HEADER con pulsante indietro e titolo dell'applicazione
         AppHeader header = new AppHeader();
 
-        // Pulsante indietro con RouterLink
+        // Pulsante indietro con RouterLink per tornare alla vista precedente specifica
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        backButton.addClickListener(e -> backButton.getUI().ifPresent(ui -> ui.navigate("esameFisico/" + scenarioId)));
+        backButton.addClickListener(e -> {
+            // Naviga indietro a seconda dello stato (es. a esameFisico se scenarioId è valido)
+            if (scenarioId > 0) {
+                backButton.getUI().ifPresent(ui -> ui.navigate("esameFisico/" + scenarioId));
+            } else {
+                // Fallback se scenarioId non è ancora definito (improbabile ma sicuro)
+                backButton.getUI().ifPresent(ui -> ui.getPage().getHistory().back());
+            }
+        });
 
-
+        // Layout per l'header personalizzato (pulsante indietro + header app)
         HorizontalLayout customHeader = new HorizontalLayout();
         customHeader.setWidthFull();
         customHeader.setPadding(true);
@@ -180,19 +192,20 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         // 2. CONTENUTO PRINCIPALE
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.setWidth("100%");
-        contentLayout.setMaxWidth("1200px");
+        contentLayout.setMaxWidth("1200px"); // Larghezza massima per leggibilità
         contentLayout.setPadding(true);
-        contentLayout.setSpacing(false);
-        contentLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        contentLayout.setSpacing(false); // Spaziatura gestita dai margini dei componenti
+        contentLayout.setAlignItems(FlexComponent.Alignment.CENTER); // Centra il contenuto
         contentLayout.getStyle()
-                .set("margin", "0 auto")
-                .set("flex-grow", "1");
+                .set("margin", "0 auto") // Centra orizzontalmente il layout
+                .set("flex-grow", "1"); // Fa espandere il contenuto per riempire lo spazio
 
         // Titolo della pagina
-        H2 pageTitle = new H2("TEMPO");
+        H2 pageTitle = new H2("DEFINIZIONE TEMPI SCENARIO");
         pageTitle.addClassNames(
                 LumoUtility.TextAlignment.CENTER,
                 LumoUtility.Margin.Bottom.LARGE,
+                LumoUtility.Margin.Top.MEDIUM, // Aggiunto margine superiore
                 LumoUtility.Margin.Horizontal.AUTO
         );
         pageTitle.getStyle()
@@ -200,100 +213,116 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                 .set("color", "var(--lumo-primary-text-color)")
                 .set("width", "100%");
 
-        // Istruzioni
+        // Testo di istruzioni per l'utente
         Paragraph instructionText = new Paragraph(
-                "Definisci i tempi dello scenario. Per ogni tempo (T0, T1, T2, ecc.) specifica i parametri " +
-                        "e le transizioni possibili. T0 rappresenta lo stato iniziale.");
+                "Definisci i tempi dello scenario (T0, T1, T2...). Per ogni tempo, specifica i parametri vitali, " +
+                        "eventuali parametri aggiuntivi, l'azione richiesta per procedere e le transizioni possibili (Tempo SI / Tempo NO). " +
+                        "T0 rappresenta lo stato iniziale del paziente.");
         instructionText.setWidth("100%");
         instructionText.getStyle().set("font-size", "var(--lumo-font-size-m)");
-        instructionText.addClassName(LumoUtility.Margin.Bottom.LARGE);
+        instructionText.addClassNames(LumoUtility.TextAlignment.CENTER, LumoUtility.Margin.Bottom.LARGE);
 
-        // Container per le sezioni dei tempi
+        // Container per le sezioni dei tempi (T0, T1, T2...)
         timeSectionsContainer = new VerticalLayout();
         timeSectionsContainer.setWidthFull();
-        timeSectionsContainer.setSpacing(true);
+        timeSectionsContainer.setSpacing(true); // Spazio tra le sezioni T0, T1...
 
-        // Pulsante per aggiungere nuovi tempi
-        Button addTimeButton = new Button("Aggiungi Tempo", new Icon(VaadinIcon.PLUS));
+        // Pulsante per aggiungere nuovi tempi (T1, T2, T3...)
+        Button addTimeButton = new Button("Aggiungi Tempo (Tn)", new Icon(VaadinIcon.PLUS));
         addTimeButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        addTimeButton.addClassName(LumoUtility.Margin.Top.MEDIUM);
+        addTimeButton.addClassName(LumoUtility.Margin.Top.XLARGE); // Aumentato margine
         addTimeButton.addClickListener(event -> addTimeSection(timeCount++));
 
+        // Aggiunta dei componenti al layout del contenuto
         contentLayout.add(pageTitle, instructionText, timeSectionsContainer, addTimeButton);
 
-        // 3. FOOTER
+        // 3. FOOTER con crediti e pulsante Avanti
         HorizontalLayout footerLayout = new HorizontalLayout();
         footerLayout.setWidthFull();
         footerLayout.setPadding(true);
+        footerLayout.setSpacing(true); // Aggiunto spacing
         footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        footerLayout.addClassName(LumoUtility.Margin.Top.LARGE); // Aggiunto margine sopra il footer
 
-        nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
+        // Pulsante per salvare e andare avanti
+        nextButton = new Button("Salva e Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
+        nextButton.setIconAfterText(true); // Icona a destra
         nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        nextButton.setWidth("150px");
+        nextButton.setWidth("auto"); // Larghezza automatica
         nextButton.addClickListener(e -> saveAllTimeSections());
 
+        // Testo crediti
         Paragraph credits = new Paragraph("Sviluppato e creato da Alessandro Zappatore");
-        credits.addClassName(LumoUtility.TextColor.SECONDARY);
-        credits.addClassName(LumoUtility.FontSize.XSMALL);
+        credits.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
         credits.getStyle().set("margin", "0");
 
         footerLayout.add(credits, nextButton);
 
-        // Aggiunta dei layout principali
+        // Assemblaggio finale: aggiunta header, contenuto e footer al layout principale
         mainLayout.add(customHeader, contentLayout, footerLayout);
     }
 
     /**
-     * Imposta il parametro URL per la vista.
-     * Carica i dati iniziali e gestisce eventuali errori di formato.
+     * Imposta il parametro URL (ID dello scenario) per la vista.
+     * Carica i dati iniziali o esistenti in base alla modalità ("create" o "edit").
+     * Gestisce eventuali errori di formato o ID non valido.
      *
-     * @param event     evento di navigazione
-     * @param parameter parametro passato nell'URL
+     * @param event     evento di navigazione (contiene informazioni sull'URL)
+     * @param parameter parametro ID passato nell'URL (può essere nullo)
      */
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
         try {
+            // Controllo se il parametro ID è presente e valido
             if (parameter == null || parameter.trim().isEmpty()) {
-                logger.warn("Scenario ID mancante nell'URL.");
-                throw new NumberFormatException("Scenario ID è richiesto");
+                logger.warn("ID Scenario mancante nell'URL.");
+                throw new NumberFormatException("ID Scenario è richiesto");
             }
 
-            this.scenarioId = Integer.parseInt(parameter);
+            this.scenarioId = Integer.parseInt(parameter.trim()); // Rimuove spazi extra
+
+            // Verifica esistenza scenario nel DB
             if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
-                logger.warn("Scenario ID non valido o non esistente: {}", scenarioId);
-                throw new NumberFormatException("Scenario ID non valido");
+                logger.warn("ID Scenario non valido o non esistente: {}", scenarioId);
+                throw new NumberFormatException("ID Scenario non valido");
             }
-            logger.info("Scenario ID impostato a: {}", this.scenarioId);
+            logger.info("ID Scenario impostato a: {}", this.scenarioId);
 
         } catch (NumberFormatException e) {
-            logger.error("Errore nel parsing o validazione dello Scenario ID: {}", parameter, e);
-            event.rerouteToError(NotFoundException.class, "ID scenario " + parameter + " non valido o mancante.");
-            return; // Interrompi l'esecuzione se l'ID non è valido
+            logger.error("Errore nel parsing o validazione dell'ID Scenario: '{}'", parameter, e);
+            // Reindirizza a una pagina di errore se l'ID non è valido
+            event.rerouteToError(NotFoundException.class, "ID scenario '" + parameter + "' non valido o mancante.");
+            return; // Interrompe l'esecuzione qui
         }
 
+        // Estrazione del parametro 'mode' dalla query string (?mode=edit)
         Location location = event.getLocation();
         QueryParameters queryParameters = location.getQueryParameters();
         Map<String, List<String>> parametersMap = queryParameters.getParameters();
 
+        // Ottiene il valore di 'mode', lo mette in minuscolo e gestisce assenza/valori vuoti
         Optional<String> modeOptional = Optional.ofNullable(parametersMap.get("mode"))
-                .filter(list -> !list.isEmpty() && list.getFirst() != null && !list.getFirst().isBlank()) // Assicurati che la lista e il primo elemento non siano null/vuoti
-                .map(list -> list.getFirst().trim().toLowerCase()); // Prendi il primo, togli spazi, metti in minuscolo
+                .filter(list -> !list.isEmpty() && list.getFirst() != null && !list.getFirst().isBlank())
+                .map(list -> list.getFirst().trim().toLowerCase());
 
+        // Imposta la modalità, default a "create" se non specificata o non valida
         mode = modeOptional.orElse("create");
 
-        logger.info("Navigato a EsamiRefertiView. Scenario ID: {}, Mode: {}", this.scenarioId, mode);
+        logger.info("Navigato a TempoView. Scenario ID: {}, Mode: {}", this.scenarioId, mode);
 
+        // Carica i dati in base alla modalità
         if ("edit".equals(mode)) {
-            logger.info("Modalità EDIT: caricamento dati esistenti per scenario {}", this.scenarioId);
-            loadExistingTimes(); // Implementa questo metodo
+            logger.info("Modalità EDIT: caricamento dati Tempi esistenti per scenario {}", this.scenarioId);
+            loadInitialData(); // Carica sempre T0 se esiste
+            loadExistingTimes(); // Carica T1, T2... esistenti
         } else if ("create".equals(mode)) {
-            loadInitialData();
-            logger.info("Modalità CREATE: aggiunta prima riga vuota per scenario {}", this.scenarioId);
+            logger.info("Modalità CREATE: caricamento dati iniziali T0 e preparazione per nuovi tempi per scenario {}", this.scenarioId);
+            loadInitialData(); // Carica T0 se esiste, altrimenti aggiunge sezione T0 vuota
         } else {
-            // Gestisci modalità non riconosciute, se necessario
+            // Gestisce modalità non riconosciute, se necessario
             Notification.show("Modalità non riconosciuta. Utilizzo modalità 'create' di default.", 3000, Notification.Position.MIDDLE);
-            logger.warn("Modalità '{}' non riconosciuta. Verrà utilizzata la modalità 'create'.", mode);
+            logger.warn("Modalità '{}' non riconosciuta per scenario {}. Verrà utilizzata la modalità 'create'.", mode, scenarioId);
             mode = "create"; // Fallback a uno stato noto
             loadInitialData();
         }
@@ -301,273 +330,358 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
 
     /**
      * Aggiunge una nuova sezione temporale (T1, T2, ecc.) al layout.
-     * Ogni sezione contiene campi per i parametri vitali e le azioni da eseguire.
+     * Ogni sezione contiene campi per i parametri vitali, azioni e parametri aggiuntivi.
      *
-     * @param timeNumber numero del tempo corrente (T0, T1, T2, ecc.)
+     * @param timeNumber numero del tempo corrente (1 per T1, 2 per T2, ecc.)
      */
     private void addTimeSection(int timeNumber) {
+        // Verifica se una sezione per questo numero esiste già (utile in modalità edit)
+        boolean alreadyExists = timeSections.stream().anyMatch(ts -> ts.getTimeNumber() == timeNumber);
+        if (alreadyExists) {
+            logger.debug("Sezione per T{} esiste già, non viene aggiunta di nuovo.", timeNumber);
+            return;
+        }
+
+        // Crea la nuova sezione
         TimeSection timeSection = new TimeSection(timeNumber);
         timeSections.add(timeSection);
-        timeSectionsContainer.add(timeSection.getLayout());
+        // Ordina le sezioni per numero prima di aggiungerle al container
+        timeSections.sort(Comparator.comparingInt(TimeSection::getTimeNumber));
+        // Rimuove e riaggiunge tutto per mantenere l'ordine visivo
+        timeSectionsContainer.removeAll();
+        timeSections.forEach(ts -> timeSectionsContainer.add(ts.getLayout()));
 
+
+        // Nasconde il pulsante "Rimuovi" per la sezione T0
         if (timeNumber == 0) {
             timeSection.hideRemoveButton();
         }
 
         // Aggiungi pulsante per parametri aggiuntivi a tutte le sezioni (incluso T0)
-        Button addParamsButton = new Button("Aggiungi Parametri", new Icon(VaadinIcon.PLUS));
+        Button addParamsButton = new Button("Aggiungi Parametri Aggiuntivi", new Icon(VaadinIcon.PLUS));
         addParamsButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        addParamsButton.addClassName(LumoUtility.Margin.Top.SMALL);
+        addParamsButton.addClassName(LumoUtility.Margin.Top.SMALL); // Margine sopra il pulsante
         addParamsButton.addClickListener(e -> showAdditionalParamsDialog(timeSection));
 
-        // Aggiungi il pulsante al form layout
+        // Aggiungi il pulsante sotto i campi dei parametri base
+        // Trova il FormLayout dei parametri medici per aggiungere il pulsante alla fine
         timeSection.getMedicalParamsForm().add(addParamsButton);
     }
 
     /**
-     * Mostra un dialog per selezionare i parametri aggiuntivi.
-     * Permette di aggiungere parametri predefiniti o personalizzati.
+     * Mostra un dialog per selezionare parametri aggiuntivi da una lista predefinita
+     * o per creare un nuovo parametro personalizzato.
      *
-     * @param timeSection sezione temporale corrente
+     * @param timeSection la sezione temporale a cui aggiungere i parametri
      */
     private void showAdditionalParamsDialog(TimeSection timeSection) {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Seleziona Parametri Aggiuntivi");
+        dialog.setHeaderTitle("Seleziona Parametri Aggiuntivi per T" + timeSection.getTimeNumber());
+        dialog.setWidth("600px"); // Larghezza maggiore per il contenuto
 
-        // Add search field
+        // Campo di ricerca per filtrare i parametri
         TextField searchField = new TextField();
         searchField.setPlaceholder("Cerca parametri...");
         searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
         searchField.setWidthFull();
+        searchField.setClearButtonVisible(true); // Pulsante per pulire la ricerca
 
-        Button addCustomParamButton = new Button("Nuovo Parametro Personalizzato",
+        // Pulsante per aprire il dialog di creazione parametro personalizzato
+        Button addCustomParamButton = new Button("Crea Nuovo Parametro Personalizzato",
                 new Icon(VaadinIcon.PLUS_CIRCLE));
         addCustomParamButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         addCustomParamButton.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
         addCustomParamButton.addClickListener(e -> {
-            dialog.close();
-            showCustomParamDialog(timeSection);
+            dialog.close(); // Chiude il dialog corrente
+            showCustomParamDialog(timeSection); // Apre il dialog per il parametro custom
         });
 
-        // Ottieni i parametri già selezionati
-        Set<String> alreadySelected = timeSection.getCustomParameters().keySet();
+        // Ottieni i parametri (identificati dalla chiave, es. "PVC" o "CUSTOM_...") già presenti in questa sezione
+        Set<String> alreadySelectedKeys = timeSection.getCustomParameters().keySet();
 
-        // Filtra i parametri disponibili
-        List<String> availableParams = ADDITIONAL_PARAMETERS.entrySet().stream()
-                .filter(entry -> !alreadySelected.contains(entry.getKey()))
-                .map(Map.Entry::getValue)
+        // Filtra i parametri predefiniti disponibili (mostra solo quelli non ancora aggiunti)
+        List<String> availableParamsLabels = ADDITIONAL_PARAMETERS.entrySet().stream()
+                .filter(entry -> !alreadySelectedKeys.contains(entry.getKey())) // Filtra per chiave
+                .map(Map.Entry::getValue) // Ottiene l'etichetta completa (es. "Glicemia (mg/dL)")
                 .collect(Collectors.toList());
 
+        // CheckboxGroup per selezionare i parametri predefiniti
         CheckboxGroup<String> paramsSelector = new CheckboxGroup<>();
-        paramsSelector.setItems(availableParams);
-        paramsSelector.addThemeVariants(CheckboxGroupVariant.LUMO_VERTICAL);
+        paramsSelector.setItems(availableParamsLabels); // Imposta gli elementi disponibili
+        paramsSelector.addThemeVariants(CheckboxGroupVariant.LUMO_VERTICAL); // Layout verticale
         paramsSelector.setWidthFull();
+        paramsSelector.getStyle().set("max-height", "300px").set("overflow-y", "auto"); // Altezza massima con scroll
 
-        // Add search functionality
+        // Funzionalità di ricerca: filtra la lista visualizzata nel CheckboxGroup
         searchField.addValueChangeListener(e -> {
-            String searchTerm = e.getValue().toLowerCase();
-            List<String> filteredParams = availableParams.stream()
-                    .filter(param -> param.toLowerCase().contains(searchTerm))
+            String searchTerm = e.getValue() != null ? e.getValue().trim().toLowerCase() : "";
+            List<String> filteredParams = availableParamsLabels.stream()
+                    .filter(paramLabel -> paramLabel.toLowerCase().contains(searchTerm))
                     .collect(Collectors.toList());
-            paramsSelector.setItems(filteredParams);
+            paramsSelector.setItems(filteredParams); // Aggiorna gli elementi visualizzati
         });
 
-        Button confirmButton = new Button("Conferma", e -> {
-            paramsSelector.getSelectedItems().forEach(param -> {
+        // Pulsante di conferma per aggiungere i parametri selezionati
+        Button confirmButton = new Button("Aggiungi Selezionati", e -> {
+            paramsSelector.getSelectedItems().forEach(selectedLabel -> { // selectedLabel è l'etichetta completa
+                // Trova la chiave (es. "PVC") corrispondente all'etichetta selezionata
                 String paramKey = ADDITIONAL_PARAMETERS.entrySet().stream()
-                        .filter(entry -> entry.getValue().equals(param))
+                        .filter(entry -> entry.getValue().equals(selectedLabel))
                         .findFirst()
                         .map(Map.Entry::getKey)
-                        .orElse("");
+                        .orElse(""); // Chiave vuota se non trovata (improbabile)
 
                 if (!paramKey.isEmpty()) {
-                    timeSection.addCustomParameter(paramKey, param);
+                    // Estrae l'unità di misura dall'etichetta selezionata
+                    String unit = "";
+                    if (selectedLabel.contains("(") && selectedLabel.contains(")")) {
+                        try {
+                            unit = selectedLabel.substring(selectedLabel.indexOf("(") + 1, selectedLabel.indexOf(")"));
+                        } catch (IndexOutOfBoundsException ex) {
+                            unit = ""; // Fallback se il formato non è corretto
+                        }
+                    }
+                    // Aggiunge il parametro alla sezione, passando chiave, etichetta e unità
+                    timeSection.addCustomParameter(paramKey, selectedLabel, unit);
                 }
             });
-            dialog.close();
+            dialog.close(); // Chiude il dialog dopo l'aggiunta
         });
         confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
+        // Pulsante per annullare
         Button cancelButton = new Button("Annulla", e -> dialog.close());
 
-        HorizontalLayout buttons = new HorizontalLayout(confirmButton, cancelButton);
-        buttons.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+        // Layout per i pulsanti del dialog
+        HorizontalLayout buttonsLayout = new HorizontalLayout(confirmButton, cancelButton);
+        buttonsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END); // Allinea a destra
 
+        // Layout verticale per il contenuto del dialog
         VerticalLayout dialogContent = new VerticalLayout(
-                addCustomParamButton,
-                searchField,
+                addCustomParamButton, // Pulsante per custom
+                searchField, // Campo di ricerca
                 new Paragraph("Seleziona dai parametri predefiniti:"),
-                paramsSelector
+                paramsSelector // Checkbox dei parametri predefiniti
         );
-        dialog.add(dialogContent, buttons);
-        dialog.open();
+        dialogContent.setPadding(false);
+        dialogContent.setSpacing(true);
+
+        // Aggiunge contenuto e pulsanti al dialog
+        dialog.add(dialogContent, buttonsLayout);
+        dialog.open(); // Mostra il dialog
     }
 
     /**
-     * Mostra un dialog per aggiungere un parametro personalizzato.
-     * Permette di definire il nome, l'unità di misura e il valore del parametro.
+     * Mostra un dialog per aggiungere un nuovo parametro personalizzato (non predefinito).
+     * Permette di definire nome, unità di misura e valore iniziale.
      *
-     * @param timeSection sezione temporale corrente
+     * @param timeSection la sezione temporale a cui aggiungere il parametro
      */
     private void showCustomParamDialog(TimeSection timeSection) {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Aggiungi Parametro Personalizzato");
+        dialog.setHeaderTitle("Aggiungi Parametro Personalizzato a T" + timeSection.getTimeNumber());
+        dialog.setWidth("450px"); // Larghezza adeguata
 
+        // Campo per il nome del parametro (obbligatorio)
         TextField nameField = new TextField("Nome parametro");
         nameField.setWidthFull();
-        nameField.setRequired(true);
+        nameField.setRequiredIndicatorVisible(true); // Indica che è obbligatorio
+        nameField.setErrorMessage("Il nome del parametro è obbligatorio");
 
-        TextField unitField = new TextField("Unità di misura");
+        // Campo per l'unità di misura (opzionale)
+        TextField unitField = new TextField("Unità di misura (opzionale)");
         unitField.setWidthFull();
 
-        TextField valueField = new TextField("Valore");
+        // Campo per il valore iniziale (opzionale, numerico)
+        NumberField valueField = new NumberField("Valore iniziale (opzionale)"); // Usiamo NumberField
         valueField.setWidthFull();
 
-        Button saveButton = new Button("Salva", e -> {
-            String paramName = nameField.getValue();
-            String unit = unitField.getValue();
-            String value = valueField.getValue();
+        // Pulsante per salvare il parametro personalizzato
+        Button saveButton = new Button("Salva Parametro", e -> {
+            String paramName = nameField.getValue() != null ? nameField.getValue().trim() : "";
+            String unit = unitField.getValue() != null ? unitField.getValue().trim() : "";
+            Double initialValue = valueField.getValue(); // Ottiene il valore Double
 
-            if (paramName == null || paramName.trim().isEmpty()) {
-                Notification.show("Inserisci un nome per il parametro",
-                        3000, Notification.Position.MIDDLE);
+            // Validazione: controlla se il nome è stato inserito
+            if (paramName.isEmpty()) {
+                nameField.setInvalid(true); // Mostra errore sul campo
+                Notification.show(nameField.getErrorMessage(), 3000, Notification.Position.MIDDLE);
+                return; // Interrompe il salvataggio
+            }
+            nameField.setInvalid(false); // Rimuove eventuale errore precedente
+
+            // Crea una chiave unica per il parametro custom (es. CUSTOM_Glicemia_Capillare)
+            String paramKey = CUSTOM_PARAMETER_KEY + "_" + paramName.replaceAll("\\s+", "_");
+
+            // Verifica se un parametro con questa chiave esiste già
+            if (timeSection.getCustomParameters().containsKey(paramKey)) {
+                Notification.show("Un parametro con questo nome esiste già.", 3000, Notification.Position.MIDDLE);
                 return;
             }
 
-            // Create a unique key for custom parameter
-            String paramKey = CUSTOM_PARAMETER_KEY + "_" + paramName.replaceAll("\\s+", "_");
+            // Costruisce l'etichetta completa (Nome (Unità))
             String fullLabel = paramName + (unit.isEmpty() ? "" : " (" + unit + ")");
 
-            // Add to parameters map
-            timeSection.addCustomParameter(paramKey, fullLabel);
+            // Aggiunge il parametro alla sezione, passando chiave, etichetta e unità
+            timeSection.addCustomParameter(paramKey, fullLabel, unit);
 
-            // Set the value if provided
-            if (value != null && !value.isEmpty()) {
-                try {
-                    double numericValue = Double.parseDouble(value);
-                    timeSection.getCustomParameters().get(paramKey).setValue(numericValue);
-                } catch (NumberFormatException ex) {
-                    // If value is not numeric, store it as is
-                    timeSection.getCustomParameters().get(paramKey).setValue(0.0);
-                }
+            // Imposta il valore iniziale se fornito e se il campo è stato effettivamente aggiunto
+            if (initialValue != null && timeSection.getCustomParameters().containsKey(paramKey)) {
+                timeSection.getCustomParameters().get(paramKey).setValue(initialValue);
+            } else if (timeSection.getCustomParameters().containsKey(paramKey)) {
+                // Se nessun valore iniziale è dato, imposta 0.0 o lascia vuoto
+                timeSection.getCustomParameters().get(paramKey).setValue(0.0); // Imposta default 0
             }
 
-            dialog.close();
+            dialog.close(); // Chiude il dialog dopo il salvataggio
         });
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
+        // Pulsante per annullare
         Button cancelButton = new Button("Annulla", e -> dialog.close());
 
-        HorizontalLayout buttons = new HorizontalLayout(saveButton, cancelButton);
-        buttons.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+        // Layout per i pulsanti
+        HorizontalLayout buttonsLayout = new HorizontalLayout(saveButton, cancelButton);
+        buttonsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
 
+        // Layout per il contenuto del dialog
         VerticalLayout dialogContent = new VerticalLayout(
-                new Paragraph("Definisci un nuovo parametro:"),
+                new Paragraph("Definisci un nuovo parametro non presente nella lista:"),
                 nameField,
                 unitField,
                 valueField
         );
-        dialog.add(dialogContent, buttons);
-        dialog.open();
+        dialogContent.setPadding(false);
+        dialogContent.setSpacing(true);
+
+        // Aggiunge contenuto e pulsanti al dialog
+        dialog.add(dialogContent, buttonsLayout);
+        dialog.open(); // Mostra il dialog
     }
 
     /**
-     * Salva tutte le sezioni temporali nel database.
-     * In caso di successo, naviga alla schermata successiva.
+     * Salva tutte le sezioni temporali (T0, T1, T2...) nel database.
+     * Raccoglie i dati da ogni {@link TimeSection}, li invia al {@link ScenarioService}
+     * e naviga alla schermata successiva in caso di successo.
      */
     private void saveAllTimeSections() {
         try {
             List<ScenarioService.TempoData> allTempiData = new ArrayList<>();
 
+            // Prepara i dati per ogni sezione temporale
             for (TimeSection section : timeSections) {
                 ScenarioService.TempoData tempoData = section.prepareDataForSave();
                 allTempiData.add(tempoData);
-                logger.info("Preparato tempo T{}: {}", tempoData.idTempo(), tempoData);
+                logger.info("Dati preparati per salvare tempo T{}: {}", tempoData.idTempo(), tempoData);
             }
 
-            // Salva tutti i tempi nel database
+            // Invia tutti i dati raccolti al servizio per il salvataggio nel DB
             boolean success = scenarioService.saveTempi(scenarioId, allTempiData);
 
             if (success) {
-                Notification.show("Tempi salvati con successo!", 3000, Notification.Position.MIDDLE);
+                Notification.show("Tempi dello scenario salvati con successo!", 3000, Notification.Position.MIDDLE);
                 logger.info("Tempi salvati con successo per scenario {}", scenarioId);
-                switch (mode) {
-                    case "create" -> {
-                        switch (scenarioService.getScenarioType(scenarioId)) {
-                            case "Advanced Scenario":
-                                nextButton.getUI().ifPresent(ui -> ui.navigate("scenari/" + scenarioId));
-                                break;
-                            case "Patient Simulated Scenario":
-                                nextButton.getUI().ifPresent(ui -> ui.navigate("sceneggiatura/" + scenarioId));
-                                break;
-                            default:
-                                Notification.show("Tipo di scenario non riconosciuto", 3000, Notification.Position.MIDDLE);
-                                logger.error("Tipo di scenario non riconosciuto per ID {}", scenarioId);
-                                break;
-                        }
+
+                // Navigazione alla pagina successiva in base alla modalità e tipo scenario
+                if ("create".equals(mode)) {
+                    String scenarioType = scenarioService.getScenarioType(scenarioId);
+                    switch (scenarioType) {
+                        case "Advanced Scenario":
+                            // Potrebbe andare a una dashboard o riepilogo scenario
+                            nextButton.getUI().ifPresent(ui -> ui.navigate("scenari/" + scenarioId)); // Es: Riepilogo scenario
+                            break;
+                        case "Patient Simulated Scenario":
+                            // Va alla definizione della sceneggiatura
+                            nextButton.getUI().ifPresent(ui -> ui.navigate("sceneggiatura/" + scenarioId));
+                            break;
+                        default:
+                            Notification.show("Tipo di scenario non riconosciuto per navigazione", 3000, Notification.Position.MIDDLE);
+                            logger.error("Tipo di scenario '{}' non gestito per navigazione post-salvataggio tempi (ID {})", scenarioType, scenarioId);
+                            // Fallback: rimane sulla pagina o va a una dashboard generica
+                            break;
                     }
-                    case "edit" -> {
-                        Notification.show("Modifiche salvate con successo!", 3000, Notification.Position.MIDDLE);
-                        logger.info("Modifiche salvate con successo per scenario {}", scenarioId);
-                    }
+                } else if ("edit".equals(mode)) {
+                    // In modalità modifica, rimane sulla stessa pagina dopo il salvataggio
+                    Notification.show("Modifiche ai tempi salvate con successo!", 3000, Notification.Position.MIDDLE);
+                    // Non c'è bisogno di navigare altrove
                 }
 
             } else {
-                Notification.show("Errore durante il salvataggio dei tempi", 5000, Notification.Position.MIDDLE);
-                logger.error("Errore durante il salvataggio dei tempi per scenario {}", scenarioId);
+                Notification.show("Errore durante il salvataggio dei tempi nel database.", 5000, Notification.Position.MIDDLE);
+                logger.error("Errore durante il salvataggio dei tempi (scenarioService.saveTempi ha restituito false) per scenario {}", scenarioId);
             }
         } catch (Exception e) {
-            Notification.show("Errore durante il salvataggio: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
-            logger.error("Errore durante il salvataggio dei tempi", e);
+            // Gestisce eccezioni impreviste durante la preparazione o il salvataggio
+            Notification.show("Errore imprevisto durante il salvataggio: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
+            logger.error("Eccezione durante il salvataggio dei tempi per scenario {}", scenarioId, e);
         }
     }
 
     /**
-     * Crea un campo numerico per i parametri medici.
-     * Aggiunge un'unità di misura come suffisso.
+     * Crea un campo numerico ({@link NumberField}) per parametri medici con etichetta e unità.
      *
-     * @param label etichetta del campo
-     * @param unit  unità di misura
-     * @return campo numerico configurato
+     * @param label etichetta del campo (es. "FC (bpm)")
+     * @param unit  unità di misura da mostrare come suffisso (es. "battiti/min")
+     * @return il campo {@link NumberField} configurato
      */
     private NumberField createMedicalField(String label, String unit) {
         NumberField field = new NumberField(label);
-        field.setSuffixComponent(new Paragraph(unit));
-        field.setWidthFull();
-        field.addClassName(LumoUtility.Margin.Bottom.SMALL);
+        if (unit != null && !unit.isEmpty()) {
+            field.setSuffixComponent(new Paragraph(unit)); // Mostra l'unità alla fine
+        }
+        field.setWidthFull(); // Occupa tutta la larghezza disponibile nel layout
+        // field.addClassName(LumoUtility.Margin.Bottom.SMALL); // Margine inferiore (gestito dal FormLayout)
         return field;
     }
 
     /**
-     * Crea un campo di testo per i parametri medici.
-     * Aggiunge un'unità di misura come suffisso.
+     * Crea un campo di testo ({@link TextField}) specifico per la Pressione Arteriosa (PA).
+     * Include l'unità "mmHg" come suffisso.
      *
-     * @return campo di testo configurato
+     * @return il campo {@link TextField} configurato per la PA
      */
-    private TextField createTextField() {
-        TextField field = new TextField("PA (mmHg)");
+    private TextField createTextFieldPA() { // Rinominato per chiarezza
+        TextField field = new TextField("PA (Sist/Diast)"); // Etichetta più descrittiva
         field.setSuffixComponent(new Paragraph("mmHg"));
         field.setWidthFull();
-        field.addClassName(LumoUtility.Margin.Bottom.SMALL);
+        // field.addClassName(LumoUtility.Margin.Bottom.SMALL); // Margine inferiore (gestito dal FormLayout)
+        // Potrebbe avere un pattern per validazione: es. field.setPattern("\\d{1,3}/\\d{1,3}");
+        field.setPlaceholder("es. 120/80");
         return field;
     }
 
     /**
-     * Carica i dati iniziali per la sezione T0.
-     * Se i dati sono già presenti, li precompila nei campi.
+     * Carica i dati iniziali per la sezione T0 (stato iniziale del paziente).
+     * Recupera i parametri da {@link PazienteT0} associato allo scenario.
+     * Se i dati sono presenti, li precompila nei campi della sezione T0 rendendoli non modificabili.
+     * Se T0 non esiste nel DB, aggiunge una sezione T0 vuota e modificabile (solo in create mode?).
      */
     private void loadInitialData() {
         try {
             PazienteT0 pazienteT0 = scenarioService.getPazienteT0ById(scenarioId);
+
+            // Controlla se la sezione T0 è già stata aggiunta (magari da loadExistingTimes in edit mode)
+            Optional<TimeSection> existingT0 = timeSections.stream()
+                    .filter(ts -> ts.getTimeNumber() == 0)
+                    .findFirst();
+
             if (pazienteT0 != null) {
-                // Aggiungi la sezione iniziale per T0 solo se non esiste già
-                if (timeSections.isEmpty()) {
-                    addTimeSection(0);
+                TimeSection t0Section;
+                if (existingT0.isEmpty()) {
+                    // Se T0 non esiste nell'UI ma esiste nel DB (pazienteT0), lo aggiunge
+                    addTimeSection(0); // Aggiunge la sezione T0 all'UI
+                    t0Section = timeSections.stream().filter(ts -> ts.getTimeNumber() == 0).findFirst().orElse(null); // La recupera
+                    if (t0Section == null) { // Check di sicurezza
+                        logger.error("Impossibile trovare la sezione T0 appena aggiunta per scenario {}", scenarioId);
+                        return;
+                    }
+                } else {
+                    // Se T0 esiste già nell'UI (probabilmente da loadExistingTimes), usa quella
+                    t0Section = existingT0.get();
                 }
 
-                TimeSection t0Section = timeSections.getFirst();
 
-                // Imposta i valori nei campi di T0
+                // Imposta i valori nei campi di T0 e li rende read-only
                 t0Section.setPaValue(pazienteT0.getPA());
                 t0Section.setFcValue(pazienteT0.getFC());
                 t0Section.setRrValue(pazienteT0.getRR());
@@ -575,391 +689,570 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                 t0Section.setSpo2Value(pazienteT0.getSpO2());
                 t0Section.setEtco2Value(pazienteT0.getEtCO2());
 
-                // Carica anche i tempi esistenti se presenti
-                loadExistingTimes();
+                // Mostra notifica che T0 non è modificabile qui
+                Notification.show("I parametri base di T0 derivano dallo stato iniziale del paziente e non sono modificabili qui.",
+                        4000, Notification.Position.BOTTOM_START);
 
-                Notification.show("I parametri di T0 sono precompilati e non modificabili",
-                        3000, Notification.Position.BOTTOM_START);
+                // Carica eventuali parametri aggiuntivi salvati specificamente per T0
+                loadAdditionalParameters(t0Section, 0);
+
+            } else if (existingT0.isEmpty() && "create".equals(mode)) {
+                // Se siamo in modalità creazione e PazienteT0 non esiste nel DB,
+                // e la sezione T0 non è già presente nell'UI, aggiungiamo una T0 vuota e modificabile.
+                logger.info("PazienteT0 non trovato per scenario {}, aggiunta sezione T0 vuota in modalità create.", scenarioId);
+                addTimeSection(0);
+                // In questo caso, i campi rimangono editabili
+            } else if (existingT0.isPresent()) {
+                // Se T0 è nell'UI ma non c'è PazienteT0 nel DB (situazione anomala?),
+                // logga un warning ma lascia i campi editabili.
+                logger.warn("Sezione T0 presente nell'UI ma PazienteT0 non trovato nel DB per scenario {}", scenarioId);
+                // I campi rimarranno editabili come da default
             }
+
         } catch (Exception e) {
-            Notification.show("Errore nel caricamento dei dati iniziali: " + e.getMessage(),
+            Notification.show("Errore nel caricamento dei dati iniziali di T0: " + e.getMessage(),
                     5000, Notification.Position.MIDDLE);
-            logger.error("Errore nel caricamento dei dati iniziali", e);
+            logger.error("Errore durante il caricamento dei dati iniziali (PazienteT0) per scenario {}", scenarioId, e);
         }
     }
 
+
     /**
-     * Carica i tempi esistenti dallo scenario.
-     * Se T0 è già presente, lo rimuove e lo sostituisce con i dati esistenti.
+     * Carica i dati dei tempi esistenti (T1, T2, ...) dallo scenario salvato.
+     * Viene chiamato in modalità "edit" dopo {@link #loadInitialData()}.
+     * Popola le sezioni temporali con i dati recuperati dal database.
      */
     private void loadExistingTimes() {
-        List<Tempo> existingTempi = ScenarioService.getTempiByScenarioId(scenarioId);
+        if (!"edit".equals(mode)) return; // Esegui solo in modalità modifica
+
+        List<Tempo> existingTempi = ScenarioService.getTempiByScenarioId(scenarioId); // Usa il metodo statico corretto
+
         if (!existingTempi.isEmpty()) {
-            // Rimuovi T0 se già caricato da loadInitialData
-            if (!timeSections.isEmpty() && timeSections.getFirst().timeNumber == 0) {
-                timeSections.removeFirst();
-                timeSectionsContainer.removeAll();
+            logger.info("Trovati {} tempi esistenti per scenario {}", existingTempi.size(), scenarioId);
+
+            // Pulisce le sezioni esistenti eccetto T0 se già caricato da loadInitialData
+            // Questo evita duplicati se loadInitialData ha già aggiunto T0.
+            TimeSection t0Section = timeSections.stream().filter(ts -> ts.getTimeNumber() == 0).findFirst().orElse(null);
+            timeSections.clear(); // Rimuove tutto temporaneamente
+            timeSectionsContainer.removeAll(); // Pulisce l'UI
+            if (t0Section != null) {
+                timeSections.add(t0Section); // Riaggiunge T0 se era presente
+                timeSectionsContainer.add(t0Section.getLayout());
             }
 
+
+            // Itera sui tempi recuperati dal DB
             for (Tempo tempo : existingTempi) {
-                // Aggiungi solo tempi successivi a T0
-                if (tempo.getIdTempo() > 0 || timeSections.isEmpty()) {
-                    addTimeSection(tempo.getIdTempo());
-                    TimeSection section = timeSections.getLast();
+                int tempoId = tempo.getIdTempo();
+                // Aggiunge la sezione solo se non è T0 (T0 è gestito da loadInitialData)
+                // o se T0 non era stato aggiunto da loadInitialData
+                boolean t0AlreadyHandled = t0Section != null;
+                if (tempoId > 0 || (!t0AlreadyHandled && tempoId == 0)) {
+                    // Aggiungi la sezione per questo tempo (se non esiste già)
+                    addTimeSection(tempoId); // addTimeSection ora controlla se esiste già
+                    TimeSection section = timeSections.stream()
+                            .filter(ts -> ts.getTimeNumber() == tempoId)
+                            .findFirst()
+                            .orElse(null); // Trova la sezione appena aggiunta/esistente
 
-                    // Imposta i valori base
-                    section.paField.setValue(tempo.getPA());
-                    section.fcField.setValue((double) tempo.getFC());
-                    section.rrField.setValue((double) tempo.getRR());
-                    section.tField.setValue(tempo.getT());
-                    section.spo2Field.setValue((double) tempo.getSpO2());
-                    section.etco2Field.setValue((double) tempo.getEtCO2());
+                    if (section != null) {
+                        // Popola i campi della sezione con i dati del Tempo dal DB
 
-                    // Imposta i campi di azione
-                    section.actionDetailsArea.setValue(tempo.getAzione());
-                    section.timeIfYesField.setValue(tempo.getTSi());
-                    section.timeIfNoField.setValue(tempo.getTNo());
-                    section.additionalDetailsArea.setValue(tempo.getAltriDettagli());
+                        // Imposta i valori base (solo se non è T0 gestito da loadInitialData)
+                        if (tempoId > 0) {
+                            section.paField.setValue(tempo.getPA() != null ? tempo.getPA() : "");
+                            section.fcField.setValue(Optional.ofNullable(tempo.getFC()).map(Double::valueOf).orElse(null));
+                            section.rrField.setValue(Optional.ofNullable(tempo.getRR()).map(Double::valueOf).orElse(null));
+                            section.tField.setValue(Optional.of(tempo.getT()).orElse(null));
+                            section.spo2Field.setValue(Optional.ofNullable(tempo.getSpO2()).map(Double::valueOf).orElse(null));
+                            section.etco2Field.setValue(Optional.ofNullable(tempo.getEtCO2()).map(Double::valueOf).orElse(null));
+                        }
 
-                    // Imposta il timer
-                    if (tempo.getTimerTempo() > 0) {
-                        section.timerPicker.setValue(LocalTime.ofSecondOfDay(tempo.getTimerTempo()));
+                        // Imposta i campi di azione e transizione
+                        section.actionDetailsArea.setValue(tempo.getAzione() != null ? tempo.getAzione() : "");
+                        section.timeIfYesField.setValue(tempo.getTSi()); // Usa l'ID del tempo
+                        section.timeIfNoField.setValue(tempo.getTNo()); // Usa l'ID del tempo
+                        section.additionalDetailsArea.setValue(tempo.getAltriDettagli() != null ? tempo.getAltriDettagli() : "");
+
+                        // Imposta il timer se presente
+                        if (tempo.getTimerTempo() > 0) {
+                            try {
+                                section.timerPicker.setValue(LocalTime.ofSecondOfDay(tempo.getTimerTempo()));
+                            } catch (Exception e) {
+                                logger.warn("Errore nel parsing del timer ({}) per T{} scenario {}", tempo.getTimerTempo(), tempoId, scenarioId, e);
+                                section.timerPicker.setValue(null); // o LocalTime.MIDNIGHT
+                            }
+                        } else {
+                            section.timerPicker.setValue(null); // Timer non impostato
+                        }
+
+                        // Carica i parametri aggiuntivi specifici per questo tempo
+                        loadAdditionalParameters(section, tempoId);
+                    } else {
+                        logger.error("Impossibile trovare/creare la sezione per T{} durante il caricamento scenario {}", tempoId, scenarioId);
                     }
-
-                    // Carica i parametri aggiuntivi
-                    loadAdditionalParameters(section, tempo.getIdTempo());
                 }
             }
+            // Assicurati che il timeCount sia aggiornato al massimo ID esistente + 1
+            timeCount = existingTempi.stream()
+                    .mapToInt(Tempo::getIdTempo)
+                    .max()
+                    .orElse(0) + 1;
+            if (timeCount == 0) timeCount = 1; // Assicura che parta almeno da 1
+
+            // Riordina visivamente le sezioni nel container dopo averle aggiunte tutte
+            timeSections.sort(Comparator.comparingInt(TimeSection::getTimeNumber));
+            timeSectionsContainer.removeAll();
+            timeSections.forEach(ts -> timeSectionsContainer.add(ts.getLayout()));
+
+        } else {
+            logger.info("Nessun tempo (T1, T2...) trovato nel database per scenario {}", scenarioId);
+            // Non fa nulla se non ci sono tempi salvati
         }
     }
 
     /**
-     * Carica i parametri aggiuntivi per il tempo corrente.
-     * Se i parametri esistono, li precompila nei campi.
+     * Carica i parametri aggiuntivi associati a un tempo specifico (tempoId)
+     * per un dato scenario (scenarioId).
+     * Aggiunge i campi corrispondenti alla sezione {@link TimeSection} fornita.
      *
-     * @param section sezione temporale corrente
-     * @param tempoId ID del tempo corrente
+     * @param section la sezione temporale (UI) a cui aggiungere i parametri
+     * @param tempoId l'ID del tempo (0 per T0, 1 per T1, ...) di cui caricare i parametri
      */
     private void loadAdditionalParameters(TimeSection section, int tempoId) {
-        List<ParametroAggiuntivo> params = scenarioService.getParametriAggiuntiviById(tempoId, scenarioId);
-        if (params != null && !params.isEmpty()) {
+        List<ParametroAggiuntivo> params = ScenarioService.getParametriAggiuntiviByTempoId(tempoId, scenarioId);
+
+        if (!params.isEmpty()) {
+            logger.debug("Caricamento di {} parametri aggiuntivi per T{} scenario {}", params.size(), tempoId, scenarioId);
             for (ParametroAggiuntivo param : params) {
-                String paramKey = ADDITIONAL_PARAMETERS.entrySet().stream()
-                        .filter(e -> e.getKey().equals(param.getNome()) ||
-                                e.getValue().contains(param.getNome()))
-                        .map(Map.Entry::getKey)
+                String paramName = param.getNome(); // Nome base dal DB (es. "Glicemia" o "ParamCustom")
+                String unit = param.getUnitaMisura() != null ? param.getUnitaMisura() : ""; // Unità dal DB
+                String valueStr = param.getValore(); // Valore come stringa dal DB
+
+                // Determina la chiave: controlla se è predefinito, altrimenti costruisci la chiave custom
+                // Cerca corrispondenza chiave predefinita (case-insensitive)
+                String paramKey = ADDITIONAL_PARAMETERS.keySet().stream()
+                        .filter(s -> s.equalsIgnoreCase(paramName))
                         .findFirst()
-                        .orElse(CUSTOM_PARAMETER_KEY + "_" + param.getNome());
+                        .orElse(CUSTOM_PARAMETER_KEY + "_" + paramName.replaceAll("\\s+", "_")); // Se non trovato, è custom
 
-                String label = param.getNome();
-                if (param.getUnitaMisura() != null && !param.getUnitaMisura().isEmpty()) {
-                    label += " (" + param.getUnitaMisura() + ")";
+                // Ricostruisci l'etichetta completa per la visualizzazione
+                String label = paramName + (unit.isEmpty() ? "" : " (" + unit + ")");
+
+                // Aggiunge il parametro all'interfaccia utente della sezione
+                // passando chiave, etichetta e unità separate
+                section.addCustomParameter(paramKey, label, unit);
+
+                // Imposta il valore nel campo appena aggiunto, gestendo errori di parsing
+                if (section.getCustomParameters().containsKey(paramKey)) {
+                    try {
+                        if (valueStr != null && !valueStr.trim().isEmpty()) {
+                            double value = Double.parseDouble(valueStr.trim().replace(',', '.')); // Gestisce virgola decimale
+                            section.getCustomParameters().get(paramKey).setValue(value);
+                        } else {
+                            section.getCustomParameters().get(paramKey).setValue(0.0); // Default se vuoto
+                        }
+                    } catch (NumberFormatException e) {
+                        logger.error("Errore parsing valore '{}' per parametro '{}' (T{}, Scenario {}). Impostato a 0.",
+                                valueStr, paramName, tempoId, scenarioId, e);
+                        section.getCustomParameters().get(paramKey).setValue(0.0); // Default in caso di errore
+                    } catch (NullPointerException e) {
+                        logger.error("Errore: valore nullo per parametro '{}' (T{}, Scenario {}). Impostato a 0.",
+                                paramName, tempoId, scenarioId, e);
+                        section.getCustomParameters().get(paramKey).setValue(0.0); // Default se valore è null
+                    }
+                } else {
+                    // Logga un errore se il campo non è stato trovato dopo l'aggiunta (non dovrebbe succedere)
+                    logger.warn("Campo per parametro con chiave '{}' non trovato nell'UI dopo addCustomParameter durante il caricamento (T{}, Scenario {}).",
+                            paramKey, tempoId, scenarioId);
                 }
-
-                section.addCustomParameter(paramKey, label);
-                section.customParameters.get(paramKey).setValue(Double.parseDouble(param.getValore()));
             }
+        } else {
+            logger.debug("Nessun parametro aggiuntivo trovato per T{} scenario {}", tempoId, scenarioId);
         }
     }
 
+
+    // =====================================================================================
+    // CLASSE INTERNA TimeSection
+    // =====================================================================================
+
     /**
-     * Classe interna che rappresenta una sezione temporale (T0, T1, T2, ecc.).
-     * Contiene i campi per i parametri vitali e le azioni da eseguire.
+     * Classe interna che rappresenta una sezione temporale nell'interfaccia utente (T0, T1, T2, ecc.).
+     * Contiene i campi per i parametri vitali base, i parametri aggiuntivi, le azioni
+     * e le transizioni per un specifico momento dello scenario.
      */
     private class TimeSection {
         /**
-         * Numero del tempo corrente (T0, T1, T2, ecc.)
+         * Numero identificativo del tempo (0 per T0, 1 per T1, ...).
          */
         private final int timeNumber;
         /**
-         * Layout principale per la sezione del tempo
+         * Layout principale verticale per questa sezione temporale.
          */
         private final VerticalLayout layout;
         /**
-         * Picker per il timer
+         * Selettore per impostare un timer associato a questo tempo.
          */
         private final TimePicker timerPicker;
         /**
-         * Campo di testo per la pressione arteriosa
+         * Campo di testo per la Pressione Arteriosa (formato stringa es. "120/80").
          */
         private final TextField paField;
         /**
-         * Campo numerico per la frequenza cardiaca
+         * Campo numerico per la Frequenza Cardiaca (bpm).
          */
         private final NumberField fcField;
         /**
-         * Campo numerico per la frequenza respiratoria
+         * Campo numerico per la Frequenza Respiratoria (atti/min).
          */
         private final NumberField rrField;
         /**
-         * Campo numerico per la temperatura
+         * Campo numerico per la Temperatura Corporea (°C).
          */
         private final NumberField tField;
         /**
-         * Campo numerico per la saturazione di ossigeno
+         * Campo numerico per la Saturazione dell'Ossigeno (%).
          */
         private final NumberField spo2Field;
         /**
-         * Campo numerico per la pressione parziale di CO2
+         * Campo numerico per la Capnometria di fine espirazione (mmHg).
          */
         private final NumberField etco2Field;
         /**
-         * Campo di testo per i dettagli dell'azione
+         * Area di testo per descrivere l'azione richiesta per procedere.
          */
         private final TextArea actionDetailsArea;
         /**
-         * Campo numerico per il tempo se la risposta è "sì"
+         * Campo numerico per l'ID del tempo successivo se la condizione/azione è SI.
          */
         private final IntegerField timeIfYesField;
         /**
-         * Campo numerico per il tempo se la risposta è "no"
+         * Campo numerico per l'ID del tempo successivo se la condizione/azione è NO.
          */
         private final IntegerField timeIfNoField;
         /**
-         * Campo di testo per eventuali dettagli aggiuntivi
+         * Area di testo per eventuali dettagli aggiuntivi o note su questo tempo.
          */
         private final TextArea additionalDetailsArea;
         /**
-         * Pulsante per rimuovere la sezione del tempo
-         */
-        private final Button removeButton;
-        /**
-         * Form layout per i parametri medici
+         * Layout (FormLayout) che contiene i campi dei parametri medici base.
          */
         private final FormLayout medicalParamsForm;
         /**
-         * Container per i parametri personalizzati
+         * Layout verticale che contiene i campi dei parametri aggiuntivi/personalizzati.
          */
         private final VerticalLayout customParamsContainer;
         /**
-         * Mappa per i parametri personalizzati
+         * Mappa che associa la chiave di un parametro aggiuntivo (es. "PVC" o "CUSTOM_Glicemia") al suo campo {@link NumberField}.
          */
         private final Map<String, NumberField> customParameters = new HashMap<>();
         /**
-         * Layout per i parametri personalizzati
+         * Mappa che associa la chiave di un parametro aggiuntivo alla sua unità di misura (Stringa).
+         * Usata per recuperare l'unità durante il salvataggio.
+         */
+        private final Map<String, String> customParameterUnits = new HashMap<>();
+        /**
+         * Mappa che associa la chiave di un parametro aggiuntivo al layout orizzontale (campo + pulsante rimuovi) che lo contiene.
          */
         private final Map<String, HorizontalLayout> customParameterLayouts = new HashMap<>();
 
         /**
-         * Costruttore per la sezione temporale.
-         * Inizializza i campi e il layout della sezione.
+         * Costruttore per una sezione temporale.
+         * Inizializza l'interfaccia utente (campi e layout) per questa sezione.
          *
-         * @param timeNumber numero del tempo corrente (T0, T1, T2, ecc.)
+         * @param timeNumber il numero identificativo di questo tempo (0, 1, 2...).
          */
         public TimeSection(int timeNumber) {
             this.timeNumber = timeNumber;
 
+            // Layout principale della sezione
             layout = new VerticalLayout();
-            layout.addClassName(LumoUtility.Padding.MEDIUM);
-            layout.addClassName(LumoUtility.Border.ALL);
-            layout.addClassName(LumoUtility.BorderColor.CONTRAST_10);
-            layout.addClassName(LumoUtility.BorderRadius.MEDIUM);
+            layout.addClassName(LumoUtility.Padding.MEDIUM); // Padding interno
+            layout.addClassName(LumoUtility.Border.ALL); // Bordo su tutti i lati
+            layout.addClassName(LumoUtility.BorderColor.CONTRAST_10); // Colore bordo leggero
+            layout.addClassName(LumoUtility.BorderRadius.MEDIUM); // Angoli arrotondati
             layout.setPadding(true);
-            layout.setSpacing(false);
+            layout.setSpacing(false); // Spaziatura gestita dai margini interni
 
+            // Titolo della sezione (es. "Tempo T1")
             Paragraph sectionTitle = new Paragraph("Tempo T" + timeNumber);
-            sectionTitle.addClassName(LumoUtility.FontWeight.BOLD);
-            sectionTitle.addClassName(LumoUtility.Margin.Bottom.NONE);
+            sectionTitle.addClassNames(LumoUtility.FontWeight.BOLD, LumoUtility.FontSize.LARGE, LumoUtility.Margin.Bottom.MEDIUM);
 
-            timerPicker = new TimePicker("Timer");
-            timerPicker.setStep(Duration.ofMinutes(1));
-            timerPicker.setValue(LocalTime.parse("00:00"));
-            timerPicker.setWidthFull();
+            // Selettore Timer
+            timerPicker = new TimePicker("Timer associato a T" + timeNumber + " (opzionale)");
+            timerPicker.setStep(Duration.ofSeconds(1)); // Precisione al secondo
+            // timerPicker.setValue(LocalTime.MIDNIGHT); // Valore iniziale nullo o mezzanotte
+            timerPicker.setWidth("200px"); // Larghezza fissa
+            timerPicker.setClearButtonVisible(true);
 
+            // Form Layout per i parametri vitali base
             medicalParamsForm = new FormLayout();
             medicalParamsForm.setResponsiveSteps(
-                    new FormLayout.ResponsiveStep("0", 2),
-                    new FormLayout.ResponsiveStep("500px", 3)
+                    new FormLayout.ResponsiveStep("0", 1), // 1 colonna su schermi piccoli
+                    new FormLayout.ResponsiveStep("500px", 2), // 2 colonne da 500px in su
+                    new FormLayout.ResponsiveStep("800px", 3) // 3 colonne da 800px in su
             );
             medicalParamsForm.setWidthFull();
 
-            paField = createTextField();
-            fcField = createMedicalField("FC (bpm)", "battiti/min");
-            rrField = createMedicalField("FR (rpm)", "respiri/min");
-            tField = createMedicalField("Temperatura (°C)", "°C");
-            spo2Field = createMedicalField("SpO₂ (%)", "%");
-            etco2Field = createMedicalField("EtCO₂ (mmHg)", "mmHg");
+            // Creazione campi parametri base
+            paField = createTextFieldPA(); // Usa il metodo helper specifico per PA
+            fcField = createMedicalField("FC", "bpm");
+            rrField = createMedicalField("FR", "atti/min");
+            tField = createMedicalField("Temp.", "°C");
+            spo2Field = createMedicalField("SpO₂", "%");
+            etco2Field = createMedicalField("EtCO₂", "mmHg");
 
+            // Aggiunta campi al FormLayout
             medicalParamsForm.add(paField, fcField, rrField, tField, spo2Field, etco2Field);
-            medicalParamsForm.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
+            medicalParamsForm.addClassName(LumoUtility.Margin.Bottom.MEDIUM); // Spazio sotto i parametri base
 
-            // Container per parametri aggiuntivi
+            // Container per i parametri aggiuntivi (verrà popolato dinamicamente)
             customParamsContainer = new VerticalLayout();
             customParamsContainer.setWidthFull();
             customParamsContainer.setPadding(false);
-            customParamsContainer.setSpacing(false);
-            medicalParamsForm.add(customParamsContainer);
+            customParamsContainer.setSpacing(false); // Spazio tra i parametri aggiuntivi
+            // Il pulsante "Aggiungi Parametri" viene aggiunto esternamente a questo container nel FormLayout
 
+            // Divisore orizzontale
             Hr divider = new Hr();
             divider.addClassName(LumoUtility.Margin.Vertical.MEDIUM);
 
+            // Titolo per la sezione Azione/Transizioni
             Paragraph actionTitle = new Paragraph(timeNumber == 0 ?
-                    "AZIONE INIZIALE T0" : "AZIONE CORRENTE: T" + timeNumber);
-            actionTitle.getStyle()
-                    .set("font-weight", "bold")
-                    .set("text-align", "center")
-                    .set("width", "100%");
-            actionTitle.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
+                    "DETTAGLI INIZIALI T0" : "AZIONE E TRANSIZIONI PER T" + timeNumber);
+            actionTitle.addClassNames(LumoUtility.FontWeight.SEMIBOLD, LumoUtility.FontSize.MEDIUM, LumoUtility.Margin.Bottom.MEDIUM);
 
-            actionDetailsArea = new TextArea("Azione da svolgere per passare al prossimo Tn");
+            // Area di testo per l'azione
+            actionDetailsArea = new TextArea("Azione richiesta / Evento scatenante per procedere da T" + timeNumber);
             actionDetailsArea.setWidthFull();
-            actionDetailsArea.setMinHeight("100px");
+            actionDetailsArea.setMinHeight("80px"); // Altezza minima
+            actionDetailsArea.setPlaceholder("Es. Somministrare farmaco X, Rilevare parametro Y, Domanda al paziente...");
             actionDetailsArea.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
 
+            // Container per i campi TSi / TNo
             HorizontalLayout timeSelectionContainer = new HorizontalLayout();
             timeSelectionContainer.setWidthFull();
-            timeSelectionContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+            timeSelectionContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER); // Centra il FormLayout interno
 
+            // FormLayout per TSi / TNo
             FormLayout timeSelectionForm = new FormLayout();
-            timeSelectionForm.setResponsiveSteps(
-                    new FormLayout.ResponsiveStep("0", 2)
-            );
-            timeSelectionForm.setWidth("auto");
+            timeSelectionForm.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 2)); // Sempre 2 colonne
+            timeSelectionForm.setWidth("auto"); // Larghezza basata sul contenuto
 
-            timeIfYesField = new IntegerField(timeNumber == 0 ?
-                    "Prossimo tempo se SI" : "Tempo se SI (Tn)");
-            timeIfYesField.setMin(0);
-            timeIfYesField.setWidth("120px");
+            timeIfYesField = new IntegerField("Se SI, vai a T:");
+            timeIfYesField.setMin(0); // Può puntare a T0
+            timeIfYesField.setStepButtonsVisible(true); // Pulsanti +/-
+            timeIfYesField.setWidth("150px"); // Larghezza fissa
+            timeIfYesField.setPlaceholder("ID Tempo");
 
-            timeIfNoField = new IntegerField(timeNumber == 0 ?
-                    "Prossimo tempo se NO" : "Tempo se NO (Tm)");
-            timeIfNoField.setMin(0);
-            timeIfNoField.setWidth("120px");
+            timeIfNoField = new IntegerField("Se NO, vai a T:");
+            timeIfNoField.setMin(0); // Può puntare a T0
+            timeIfNoField.setStepButtonsVisible(true);
+            timeIfNoField.setWidth("150px");
+            timeIfNoField.setPlaceholder("ID Tempo");
 
             timeSelectionForm.add(timeIfYesField, timeIfNoField);
             timeSelectionContainer.add(timeSelectionForm);
             timeSelectionContainer.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
 
-            additionalDetailsArea = new TextArea("Eventuali altri dettagli");
+            // Area di testo per dettagli aggiuntivi
+            additionalDetailsArea = new TextArea("Altri dettagli / Note per T" + timeNumber + " (opzionale)");
             additionalDetailsArea.setWidthFull();
-            additionalDetailsArea.setMinHeight("150px");
+            additionalDetailsArea.setMinHeight("100px");
+            additionalDetailsArea.setPlaceholder("Es. Note per il docente, trigger specifici, stato emotivo del paziente...");
             additionalDetailsArea.addClassName(LumoUtility.Margin.Bottom.LARGE);
 
-            removeButton = new Button("Rimuovi Tempo", new Icon(VaadinIcon.TRASH));
-            removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
+            // Pulsante per rimuovere la sezione (visibile per T1, T2...)
+            Button removeButton = new Button("Rimuovi T" + timeNumber, new Icon(VaadinIcon.TRASH));
+            removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY); // Stile errore leggero
             removeButton.addClickListener(event -> {
+                // Logica di rimozione: rimuove dalla lista e dall'UI
                 timeSections.remove(this);
                 timeSectionsContainer.remove(layout);
+                // Potrebbe essere necessario ri-calcolare timeCount o aggiornare i riferimenti TSi/TNo altrove
+                Notification.show("Tempo T" + timeNumber + " rimosso.", 2000, Notification.Position.BOTTOM_START);
             });
 
-            layout.add(sectionTitle, timerPicker, medicalParamsForm, divider,
+            // Aggiunta di tutti i componenti al layout principale della sezione
+            layout.add(sectionTitle, timerPicker, medicalParamsForm, customParamsContainer, divider,
                     actionTitle, actionDetailsArea, timeSelectionContainer,
-                    additionalDetailsArea, removeButton);
+                    additionalDetailsArea);
+            // Aggiunge il pulsante Rimuovi solo se non è T0 (verrà nascosto se necessario)
+            if (timeNumber > 0) {
+                layout.add(removeButton);
+                layout.setHorizontalComponentAlignment(FlexComponent.Alignment.END, removeButton); // Allinea a destra
+            }
         }
 
         /**
-         * Restituisce il layout principale della sezione temporale.
+         * Restituisce il layout principale ({@link VerticalLayout}) di questa sezione temporale.
          *
-         * @return layout principale
+         * @return il layout della sezione.
          */
         public VerticalLayout getLayout() {
             return layout;
         }
 
         /**
-         * Restituisce il numero del tempo corrente.
+         * Restituisce il numero identificativo di questo tempo (0 per T0, 1 per T1, ...).
          *
-         * @return numero del tempo
+         * @return il numero del tempo.
+         */
+        public int getTimeNumber() {
+            return timeNumber;
+        }
+
+
+        /**
+         * Restituisce il {@link FormLayout} che contiene i campi dei parametri medici base.
+         * Utile per aggiungere dinamicamente il pulsante "Aggiungi Parametri".
+         *
+         * @return il FormLayout dei parametri medici.
          */
         public FormLayout getMedicalParamsForm() {
             return medicalParamsForm;
         }
 
         /**
-         * Restituisce il campo di testo per la pressione arteriosa.
+         * Restituisce la mappa dei parametri aggiuntivi/personalizzati (chiave -> campo NumberField).
          *
-         * @return campo di testo per la pressione arteriosa
+         * @return la mappa dei campi dei parametri aggiuntivi.
          */
         public Map<String, NumberField> getCustomParameters() {
             return customParameters;
         }
 
         /**
-         * Nasconde il pulsante di rimozione della sezione temporale.
+         * Nasconde il pulsante "Rimuovi Tempo". Usato solitamente per la sezione T0.
          */
         public void hideRemoveButton() {
-            removeButton.setVisible(false);
+            // Cerca il pulsante nel layout e lo nasconde se esiste
+            layout.getChildren().filter(Button.class::isInstance)
+                    .map(Button.class::cast)
+                    .filter(button -> button.getText().startsWith("Rimuovi T"))
+                    .findFirst()
+                    .ifPresent(button -> button.setVisible(false));
         }
 
-        /**
-         * Aggiunge un parametro personalizzato alla sezione temporale.
-         * Crea un campo numerico e un pulsante per rimuovere il parametro.
-         *
-         * @param key   chiave del parametro
-         * @param label etichetta del parametro
-         */
-        public void addCustomParameter(String key, String label) {
-            if (!customParameters.containsKey(key)) {
-                NumberField field = createMedicalField(label, getUnitFromLabel(label));
-                customParameters.put(key, field);
 
+        /**
+         * Aggiunge un parametro (predefinito o personalizzato) alla sezione temporale.
+         * Crea un campo numerico {@link NumberField} con un pulsante per rimuoverlo,
+         * e memorizza l'unità di misura associata.
+         *
+         * @param key   la chiave identificativa del parametro (es. "PVC" o "CUSTOM_Nome_Parametro").
+         * @param label l'etichetta completa da visualizzare per il campo (es. "Nome Parametro (unit)").
+         * @param unit  l'unità di misura (stringa) da associare a questo parametro per il salvataggio.
+         */
+        public void addCustomParameter(String key, String label, String unit) {
+            // Controlla se un parametro con questa chiave esiste già per evitare duplicati
+            if (!customParameters.containsKey(key)) {
+                // Crea il campo NumberField usando l'etichetta completa fornita
+                NumberField field = new NumberField(label);
+                field.setWidthFull();
+                // field.addClassName(LumoUtility.Margin.Bottom.XSMALL); // Aggiungi un po' di spazio sotto
+
+                // Memorizza il campo nella mappa dei parametri
+                customParameters.put(key, field);
+                // Memorizza l'unità di misura nella mappa delle unità
+                if (unit != null) {
+                    customParameterUnits.put(key, unit);
+                }
+
+                // Pulsante per rimuovere questo specifico parametro aggiuntivo
                 Button removeParamButton = new Button(new Icon(VaadinIcon.TRASH));
-                removeParamButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
-                removeParamButton.addClassName(LumoUtility.Margin.Left.SMALL);
+                removeParamButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON); // Icona errore piccola
+                removeParamButton.getElement().setAttribute("aria-label", "Rimuovi " + label); // Accessibilità
+                removeParamButton.setTooltipText("Rimuovi " + label); // Testo al passaggio del mouse
+                removeParamButton.addClassName(LumoUtility.Margin.Left.SMALL); // Spazio a sinistra del pulsante
+
+                // Layout orizzontale per contenere il campo e il pulsante di rimozione
+                HorizontalLayout paramLayout = new HorizontalLayout(field, removeParamButton);
+                paramLayout.setAlignItems(FlexComponent.Alignment.BASELINE); // Allinea campo e pulsante sulla base
+                paramLayout.setWidthFull();
+                paramLayout.setFlexGrow(1, field); // Fa espandere il campo per riempire lo spazio
+
+                // Azione del pulsante di rimozione
                 removeParamButton.addClickListener(e -> {
                     HorizontalLayout layoutToRemove = customParameterLayouts.get(key);
                     if (layoutToRemove != null) {
-                        customParamsContainer.remove(layoutToRemove);
-                        customParameters.remove(key);
-                        customParameterLayouts.remove(key);
+                        customParamsContainer.remove(layoutToRemove); // Rimuove il layout dall'UI
+                        customParameters.remove(key); // Rimuove il campo dalla mappa
+                        customParameterLayouts.remove(key); // Rimuove il layout dalla mappa dei layout
+                        customParameterUnits.remove(key); // Rimuove l'unità dalla mappa delle unità
                     }
                 });
 
-                HorizontalLayout paramLayout = new HorizontalLayout(field, removeParamButton);
-                paramLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
-                paramLayout.setWidthFull();
-
+                // Memorizza il layout orizzontale (per poterlo rimuovere)
                 customParameterLayouts.put(key, paramLayout);
+                // Aggiunge il layout del parametro al container dei parametri aggiuntivi
                 customParamsContainer.add(paramLayout);
+
+            } else {
+                logger.warn("Tentativo di aggiungere un parametro con chiave duplicata: {}", key);
             }
         }
 
-        /**
-         * Estrae l'unità di misura dall'etichetta del parametro.
-         *
-         * @param label etichetta del parametro
-         * @return unità di misura
-         */
-        private String getUnitFromLabel(String label) {
-            if (label.contains("(") && label.contains(")")) {
-                return label.substring(label.indexOf("(") + 1, label.indexOf(")"));
-            }
-            return "";
-        }
 
         /**
-         * Prepara i dati per il salvataggio nel database.
-         * Raccoglie i valori dai campi e li restituisce in un oggetto TempoData.
+         * Prepara i dati di questa sezione temporale per il salvataggio nel database.
+         * Raccoglie i valori dai campi dell'interfaccia utente, recupera le unità di misura
+         * memorizzate e li assembla in un oggetto {@link ScenarioService.TempoData}.
          *
-         * @return oggetto TempoData con i dati da salvare
+         * @return un oggetto {@link ScenarioService.TempoData} pronto per essere salvato.
          */
         public ScenarioService.TempoData prepareDataForSave() {
+            // Recupera valori dai campi base, gestendo valori null o vuoti
             LocalTime time = timerPicker.getValue();
-            String pa = paField.getValue() != null ? paField.getValue() : "0/0";
-            double fc = fcField.getValue() != null ? fcField.getValue() : 0;
-            double rr = rrField.getValue() != null ? rrField.getValue() : 0;
-            double t = tField.getValue() != null ? Math.round(tField.getValue() * 10) / 10.0 : 0;
-            double spo2 = spo2Field.getValue() != null ? spo2Field.getValue() : 0;
-            double etco2 = etco2Field.getValue() != null ? etco2Field.getValue() : 0;
+            String pa = paField.getValue() != null ? paField.getValue().trim() : "";
+            double fc = fcField.getValue() != null ? fcField.getValue() : 0.0;
+            double rr = rrField.getValue() != null ? rrField.getValue() : 0.0;
+            double t = tField.getValue() != null ? tField.getValue() : 0.0;
+            double spo2 = spo2Field.getValue() != null ? spo2Field.getValue() : 0.0;
+            double etco2 = etco2Field.getValue() != null ? etco2Field.getValue() : 0.0;
 
-            String actionDescription = actionDetailsArea.getValue();
-            int nextTimeIfYes = timeIfYesField.getValue() != null ? timeIfYesField.getValue() : 0;
-            int nextTimeIfNo = timeIfNoField.getValue() != null ? timeIfNoField.getValue() : 0;
-            String additionalDetails = additionalDetailsArea.getValue();
+            String actionDescription = actionDetailsArea.getValue() != null ? actionDetailsArea.getValue().trim() : "";
+            int nextTimeIfYes = timeIfYesField.getValue() != null ? timeIfYesField.getValue() : 0; // Default a 0 se nullo
+            int nextTimeIfNo = timeIfNoField.getValue() != null ? timeIfNoField.getValue() : 0;   // Default a 0 se nullo
+            String additionalDetails = additionalDetailsArea.getValue() != null ? additionalDetailsArea.getValue().trim() : "";
+            int timerSeconds = (time != null) ? time.toSecondOfDay() : 0; // Timer in secondi, 0 se non impostato
 
-            // Raccogli parametri aggiuntivi con unità di misura
-            Map<String, Double> additionalParams = new HashMap<>();
+            // Raccoglie i parametri aggiuntivi (predefiniti e custom)
+            Map<String, ScenarioService.ParameterValueUnit> additionalParamsMap = new HashMap<>();
             customParameters.forEach((key, field) -> {
-                double value = field.getValue() != null ? field.getValue() : 0;
-                // If it's a custom parameter, use the original name
+                double value = field.getValue() != null ? field.getValue() : 0.0;
+                String unit;
+                String paramNameForDb; // Nome da salvare nel DB (senza prefisso CUSTOM_)
+
                 if (key.startsWith(CUSTOM_PARAMETER_KEY)) {
-                    String originalName = key.substring(CUSTOM_PARAMETER_KEY.length() + 1);
-                    additionalParams.put(originalName, value);
+                    // Parametro Custom: estrae il nome originale e recupera l'unità memorizzata
+                    paramNameForDb = key.substring(CUSTOM_PARAMETER_KEY.length() + 1).replace('_', ' ');
+                    unit = customParameterUnits.getOrDefault(key, ""); // Recupera unità salvata
                 } else {
-                    additionalParams.put(key, value);
+                    // Parametro Predefinito: la chiave è il nome, recupera l'unità (se presente nella mappa delle unità o dalla def.)
+                    paramNameForDb = key;
+                    // Prova a prendere l'unità dalla mappa interna (se è stato aggiunto tramite dialog)
+                    unit = customParameterUnits.get(key);
+                    if (unit == null) {
+                        // Se non trovato lì, estrai dalla definizione statica (fallback)
+                        String fullLabel = ADDITIONAL_PARAMETERS.getOrDefault(key, "");
+                        if (fullLabel.contains("(") && fullLabel.contains(")")) {
+                            try {
+                                unit = fullLabel.substring(fullLabel.indexOf("(") + 1, fullLabel.indexOf(")"));
+                            } catch (IndexOutOfBoundsException e) {
+                                unit = "";
+                            }
+                        } else {
+                            unit = "";
+                        }
+                    }
                 }
+                // Aggiunge alla mappa usando il nome base e l'oggetto ParameterValueUnit
+                additionalParamsMap.put(paramNameForDb, new ScenarioService.ParameterValueUnit(value, unit != null ? unit : ""));
             });
 
+            // Crea e restituisce l'oggetto TempoData con tutti i dati raccolti
             return new ScenarioService.TempoData(
                     timeNumber,
                     pa,
@@ -972,82 +1265,68 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                     nextTimeIfYes,
                     nextTimeIfNo,
                     additionalDetails,
-                    time != null ? time.toSecondOfDay() : 0,
-                    additionalParams
+                    timerSeconds,
+                    additionalParamsMap // Mappa contenente valore E unità
             );
         }
 
+
+        // Metodi SETTER specifici per T0 (impostano valore e rendono read-only)
+
         /**
-         * Imposta i valori nei campi della sezione temporale.
-         * Rende i campi di input non modificabili e cambia il colore di sfondo.
-         *
-         * @param value valore da impostare
+         * Imposta il valore PA per T0 e rende il campo non modificabile.
          */
         public void setPaValue(String value) {
-            paField.setValue(value);
+            paField.setValue(value != null ? value : "");
             paField.setReadOnly(true);
-            paField.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
+            paField.getStyle().set("background-color", "var(--lumo-contrast-5pct)"); // Sfondo leggermente grigio
         }
 
         /**
-         * Imposta i valori nei campi della sezione temporale.
-         * Rende i campi di input non modificabili e cambia il colore di sfondo.
-         *
-         * @param value valore da impostare
+         * Imposta il valore FC per T0 e rende il campo non modificabile.
          */
-        public void setFcValue(int value) {
-            fcField.setValue((double) value);
+        public void setFcValue(Integer value) { // Usa Integer per gestire null
+            fcField.setValue(Optional.ofNullable(value).map(Double::valueOf).orElse(null));
             fcField.setReadOnly(true);
             fcField.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
 
         /**
-         * Imposta i valori nei campi della sezione temporale.
-         * Rende i campi di input non modificabili e cambia il colore di sfondo.
-         *
-         * @param value valore da impostare
+         * Imposta il valore RR per T0 e rende il campo non modificabile.
          */
-        public void setRrValue(int value) {
-            rrField.setValue((double) value);
+        public void setRrValue(Integer value) {
+            rrField.setValue(Optional.ofNullable(value).map(Double::valueOf).orElse(null));
             rrField.setReadOnly(true);
             rrField.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
 
         /**
-         * Imposta i valori nei campi della sezione temporale.
-         * Rende i campi di input non modificabili e cambia il colore di sfondo.
-         *
-         * @param value valore da impostare
+         * Imposta il valore Temperatura per T0 e rende il campo non modificabile.
          */
-        public void setTValue(double value) {
-            double roundedValue = Math.round(value * 10) / 10.0;
-            tField.setValue(roundedValue);
+        public void setTValue(Double value) { // Usa Double per gestire null e decimali
+            // double roundedValue = (value != null) ? Math.round(value * 10.0) / 10.0 : null; // Arrotonda a 1 decimale se necessario
+            tField.setValue(value); // Imposta direttamente il double
             tField.setReadOnly(true);
             tField.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
 
         /**
-         * Imposta i valori nei campi della sezione temporale.
-         * Rende i campi di input non modificabili e cambia il colore di sfondo.
-         *
-         * @param value valore da impostare
+         * Imposta il valore SpO2 per T0 e rende il campo non modificabile.
          */
-        public void setSpo2Value(int value) {
-            spo2Field.setValue((double) value);
+        public void setSpo2Value(Integer value) {
+            spo2Field.setValue(Optional.ofNullable(value).map(Double::valueOf).orElse(null));
             spo2Field.setReadOnly(true);
             spo2Field.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
 
         /**
-         * Imposta i valori nei campi della sezione temporale.
-         * Rende i campi di input non modificabili e cambia il colore di sfondo.
-         *
-         * @param value valore da impostare
+         * Imposta il valore EtCO2 per T0 e rende il campo non modificabile.
          */
-        public void setEtco2Value(int value) {
-            etco2Field.setValue((double) value);
+        public void setEtco2Value(Integer value) {
+            etco2Field.setValue(Optional.ofNullable(value).map(Double::valueOf).orElse(null));
             etco2Field.setReadOnly(true);
             etco2Field.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
-    }
-}
+    } // --- Fine classe interna TimeSection ---
+
+} // --- Fine classe TempoView ---
