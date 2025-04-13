@@ -10,7 +10,6 @@ import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.IFrame;
-import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -26,6 +25,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.EsameFisico;
+import it.uniupo.simnova.api.model.PazienteT0;
 import it.uniupo.simnova.api.model.Scenario;
 import it.uniupo.simnova.service.ScenarioService;
 import org.slf4j.Logger;
@@ -34,19 +34,49 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * View per la modifica di uno scenario esistente.
+ * <p>
+ * Questa classe estende Composite<VerticalLayout> e implementa HasUrlParameter<String>.
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @PageTitle("Modifica Scenario")
 @Route(value = "modificaScenario", layout = MainLayout.class)
 public class ScenarioEditView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
+    /**
+     * Servizio per la gestione degli scenari.
+     */
     private final ScenarioService scenarioService;
+    /**
+     * ID dello scenario da modificare.
+     */
     private Integer scenarioId;
+    /**
+     * Scenario da modificare.
+     */
     private Scenario scenario;
+    /**
+     * Logger per la registrazione degli eventi.
+     */
     private static final Logger logger = LoggerFactory.getLogger(ScenarioEditView.class);
 
-
+    /**
+     * Costruttore della classe ScenarioEditView.
+     *
+     * @param scenarioService servizio per la gestione degli scenari
+     */
     public ScenarioEditView(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
     }
 
+    /**
+     * Metodo per impostare il parametro dell'URL.
+     *
+     * @param event     evento di navigazione
+     * @param parameter parametro dell'URL
+     */
     @Override
     public void setParameter(BeforeEvent event, String parameter) {
         try {
@@ -54,10 +84,11 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
                 throw new NumberFormatException();
             }
             this.scenarioId = Integer.parseInt(parameter);
+            // Controlla se lo scenario esiste
             if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
                 throw new NumberFormatException();
             }
-            // Carica ora lo Scenario
+            // Recupera lo scenario dal servizio
             scenario = scenarioService.getScenarioById(scenarioId);
             buildView();
         } catch (NumberFormatException e) {
@@ -66,12 +97,16 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         }
     }
 
+    /**
+     * Costruisce la vista per la modifica dello scenario.
+     */
     private void buildView() {
         VerticalLayout mainLayout = getContent();
         mainLayout.removeAll();
         mainLayout.setSizeFull();
         mainLayout.setPadding(false);
         mainLayout.setSpacing(false);
+
 
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -87,6 +122,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
         customHeader.expand(pageTitle);
 
+        // Layout principale per il contenuto
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.setWidth("100%");
         contentLayout.setMaxWidth("800px");
@@ -97,15 +133,21 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
                 .set("margin", "0 auto")
                 .set("flex-grow", "1");
 
+        // Recupera il tipo di scenario
         String scenarioType = scenarioService.getScenarioType(scenarioId);
         TextField scenarioTypeField = createTextField("TIPO SCENARIO", "Inserisci il tipo di scenario");
         scenarioTypeField.setValue(scenarioType);
         scenarioTypeField.setReadOnly(true);
-        // Campi del form
+
+        // Titolo scenario
         TextField scenarioTitle = createTextField("TITOLO SCENARIO", "Inserisci il titolo dello scenario");
         scenarioTitle.setValue(scenario.getTitolo());
+
+        // Nome paziente
         TextField patientName = createTextField("NOME PAZIENTE", "Inserisci il nome del paziente");
         patientName.setValue(scenario.getNomePaziente());
+
+        // Patologia
         TextField pathology = createTextField("PATOLOGIA/MALATTIA", "Inserisci la patologia");
         pathology.setValue(scenario.getPatologia());
 
@@ -118,6 +160,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         durationField.getStyle().set("max-width", "500px");
         durationField.setValue((int) scenario.getTimerGenerale());
 
+        // Layout per le informazioni generali
         VerticalLayout informazioniGeneraliLayout = new VerticalLayout();
         informazioniGeneraliLayout.setWidth("100%");
         informazioniGeneraliLayout.setMaxWidth("800px");
@@ -126,55 +169,63 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         informazioniGeneraliLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         informazioniGeneraliLayout.getStyle().set("margin", "0 auto").set("flex-grow", "1");
 
+        // Descrizione scenario
         TextArea descriptionArea = createTextArea(
                 "DESCRIZIONE SCENARIO",
                 "Inserisci una descrizione dettagliata dello scenario...",
                 scenario.getDescrizione()
         );
 
+        // Briefing scenario
         TextArea briefingArea = createTextArea(
                 "BRIEFING",
                 "Inserisci il testo da leggere ai discenti prima della simulazione...",
                 scenario.getBriefing()
         );
 
+        // Patto d'aula scenario
         TextArea pattoAulaArea = createTextArea(
                 "PATTO D'AULA / FAMILIARIZZAZIONE",
                 "Inserisci il testo da mostrare nella sala...",
                 scenario.getPattoAula()
         );
 
+        // Azioni chiave scenario
         TextArea azioniChiaveArea = createTextArea(
                 "AZIONI CHIAVE",
                 "Inserisci le azioni da valutare durante il debriefing...",
                 scenario.getAzioneChiave()
         );
 
+        // Obiettivi didattici scenario
         TextArea obiettiviArea = createTextArea(
                 "OBIETTIVI DIDATTICI",
                 "Inserisci gli obiettivi didattici dello scenario...",
                 scenario.getObiettivo()
         );
 
+        // Materiale necessario scenario
         TextArea materialeArea = createTextArea(
                 "MATERIALE NECESSARIO",
                 "Elenca il materiale necessario per l'allestimento della sala...",
                 scenario.getMateriale()
         );
 
-
+        // Moulage scenario
         TextArea moulageArea = createTextArea(
                 "MOULAGE",
                 "Descrivi il trucco da applicare al manichino/paziente simulato...",
                 scenario.getMoulage()
         );
 
+        // Liquidi e presidi scenario
         TextArea liquidiArea = createTextArea(
                 "LIQUIDI E PRESIDI IN T0",
                 "Indica quantità di liquidi e presidi presenti all'inizio della simulazione...",
                 scenario.getLiquidi()
         );
 
+        // Aggiunta dei campi al layout delle informazioni generali
         informazioniGeneraliLayout.add(
                 descriptionArea,
                 briefingArea,
@@ -186,123 +237,116 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
                 liquidiArea
         );
 
-        // Aggiungi una nuova sezione per Parametri Paziente T0 in una tendina
+        // Layout per i parametri del paziente T0
         VerticalLayout parametriT0Layout = new VerticalLayout();
         parametriT0Layout.setPadding(false);
         parametriT0Layout.setSpacing(true);
         parametriT0Layout.setWidthFull();
 
         // Recupera i dati del paziente T0
-        var parametriT0 = scenarioService.getPazienteT0ById(scenarioId);
+        PazienteT0 parametriT0 = scenarioService.getPazienteT0ById(scenarioId);
 
-        if (parametriT0 != null) {
-            // Crea i componenti per visualizzare i dati
-            TextField paField = new TextField("PA (mmHg)");
-            paField.setValue(parametriT0.getPA());
-            paField.setWidthFull();
+        // Crea i componenti per visualizzare i dati
+        TextField paField = new TextField("PA (mmHg)");
+        paField.setValue(parametriT0 != null ? parametriT0.getPA() : "");
+        paField.setWidthFull();
 
-            TextField fcField = new TextField("FC (bpm)");
-            fcField.setValue(String.valueOf(parametriT0.getFC()));
-            fcField.setWidthFull();
+        TextField fcField = new TextField("FC (bpm)");
+        fcField.setValue(parametriT0 != null && parametriT0.getFC() != 0 ? String.valueOf(parametriT0.getFC()) : "");
+        fcField.setWidthFull();
 
-            TextField rrField = new TextField("RR (atti/min)");
-            rrField.setValue(String.valueOf(parametriT0.getRR()));
-            rrField.setWidthFull();
+        TextField rrField = new TextField("RR (atti/min)");
+        rrField.setValue(parametriT0 != null && parametriT0.getRR() != 0 ? String.valueOf(parametriT0.getRR()) : "");
+        rrField.setWidthFull();
 
-            TextField tempField = new TextField("Temperatura (°C)");
-            tempField.setValue(String.valueOf(parametriT0.getT()));
-            tempField.setWidthFull();
+        TextField tempField = new TextField("Temperatura (°C)");
+        tempField.setValue(parametriT0 != null && parametriT0.getT() != 0 ? String.valueOf(parametriT0.getT()) : "");
+        tempField.setWidthFull();
 
-            TextField spo2Field = new TextField("SpO₂ (%)");
-            spo2Field.setValue(String.valueOf(parametriT0.getSpO2()));
-            spo2Field.setWidthFull();
+        TextField spo2Field = new TextField("SpO₂ (%)");
+        spo2Field.setValue(parametriT0 != null && parametriT0.getSpO2() != 0 ? String.valueOf(parametriT0.getSpO2()) : "");
+        spo2Field.setWidthFull();
 
-            TextField etco2Field = new TextField("EtCO₂ (mmHg)");
-            etco2Field.setValue(String.valueOf(parametriT0.getEtCO2()));
-            etco2Field.setWidthFull();
+        TextField etco2Field = new TextField("EtCO₂ (mmHg)");
+        etco2Field.setValue(parametriT0 != null && parametriT0.getEtCO2() != 0 ? String.valueOf(parametriT0.getEtCO2()) : "");
+        etco2Field.setWidthFull();
 
-            // Area di testo per il monitoraggio
-            TextArea monitorArea = new TextArea("Monitoraggio");
-            monitorArea.setValue(parametriT0.getMonitor() != null ? parametriT0.getMonitor() : "");
-            monitorArea.setWidthFull();
-            monitorArea.setMinHeight("100px");
+        // Area di testo per il monitoraggio
+        TextArea monitorArea = new TextArea("Monitoraggio");
+        monitorArea.setValue(parametriT0 != null && parametriT0.getMonitor() != null ? parametriT0.getMonitor() : "");
+        monitorArea.setWidthFull();
+        monitorArea.setMinHeight("100px");
 
-            // Aggiunta dei campi al layout
-            parametriT0Layout.add(
-                    paField, fcField, rrField, tempField, spo2Field, etco2Field, monitorArea
-            );
+        // Aggiunta dei campi al layout
+        parametriT0Layout.add(
+                paField, fcField, rrField, tempField, spo2Field, etco2Field, monitorArea
+        );
 
-            // Container per accessi venosi
-            VerticalLayout venosiContainer = new VerticalLayout();
-            venosiContainer.setWidthFull();
-            venosiContainer.setSpacing(true);
-            venosiContainer.setPadding(false);
+        // Container per accessi venosi
+        VerticalLayout venosiContainer = new VerticalLayout();
+        venosiContainer.setWidthFull();
+        venosiContainer.setSpacing(true);
+        venosiContainer.setPadding(false);
 
-            // Container per accessi arteriosi
-            VerticalLayout arteriosiContainer = new VerticalLayout();
-            arteriosiContainer.setWidthFull();
-            arteriosiContainer.setSpacing(true);
-            arteriosiContainer.setPadding(false);
+        // Container per accessi arteriosi
+        VerticalLayout arteriosiContainer = new VerticalLayout();
+        arteriosiContainer.setWidthFull();
+        arteriosiContainer.setSpacing(true);
+        arteriosiContainer.setPadding(false);
 
-            // Liste per memorizzare gli accessi
-            List<AccessoComponent> venosiAccessi = new ArrayList<>();
-            List<AccessoComponent> arteriosiAccessi = new ArrayList<>();
+        // Liste per memorizzare gli accessi
+        List<AccessoComponent> venosiAccessi = new ArrayList<>();
+        List<AccessoComponent> arteriosiAccessi = new ArrayList<>();
 
-            // Titoli e pulsanti per gli accessi
-            H4 venosiTitle = new H4("Accessi Venosi");
-            venosiTitle.addClassName(LumoUtility.Margin.Top.MEDIUM);
+        // Titoli e pulsanti per gli accessi
+        H4 venosiTitle = new H4("Accessi Venosi");
+        venosiTitle.addClassName(LumoUtility.Margin.Top.MEDIUM);
 
-            Button addVenosiButton = new Button("Aggiungi accesso venoso", new Icon(VaadinIcon.PLUS));
-            addVenosiButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-            addVenosiButton.addClassName(LumoUtility.Margin.Top.SMALL);
-            addVenosiButton.addClickListener(e -> {
-                AccessoComponent accesso = new AccessoComponent("Venoso", venosiContainer, venosiAccessi);
-                venosiAccessi.add(accesso);
-                venosiContainer.add(accesso);
-            });
+        Button addVenosiButton = new Button("Aggiungi accesso venoso", new Icon(VaadinIcon.PLUS));
+        addVenosiButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        addVenosiButton.addClassName(LumoUtility.Margin.Top.SMALL);
+        addVenosiButton.addClickListener(e -> {
+            AccessoComponent accesso = new AccessoComponent("Venoso", venosiContainer, venosiAccessi);
+            venosiAccessi.add(accesso);
+            venosiContainer.add(accesso);
+        });
 
-            H4 arteriosiTitle = new H4("Accessi Arteriosi");
-            arteriosiTitle.addClassName(LumoUtility.Margin.Top.MEDIUM);
+        H4 arteriosiTitle = new H4("Accessi Arteriosi");
+        arteriosiTitle.addClassName(LumoUtility.Margin.Top.MEDIUM);
 
-            Button addArteriosiButton = new Button("Aggiungi accesso arterioso", new Icon(VaadinIcon.PLUS));
-            addArteriosiButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-            addArteriosiButton.addClassName(LumoUtility.Margin.Top.SMALL);
-            addArteriosiButton.addClickListener(e -> {
-                AccessoComponent accesso = new AccessoComponent("Arterioso", arteriosiContainer, arteriosiAccessi);
-                arteriosiAccessi.add(accesso);
-                arteriosiContainer.add(accesso);
-            });
+        Button addArteriosiButton = new Button("Aggiungi accesso arterioso", new Icon(VaadinIcon.PLUS));
+        addArteriosiButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        addArteriosiButton.addClassName(LumoUtility.Margin.Top.SMALL);
+        addArteriosiButton.addClickListener(e -> {
+            AccessoComponent accesso = new AccessoComponent("Arterioso", arteriosiContainer, arteriosiAccessi);
+            arteriosiAccessi.add(accesso);
+            arteriosiContainer.add(accesso);
+        });
 
-            // Aggiungi i componenti al layout
-            parametriT0Layout.add(venosiTitle, venosiContainer, addVenosiButton,
-                    arteriosiTitle, arteriosiContainer, addArteriosiButton);
+        // Aggiunta dei componenti al layout
+        parametriT0Layout.add(venosiTitle, venosiContainer, addVenosiButton,
+                arteriosiTitle, arteriosiContainer, addArteriosiButton);
 
-            // Carica accessi venosi esistenti
-            if (parametriT0.getAccessiVenosi() != null && !parametriT0.getAccessiVenosi().isEmpty()) {
-                for (var accesso : parametriT0.getAccessiVenosi()) {
-                    AccessoComponent accessoComp = new AccessoComponent("Venoso", venosiContainer, venosiAccessi);
-                    accessoComp.setTipo(accesso.getTipologia());
-                    accessoComp.setPosizione(accesso.getPosizione());
-                    venosiAccessi.add(accessoComp);
-                    venosiContainer.add(accessoComp);
-                }
+        // Carica accessi venosi esistenti
+        if (parametriT0 != null && parametriT0.getAccessiVenosi() != null && !parametriT0.getAccessiVenosi().isEmpty()) {
+            for (var accesso : parametriT0.getAccessiVenosi()) {
+                AccessoComponent accessoComp = new AccessoComponent("Venoso", venosiContainer, venosiAccessi);
+                accessoComp.setTipo(accesso.getTipologia());
+                accessoComp.setPosizione(accesso.getPosizione());
+                venosiAccessi.add(accessoComp);
+                venosiContainer.add(accessoComp);
             }
+        }
 
-            // Carica accessi arteriosi esistenti
-            if (parametriT0.getAccessiArteriosi() != null && !parametriT0.getAccessiArteriosi().isEmpty()) {
-                for (var accesso : parametriT0.getAccessiArteriosi()) {
-                    AccessoComponent accessoComp = new AccessoComponent("Arterioso", arteriosiContainer, arteriosiAccessi);
-                    accessoComp.setTipo(accesso.getTipologia());
-                    accessoComp.setPosizione(accesso.getPosizione());
-                    arteriosiAccessi.add(accessoComp);
-                    arteriosiContainer.add(accessoComp);
-                }
+        // Carica accessi arteriosi esistenti
+        if (parametriT0 != null && parametriT0.getAccessiArteriosi() != null && !parametriT0.getAccessiArteriosi().isEmpty()) {
+            for (var accesso : parametriT0.getAccessiArteriosi()) {
+                AccessoComponent accessoComp = new AccessoComponent("Arterioso", arteriosiContainer, arteriosiAccessi);
+                accessoComp.setTipo(accesso.getTipologia());
+                accessoComp.setPosizione(accesso.getPosizione());
+                arteriosiAccessi.add(accessoComp);
+                arteriosiContainer.add(accessoComp);
             }
-        } else {
-            // Se non ci sono dati, mostra un messaggio
-            Paragraph noDataMessage = new Paragraph("Nessun parametro paziente T0 disponibile");
-            noDataMessage.addClassName(LumoUtility.TextColor.SECONDARY);
-            parametriT0Layout.add(noDataMessage);
         }
 
         //Inizio Esame Fisico
@@ -311,74 +355,88 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         esameFisicoLayout.setSpacing(true);
         esameFisicoLayout.setWidthFull();
 
+        // Recupera i dati dell'esame fisico
         EsameFisico esamiFisici = scenarioService.getEsameFisicoById(scenarioId);
+
+        // Esame fisico generale
         TextArea generaleArea = createTextArea(
                 "GENERALE",
                 "Inserisci i dettagli dell'esame generale...",
-                esamiFisici.getSection("Generale")
+                esamiFisici != null ? esamiFisici.getSection("Generale") : ""
         );
 
+        // Esame fisico pupille
         TextArea pupilleArea = createTextArea(
                 "PUPILLE",
                 "Inserisci i dettagli dell'esame delle pupille...",
-                esamiFisici.getSection("Pupille")
+                esamiFisici != null ? esamiFisici.getSection("Pupille") : ""
         );
 
+        // Esame fisico collo
         TextArea colloArea = createTextArea(
                 "COLLO",
                 "Inserisci i dettagli dell'esame del collo...",
-                esamiFisici.getSection("Collo")
+                esamiFisici != null ? esamiFisici.getSection("Collo") : ""
         );
 
+        // Esame fisico torace
         TextArea toraceArea = createTextArea(
                 "TORACE",
                 "Inserisci i dettagli dell'esame del torace...",
-                esamiFisici.getSection("Torace")
+                esamiFisici != null ? esamiFisici.getSection("Torace") : ""
         );
 
+        // Esame fisico cuore
         TextArea cuoreArea = createTextArea(
                 "CUORE",
                 "Inserisci i dettagli dell'esame del cuore...",
-                esamiFisici.getSection("Cuore")
+                esamiFisici != null ? esamiFisici.getSection("Cuore") : ""
         );
 
+        // Esame fisico addome
         TextArea addomeArea = createTextArea(
                 "ADDOME",
                 "Inserisci i dettagli dell'esame dell'addome...",
-                esamiFisici.getSection("Addome")
+                esamiFisici != null ? esamiFisici.getSection("Addome") : ""
         );
 
+        // Esame fisico retto
         TextArea rettoArea = createTextArea(
                 "RETTO",
                 "Inserisci i dettagli dell'esame rettale...",
-                esamiFisici.getSection("Retto")
+                esamiFisici != null ? esamiFisici.getSection("Retto") : ""
         );
 
+        // Esame fisico cute
         TextArea cuteArea = createTextArea(
                 "CUTE",
                 "Inserisci i dettagli dell'esame della cute...",
-                esamiFisici.getSection("Cute")
+                esamiFisici != null ? esamiFisici.getSection("Cute") : ""
         );
 
+        // Esame fisico estremità
         TextArea estremitaArea = createTextArea(
                 "ESTREMITÀ",
                 "Inserisci i dettagli dell'esame delle estremità...",
-                esamiFisici.getSection("Estremità")
+                esamiFisici != null ? esamiFisici.getSection("Estremità") : ""
         );
 
+        // Esame fisico neurologico
         TextArea neurologicoArea = createTextArea(
                 "NEUROLOGICO",
                 "Inserisci i dettagli dell'esame neurologico...",
-                esamiFisici.getSection("Neurologico")
+                esamiFisici != null ? esamiFisici.getSection("Neurologico") : ""
         );
 
+        // Esame fisico FAST
         TextArea FASTArea = createTextArea(
                 "FAST ECOGRAFIA",
                 "Inserisci i dettagli dell'ecografia FAST...",
-                esamiFisici.getSection("FAST")
+                esamiFisici != null ? esamiFisici.getSection("FAST") : ""
         );
         //Fine Esame Fisico
 
+        // Aggiunta dei campi all'area dell'esame fisico
         esameFisicoLayout.add(
                 generaleArea,
                 pupilleArea,
@@ -393,33 +451,31 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
                 FASTArea
         );
 
+        // Creazione tendina per l'esame fisico
         Details esameFisicoDetails = new Details("ESAME FISICO", esameFisicoLayout);
         esameFisicoDetails.setWidthFull();
         esameFisicoDetails.addClassName(LumoUtility.Margin.Top.LARGE);
         esameFisicoDetails.setOpened(false);
 
+        // Creazione tendina per le informazioni generali
         Details informazioniGeneraliDetails = new Details("INFORMAZIONI GENERALI", informazioniGeneraliLayout);
         informazioniGeneraliDetails.setWidthFull();
         informazioniGeneraliDetails.addClassName(LumoUtility.Margin.Top.LARGE);
         informazioniGeneraliDetails.setOpened(false);
 
+        // Creazione tendina per i parametri del paziente T0
         Details parametriT0Details = new Details("PARAMETRI PAZIENTE T0", parametriT0Layout);
         parametriT0Details.setWidthFull();
         parametriT0Details.addClassName(LumoUtility.Margin.Top.LARGE);
         parametriT0Details.setOpened(false);
 
-        Details tempiDetails = new Details("TIMELINE SIMULAZIONE", createTempiComponent());
-        tempiDetails.setWidthFull();
-        tempiDetails.addClassName(LumoUtility.Margin.Top.LARGE);
-        tempiDetails.setOpened(false);
-
+        // Creazione tendina per gli esami e i referti
         Details esamiRefertiDetails = new Details("ESAMI E REFERTI", createEsamiRefertiComponent());
         esamiRefertiDetails.setWidthFull();
         esamiRefertiDetails.addClassName(LumoUtility.Margin.Top.LARGE);
         esamiRefertiDetails.setOpened(false);
 
-
-
+        // Aggiunta dei componenti al layout principale
         contentLayout.add(
                 scenarioTypeField,
                 scenarioTitle,
@@ -429,15 +485,25 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
                 informazioniGeneraliDetails,
                 esamiRefertiDetails,
                 parametriT0Details,
-                esameFisicoDetails,
-                tempiDetails
+                esameFisicoDetails
         );
 
+        if(!scenarioType.equals("Quick Scenario")){
+            // Creazione tendina per i tempi
+            Details tempiDetails = new Details("TIMELINE SIMULAZIONE", createTempiComponent());
+            tempiDetails.setWidthFull();
+            tempiDetails.addClassName(LumoUtility.Margin.Top.LARGE);
+            tempiDetails.setOpened(false);
+
+            contentLayout.add(tempiDetails);
+        }
+
+        // Aggiunta della tendina per la sceneggiatura solo se il tipo di scenario è "Patient Simulated Scenario"
         if (scenarioType.equals("Patient Simulated Scenario")) {
             TextArea sceneggiaturaArea = createTextArea(
                     "SCENEGGIATURA",
                     "Inserisci la sceneggiatura dello scenario...",
-                    scenarioService.getSceneggiatura(scenarioId)
+                    ScenarioService.getSceneggiatura(scenarioId)
             );
             VerticalLayout sceneggiaturaLayout = new VerticalLayout();
             sceneggiaturaLayout.setPadding(false);
@@ -446,6 +512,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
 
             sceneggiaturaLayout.add(sceneggiaturaArea);
 
+            // Creazione tendina per la sceneggiatura
             Details sceneggiaturaDetails = new Details("SCENEGGIATURA", sceneggiaturaLayout);
             sceneggiaturaDetails.setWidthFull();
             sceneggiaturaDetails.addClassName(LumoUtility.Margin.Top.LARGE);
@@ -457,6 +524,13 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         mainLayout.add(customHeader, contentLayout);
     }
 
+    /**
+     * Crea un campo di testo con etichetta e segnaposto.
+     *
+     * @param label       etichetta del campo
+     * @param placeholder segnaposto del campo
+     * @return campo di testo creato
+     */
     private TextField createTextField(String label, String placeholder) {
         TextField field = new TextField(label);
         field.setPlaceholder(placeholder);
@@ -466,6 +540,14 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         return field;
     }
 
+    /**
+     * Crea un'area di testo con etichetta e segnaposto.
+     *
+     * @param label       etichetta dell'area di testo
+     * @param placeholder segnaposto dell'area di testo
+     * @param value       valore iniziale dell'area di testo
+     * @return area di testo creata
+     */
     private TextArea createTextArea(String label, String placeholder, String value) {
         TextArea area = new TextArea(label);
         area.setPlaceholder(placeholder);
@@ -478,7 +560,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
     }
 
     /**
-     * Componente per la gestione degli accessi venosi e arteriosi.
+     * Componente per rappresentare un accesso (venoso o arterioso).
      */
     private static class AccessoComponent extends HorizontalLayout {
         private final Select<String> tipoSelect;
@@ -546,18 +628,6 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
             container.remove(this);
             listaAccessi.remove(this);
         }
-
-        /**
-         * Ottiene i dati dell'accesso.
-         *
-         * @return dati dell'accesso
-         */
-        public AccessoData getData() {
-            return new AccessoData(
-                    tipoSelect.getValue(),
-                    posizioneField.getValue()
-            );
-        }
     }
 
     /**
@@ -576,10 +646,10 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         // Aggiungi un bottone per aprire la pagina completa se necessario
         Button openFullPageButton = new Button("Visualizza in pagina completa", new Icon(VaadinIcon.EXTERNAL_LINK));
         openFullPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        openFullPageButton.addClickListener(e -> UI.getCurrent().navigate("tempi/" + scenarioId+"?mode=edit"));
+        openFullPageButton.addClickListener(e -> UI.getCurrent().navigate("tempi/" + scenarioId + "/edit"));
 
         // Crea un iframe o embed della pagina TempoView
-        IFrame tempiFrame = new IFrame("tempi/" + scenarioId+"?mode=edit");
+        IFrame tempiFrame = new IFrame("tempi/" + scenarioId + "/edit");
         tempiFrame.setHeight("600px");
         tempiFrame.setWidthFull();
         tempiLayout.add(openFullPageButton, tempiFrame);
@@ -587,7 +657,12 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         return tempiLayout;
     }
 
-    private Component createEsamiRefertiComponent(){
+    /**
+     * Crea un componente per visualizzare gli esami e i referti.
+     *
+     * @return il componente creato
+     */
+    private Component createEsamiRefertiComponent() {
         VerticalLayout esamiLayout = new VerticalLayout();
         esamiLayout.setPadding(false);
         esamiLayout.setSpacing(true);
@@ -596,10 +671,10 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         // Aggiungi un bottone per aprire la pagina completa se necessario
         Button openFullPageButton = new Button("Visualizza in pagina completa", new Icon(VaadinIcon.EXTERNAL_LINK));
         openFullPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        openFullPageButton.addClickListener(e -> UI.getCurrent().navigate("esamiReferti/" + scenarioId+"?mode=edit"));
+        openFullPageButton.addClickListener(e -> UI.getCurrent().navigate("esamiReferti/" + scenarioId + "/edit"));
 
         // Crea un iframe o embed della pagina EsamiRefertiView
-        IFrame esamiFrame = new IFrame("esamiReferti/" + scenarioId+"?mode=edit");
+        IFrame esamiFrame = new IFrame("esamiReferti/" + scenarioId + "/edit");
         esamiFrame.setHeight("600px");
         esamiFrame.setWidthFull();
         esamiLayout.add(openFullPageButton, esamiFrame);

@@ -1,5 +1,9 @@
 package it.uniupo.simnova.service;
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import it.uniupo.simnova.api.model.*;
 import it.uniupo.simnova.utils.DBConnect;
 import it.uniupo.simnova.views.creation.EsamiRefertiView;
@@ -7,11 +11,13 @@ import it.uniupo.simnova.views.creation.PazienteT0View;
 import it.uniupo.simnova.views.creation.ScenarioEditView;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +31,7 @@ import org.slf4j.LoggerFactory;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@SuppressWarnings({"unchecked", "LoggingSimilarMessage"})
 @Service
 public class ScenarioService {
     /**
@@ -35,6 +42,7 @@ public class ScenarioService {
      * Logger per la registrazione delle operazioni del servizio.
      */
     private static final Logger logger = LoggerFactory.getLogger(ScenarioService.class);
+
 
     /**
      * Costruttore del servizio ScenarioService.
@@ -101,12 +109,12 @@ public class ScenarioService {
 
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                Scenario scenario = new Scenario();
-                scenario.setId(rs.getInt("id_scenario"));
-                scenario.setTitolo(rs.getString("titolo"));
-                scenario.setNomePaziente(rs.getString("nome_paziente"));
-                scenario.setPatologia(rs.getString("patologia"));
-                scenario.setDescrizione(rs.getString("descrizione"));
+                Scenario scenario = new Scenario(
+                        rs.getInt("id_scenario"),
+                        rs.getString("titolo"),
+                        rs.getString("nome_paziente"),
+                        rs.getString("patologia"),
+                        rs.getString("descrizione"));
                 scenarios.add(scenario);
             }
             logger.info("Recuperati {} scenari dal database", scenarios.size());
@@ -236,23 +244,21 @@ public class ScenarioService {
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                esameFisico = new EsameFisico();
-                esameFisico.setIdEsameFisico(rs.getInt("id_esame_fisico"));
+                esameFisico = new EsameFisico(
+                        rs.getInt("id_esame_fisico"),
+                        rs.getString("generale"),
+                        rs.getString("pupille"),
+                        rs.getString("collo"),
+                        rs.getString("torace"),
+                        rs.getString("cuore"),
+                        rs.getString("addome"),
+                        rs.getString("retto"),
+                        rs.getString("cute"),
+                        rs.getString("estremità"),
+                        rs.getString("neurologico"),
+                        rs.getString("FAST")
+                );
 
-                Map<String, String> sections = new HashMap<>();
-                sections.put("Generale", rs.getString("generale"));
-                sections.put("Pupille", rs.getString("pupille"));
-                sections.put("Collo", rs.getString("collo"));
-                sections.put("Torace", rs.getString("torace"));
-                sections.put("Cuore", rs.getString("cuore"));
-                sections.put("Addome", rs.getString("addome"));
-                sections.put("Retto", rs.getString("retto"));
-                sections.put("Cute", rs.getString("cute"));
-                sections.put("Estremità", rs.getString("estremità"));
-                sections.put("Neurologico", rs.getString("neurologico"));
-                sections.put("FAST", rs.getString("FAST"));
-
-                esameFisico.setSections(sections);
                 logger.info("Esame fisico con ID {} recuperato con successo", id);
             } else {
                 logger.warn("Nessun esame fisico trovato con ID {}", id);
@@ -672,6 +678,10 @@ public class ScenarioService {
         // Verifica se esiste già
         boolean exists = getPazienteT0ById(scenarioId) != null;
 
+        if(!pa.matches("^\\s*\\d+\\s*/\\s*\\d+\\s*$")) {
+            logger.warn("Formato della pressione arteriosa non valido: {}", pa);
+            throw new IllegalArgumentException("Formato PA non valido, atteso 'sistolica/diastolica' (es. '120/80')");
+        }
         final String sql = exists ?
                 "UPDATE PazienteT0 SET PA=?, FC=?, RR=?, T=?, SpO2=?, EtCO2=?, Monitor=? WHERE id_paziente=?" :
                 "INSERT INTO PazienteT0 (id_paziente, PA, FC, RR, T, SpO2, EtCO2, Monitor) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -810,12 +820,13 @@ public class ScenarioService {
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
-                EsameReferto esame = new EsameReferto();
-                esame.setIdEsame(rs.getInt("id_esame"));
-                esame.setIdScenario(rs.getInt("id_scenario"));
-                esame.setTipo(rs.getString("tipo"));
-                esame.setMedia(rs.getString("media"));
-                esame.setRefertoTestuale(rs.getString("referto_testuale"));
+                EsameReferto esame = new EsameReferto(
+                        rs.getInt("id_esame"),
+                        rs.getInt("id_scenario"),
+                        rs.getString("tipo"),
+                        rs.getString("media"),
+                        rs.getString("referto_testuale")
+                );
                 esami.add(esame);
             }
             logger.info("Recuperati {} esami referti per lo scenario con ID {}", esami.size(), scenarioId);
@@ -1245,28 +1256,23 @@ public class ScenarioService {
             int paramId = getMaxParamId(conn) + 1; // Helper function needed if manual ID
 
             for (TempoData tempo : tempiData) {
-                // Check if the map is not null and not empty before iterating
-                if (tempo.parametriAggiuntivi() != null && !tempo.parametriAggiuntivi().isEmpty()) {
-                    for (Map.Entry<String, ParameterValueUnit> param : tempo.parametriAggiuntivi().entrySet()) {
-                        String paramName = param.getKey(); // This is the base name (e.g., "Glicemia" or "CustomParam")
-                        ParameterValueUnit paramData = param.getValue();
+                for (Map.Entry<String, ParameterValueUnit> param : tempo.parametriAggiuntivi().entrySet()) {
+                    String paramName = param.getKey(); // This is the base name (e.g., "Glicemia" or "CustomParam")
+                    ParameterValueUnit paramData = param.getValue();
 
-                        // If parametri_aggiuntivi_id is AUTO_INCREMENT, remove this line and adjust indices below
-                        stmt.setInt(1, paramId++); // Set manual ID (or remove if auto)
+                    // If parametri_aggiuntivi_id is AUTO_INCREMENT, remove this line and adjust indices below
+                    stmt.setInt(1, paramId++); // Set manual ID (or remove if auto)
 
-                        stmt.setInt(2, tempo.idTempo()); // tempo_id
-                        stmt.setInt(3, scenarioId); // scenario_id
-                        stmt.setString(4, paramName); // nome (base name)
-                        stmt.setDouble(5, paramData.value()); // valore
-                        // *** Use the unit from ParameterValueUnit ***
-                        stmt.setString(6, paramData.unit()); // unità_misura
+                    stmt.setInt(2, tempo.idTempo()); // tempo_id
+                    stmt.setInt(3, scenarioId); // scenario_id
+                    stmt.setString(4, paramName); // nome (base name)
+                    stmt.setDouble(5, paramData.value()); // valore
+                    // *** Use the unit from ParameterValueUnit ***
+                    stmt.setString(6, paramData.unit()); // unità_misura
 
-                        stmt.addBatch();
-                    }
-                } else {
-                    // Log if a tempo has no additional parameters, if desired
-                    // logger.debug("Tempo {} for scenario {} has no additional parameters.", tempo.idTempo(), scenarioId);
+                    stmt.addBatch();
                 }
+
             }
 
             if (stmt.getParameterMetaData().getParameterCount() > 0) { // Check if any batches were added
@@ -1394,10 +1400,11 @@ public class ScenarioService {
     }
 
     public boolean updateAccessiPazienteT0(Integer scenarioId, List<ScenarioEditView.AccessoData> venosiData, List<ScenarioEditView.AccessoData> arteriosiData) {
-    return true;
+        return true;
     }
 
-    public record ParameterValueUnit(double value, String unit) {}
+    public record ParameterValueUnit(double value, String unit) {
+    }
 
 
     /**
@@ -1451,20 +1458,21 @@ public class ScenarioService {
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
-                Tempo tempo = new Tempo();
-                tempo.setIdTempo(rs.getInt("id_tempo"));
-                tempo.setAdvancedScenario(rs.getInt("id_advanced_scenario"));
-                tempo.setPA(rs.getString("PA"));
-                tempo.setFC(rs.getInt("FC"));
-                tempo.setRR(rs.getInt("RR"));
-                tempo.setT(rs.getFloat("T"));
-                tempo.setSpO2(rs.getInt("SpO2"));
-                tempo.setEtCO2(rs.getInt("EtCO2"));
-                tempo.setAzione(rs.getString("Azione"));
-                tempo.setTSi(rs.getInt("TSi_id"));
-                tempo.setTNo(rs.getInt("TNo_id"));
-                tempo.setAltriDettagli(rs.getString("altri_dettagli"));
-                tempo.setTimerTempo(rs.getInt("timer_tempo"));
+                Tempo tempo = new Tempo(
+                        rs.getInt("id_tempo"),
+                        rs.getInt("id_advanced_scenario"),
+                        rs.getString("PA"),
+                        rs.getInt("FC"),
+                        rs.getInt("RR"),
+                        rs.getFloat("T"),
+                        rs.getInt("SpO2"),
+                        rs.getInt("EtCO2"),
+                        rs.getString("Azione"),
+                        rs.getInt("TSi_id"),
+                        rs.getInt("TNo_id"),
+                        rs.getString("altri_dettagli"),
+                        rs.getInt("timer_tempo")
+                );
 
                 // Recupera i parametri aggiuntivi per questo tempo
                 int tempoId = tempo.getIdTempo();
@@ -1499,7 +1507,14 @@ public class ScenarioService {
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
-                ParametroAggiuntivo param = new ParametroAggiuntivo();
+                ParametroAggiuntivo param = new ParametroAggiuntivo(
+                        rs.getInt("parametri_aggiuntivi_id"),
+                        rs.getInt("tempo_id"),
+                        rs.getInt("scenario_id"),
+                        rs.getString("nome"),
+                        rs.getString("valore"),
+                        rs.getString("unità_misura")
+                );
                 param.setId(rs.getInt("parametri_aggiuntivi_id"));
                 param.setTempoId(rs.getInt("tempo_id"));
                 param.setScenarioId(rs.getInt("scenario_id"));
@@ -1591,14 +1606,283 @@ public class ScenarioService {
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected > 0) {
-                logger.info("Scenario with ID {} updated successfully", scenario.getId());
+                logger.info("Scenario con ID {} aggiornato con successo", scenario.getId());
             } else {
-                logger.warn("No scenario found with ID {}", scenario.getId());
+                logger.warn("Nessuno scenario trovato con ID {}", scenario.getId());
             }
         } catch (SQLException e) {
-            logger.error("Error updating scenario with ID {}", scenario.getId(), e);
-            throw new RuntimeException("Failed to update scenario", e);
+            logger.error("Errore durante l'aggiornamento dello scenario con ID {}", scenario.getId(), e);
+            throw new RuntimeException("Impossibile aggiornare lo scenario", e);
         }
-        throw new UnsupportedOperationException("Unimplemented method 'update'");
+    }
+
+    /**
+     * Crea un nuovo scenario a partire da un file JSON, verificando che non esista già.
+     *
+     * @param jsonFile il file JSON contenente i dati dello scenario
+     * @return true se lo scenario è stato creato con successo, false altrimenti
+     */
+    public boolean createScenarioByJSON(byte[] jsonFile) {
+        try {
+            // Converti il JSON in stringa
+            String jsonString = new String(jsonFile, StandardCharsets.UTF_8);
+            Gson gson = new GsonBuilder().create();
+
+            // Parsa il JSON in un oggetto Map per estrarre i dati
+            Map<String, Object> jsonData = gson.fromJson(jsonString, new TypeToken<Map<String, Object>>() {
+            }.getType());
+
+            // Estrai i dati principali dello scenario
+            Map<String, Object> scenarioData = (Map<String, Object>) jsonData.get("scenario");
+            int scenarioId = ((Double) scenarioData.get("id")).intValue();
+
+            // Verifica se lo scenario esiste già
+            if (existScenario(scenarioId)) {
+                logger.warn("Lo scenario con ID {} esiste già nel database", scenarioId);
+                return false;
+            }
+
+            // Crea lo scenario in base al tipo
+            String scenarioType = (String) jsonData.get("type");
+            boolean creationResult;
+
+            switch (scenarioType) {
+                case "Quick Scenario":
+                    creationResult = createQuickScenarioFromJson(scenarioData);
+                    break;
+                case "Advanced Scenario":
+                    creationResult = createAdvancedScenarioFromJson(jsonData);
+                    break;
+                case "Patient Simulated Scenario":
+                    creationResult = createPatientSimulatedScenarioFromJson(jsonData);
+                    break;
+                default:
+                    logger.error("Tipo di scenario non riconosciuto: {}", scenarioType);
+                    return false;
+            }
+
+            if (!creationResult) {
+                logger.error("Errore durante la creazione dello scenario di tipo {}", scenarioType);
+                return false;
+            }
+
+            logger.info("Scenario creato con successo dal JSON con ID {}", scenarioId);
+            return true;
+
+        } catch (JsonSyntaxException e) {
+            logger.error("Errore di sintassi nel JSON", e);
+            return false;
+        } catch (Exception e) {
+            logger.error("Errore durante la creazione dello scenario dal JSON", e);
+            return false;
+        }
+    }
+
+    /**
+     * Crea uno scenario rapido a partire dai dati JSON.
+     */
+    private boolean createQuickScenarioFromJson(Map<String, Object> scenarioData) {
+        String titolo = (String) scenarioData.get("titolo");
+        String nomePaziente = (String) scenarioData.get("nome_paziente");
+        String patologia = (String) scenarioData.get("patologia");
+        double timerGenerale = (Double) scenarioData.get("timer_generale");
+
+        int newId = startQuickScenario(titolo, nomePaziente, patologia, (float) timerGenerale);
+        if (newId <= 0) return false;
+
+        // Aggiorna i campi aggiuntivi
+        Scenario scenario = new Scenario(
+                newId,
+                titolo,
+                nomePaziente,
+                patologia,
+                (String) scenarioData.get("descrizione"),
+                (String) scenarioData.get("briefing"),
+                (String) scenarioData.get("patto_aula"),
+                (String) scenarioData.get("azione_chiave"),
+                (String) scenarioData.get("obiettivo"),
+                (String) scenarioData.get("materiale"),
+                (String) scenarioData.get("moulage"),
+                (String) scenarioData.get("liquidi"),
+                (float) timerGenerale
+        );
+
+        update(scenario);
+        return true;
+    }
+
+    /**
+     * Crea uno scenario avanzato a partire dai dati JSON.
+     */
+    private boolean createAdvancedScenarioFromJson(Map<String, Object> jsonData) {
+        Map<String, Object> scenarioData = (Map<String, Object>) jsonData.get("scenario");
+
+        // Crea lo scenario base
+        if (!createQuickScenarioFromJson(scenarioData)) {
+            return false;
+        }
+
+        int scenarioId = ((Double) scenarioData.get("id")).intValue();
+
+        // Aggiungi alla tabella AdvancedScenario
+        final String sql = "INSERT INTO AdvancedScenario (id_advanced_scenario) VALUES (?)";
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, scenarioId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error("Errore durante l'inserimento in AdvancedScenario", e);
+            return false;
+        }
+
+        // Salva i componenti aggiuntivi
+        return saveAdvancedScenarioComponents(scenarioId, jsonData);
+    }
+
+    /**
+     * Crea uno scenario simulato per pazienti a partire dai dati JSON.
+     */
+    private boolean createPatientSimulatedScenarioFromJson(Map<String, Object> jsonData) {
+        Map<String, Object> scenarioData = (Map<String, Object>) jsonData.get("scenario");
+
+        // Crea lo scenario avanzato
+        if (!createAdvancedScenarioFromJson(jsonData)) {
+            return false;
+        }
+
+        int scenarioId = ((Double) scenarioData.get("id")).intValue();
+        String sceneggiatura = (String) jsonData.get("sceneggiatura");
+
+        // Aggiungi alla tabella PatientSimulatedScenario
+        final String sql = "INSERT INTO PatientSimulatedScenario (id_patient_simulated_scenario, id_advanced_scenario, sceneggiatura) VALUES (?, ?, ?)";
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, scenarioId);
+            stmt.setInt(2, scenarioId);
+            stmt.setString(3, sceneggiatura != null ? sceneggiatura : "");
+            stmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            logger.error("Errore durante l'inserimento in PatientSimulatedScenario", e);
+            return false;
+        }
+    }
+
+    /**
+     * Salva i componenti aggiuntivi di uno scenario avanzato.
+     */
+    private boolean saveAdvancedScenarioComponents(int scenarioId, Map<String, Object> jsonData) {
+        // Salva esame fisico
+        Map<String, Object> esameFisicoData = (Map<String, Object>) jsonData.get("esameFisico");
+        if (esameFisicoData != null) {
+            Map<String, String> sections = new HashMap<>();
+            Map<String, String> sectionsData = (Map<String, String>) esameFisicoData.get("sections");
+            if (sectionsData != null) {
+                sections.putAll(sectionsData);
+            }
+            if (!addEsameFisico(scenarioId, sections)) {
+                logger.warn("Errore durante il salvataggio dell'esame fisico");
+            }
+        }
+
+        // Salva paziente T0
+        Map<String, Object> pazienteT0Data = (Map<String, Object>) jsonData.get("pazienteT0");
+        if (pazienteT0Data != null) {
+            List<Map<String, Object>> venosiData = (List<Map<String, Object>>) pazienteT0Data.get("accessiVenosi");
+            List<Map<String, Object>> arteriosiData = (List<Map<String, Object>>) pazienteT0Data.get("accessiArteriosi");
+
+            List<PazienteT0View.AccessoData> venosi = convertAccessoData(venosiData);
+            List<PazienteT0View.AccessoData> arteriosi = convertAccessoData(arteriosiData);
+
+            if (!savePazienteT0(
+                    scenarioId,
+                    (String) pazienteT0Data.get("PA"),
+                    ((Double) pazienteT0Data.get("FC")).intValue(),
+                    ((Double) pazienteT0Data.get("RR")).intValue(),
+                    (Double) pazienteT0Data.get("T"),
+                    ((Double) pazienteT0Data.get("SpO2")).intValue(),
+                    ((Double) pazienteT0Data.get("EtCO2")).intValue(),
+                    (String) pazienteT0Data.get("Monitor"),
+                    venosi,
+                    arteriosi
+            )) {
+                logger.warn("Errore durante il salvataggio del paziente T0");
+            }
+        }
+
+        // Salva esami e referti
+        List<Map<String, Object>> esamiRefertiData = (List<Map<String, Object>>) jsonData.get("esamiReferti");
+        if (esamiRefertiData != null) {
+            List<EsamiRefertiView.EsameRefertoData> esami = esamiRefertiData.stream()
+                    .map(e -> new EsamiRefertiView.EsameRefertoData(
+                            ((Double) e.get("idEsame")).intValue(),
+                            (String) e.get("tipo"),
+                            (String) e.get("media"),
+                            (String) e.get("refertoTestuale")
+                    ))
+                    .collect(Collectors.toList());
+
+            if (!saveEsamiReferti(scenarioId, esami)) {
+                logger.warn("Errore durante il salvataggio degli esami e referti");
+            }
+        }
+
+        // Salva tempi (solo per Advanced Scenario)
+        List<Map<String, Object>> tempiData = (List<Map<String, Object>>) jsonData.get("tempi");
+        if (tempiData != null) {
+            List<TempoData> tempi = tempiData.stream()
+                    .map(t -> {
+                        List<Map<String, Object>> paramsData = (List<Map<String, Object>>) t.get("parametriAggiuntivi");
+                        Map<String, ParameterValueUnit> params = new HashMap<>();
+
+                        if (paramsData != null) {
+                            paramsData.forEach(p -> {
+                                String nome = (String) p.get("nome");
+                                double valore = p.get("valore") instanceof String ?
+                                        Double.parseDouble((String) p.get("valore")) :
+                                        (Double) p.get("valore");
+                                String unita = (String) p.get("unitaMisura");
+                                params.put(nome, new ParameterValueUnit(valore, unita));
+                            });
+                        }
+
+                        return new TempoData(
+                                ((Double) t.get("idTempo")).intValue(),
+                                (String) t.get("PA"),
+                                (Double) t.get("FC"),
+                                (Double) t.get("RR"),
+                                (Double) t.get("T"),
+                                (Double) t.get("SpO2"),
+                                (Double) t.get("EtCO2"),
+                                (String) t.get("Azione"),
+                                t.get("TSi") != null ? ((Double) t.get("TSi")).intValue() : 0,
+                                t.get("TNo") != null ? ((Double) t.get("TNo")).intValue() : 0,
+                                (String) t.get("altriDettagli"),
+                                ((Double) t.get("timerTempo")).intValue(),
+                                params
+                        );
+                    })
+                    .collect(Collectors.toList());
+
+            if (!saveTempi(scenarioId, tempi)) {
+                logger.warn("Errore durante il salvataggio dei tempi");
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Converte i dati degli accessi dal formato JSON al formato atteso dal servizio.
+     */
+    private List<PazienteT0View.AccessoData> convertAccessoData(List<Map<String, Object>> accessiData) {
+        if (accessiData == null) return new ArrayList<>();
+
+        return accessiData.stream()
+                .map(a -> new PazienteT0View.AccessoData(
+                        (String) a.get("tipologia"),
+                        (String) a.get("posizione")
+                ))
+                .collect(Collectors.toList());
     }
 }

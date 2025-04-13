@@ -9,6 +9,7 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -185,7 +186,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
      */
     private boolean validateFields() {
         if (scenarioTitle.isEmpty() || patientName.isEmpty() || pathology.isEmpty() || durationField.isEmpty()) {
-            Notification.show("Compila tutti i campi obbligatori", 3000, Notification.Position.MIDDLE);
+            Notification.show("Compila tutti i campi obbligatori", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
             return false;
         }
         return true;
@@ -228,7 +229,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
                         break;
                     default:
                         Notification.show("Tipo di scenario non riconosciuto",
-                                3000, Notification.Position.MIDDLE);
+                                3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         return;
                 }
 
@@ -239,11 +240,11 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
                     ui.navigate("descrizione/" + scenarioId);
                 } else {
                     Notification.show("Errore durante il salvataggio dello scenario",
-                            3000, Notification.Position.MIDDLE);
+                            3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }
             } catch (Exception e) {
                 Notification.show("Errore: " + e.getMessage(),
-                        5000, Notification.Position.MIDDLE);
+                        5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                 logger.error("Errore durante il salvataggio dello scenario", e);
             }
         });

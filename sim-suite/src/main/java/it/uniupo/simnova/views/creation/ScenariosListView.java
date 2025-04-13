@@ -13,11 +13,14 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.Notification.Position;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.*;
@@ -31,7 +34,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -97,6 +102,11 @@ public class ScenariosListView extends Composite<VerticalLayout> {
      * Span per visualizzare le informazioni sulla pagina corrente.
      */
     private Span pageInfo;
+
+    final int MAX_TITLE_LENGTH = 20;
+    final int MAX_DESCRIPTION_LENGTH = 30;
+    final int MAX_PATIENT_NAME_LENGTH = 20;
+    final int MAX_PATHOLOGY_LENGTH = 20;
 
     /**
      * Costruttore della vista.
@@ -207,9 +217,10 @@ public class ScenariosListView extends Composite<VerticalLayout> {
             }
         });
 
+        // Modifica del listener per il pulsante "Nuovo Scenario"
         newScenarioButton.addClickListener(e -> {
             if (!detached.get()) {
-                getUI().ifPresent(ui -> ui.navigate("creation"));
+                showJsonUploadDialog();
             }
         });
 
@@ -230,17 +241,137 @@ public class ScenariosListView extends Composite<VerticalLayout> {
     }
 
     /**
+     * Mostra il dialog per il caricamento del file JSON.
+     */
+    private void showJsonUploadDialog() {
+        if (detached.get()) {
+            return;
+        }
+
+        // Creazione del layout del dialog
+        VerticalLayout dialogLayout = new VerticalLayout();
+        dialogLayout.setPadding(true);
+        dialogLayout.setSpacing(true);
+        dialogLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        Paragraph title = new Paragraph("Carica un file JSON per creare un nuovo scenario");
+        title.getStyle().set("font-weight", "bold");
+        title.getStyle().set("font-size", "1.2em");
+
+        Paragraph description = new Paragraph("Seleziona un file JSON da caricare");
+
+        // Creazione dell'uploader
+        MemoryBuffer buffer = new MemoryBuffer();
+        Upload upload = new Upload(buffer);
+        upload.setAcceptedFileTypes(".json");
+        upload.setMaxFiles(1);
+        upload.setDropLabel(new Span("Trascina qui il file JSON o"));
+        upload.setWidth("100%");
+        upload.setMaxWidth("500px");
+
+        Button cancelButton = new Button("Annulla");
+        cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+
+        HorizontalLayout buttons = new HorizontalLayout(cancelButton);
+        buttons.setSpacing(true);
+        buttons.setWidthFull();
+        buttons.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+
+        dialogLayout.add(title, description, upload, buttons);
+
+        // Creazione della notifica del dialog
+        Notification dialog = new Notification();
+        dialog.setPosition(Position.MIDDLE);
+        dialog.setDuration(0);
+        dialog.add(dialogLayout);
+        dialog.open();
+
+        // Listener per il pulsante Annulla
+        cancelButton.addClickListener(e -> dialog.close());
+
+        // Listener per il caricamento completato
+        upload.addSucceededListener(event -> {
+            try {
+                // Ottieni il file caricato come array di byte
+                InputStream inputStream = buffer.getInputStream();
+                byte[] jsonBytes = inputStream.readAllBytes();
+
+                // Chiudi il dialog
+                dialog.close();
+
+                // Cattura l'UI corrente prima di entrare nel thread separato
+                UI ui = UI.getCurrent();
+
+                // Mostra una notifica di caricamento
+                Notification loadingNotification = new Notification("Creazione scenario in corso...", 0, Position.MIDDLE);
+                loadingNotification.open();
+
+                // Esegui la creazione dello scenario in un thread separato
+                executorService.submit(() -> {
+                    try {
+                        // Chiama il metodo di creazione nel servizio
+                        boolean created = scenarioService.createScenarioByJSON(jsonBytes);
+
+                        // Aggiorna l'UI nel thread principale usando l'UI catturata prima
+                        if (ui != null && !detached.get()) {
+                            ui.access(() -> {
+                                // Chiudi la notifica di caricamento
+                                loadingNotification.close();
+
+                                if (created) {
+                                    Notification.show("Scenario creato con successo", 3000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                                    loadData(); // Ricarica i dati
+                                } else {
+                                    Notification.show("Errore durante la creazione dello scenario", 5000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                                }
+                            });
+                        }
+                    } catch (Exception ex) {
+                        if (ui != null && !detached.get()) {
+                            ui.access(() -> {
+                                loadingNotification.close();
+                                Notification.show("Errore: " + ex.getMessage(), 5000, Position.MIDDLE);
+                            });
+                        }
+                    }
+                });
+            } catch (IOException ex) {
+                Notification.show("Errore durante la lettura del file: " + ex.getMessage(), 5000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                dialog.close();
+            }
+        });
+
+        // Listener per errori di caricamento
+        upload.addFailedListener(event -> Notification.show("Caricamento fallito: " + event.getReason().getMessage(), 5000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR));
+    }
+
+    /**
      * Configura la griglia per visualizzare gli scenari.
      */
     private void configureGrid() {
         scenariosGrid.setWidthFull();
         scenariosGrid.getStyle().set("min-height", "400px");
 
-        // Colonna Titolo
-        scenariosGrid.addColumn(Scenario::getTitolo)
+        // Colonna Titolo (con testo troncato)
+        scenariosGrid.addColumn(new ComponentRenderer<>(scenario -> {
+                    String titolo = scenario.getTitolo();
+                    if (titolo == null) {
+                        titolo = "";
+                    }
+
+                    if (titolo.length() > MAX_TITLE_LENGTH) {
+                        titolo = titolo.substring(0, MAX_TITLE_LENGTH) + "...";
+                    }
+                    Span titoloSpan = new Span(titolo);
+                    if (!titolo.isEmpty()) {
+                        titoloSpan.getElement().setAttribute("title", scenario.getTitolo());
+                    }
+                    return titoloSpan;
+                }))
                 .setHeader("Titolo")
                 .setSortable(true)
-                .setAutoWidth(true);
+                .setAutoWidth(true)
+                .setComparator(Scenario::getTitolo); // Mantiene la funzionalità di ordinamento
 
         // Colonna Tipo Scenario (utilizzando getScenarioType)
         scenariosGrid.addColumn(new ComponentRenderer<>(scenario -> {
@@ -249,22 +380,22 @@ public class ScenariosListView extends Composite<VerticalLayout> {
 
                     // Assegna colori diversi in base al tipo
                     switch (tipo.toLowerCase()) {
-                        case "paziente simulato":
+                        case "patient simulated scenario":
                             tipoSpan.addClassNames(
                                     LumoUtility.TextColor.ERROR,
-                                    LumoUtility.FontWeight.BOLD
+                                    LumoUtility.FontWeight.SEMIBOLD
                             );
                             break;
-                        case "avanzato":
+                        case "advanced scenario":
                             tipoSpan.addClassNames(
                                     LumoUtility.TextColor.SUCCESS,
                                     LumoUtility.FontWeight.SEMIBOLD
                             );
                             break;
-                        case "base":
+                        case "quick scenario":
                             tipoSpan.addClassNames(
                                     LumoUtility.TextColor.PRIMARY,
-                                    LumoUtility.FontWeight.MEDIUM
+                                    LumoUtility.FontWeight.SEMIBOLD
                             );
                             break;
                         default:
@@ -282,16 +413,40 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                 });
 
         // Colonna Paziente
-        scenariosGrid.addColumn(Scenario::getNomePaziente)
-                .setHeader("Paziente")
-                .setSortable(true)
+        scenariosGrid.addColumn(new ComponentRenderer<>(scenario -> {
+                    String paziente = scenario.getNomePaziente();
+                    if (paziente == null) {
+                        paziente = "";
+                    }
+                    if (paziente.length() > MAX_PATIENT_NAME_LENGTH) {
+                        paziente = paziente.substring(0, MAX_PATIENT_NAME_LENGTH) + "...";
+                    }
+                    Span pazSpan = new Span(paziente);
+                    if (!paziente.isEmpty()) {
+                        pazSpan.getElement().setAttribute("title", scenario.getNomePaziente());
+                    }
+                    return pazSpan;
+                })).setHeader("Paziente")
                 .setAutoWidth(true);
 
-        // Colonna Patologia
-        scenariosGrid.addColumn(Scenario::getPatologia)
-                .setHeader("Patologia")
+        // Colonna Patologia (con testo troncato)
+        scenariosGrid.addColumn(new ComponentRenderer<>(scenario -> {
+                    String patologia = scenario.getPatologia();
+                    if (patologia == null) {
+                        patologia = "";
+                    }
+                    if (patologia.length() > MAX_PATHOLOGY_LENGTH) {
+                        patologia = patologia.substring(0, MAX_PATHOLOGY_LENGTH) + "...";
+                    }
+                    Span patoSpan = new Span(patologia);
+                    if (!patologia.isEmpty()) {
+                        patoSpan.getElement().setAttribute("title", scenario.getPatologia());
+                    }
+                    return patoSpan;
+                })).setHeader("Patologia")
                 .setSortable(true)
-                .setAutoWidth(true);
+                .setAutoWidth(true)
+                .setComparator(Scenario::getTitolo);
 
         // Colonna Descrizione (con testo troncato)
         scenariosGrid.addColumn(new ComponentRenderer<>(scenario -> {
@@ -299,12 +454,13 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                     if (descrizione == null) {
                         descrizione = "";
                     }
-                    int maxLength = 30;
-                    if (descrizione.length() > maxLength) {
-                        descrizione = descrizione.substring(0, maxLength) + "...";
+                    if (descrizione.length() > MAX_DESCRIPTION_LENGTH) {
+                        descrizione = descrizione.substring(0, MAX_DESCRIPTION_LENGTH) + "...";
                     }
                     Span descSpan = new Span(descrizione);
-                    descSpan.getElement().setAttribute("title", scenario.getDescrizione()); // Tooltip
+                    if(!descrizione.isEmpty()) {
+                        descSpan.getElement().setAttribute("title", scenario.getDescrizione());
+                    }
                     return descSpan;
                 })).setHeader("Descrizione")
                 .setAutoWidth(true);
@@ -503,7 +659,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
             }
         } catch (Exception e) {
             if (!detached.get()) {
-                Notification.show("Errore durante la generazione del PDF: " + e.getMessage(), 5000, Position.MIDDLE);
+                Notification.show("Errore durante la generazione del PDF: " + e.getMessage(), 5000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
         }
     }
@@ -560,7 +716,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
             }
         } catch (Exception e) {
             if (!detached.get()) {
-                Notification.show("Errore durante la generazione del JSON: " + e.getMessage(), 5000, Position.MIDDLE);
+                Notification.show("Errore durante la generazione del JSON: " + e.getMessage(), 5000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
         }
     }
@@ -594,10 +750,10 @@ public class ScenariosListView extends Composite<VerticalLayout> {
             if (!detached.get()) {
                 boolean deleted = scenarioService.deleteScenario(scenario.getId());
                 if (deleted) {
-                    Notification.show("Scenario eliminato con successo", 3000, Position.MIDDLE);
+                    Notification.show("Scenario eliminato con successo", 3000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_CONTRAST);
                     loadData();
                 } else {
-                    Notification.show("Errore durante l'eliminazione", 3000, Position.MIDDLE);
+                    Notification.show("Errore durante l'eliminazione", 3000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }
             }
         });
@@ -642,6 +798,11 @@ public class ScenariosListView extends Composite<VerticalLayout> {
             try {
                 List<Scenario> scenarios = scenarioService.getAllScenarios();
 
+                // Ordina gli scenari in ordine decrescente per ID (i più recenti prima)
+                if (scenarios != null) {
+                    scenarios.sort(Comparator.comparing(Scenario::getId).reversed());
+                }
+
                 // Check if view is still attached before updating UI
                 if (detached.get() || ui.isClosing()) {
                     return;
@@ -656,7 +817,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                             updateGridItems();
                             updatePaginationInfo();
                         } else {
-                            Notification.show("Errore durante il caricamento dei dati", 3000, Position.MIDDLE);
+                            Notification.show("Errore durante il caricamento dei dati", 3000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         }
                     } finally {
                         // Always ensure loading indicators are hidden
@@ -668,7 +829,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
             } catch (Exception e) {
                 if (!detached.get() && !ui.isClosing()) {
                     ui.access(() -> {
-                        Notification.show("Errore: " + e.getMessage(), 3000, Position.MIDDLE);
+                        Notification.show("Errore: " + e.getMessage(), 3000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         progressBar.setVisible(false);
                         scenariosGrid.setVisible(true);
                         paginationControls.setVisible(true);

@@ -42,36 +42,60 @@ public class PdfExportService {
      */
     private static final float TITLE_FONT_SIZE = 16;
     /**
-     * Font size for the title.
+     * Dimensione del font per l'intestazione.
      */
     private static final float HEADER_FONT_SIZE = 14;
     /**
-     * Font size for the body text.
+     * Dimensione del font per il corpo del testo.
      */
     private static final float BODY_FONT_SIZE = 11;
     /**
-     * Font size for the small text.
+     * Dimensione del font per il testo di piccole dimensioni.
      */
     private static final float SMALL_FONT_SIZE = 9;
     /**
-     * Dimensione del logo.
+     * Larghezza del logo.
      */
     private static final float LOGO_WIDTH = 60;
-    private static final float LOGO_HEIGHT = 60;
-
-    private int pageNumber = 1;
-    private static final Logger log = LoggerFactory.getLogger(PdfExportService.class);
     /**
-     * Font size for the title.
+     * Altezza del logo.
+     */
+    private static final float LOGO_HEIGHT = 60;
+    /**
+     * Numero di pagina corrente.
+     */
+    private int pageNumber = 1;
+    /**
+     * Logger per il servizio.
+     */
+    private static final Logger logger = LoggerFactory.getLogger(PdfExportService.class);
+    /**
+     * Servizio per la gestione degli scenari.
      */
     private final ScenarioService scenarioService;
-
-    // Aggiungi una variabile per tracciare la posizione Y corrente e la pagina attuale
+    /**
+     * Posizione Y corrente per il disegno del contenuto.
+     */
     private float currentYPosition;
+    /**
+     * Stream di contenuto corrente per la pagina PDF.
+     */
     private PDPageContentStream currentContentStream;
+    /**
+     * Documento PDF corrente.
+     */
     private PDDocument document;
+    /**
+     * Font per il testo in grassetto.
+     */
     private PDFont fontBold;
+    /**
+     * Font per il testo normale.
+     */
     private PDFont fontRegular;
+    /**
+     * Font per il testo in grassetto di piccole dimensioni.
+     */
     private PDImageXObject logo;
 
     /**
@@ -98,69 +122,70 @@ public class PdfExportService {
         try {
             document = new PDDocument();
 
-            // Load fonts
+            // Carica i font
             fontRegular = loadFont(document, "/fonts/LiberationSans-Regular.ttf");
             fontBold = loadFont(document, "/fonts/LiberationSans-Bold.ttf");
 
-            // Load logo
+            // Carica il logo
             logo = loadLogo(document);
 
-            // Initialize the first page
+            // Inizializza la prima pagina
             initNewPage();
 
-            // Get complete scenario data
+            // Recupera lo scenario
             Scenario scenario = scenarioService.getScenarioById(scenarioId);
-            log.info("Exporting scenario: {}", scenario.getTitolo());
+            logger.info("Recuperato scenario: {}", scenario.getTitolo());
 
-            // Create document in sequential format
+            // Crea l'intestazione dello scenario
             createScenarioHeader(scenario);
             createPatientSection(scenarioId);
             createExamsSection(scenarioId);
 
-            // Create timeline section if any
+            // Controlla il tipo di scenario e crea le sezioni appropriate
             String scenarioType = scenarioService.getScenarioType(scenarioId);
             if (scenarioType != null && (scenarioType.equals("Advanced Scenario") ||
                     scenarioType.equals("Patient Simulated Scenario"))) {
                 createTimelineSection(scenario);
-                log.info("Timeline section created");
+                logger.info("Timeline creata");
             }
 
+            // Crea la sezione della sceneggiatura
             if (scenarioType != null && scenarioType.equals("Patient Simulated Scenario")) {
                 createSceneggiaturaSection(scenario);
             }
 
-            // Safely close the last content stream
+            // Chiude il contenuto corrente
             if (currentContentStream != null) {
                 try {
                     currentContentStream.close();
                     currentContentStream = null;
                 } catch (Exception e) {
-                    log.warn("Error closing final content stream: {}", e.getMessage());
+                    logger.warn("Errore nella chiusura dello stream corrente: {}", e.getMessage());
                 }
             }
 
-            // Save document to byte array
+            // Salva il documento PDF in un array di byte
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             document.save(outputStream);
-            log.info("PDF document saved");
+            logger.info("PDF salvato con successo");
             return outputStream.toByteArray();
         } catch (Exception e) {
-            log.error("Error generating PDF", e);
-            throw new IOException("Failed to generate PDF: " + e.getMessage(), e);
+            logger.error("Errore nella generazione del PDF", e);
+            throw new IOException("Generazione PDF fallita: " + e.getMessage(), e);
         } finally {
-            // Make sure we close everything in finally block
+            // Chiude il documento e lo stream di contenuto
             if (currentContentStream != null) {
                 try {
                     currentContentStream.close();
                 } catch (Exception e) {
-                    log.warn("Error closing content stream in finally block: {}", e.getMessage());
+                    logger.warn("Errore nella chiusura dello stream: {}", e.getMessage());
                 }
             }
             if (document != null) {
                 try {
                     document.close();
                 } catch (Exception e) {
-                    log.warn("Error closing document in finally block: {}", e.getMessage());
+                    logger.warn("Errore nella chiusura del documento: {}", e.getMessage());
                 }
             }
         }
@@ -176,11 +201,11 @@ public class PdfExportService {
     private PDImageXObject loadLogo(PDDocument document) throws IOException {
         try (InputStream logoStream = getClass().getResourceAsStream("/META-INF/resources/icons/LogoSimsuite.png")) {
             if (logoStream == null) {
-                log.warn("Logo file not found: /META-INF/resources/icons/LogoSimsuite.png");
+                logger.warn("File del logo non trovato: /META-INF/resources/icons/LogoSimsuite.png");
                 return null;
             }
 
-            // Converti l'InputStream in un array di byte
+            // Converte l'InputStream in un array di byte
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             int nRead;
             byte[] data = new byte[1024];
@@ -199,31 +224,30 @@ public class PdfExportService {
      * @throws IOException se si verifica un errore durante la creazione della pagina
      */
     private void initNewPage() throws IOException {
-        // Safely close the content stream if it exists
+        // Chiude lo stream di contenuto corrente se esiste
         if (currentContentStream != null) {
             try {
                 currentContentStream.close();
             } catch (Exception e) {
-                log.warn("Error closing content stream: {}", e.getMessage());
-                // Don't rethrow - we still want to create the new page
+                logger.warn("Errore nella chiusura dello stream del contenuto corrente: {}", e.getMessage());
             }
         }
 
-        // Create a new page
+        // Crea una nuova pagina
         PDPage currentPage = new PDPage(PDRectangle.A4);
         document.addPage(currentPage);
 
-        // Create a new content stream
+        // Creazione di un nuovo stream di contenuto
         currentContentStream = new PDPageContentStream(document, currentPage);
 
-        // Add the logo in the first page only
+        // Aggiunge il logo se è la prima pagina
         if (logo != null && pageNumber == 1) {
             // Position the logo at the top center
             float logoX = (PDRectangle.A4.getWidth() - LOGO_WIDTH) / 2;
             float logoY = PDRectangle.A4.getHeight() - MARGIN - LOGO_HEIGHT;
             currentContentStream.drawImage(logo, logoX, logoY, LOGO_WIDTH, LOGO_HEIGHT);
 
-            // Update the Y position considering the space occupied by the logo
+            // Aggiorna la posizione Y corrente
             currentYPosition = logoY - LEADING;
         } else {
             currentYPosition = PDRectangle.A4.getHeight() - MARGIN;
@@ -267,15 +291,15 @@ public class PdfExportService {
      * @throws IOException se si verifica un errore durante la creazione dell'intestazione
      */
     private void createScenarioHeader(Scenario scenario) throws IOException {
-        // Title
+        // Titolo del PDF
         drawCenteredText(fontBold, TITLE_FONT_SIZE, "Dettaglio Scenario");
         currentYPosition -= LEADING * 2;
 
-        // Scenario Title
+        // Titolo dello scenario
         drawCenteredText(fontBold, HEADER_FONT_SIZE, scenario.getTitolo());
         currentYPosition -= LEADING * 2;
 
-        // Basic Info
+        // Informazioni generali
         currentContentStream.setFont(fontRegular, BODY_FONT_SIZE);
         currentContentStream.beginText();
         currentContentStream.newLineAtOffset(MARGIN, currentYPosition);
@@ -289,7 +313,7 @@ public class PdfExportService {
         currentContentStream.endText();
         currentYPosition -= LEADING * 5;
 
-        // Description
+        // Descrizione
         if (scenario.getDescrizione() != null && !scenario.getDescrizione().isEmpty()) {
             drawSection("Descrizione", scenario.getDescrizione());
         }
@@ -299,37 +323,37 @@ public class PdfExportService {
             drawSection("Briefing", scenario.getBriefing());
         }
 
-        //Patto d'aula
+        // Patto d'aula
         if (scenario.getPattoAula() != null && !scenario.getPattoAula().isEmpty()) {
             drawSection("Patto d'Aula", scenario.getPattoAula());
         }
 
-        //Azioni chiave
+        // Azioni chiave
         if (scenario.getAzioneChiave() != null && !scenario.getAzioneChiave().isEmpty()) {
             drawSection("Azioni Chiave", scenario.getAzioneChiave());
         }
 
-        //Obiettivi didattici
+        // Obiettivi didattici
         if (scenario.getObiettivo() != null && !scenario.getObiettivo().isEmpty()) {
             drawSection("Obiettivi Didattici", scenario.getObiettivo());
         }
 
-        //Materiale necessario
+        // Materiale necessario
         if (scenario.getMateriale() != null && !scenario.getMateriale().isEmpty()) {
             drawSection("Materiale Necessario", scenario.getMateriale());
         }
 
-        //Moulage
+        // Moulage
         if (scenario.getMoulage() != null && !scenario.getMoulage().isEmpty()) {
             drawSection("Moulage", scenario.getMoulage());
         }
 
-        //Liquidi
+        // Liquidi
         if (scenario.getLiquidi() != null && !scenario.getLiquidi().isEmpty()) {
             drawSection("Liquidi", scenario.getLiquidi());
         }
 
-        log.info("Scenario header created");
+        logger.info("Header creato");
     }
 
     /**
@@ -342,13 +366,13 @@ public class PdfExportService {
         // Verifica spazio disponibile e crea pagina se necessario
         checkForNewPage(LEADING * 5);
 
-        // Section title
+        // Titolo sezione
         drawSection("Stato Paziente", "");
 
         PazienteT0 paziente = scenarioService.getPazienteT0ById(scenarioId);
         if (paziente != null) {
-            // Vital parameters
-            checkForNewPage(LEADING * 10); // Spazio per i parametri vitali
+            // Parametri vitali
+            checkForNewPage(LEADING * 10);
             drawSubsection("Parametri Vitali");
 
             String vitalParams = String.format(
@@ -360,7 +384,7 @@ public class PdfExportService {
 
             drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, vitalParams);
 
-            // Vascular access
+            // Accessi venosi
             if (!paziente.getAccessiVenosi().isEmpty()) {
                 checkForNewPage(LEADING * 3 + LEADING * paziente.getAccessiVenosi().size());
                 drawSubsection("Accessi Venosi");
@@ -370,6 +394,7 @@ public class PdfExportService {
                 }
             }
 
+            // Accessi arteriosi
             if (!paziente.getAccessiArteriosi().isEmpty()) {
                 checkForNewPage(LEADING * 3 + LEADING * paziente.getAccessiArteriosi().size());
                 drawSubsection("Accessi Arteriosi");
@@ -380,7 +405,7 @@ public class PdfExportService {
             }
         }
 
-        // Physical exam
+        // Esame fisico
         EsameFisico esame = scenarioService.getEsameFisicoById(scenarioId);
         if (esame != null && !esame.getSections().isEmpty()) {
             checkForNewPage(LEADING * 5);
@@ -394,9 +419,11 @@ public class PdfExportService {
                     drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 30, entry.getValue());
                 }
             }
+            currentYPosition -= LEADING;
         }
 
-        log.info("Patient section created");
+
+        logger.info("Patient section creata");
     }
 
     /**
@@ -414,18 +441,20 @@ public class PdfExportService {
         // Verifica spazio disponibile e crea pagina se necessario
         checkForNewPage(LEADING * 5);
 
-        // Section title
+        // Titolo sezione
         drawSection("Esami e Referti", "");
+
 
         for (EsameReferto esame : esami) {
             String examType = getExamType(esame);
             checkForNewPage(LEADING * 3);
+            // Aggiunge il tipo dell'esame
             drawSubsection(examType);
-
+            // Aggiunge il referto
             if (esame.getRefertoTestuale() != null && !esame.getRefertoTestuale().isEmpty()) {
                 drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, esame.getRefertoTestuale());
             }
-
+            // Aggiunge il nome del media allegato
             if (esame.getMedia() != null && !esame.getMedia().isEmpty()) {
                 drawWrappedText(fontRegular, SMALL_FONT_SIZE, MARGIN + 20, "Allegato: " + esame.getMedia());
             }
@@ -433,12 +462,21 @@ public class PdfExportService {
             currentYPosition -= LEADING;
         }
 
-        log.info("Exams section created");
+        logger.info("Exams section created");
     }
 
+    /**
+     * Ottiene il tipo di esame e sostituisce i caratteri speciali con i numeri corrispondenti.
+     *
+     * @param esame l'oggetto EsameReferto
+     * @return il tipo di esame con i caratteri speciali sostituiti
+     */
     private static String getExamType(EsameReferto esame) {
         String examType = esame.getTipo();
+        // Sostituisce i caratteri speciali con i numeri corrispondenti
         if (examType != null) {
+            examType = examType.replace('₀', '0');
+            examType = examType.replace('₁', '1');
             examType = examType.replace('₂', '2');
             examType = examType.replace('₃', '3');
             examType = examType.replace('₄', '4');
@@ -448,6 +486,7 @@ public class PdfExportService {
             examType = examType.replace('₈', '8');
             examType = examType.replace('⁻', '-');
             examType = examType.replace('⁺', '+');
+            examType = examType.replace('⁰', '0');
             examType = examType.replace('¹', '1');
             examType = examType.replace('²', '2');
             examType = examType.replace('³', '3');
@@ -476,28 +515,22 @@ public class PdfExportService {
         // Verifica spazio disponibile e crea pagina se necessario
         checkForNewPage(LEADING * 5);
 
-        // Section title
+        // Titolo sezione
         drawSection("Timeline", "");
 
         for (Tempo tempo : tempi) {
             // Verifica spazio disponibile per ogni tempo
-            checkForNewPage(LEADING * 10); // Spazio minimo per un tempo
+            checkForNewPage(LEADING * 10);
 
-            // Time title - Tronca l'azione se è troppo lunga
-            String azione = tempo.getAzione();
-            if (azione != null && azione.length() > 50) {
-                azione = azione.substring(0, 48) + "...";
-            }
 
-            String title = String.format("Tempo %d: %s (%.1f min)",
+            String title = String.format("Tempo %d (%.1f min)",
                     tempo.getIdTempo(),
-                    azione,
-                    tempo.getTimerTempo() / 3600.0
+                    tempo.getTimerTempo() / 3600.0 // Converte i secondi in minuti
             );
 
             drawSubsection(title);
 
-            // Vital parameters
+            // Parametri vitali
             StringBuilder params = new StringBuilder(String.format(
                     "PA: %s mmHg\nFC: %d bpm\nRR: %d atti/min\nTemperatura: %.1f °C\nSpO2: %d%%\nEtCO2: %d mmHg",
                     tempo.getPA(), tempo.getFC(), tempo.getRR(),
@@ -506,6 +539,7 @@ public class PdfExportService {
 
             List<ParametroAggiuntivo> parametriAggiuntivo = ScenarioService.getParametriAggiuntiviByTempoId(tempo.getIdTempo(), scenario.getId());
 
+            // Aggiungi parametri aggiuntivi
             if (!parametriAggiuntivo.isEmpty()) {
                 for (ParametroAggiuntivo parametro : parametriAggiuntivo) {
                     params.append(String.format("\n%s: %s %s", parametro.getNome(), parametro.getValore(), parametro.getUnitaMisura()));
@@ -514,23 +548,23 @@ public class PdfExportService {
 
             drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, params.toString());
 
-            // Additional details
+            // Dettagli aggiuntivi
             if (tempo.getAltriDettagli() != null && !tempo.getAltriDettagli().isEmpty()) {
                 checkForNewPage(LEADING * 3);
                 drawWrappedText(fontBold, BODY_FONT_SIZE, MARGIN + 20, "Dettagli:");
                 drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 30, tempo.getAltriDettagli());
             }
 
-            if (tempo.getTSi() >= 0) {
-                checkForNewPage(LEADING * 3);
-                drawWrappedText(fontBold, BODY_FONT_SIZE, MARGIN + 20, "TSI:");
-                drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 30, String.valueOf(tempo.getTSi()));
+            String azione = tempo.getAzione();
+            if (azione != null && !azione.isEmpty()) {
+                drawWrappedText(fontBold, BODY_FONT_SIZE, MARGIN + 20, "Azioni da svolgere per passare a T"+ tempo.getTSi()+":");
+                drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 30, azione);
             }
 
+            // Tempo se non avviene l'azione
             if (tempo.getTNo() >= 0) {
                 checkForNewPage(LEADING * 3);
-                drawWrappedText(fontBold, BODY_FONT_SIZE, MARGIN + 20, "TNO:");
-                drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 30, String.valueOf(tempo.getTNo()));
+                drawWrappedText(fontBold, BODY_FONT_SIZE, MARGIN + 20, "Se non vengono svolte le azioni passare a T"+ tempo.getTNo());
             }
 
             // Aggiungi spazio tra gli elementi della timeline
@@ -545,7 +579,7 @@ public class PdfExportService {
      * @throws IOException se si verifica un errore durante la creazione della sezione
      */
     private void createSceneggiaturaSection(Scenario scenario) throws IOException {
-        String sceneggiatura = scenarioService.getSceneggiatura(scenario.getId());
+        String sceneggiatura = ScenarioService.getSceneggiatura(scenario.getId());
         if (sceneggiatura == null || sceneggiatura.isEmpty()) {
             return;
         }
@@ -553,11 +587,11 @@ public class PdfExportService {
         // Verifica spazio disponibile e crea pagina se necessario
         checkForNewPage(LEADING * 5);
 
-        // Section title
+        // Titolo sezione
         drawSection("Sceneggiatura", "");
         drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, sceneggiatura);
 
-        log.info("Sceneggiatura section created");
+        logger.info("Sceneggiatura section created");
     }
 
     /**
@@ -619,7 +653,7 @@ public class PdfExportService {
             // Controlla se abbiamo spazio per una nuova riga
             checkForNewPage(LEADING);
 
-            // Set the font for the current content stream
+            // Imposta il font e la dimensione
             currentContentStream.setFont(font, fontSize);
 
             String[] words = line.split(" ");
@@ -640,7 +674,7 @@ public class PdfExportService {
                     // Controlla se abbiamo spazio per continuare sulla stessa pagina
                     checkForNewPage(LEADING);
 
-                    // Important: Set the font again after potentially creating a new page
+                    // Imposta il font e la dimensione
                     currentContentStream.setFont(font, fontSize);
 
                     currentContentStream.beginText();
@@ -652,6 +686,7 @@ public class PdfExportService {
                 }
             }
 
+            // Disegna l'ultima riga
             if (!currentLine.isEmpty()) {
                 currentContentStream.showText(currentLine.toString());
             }

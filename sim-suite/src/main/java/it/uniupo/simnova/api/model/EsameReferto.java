@@ -52,13 +52,6 @@ public class EsameReferto {
         this.refertoTestuale = refertoTestuale;
     }
 
-    /**
-     * Costruttore vuoto per la deserializzazione.
-     */
-    public EsameReferto() {
-        // Costruttore vuoto per JPA e deserializzazione
-    }
-
     // Metodi getter e setter
 
     /**
@@ -159,8 +152,8 @@ public class EsameReferto {
     @Override
     public String toString() {
         return "EsameReferto{" +
-                "idEsame=" + idEsame +
-                ", scenario=" + id_scenario +
+                "id_esame=" + idEsame +
+                ", id_scenario=" + id_scenario +
                 ", tipo='" + tipo + '\'' +
                 ", media='" + media + '\'' +
                 ", refertoTestuale='" + refertoTestuale + '\'' +

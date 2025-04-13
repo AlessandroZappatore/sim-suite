@@ -11,6 +11,7 @@ package it.uniupo.simnova.api.model;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@SuppressWarnings("NonAsciiCharacters")
 public class ParametroAggiuntivo {
     /**
      * Identificativo univoco del parametro.
@@ -38,27 +39,22 @@ public class ParametroAggiuntivo {
     private String unitaMisura;
 
     /**
-     * Costruttore completo per creare un nuovo parametro aggiuntivo.
+     * Costruttore completo per creare un nuovo parametro aggiuntivo con scenarioId.
      *
-     * @param id          identificativo univoco del parametro
-     * @param tempoId     identificativo del tempo a cui appartiene il parametro
-     * @param nome        nome del parametro (es. "Pressione venosa centrale")
-     * @param valore      valore del parametro (es. "12")
-     * @param unitaMisura unità di misura del parametro (es. "mmHg")
+     * @param parametriAggiuntiviId identificativo univoco del parametro
+     * @param tempoId               identificativo del tempo a cui appartiene il parametro
+     * @param scenarioId            identificativo dello scenario a cui appartiene il parametro
+     * @param nome                  nome del parametro (es. "Pressione venosa centrale")
+     * @param valore                valore del parametro (es. "12")
+     * @param unitàMisura           unità di misura del parametro (es. "mmHg")
      */
-    public ParametroAggiuntivo(int id, int tempoId, String nome, String valore, String unitaMisura) {
-        this.id = id;
+    public ParametroAggiuntivo(int parametriAggiuntiviId, int tempoId, int scenarioId, String nome, String valore, String unitàMisura) {
+        this.id = parametriAggiuntiviId;
         this.tempoId = tempoId;
+        this.scenarioId = scenarioId;
         this.nome = nome;
         this.valore = valore;
-        this.unitaMisura = unitaMisura;
-    }
-
-    /**
-     * Costruttore vuoto per la deserializzazione.
-     */
-    public ParametroAggiuntivo() {
-        // Costruttore vuoto per JPA e deserializzazione
+        this.unitaMisura = unitàMisura;
     }
 
     /**
@@ -176,6 +172,13 @@ public class ParametroAggiuntivo {
      */
     @Override
     public String toString() {
-        return nome+": "+valore+" "+unitaMisura;
+        return "ParametroAggiuntivo{" +
+                "id=" + id +
+                ", tempoId=" + tempoId +
+                ", scenarioId=" + scenarioId +
+                ", nome='" + nome + '\'' +
+                ", valore='" + valore + '\'' +
+                ", unitaMisura='" + unitaMisura + '\'' +
+                '}';
     }
 }

@@ -105,13 +105,6 @@ public class Tempo {
     }
 
     /**
-     * Costruttore vuoto per la deserializzazione.
-     */
-    public Tempo() {
-        // Default constructor
-    }
-
-    /**
      * Restituisce l'identificativo univoco del tempo.
      *
      * @return l'identificativo univoco del tempo
@@ -376,13 +369,13 @@ public class Tempo {
         return "Tempo{" +
                 "idTempo=" + idTempo +
                 ", advancedScenario=" + advancedScenario +
-                ", PA=" + PA +
+                ", PA='" + PA + '\'' +
                 ", FC=" + FC +
                 ", RR=" + RR +
                 ", T=" + T +
                 ", SpO2=" + SpO2 +
                 ", EtCO2=" + EtCO2 +
-                ", Azione='" + Azione + '\'' +
+                ", azione='" + Azione + '\'' +
                 ", TSi=" + TSi +
                 ", TNo=" + TNo +
                 ", altriDettagli='" + altriDettagli + '\'' +

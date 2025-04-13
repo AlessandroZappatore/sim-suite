@@ -93,7 +93,7 @@ public class Scenario {
         this.materiale = materiale;
         this.moulage = moulage;
         this.liquidi = liquidi;
-        if (timer_generale <= 0) {
+        if (timer_generale < 0) {
             this.timer_generale = 0;
         } else {
             this.timer_generale = timer_generale;
@@ -107,21 +107,14 @@ public class Scenario {
      * @param titolo         il titolo dello scenario
      * @param nome_paziente  il nome del paziente
      * @param patologia      la patologia del paziente
-     * @param timer_generale il timer generale dello scenario
+     * @param descrizione    la descrizione dello scenario
      */
-    public Scenario(int id, String titolo, String nome_paziente, String patologia, float timer_generale) {
+    public Scenario(int id, String titolo, String nome_paziente, String patologia, String descrizione) {
         this.id = id;
         this.titolo = titolo;
         this.nome_paziente = nome_paziente;
         this.patologia = patologia;
-        this.timer_generale = timer_generale;
-    }
-
-    /**
-     * Costruttore vuoto per la deserializzazione.
-     */
-    public Scenario() {
-
+        this.descrizione = descrizione;
     }
 
     /**
@@ -365,6 +358,20 @@ public class Scenario {
      */
     @Override
     public String toString() {
-        return "Scenario{id=" + id + ", titolo=" + titolo + ", nome_paziente=" + nome_paziente + ", patologia=" + patologia + ", descrizione=" + descrizione + ", briefing=" + briefing + ", patto_aula=" + patto_aula + ", azione_chiave=" + azione_chiave + ", obiettivo=" + obiettivo + ", materiale=" + materiale + ", moulage=" + moulage + ", liquidi=" + liquidi + "}";
+        return "Scenario{" +
+                "id=" + id +
+                ", titolo='" + titolo + '\'' +
+                ", nomePaziente='" + nome_paziente + '\'' +
+                ", patologia='" + patologia + '\'' +
+                ", descrizione='" + descrizione + '\'' +
+                ", briefing='" + briefing + '\'' +
+                ", pattoAula='" + patto_aula + '\'' +
+                ", azioneChiave='" + azione_chiave + '\'' +
+                ", obiettivo='" + obiettivo + '\'' +
+                ", materiale='" + materiale + '\'' +
+                ", moulage='" + moulage + '\'' +
+                ", liquidi='" + liquidi + '\'' +
+                ", timerGenerale=" + timer_generale +
+                '}';
     }
 }

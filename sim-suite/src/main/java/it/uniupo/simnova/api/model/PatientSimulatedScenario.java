@@ -56,13 +56,6 @@ public class PatientSimulatedScenario extends AdvancedScenario {
     }
 
     /**
-     * Costruttore vuoto per la deserializzazione.
-     */
-    public PatientSimulatedScenario() {
-
-    }
-
-    /**
      * Restituisce l'identificativo univoco dello scenario simulato con paziente.
      *
      * @return l'identificativo univoco dello scenario simulato con paziente
@@ -127,6 +120,19 @@ public class PatientSimulatedScenario extends AdvancedScenario {
                 "idPatientSimulatedScenario=" + idPatientSimulatedScenario +
                 ", advancedScenario=" + advancedScenario +
                 ", sceneggiatura='" + sceneggiatura + '\'' +
+                ", id=" + getId() +
+                ", titolo='" + getTitolo() + '\'' +
+                ", nome_paziente='" + getNomePaziente() + '\'' +
+                ", patologia='" + getPatologia() + '\'' +
+                ", descrizione='" + getDescrizione() + '\'' +
+                ", briefing='" + getBriefing() + '\'' +
+                ", patto_aula='" + getPattoAula() + '\'' +
+                ", azione_chiave='" + getAzioneChiave() + '\'' +
+                ", obiettivo='" + getObiettivo() + '\'' +
+                ", materiale='" + getMateriale() + '\'' +
+                ", moulage='" + getMoulage() + '\'' +
+                ", liquidi='" + getLiquidi() + '\'' +
+                ", timer_generale=" + getTimerGenerale() +
                 '}';
     }
 }

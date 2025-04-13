@@ -26,29 +26,9 @@ public class EsameFisico {
     private Map<String, String> sections;
 
     /**
-     * Costruttore vuoto che inizializza un esame fisico con tutte le sezioni vuote.
-     */
-    public EsameFisico() {
-        this.sections = new HashMap<>();
-        // Inizializza tutte le sezioni con stringhe vuote
-        sections.put("Generale", "");
-        sections.put("Pupille", "");
-        sections.put("Collo", "");
-        sections.put("Torace", "");
-        sections.put("Cuore", "");
-        sections.put("Addome", "");
-        sections.put("Retto", "");
-        sections.put("Cute", "");
-        sections.put("Estremita", "");
-        sections.put("Neurologico", "");
-        sections.put("FAST", "");
-    }
-
-    /**
      * Costruttore completo per creare un esame fisico con tutti i valori.
      *
      * @param idEsameFisico identificativo univoco dell'esame fisico
-     * @param scenario      identificativo dello scenario associato
      * @param generale      risultati sezione generale
      * @param pupille       risultati esame pupille
      * @param collo         risultati esame collo
@@ -57,16 +37,12 @@ public class EsameFisico {
      * @param addome        risultati esame addome
      * @param retto         risultati esame rettale (se eseguito)
      * @param cute          risultati esame cute
-     * @param estremita     risultati esame estremità
+     * @param estremità     risultati esame estremità
      * @param neurologico   risultati esame neurologico
      * @param fast          risultati FAST exam (Focused Assessment with Sonography for Trauma)
      */
-    public EsameFisico(int idEsameFisico, int scenario, String generale, String pupille,
-                       String collo, String torace, String cuore, String addome,
-                       String retto, String cute, String estremita,
-                       String neurologico, String fast) {
+    public EsameFisico(int idEsameFisico, String generale, String pupille, String collo, String torace, String cuore, String addome, String retto, String cute, String estremità, String neurologico, String fast) {
         this.idEsameFisico = idEsameFisico;
-
         this.sections = new HashMap<>();
         sections.put("Generale", generale);
         sections.put("Pupille", pupille);
@@ -76,7 +52,7 @@ public class EsameFisico {
         sections.put("Addome", addome);
         sections.put("Retto", retto);
         sections.put("Cute", cute);
-        sections.put("Estremita", estremita);
+        sections.put("Estremita", estremità);
         sections.put("Neurologico", neurologico);
         sections.put("FAST", fast);
     }

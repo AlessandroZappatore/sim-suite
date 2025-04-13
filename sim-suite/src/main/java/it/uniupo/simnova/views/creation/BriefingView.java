@@ -8,6 +8,7 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -130,7 +131,7 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
         nextButton.addClickListener(e -> {
             if (briefingArea.getValue().trim().isEmpty()) {
                 Notification.show("Inserisci un briefing per lo scenario",
-                        3000, Notification.Position.MIDDLE);
+                        3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
                 return;
             }
             saveBriefingAndNavigate(nextButton.getUI());
@@ -194,14 +195,14 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
                         ui.navigate("pattoaula/" + scenarioId);
                     } else {
                         Notification.show("Errore durante il salvataggio del briefing",
-                                3000, Notification.Position.MIDDLE);
+                                3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     }
                 });
             } catch (Exception e) {
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
                     Notification.show("Errore: " + e.getMessage(),
-                            5000, Notification.Position.MIDDLE);
+                            5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     logger.error("Errore durante il salvataggio del briefing", e);
                 });
             }

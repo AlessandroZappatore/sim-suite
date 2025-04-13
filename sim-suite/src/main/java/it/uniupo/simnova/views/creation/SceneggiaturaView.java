@@ -8,6 +8,7 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -143,7 +144,7 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
         nextButton.addClickListener(e -> {
             // Validazione dell'input
             if (sceneggiaturaArea.getValue().trim().isEmpty()) {
-                Notification.show("Inserisci la sceneggiatura per lo scenario", 3000, Notification.Position.MIDDLE);
+                Notification.show("Inserisci la sceneggiatura per lo scenario", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
                 return;
             }
             saveSceneggiaturaAndNavigate(nextButton.getUI());
@@ -218,14 +219,14 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
                         logger.info("Sceneggiatura salvata con successo per lo scenario con ID: {}", scenarioId);
                         ui.navigate("scenari/" + scenarioId); // Navigazione alla view successiva
                     } else {
-                        Notification.show("Errore durante il salvataggio della sceneggiatura", 3000, Notification.Position.MIDDLE);
+                        Notification.show("Errore durante il salvataggio della sceneggiatura", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         logger.error("Errore durante il salvataggio della sceneggiatura per lo scenario con ID: {}", scenarioId);
                     }
                 });
             } catch (Exception e) {
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
-                    Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
+                    Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     logger.error("Errore durante il salvataggio della sceneggiatura per lo scenario con ID: {}", scenarioId, e);
                 });
             }

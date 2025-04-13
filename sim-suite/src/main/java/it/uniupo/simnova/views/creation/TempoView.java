@@ -13,6 +13,7 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -272,59 +273,56 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
      * @param parameter parametro ID passato nell'URL (può essere nullo)
      */
     @Override
-    public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
+    public void setParameter(BeforeEvent event, @WildcardParameter String parameter) {
         try {
-            // Controllo se il parametro ID è presente e valido
             if (parameter == null || parameter.trim().isEmpty()) {
-                logger.warn("ID Scenario mancante nell'URL.");
+                logger.warn("Parametro mancante nell'URL.");
                 throw new NumberFormatException("ID Scenario è richiesto");
             }
 
-            this.scenarioId = Integer.parseInt(parameter.trim()); // Rimuove spazi extra
+            // Dividi il parametro usando '/' come separatore
+            String[] parts = parameter.split("/");
+            String scenarioIdStr = parts[0]; // Il primo elemento è l'ID dello scenario
 
-            // Verifica esistenza scenario nel DB
+            // Verifica e imposta l'ID scenario
+            this.scenarioId = Integer.parseInt(scenarioIdStr.trim());
             if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
                 logger.warn("ID Scenario non valido o non esistente: {}", scenarioId);
                 throw new NumberFormatException("ID Scenario non valido");
             }
-            logger.info("ID Scenario impostato a: {}", this.scenarioId);
+
+            if(scenarioService.getScenarioType(scenarioId).equals("Quick Scenario")) {
+                logger.warn("ID Scenario non valido: {}", scenarioId);
+                throw new NumberFormatException("Quick Scenario non supporta la gestione dei tempi");
+            }
+
+            // Imposta la modalità se presente come secondo elemento
+            mode = parts.length > 1 && "edit".equals(parts[1]) ? "edit" : "create";
+
+            logger.info("Scenario ID impostato a: {}, Mode: {}", this.scenarioId, mode);
+
+            // Nascondi il pulsante Indietro se in modalità "edit"
+            // Cerca il pulsante Indietro nella UI
+            getContent().getChildren()
+                    .filter(c -> c instanceof HorizontalLayout)
+                    .findFirst().flatMap(header -> header.getChildren()
+                            .filter(c -> c instanceof Button && "Indietro".equals(((Button) c).getText()))
+                            .findFirst()).ifPresent(backBtn -> backBtn.setVisible(!"edit".equals(mode)));
 
         } catch (NumberFormatException e) {
             logger.error("Errore nel parsing o validazione dell'ID Scenario: '{}'", parameter, e);
-            // Reindirizza a una pagina di errore se l'ID non è valido
-            event.rerouteToError(NotFoundException.class, "ID scenario '" + parameter + "' non valido o mancante.");
-            return; // Interrompe l'esecuzione qui
+            event.rerouteToError(NotFoundException.class, "ID scenario non valido o mancante.");
+            return; // Interrompi l'esecuzione se l'ID non è valido
         }
-
-        // Estrazione del parametro 'mode' dalla query string (?mode=edit)
-        Location location = event.getLocation();
-        QueryParameters queryParameters = location.getQueryParameters();
-        Map<String, List<String>> parametersMap = queryParameters.getParameters();
-
-        // Ottiene il valore di 'mode', lo mette in minuscolo e gestisce assenza/valori vuoti
-        Optional<String> modeOptional = Optional.ofNullable(parametersMap.get("mode"))
-                .filter(list -> !list.isEmpty() && list.getFirst() != null && !list.getFirst().isBlank())
-                .map(list -> list.getFirst().trim().toLowerCase());
-
-        // Imposta la modalità, default a "create" se non specificata o non valida
-        mode = modeOptional.orElse("create");
-
-        logger.info("Navigato a TempoView. Scenario ID: {}, Mode: {}", this.scenarioId, mode);
 
         // Carica i dati in base alla modalità
         if ("edit".equals(mode)) {
             logger.info("Modalità EDIT: caricamento dati Tempi esistenti per scenario {}", this.scenarioId);
             loadInitialData(); // Carica sempre T0 se esiste
             loadExistingTimes(); // Carica T1, T2... esistenti
-        } else if ("create".equals(mode)) {
+        } else {
             logger.info("Modalità CREATE: caricamento dati iniziali T0 e preparazione per nuovi tempi per scenario {}", this.scenarioId);
             loadInitialData(); // Carica T0 se esiste, altrimenti aggiunge sezione T0 vuota
-        } else {
-            // Gestisce modalità non riconosciute, se necessario
-            Notification.show("Modalità non riconosciuta. Utilizzo modalità 'create' di default.", 3000, Notification.Position.MIDDLE);
-            logger.warn("Modalità '{}' non riconosciuta per scenario {}. Verrà utilizzata la modalità 'create'.", mode, scenarioId);
-            mode = "create"; // Fallback a uno stato noto
-            loadInitialData();
         }
     }
 
@@ -505,7 +503,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             // Validazione: controlla se il nome è stato inserito
             if (paramName.isEmpty()) {
                 nameField.setInvalid(true); // Mostra errore sul campo
-                Notification.show(nameField.getErrorMessage(), 3000, Notification.Position.MIDDLE);
+                Notification.show(nameField.getErrorMessage(), 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
                 return; // Interrompe il salvataggio
             }
             nameField.setInvalid(false); // Rimuove eventuale errore precedente
@@ -515,7 +513,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
 
             // Verifica se un parametro con questa chiave esiste già
             if (timeSection.getCustomParameters().containsKey(paramKey)) {
-                Notification.show("Un parametro con questo nome esiste già.", 3000, Notification.Position.MIDDLE);
+                Notification.show("Un parametro con questo nome esiste già.", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
                 return;
             }
 
@@ -579,7 +577,8 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             boolean success = scenarioService.saveTempi(scenarioId, allTempiData);
 
             if (success) {
-                Notification.show("Tempi dello scenario salvati con successo!", 3000, Notification.Position.MIDDLE);
+                if(!mode.equals("edit"))
+                    Notification.show("Tempi dello scenario salvati con successo!", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 logger.info("Tempi salvati con successo per scenario {}", scenarioId);
 
                 // Navigazione alla pagina successiva in base alla modalità e tipo scenario
@@ -595,24 +594,24 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                             nextButton.getUI().ifPresent(ui -> ui.navigate("sceneggiatura/" + scenarioId));
                             break;
                         default:
-                            Notification.show("Tipo di scenario non riconosciuto per navigazione", 3000, Notification.Position.MIDDLE);
+                            Notification.show("Tipo di scenario non riconosciuto per navigazione", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                             logger.error("Tipo di scenario '{}' non gestito per navigazione post-salvataggio tempi (ID {})", scenarioType, scenarioId);
                             // Fallback: rimane sulla pagina o va a una dashboard generica
                             break;
                     }
                 } else if ("edit".equals(mode)) {
                     // In modalità modifica, rimane sulla stessa pagina dopo il salvataggio
-                    Notification.show("Modifiche ai tempi salvate con successo!", 3000, Notification.Position.MIDDLE);
+                    Notification.show("Modifiche ai tempi salvate con successo!", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     // Non c'è bisogno di navigare altrove
                 }
 
             } else {
-                Notification.show("Errore durante il salvataggio dei tempi nel database.", 5000, Notification.Position.MIDDLE);
+                Notification.show("Errore durante il salvataggio dei tempi nel database.", 5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                 logger.error("Errore durante il salvataggio dei tempi (scenarioService.saveTempi ha restituito false) per scenario {}", scenarioId);
             }
         } catch (Exception e) {
             // Gestisce eccezioni impreviste durante la preparazione o il salvataggio
-            Notification.show("Errore imprevisto durante il salvataggio: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
+            Notification.show("Errore imprevisto durante il salvataggio: " + e.getMessage(), 5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
             logger.error("Eccezione durante il salvataggio dei tempi per scenario {}", scenarioId, e);
         }
     }
@@ -691,7 +690,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
 
                 // Mostra notifica che T0 non è modificabile qui
                 Notification.show("I parametri base di T0 derivano dallo stato iniziale del paziente e non sono modificabili qui.",
-                        4000, Notification.Position.BOTTOM_START);
+                        4000, Notification.Position.BOTTOM_START).addThemeVariants(NotificationVariant.LUMO_WARNING);
 
                 // Carica eventuali parametri aggiuntivi salvati specificamente per T0
                 loadAdditionalParameters(t0Section, 0);
@@ -711,7 +710,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
 
         } catch (Exception e) {
             Notification.show("Errore nel caricamento dei dati iniziali di T0: " + e.getMessage(),
-                    5000, Notification.Position.MIDDLE);
+                    5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
             logger.error("Errore durante il caricamento dei dati iniziali (PazienteT0) per scenario {}", scenarioId, e);
         }
     }
@@ -1071,7 +1070,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                 timeSections.remove(this);
                 timeSectionsContainer.remove(layout);
                 // Potrebbe essere necessario ri-calcolare timeCount o aggiornare i riferimenti TSi/TNo altrove
-                Notification.show("Tempo T" + timeNumber + " rimosso.", 2000, Notification.Position.BOTTOM_START);
+                Notification.show("Tempo T" + timeNumber + " rimosso.", 2000, Notification.Position.BOTTOM_START).addThemeVariants(NotificationVariant.LUMO_CONTRAST);
             });
 
             // Aggiunta di tutti i componenti al layout principale della sezione

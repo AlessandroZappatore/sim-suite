@@ -8,6 +8,7 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -142,7 +143,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
 
         nextButton.addClickListener(e -> {
             if (materialeArea.getValue().trim().isEmpty()) {
-                Notification.show("Inserisci il materiale necessario per lo scenario", 3000, Notification.Position.MIDDLE);
+                Notification.show("Inserisci il materiale necessario per lo scenario", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
                 return;
             }
             saveMaterialeAndNavigate(nextButton.getUI());
@@ -203,15 +204,15 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
                     if (success) {
-                        ui.navigate("esamiReferti/" + scenarioId+"?mode=create");
+                        ui.navigate("esamiReferti/" + scenarioId+"/create");
                     } else {
-                        Notification.show("Errore durante il salvataggio del materiale necessario", 3000, Notification.Position.MIDDLE);
+                        Notification.show("Errore durante il salvataggio del materiale necessario", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     }
                 });
             } catch (Exception e) {
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
-                    Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
+                    Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     logger.error("Errore durante il salvataggio del materiale necessario", e);
                 });
             }

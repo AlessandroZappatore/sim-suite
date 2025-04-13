@@ -100,6 +100,10 @@ public class Accesso {
      */
     @Override
     public String toString() {
-        return "Accesso [idAccesso=" + idAccesso + ", tipologia=" + tipologia + ", posizione=" + posizione + "]";
+        return "Accesso{" +
+                "idAccesso=" + idAccesso +
+                ", tipologia='" + tipologia + '\'' +
+                ", posizione='" + posizione + '\'' +
+                '}';
     }
 }

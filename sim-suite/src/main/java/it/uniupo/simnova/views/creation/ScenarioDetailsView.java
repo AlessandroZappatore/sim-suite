@@ -13,6 +13,7 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.Notification.Position;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -116,7 +117,8 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         if (scenarioId == null) {
-            Notification.show("ID scenario non valido", 3000, Position.MIDDLE);
+            Notification.show("ID scenario non valido", 3000, Position.MIDDLE).addThemeVariants(
+                    NotificationVariant.LUMO_ERROR);
             UI.getCurrent().navigate("scenari");
             return;
         }
@@ -173,7 +175,8 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                 ui.access(() -> {
                     try {
                         if (loadedScenario == null) {
-                            Notification.show("Scenario non trovato", 3000, Position.MIDDLE);
+                            Notification.show("Scenario non trovato", 3000, Position.MIDDLE).addThemeVariants(
+                                    NotificationVariant.LUMO_ERROR);
                             ui.navigate("scenari");
                             return;
                         }
@@ -186,7 +189,8 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
             } catch (Exception e) {
                 if (!detached.get() && !ui.isClosing()) {
                     ui.access(() -> {
-                        Notification.show("Errore nel caricamento: " + e.getMessage(), 3000, Position.MIDDLE);
+                        Notification.show("Errore nel caricamento: " + e.getMessage(), 3000, Position.MIDDLE).addThemeVariants(
+                                NotificationVariant.LUMO_ERROR);
                         progressBar.setVisible(false);
                         ui.navigate("scenari");
                     });
@@ -532,12 +536,6 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                 audio.setWidth("100%");
                 previewContainer.add(audio);
                 break;
-
-            default:
-                // Per altri formati mostra semplicemente il nome del file
-                previewContainer.add(new Span("File: " + fileName));
-                Button viewButton = new Button("Visualizza", e -> openFullMedia(fileName));
-                previewContainer.add(viewButton);
         }
 
         // Pulsante per aprire il file a schermo intero

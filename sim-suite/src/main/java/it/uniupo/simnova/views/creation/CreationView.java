@@ -62,14 +62,14 @@ public class CreationView extends Composite<VerticalLayout> {
         Button advancedScenarioButton = createScenarioButton(
                 "Advanced Scenario",
                 VaadinIcon.CLOCK,
-                "Scenario con algoritmo",
+                "Scenario più tempi",
                 "Scenario con possibilità di aggiungere un algoritmo di simulazione"
         );
 
         Button patientSimulatedScenarioButton = createScenarioButton(
                 "Patient Simulated Scenario",
                 VaadinIcon.USER_HEART,
-                "Scenario con sceneggiatura",
+                "Advanced Scenario con sceneggiatura",
                 "Scenario avanzato con possibilità di aggiungere una sceneggiatura"
         );
 

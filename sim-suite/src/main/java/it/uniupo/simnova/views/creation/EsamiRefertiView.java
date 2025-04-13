@@ -13,6 +13,7 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -35,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -153,7 +153,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
         nextButton.addClickListener(e -> {
             if (formRows.isEmpty()) {
-                Notification.show("Aggiungi almeno un esame/referto", 3000, Notification.Position.MIDDLE);
+                Notification.show("Aggiungi almeno un esame/referto", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
                 return;
             }
             saveEsamiRefertiAndNavigate(nextButton.getUI());
@@ -167,59 +167,65 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
      * @param parameter l'ID dello scenario come stringa
      */
     @Override
-    public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
+    public void setParameter(BeforeEvent event, @WildcardParameter String parameter) {
         try {
             if (parameter == null || parameter.trim().isEmpty()) {
-                logger.warn("Scenario ID mancante nell'URL.");
+                logger.warn("Parametro mancante nell'URL.");
                 throw new NumberFormatException("Scenario ID è richiesto");
             }
 
-            this.scenarioId = Integer.parseInt(parameter);
+            // Dividi il parametro usando '/' come separatore
+            String[] parts = parameter.split("/");
+            String scenarioIdStr = parts[0]; // Il primo elemento è l'ID dello scenario
+
+            // Verifica e imposta l'ID scenario
+            this.scenarioId = Integer.parseInt(scenarioIdStr);
             if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
                 logger.warn("Scenario ID non valido o non esistente: {}", scenarioId);
                 throw new NumberFormatException("Scenario ID non valido");
             }
-            logger.info("Scenario ID impostato a: {}", this.scenarioId);
+
+            // Imposta la modalità se presente come secondo elemento
+            mode = parts.length > 1 && "edit".equals(parts[1]) ? "edit" : "create";
+
+            logger.info("Scenario ID impostato a: {}, Mode: {}", this.scenarioId, mode);
 
         } catch (NumberFormatException e) {
             logger.error("Errore nel parsing o validazione dello Scenario ID: {}", parameter, e);
-            event.rerouteToError(NotFoundException.class, "ID scenario " + parameter + " non valido o mancante.");
+            event.rerouteToError(NotFoundException.class, "ID scenario non valido o mancante.");
             return; // Interrompi l'esecuzione se l'ID non è valido
         }
 
-        Location location = event.getLocation();
-        QueryParameters queryParameters = location.getQueryParameters();
-        Map<String, List<String>> parametersMap = queryParameters.getParameters();
+        // Aggiorna visibilità del pulsante indietro in base alla modalità
+        Button backButton = getBackButton(); // Metodo che dovrai implementare per ottenere il pulsante
+        backButton.setVisible("create".equals(mode));
 
-        Optional<String> modeOptional = Optional.ofNullable(parametersMap.get("mode"))
-                .filter(list -> !list.isEmpty() && list.getFirst() != null && !list.getFirst().isBlank()) // Assicurati che la lista e il primo elemento non siano null/vuoti
-                .map(list -> list.getFirst().trim().toLowerCase()); // Prendi il primo, togli spazi, metti in minuscolo
-
-        mode = modeOptional.orElse("create");
-
-        logger.info("Navigato a EsamiRefertiView. Scenario ID: {}, Mode: {}", this.scenarioId, mode);
-
+        // Inizializza la vista in base alla modalità
         if ("edit".equals(mode)) {
             logger.info("Modalità EDIT: caricamento dati esistenti per scenario {}", this.scenarioId);
-            loadExistingData(); // Implementa questo metodo
-        } else if ("create".equals(mode)) {
-            logger.info("Modalità CREATE: aggiunta prima riga vuota per scenario {}", this.scenarioId);
-            if (formRows.isEmpty()) {
-                addNewRow();
-            }
+            loadExistingData();
         } else {
-            // Gestisci modalità non riconosciute, se necessario
-            Notification.show("Modalità non riconosciuta. Utilizzo modalità 'create' di default.", 3000, Notification.Position.MIDDLE);
-            logger.warn("Modalità '{}' non riconosciuta. Verrà utilizzata la modalità 'create'.", mode);
-            mode = "create"; // Fallback a uno stato noto
+            logger.info("Modalità CREATE: aggiunta prima riga vuota per scenario {}", this.scenarioId);
             if (formRows.isEmpty()) {
                 addNewRow();
             }
         }
     }
 
+    private Button getBackButton() {
+        // Cerca il backButton nel layout
+        // Esempio (adatta in base alla tua struttura):
+        return getContent().getChildren()
+                .filter(c -> c instanceof HorizontalLayout)
+                .findFirst()
+                .flatMap(layout -> layout.getChildren()
+                        .filter(c -> c instanceof Button && "Indietro".equals(((Button) c).getText()))
+                        .findFirst())
+                .map(c -> (Button) c)
+                .orElseThrow(() -> new IllegalStateException("Back button non trovato"));
+    }
+
     private void loadExistingData() {
-        // TODO: Implementa la logica per recuperare i dati da scenarioService
         List<EsameReferto> existingData = scenarioService.getEsamiRefertiByScenarioId(scenarioId); // Supponendo che esista un metodo simile
 
 
@@ -336,14 +342,10 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         Button deleteButton = new Button(new Icon(VaadinIcon.TRASH));
         deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
         deleteButton.addClickListener(e -> {
-            // TODO: Potresti voler chiamare scenarioService per eliminare subito l'esame dal DB
-            // O semplicemente rimuoverlo dalla UI e gestire l'eliminazione/aggiornamento al salvataggio finale
             formRows.remove(existingRow);
             rowsContainer.remove(rowContainer);
-            // Non aggiungere una nuova riga automaticamente in modalità edit se le elimini tutte
             if (formRows.isEmpty()) {
                 logger.info("Ultima riga eliminata in modalità edit.");
-                // Potresti mostrare un messaggio o decidere il comportamento desiderato
             }
         });
 
@@ -380,8 +382,8 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                     EsameRefertoData data = new EsameRefertoData(
                             row.getRowNumber(),
                             row.getSelectedExam(),
-                            row.getReportField().getValue(),
-                            fileName
+                            fileName,
+                            row.getReportField().getValue()
                     );
                     esamiData.add(data);
                 }
@@ -395,29 +397,29 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                             ui.navigate("moulage/" + scenarioId);
                         } else {
                             Notification.show("Errore durante il salvataggio degli esami/referti",
-                                    3000, Notification.Position.MIDDLE);
+                                    3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         }
                     });
                     case "edit" -> ui.accessSynchronously(() -> {
                         getContent().remove(progressBar);
                         if (success) {
                             Notification.show("Esami/referti salvati correttamente",
-                                    3000, Notification.Position.MIDDLE);
+                                    3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                         } else {
                             Notification.show("Errore durante il salvataggio degli esami/referti",
-                                    3000, Notification.Position.MIDDLE);
+                                    3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         }
                     });
                     default -> {
                         logger.warn("Modalità non riconosciuta: {}", mode);
-                        Notification.show("Modalità non riconosciuta", 3000, Notification.Position.MIDDLE);
+                        Notification.show("Modalità non riconosciuta", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     }
                 }
 
             } catch (Exception e) {
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
-                    Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
+                    Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     logger.error("Errore durante il salvataggio degli esami/referti", e);
                 });
             }
@@ -820,6 +822,6 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
      * @param refertoTestuale contenuto testuale del referto
      * @param media           percorso del file multimediale associato
      */
-    public record EsameRefertoData(int idEsame, String tipo, String refertoTestuale, String media) {
+    public record EsameRefertoData(int idEsame, String tipo, String media, String refertoTestuale) {
     }
 }

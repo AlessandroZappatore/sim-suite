@@ -56,13 +56,6 @@ public class AdvancedScenario extends Scenario {
     }
 
     /**
-     * Costruttore vuoto per la deserializzazione.
-     */
-    public AdvancedScenario() {
-        // Costruttore vuoto per JPA e deserializzazione
-    }
-
-    /**
      * Restituisce l'identificativo specifico dello scenario avanzato.
      *
      * @return l'identificativo specifico dello scenario avanzato
@@ -105,7 +98,7 @@ public class AdvancedScenario extends Scenario {
      */
     @Override
     public String toString() {
-        return "AdvancedScenario{" +
+        return super.toString() + "AdvancedScenario{" +
                 "id_advanced_scenario=" + id_advanced_scenario +
                 ", tempi=" + tempi +
                 '}';

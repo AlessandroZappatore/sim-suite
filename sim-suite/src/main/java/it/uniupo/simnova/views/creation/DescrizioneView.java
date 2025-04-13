@@ -8,6 +8,7 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -128,7 +129,7 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
 
         nextButton.addClickListener(e -> {
             if (descriptionArea.getValue().trim().isEmpty()) {
-                Notification.show("Inserisci una descrizione per lo scenario", 3000, Notification.Position.MIDDLE);
+                Notification.show("Inserisci una descrizione per lo scenario", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
                 return;
             }
             saveDescriptionAndNavigate(nextButton.getUI());
@@ -192,14 +193,14 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
                         ui.navigate("briefing/" + scenarioId);
                     } else {
                         Notification.show("Errore durante il salvataggio della descrizione",
-                                3000, Notification.Position.MIDDLE);
+                                3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     }
                 });
             } catch (Exception e) {
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
                     Notification.show("Errore: " + e.getMessage(),
-                            5000, Notification.Position.MIDDLE);
+                            5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     logger.error("Errore durante il salvataggio della descrizione", e);
                 });
             }

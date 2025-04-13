@@ -11,6 +11,7 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -251,7 +252,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
 
         nextButton.addClickListener(e -> {
             if (!validateInput()) {
-                Notification.show("Compila tutti i campi obbligatori", 3000, Notification.Position.MIDDLE);
+                Notification.show("Compila tutti i campi obbligatori", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
                 return;
             }
             saveDataAndNavigate(nextButton.getUI());
@@ -381,13 +382,13 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                         ui.navigate("esameFisico/" + scenarioId);
                     } else {
                         Notification.show("Errore durante il salvataggio dei dati",
-                                3000, Notification.Position.MIDDLE);
+                                3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     }
                 });
             } catch (Exception e) {
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
-                    Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
+                    Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     logger.error("Errore durante il salvataggio dei dati", e);
                 });
             }
