@@ -374,7 +374,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                     if (row.getUpload().getReceiver() instanceof MemoryBuffer buffer) {
                         if (buffer.getFileName() != null && !buffer.getFileName().isEmpty()) {
                             try (InputStream fileData = buffer.getInputStream()) {
-                                fileName = fileStorageService.storeFile(fileData, buffer.getFileName());
+                                fileName = fileStorageService.storeFile(fileData, buffer.getFileName(), scenarioId);
                             }
                         }
                     }

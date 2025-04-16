@@ -8,7 +8,6 @@ import it.uniupo.simnova.api.model.*;
 import it.uniupo.simnova.utils.DBConnect;
 import it.uniupo.simnova.views.creation.EsamiRefertiView;
 import it.uniupo.simnova.views.creation.PazienteT0View;
-import it.uniupo.simnova.views.creation.ScenarioEditView;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -1470,8 +1469,29 @@ public class ScenarioService {
         return scenario;
     }
 
-    public boolean updateAccessiPazienteT0(Integer scenarioId, List<ScenarioEditView.AccessoData> venosiData, List<ScenarioEditView.AccessoData> arteriosiData) {
+    /*public boolean updateAccessiPazienteT0(Integer scenarioId, List<ScenarioEditView.AccessoData> venosiData, List<ScenarioEditView.AccessoData> arteriosiData) {
         return true;
+    }*/
+
+    public List<String> getScenarioMediaFiles(Integer scenarioId) {
+        List<String> mediaFiles = new ArrayList<>();
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT media FROM EsameReferto WHERE id_scenario = ?")) {
+
+            stmt.setInt(1, scenarioId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String mediaFile = rs.getString("media");
+                if (mediaFile != null && !mediaFile.isEmpty()) {
+                    mediaFiles.add(mediaFile);
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Errore durante il recupero dei file media per lo scenario con ID {}", scenarioId, e);
+        }
+        return mediaFiles;
+
     }
 
     public record ParameterValueUnit(double value, String unit) {
@@ -1956,4 +1976,6 @@ public class ScenarioService {
                 ))
                 .collect(Collectors.toList());
     }
+
+
 }

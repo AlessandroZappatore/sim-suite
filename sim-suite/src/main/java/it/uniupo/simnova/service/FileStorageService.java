@@ -56,15 +56,15 @@ public class FileStorageService {
      * @param filename il nome del file
      * @return il nome del file memorizzato
      */
-    public String storeFile(InputStream file, String filename) {
+    public String storeFile(InputStream file, String filename, Integer idScenario) {
         try {
-            if (file == null || filename == null || filename.isEmpty()) {
-                logger.warn("File o nome file non valido");
+            if (file == null || filename == null || filename.isEmpty() || idScenario == null) {
+                logger.warn("File, nome file o idScenario non valido");
                 return null;
             }
 
-            // Sanitize filename
-            String sanitizedFilename = filename.replaceAll("[^a-zA-Z0-9.-]", "_");
+            // Estrai estensione e nome del file
+            String sanitizedFilename = getSanitizedFilename(filename, idScenario);
             Path destinationFile = this.rootLocation.resolve(sanitizedFilename)
                     .normalize().toAbsolutePath();
 
@@ -81,6 +81,22 @@ public class FileStorageService {
             logger.error("Errore durante la memorizzazione del file {}", filename, e);
             throw new RuntimeException("Failed to store file " + filename, e);
         }
+    }
+
+    private static String getSanitizedFilename(String filename, Integer idScenario) {
+        String extension = "";
+        String baseName = filename;
+        int lastDotIndex = filename.lastIndexOf('.');
+        if (lastDotIndex > 0) {
+            extension = filename.substring(lastDotIndex);
+            baseName = filename.substring(0, lastDotIndex);
+        }
+
+        // Crea il nuovo nome del file con il formato nomefile_idScenario.estensione
+        String newFilename = baseName + "_" + idScenario + extension;
+
+        // Sanitize filename
+        return newFilename.replaceAll("[^a-zA-Z0-9.-]", "_");
     }
 
     /**
@@ -127,6 +143,15 @@ public class FileStorageService {
             logger.info("File eliminato con successo: {}", filename);
         } catch (IOException e) {
             logger.error("Errore durante l'eliminazione del file {}", filename, e);
+        }
+    }
+
+    public Object getMediaDirectory() {
+        try {
+            return ResourceUtils.getFile("classpath:META-INF/resources/Media");
+        } catch (FileNotFoundException e) {
+            logger.error("Impossibile trovare la directory dei media", e);
+            return null;
         }
     }
 }

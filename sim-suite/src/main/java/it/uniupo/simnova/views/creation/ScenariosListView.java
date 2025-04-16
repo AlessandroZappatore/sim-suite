@@ -27,9 +27,7 @@ import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
-import it.uniupo.simnova.service.JSONExportService;
-import it.uniupo.simnova.service.PdfExportService;
-import it.uniupo.simnova.service.ScenarioService;
+import it.uniupo.simnova.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayInputStream;
@@ -50,6 +48,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@SuppressWarnings({"ThisExpressionReferencesGlobalObjectJS", "JSCheckFunctionSignatures"})
 @PageTitle("Lista Scenari")
 @Route(value = "scenari", layout = MainLayout.class)
 @Menu(order = 3)
@@ -62,6 +61,8 @@ public class ScenariosListView extends Composite<VerticalLayout> {
      * Servizio per l'esportazione in PDF.
      */
     private final PdfExportService pdfExportService;
+
+    private final ZipExportService zipExportService;
     /**
      * Griglia per visualizzare gli scenari.
      */
@@ -115,9 +116,10 @@ public class ScenariosListView extends Composite<VerticalLayout> {
      * @param pdfExportService Servizio per l'esportazione in PDF
      */
     @Autowired
-    public ScenariosListView(ScenarioService scenarioService, PdfExportService pdfExportService) {
+    public ScenariosListView(ScenarioService scenarioService, PdfExportService pdfExportService,ZipExportService zipExportService) {
         this.scenarioService = scenarioService;
         this.pdfExportService = pdfExportService;
+        this.zipExportService = zipExportService;
         initView();
         loadData();
     }
@@ -617,8 +619,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         if (dataProvider == null) return;
 
         // Ottieni gli elementi filtrati dal dataProvider
-        List<Scenario> filteredItems = new ArrayList<>();
-        dataProvider.getItems().forEach(filteredItems::add);
+        List<Scenario> filteredItems = new ArrayList<>(dataProvider.getItems());
 
         // Calcola l'indice di inizio e fine per la pagina corrente
         int fromIndex = currentPage * PAGE_SIZE;
@@ -689,21 +690,16 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         return new Anchor(resource, "Download PDF");
     }
 
-    /**
-     * Esporta lo scenario selezionato in sim.execution.
-     *
-     * @param scenario Scenario da esportare
-     */
     private void exportToSimExecution(Scenario scenario) {
         if (detached.get()) {
             return;
         }
 
-        Notification.show("Generazione del JSON...", 3000, Position.MIDDLE);
+        Notification.show("Generazione dell'archivio...", 3000, Position.MIDDLE);
 
         try {
-            // Creazione della risorsa PDF
-            Anchor downloadLink = getAnchorJSON(scenario);
+            // Creazione della risorsa ZIP
+            Anchor downloadLink = getAnchorZip(scenario);
             downloadLink.getElement().setAttribute("download", true);
             downloadLink.getStyle().set("display", "none");
 
@@ -716,24 +712,27 @@ public class ScenariosListView extends Composite<VerticalLayout> {
             }
         } catch (Exception e) {
             if (!detached.get()) {
-                Notification.show("Errore durante la generazione del JSON: " + e.getMessage(), 5000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                Notification.show("Errore durante la generazione dell'archivio: " + e.getMessage(), 5000, Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
         }
     }
 
-    private Anchor getAnchorJSON(Scenario scenario) {
+    private Anchor getAnchorZip(Scenario scenario) {
         StreamResource resource = new StreamResource(
-                "scenario_" + scenario.getTitolo() + ".json",
+                "scenario_" + scenario.getTitolo() + ".zip",
                 () -> {
-                    byte[] JSONBytes = JSONExportService.exportScenarioToJSON(scenario.getId());
-                    return new ByteArrayInputStream(JSONBytes);
+                    try {
+                        byte[] zipBytes = zipExportService.exportScenarioToZip(scenario.getId());
+                        return new ByteArrayInputStream(zipBytes);
+                    } catch (IOException e) {
+                        throw new RuntimeException("Errore nella creazione del file ZIP", e);
+                    }
                 }
         );
 
-        resource.setContentType("application/json");
-
-        // Creazione e configurazione dell'anchor per il download
-        return new Anchor(resource, "Download JSON");
+        resource.setContentType("application/zip");
+        return new Anchor(resource, "Download ZIP");
     }
 
     /**
