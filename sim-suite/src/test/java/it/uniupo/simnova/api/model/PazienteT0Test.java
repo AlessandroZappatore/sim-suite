@@ -48,12 +48,16 @@ class PazienteT0Test {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
         pazienteT0.setFC(80);
         assertEquals(80, pazienteT0.getFC());
+
+        assertThrows(IllegalArgumentException.class, () -> pazienteT0.setFC(-1));
     }
 
     @Test
     void getRR() {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
         assertEquals(16, pazienteT0.getRR());
+
+
     }
 
     @Test
@@ -61,6 +65,8 @@ class PazienteT0Test {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
         pazienteT0.setRR(18);
         assertEquals(18, pazienteT0.getRR());
+
+        assertThrows(IllegalArgumentException.class, () -> pazienteT0.setRR(-1));
     }
 
     @Test
@@ -87,6 +93,8 @@ class PazienteT0Test {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
         pazienteT0.setSpO2(99);
         assertEquals(99, pazienteT0.getSpO2());
+
+        assertThrows(IllegalArgumentException.class, () -> pazienteT0.setSpO2(-1));
     }
 
     @Test
@@ -100,6 +108,8 @@ class PazienteT0Test {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
         pazienteT0.setEtCO2(36);
         assertEquals(36, pazienteT0.getEtCO2());
+
+        assertThrows(IllegalArgumentException.class, () -> pazienteT0.setEtCO2(-1));
     }
 
     @Test

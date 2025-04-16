@@ -30,8 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -155,17 +154,24 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         UI ui = UI.getCurrent();
         if (ui == null) return;
 
-        // Add timeout and better error handling
+        // Utilizziamo una variabile per tracciare se il caricamento è completato
+        final AtomicBoolean loadingCompleted = new AtomicBoolean(false);
+
+        // Task principale di caricamento
         executorService.submit(() -> {
             try {
-                // Add timeout to prevent infinite loading
-                long startTime = System.currentTimeMillis();
-                long timeout = 30000; // 30 seconds timeout
+                // Implementazione di timeout con CompletableFuture
+                CompletableFuture<Scenario> future = CompletableFuture.supplyAsync(
+                    () -> scenarioService.getScenarioById(scenarioId),
+                    executorService
+                );
 
-                Scenario loadedScenario = scenarioService.getScenarioById(scenarioId);
-
-                if (System.currentTimeMillis() - startTime > timeout) {
-                    throw new RuntimeException("Loading timeout exceeded");
+                Scenario loadedScenario;
+                try {
+                    loadedScenario = future.get(15, TimeUnit.SECONDS);
+                } catch (TimeoutException e) {
+                    logger.error("Timeout durante il caricamento dello scenario {}", scenarioId);
+                    throw new RuntimeException("Timeout durante il caricamento");
                 }
 
                 if (detached.get() || ui.isClosing()) {
@@ -175,26 +181,50 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                 ui.access(() -> {
                     try {
                         if (loadedScenario == null) {
-                            Notification.show("Scenario non trovato", 3000, Position.MIDDLE).addThemeVariants(
-                                    NotificationVariant.LUMO_ERROR);
+                            Notification.show("Scenario non trovato", 3000, Position.MIDDLE)
+                                .addThemeVariants(NotificationVariant.LUMO_ERROR);
                             ui.navigate("scenari");
                             return;
                         }
                         this.scenario = loadedScenario;
                         initView();
                     } finally {
+                        loadingCompleted.set(true);
                         progressBar.setVisible(false);
                     }
                 });
             } catch (Exception e) {
+                logger.error("Errore durante il caricamento dello scenario {}: {}", scenarioId, e.getMessage(), e);
                 if (!detached.get() && !ui.isClosing()) {
                     ui.access(() -> {
-                        Notification.show("Errore nel caricamento: " + e.getMessage(), 3000, Position.MIDDLE).addThemeVariants(
-                                NotificationVariant.LUMO_ERROR);
+                        loadingCompleted.set(true);
+                        Notification.show("Errore nel caricamento: " + e.getMessage(),
+                            3000, Position.MIDDLE)
+                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
                         progressBar.setVisible(false);
                         ui.navigate("scenari");
                     });
                 }
+            }
+        });
+
+        // Task di backup che controlla se il caricamento è bloccato
+        executorService.submit(() -> {
+            try {
+                // Aspetta 20 secondi e poi verifica se il caricamento è completato
+                Thread.sleep(20000);
+                if (!loadingCompleted.get() && !detached.get() && !ui.isClosing()) {
+                    ui.access(() -> {
+                        logger.error("Forzato timeout per caricamento bloccato, scenario {}", scenarioId);
+                        Notification.show("Caricamento bloccato, riprova più tardi",
+                            3000, Position.MIDDLE)
+                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        progressBar.setVisible(false);
+                        ui.navigate("scenari");
+                    });
+                }
+            } catch (InterruptedException e) {
+                // Ignora l'interruzione, è normale durante lo shutdown
             }
         });
     }

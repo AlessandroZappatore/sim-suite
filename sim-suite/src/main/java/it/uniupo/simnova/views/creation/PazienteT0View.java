@@ -362,6 +362,8 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                     arteriosiData.add(accesso.getData());
                 }
 
+                System.out.println("Temperatura: " + tempField.getValue());
+
                 // Salva nel database
                 boolean success = scenarioService.savePazienteT0(
                         scenarioId,

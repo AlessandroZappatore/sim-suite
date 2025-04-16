@@ -608,6 +608,26 @@ public class ScenarioService {
                                   List<PazienteT0View.AccessoData> arteriosiData) {
         Connection conn = null;
         logger.debug("PA: {}", pa);
+        if (fc < 0) {
+            logger.warn("Frequenza cardiaca non valida: {}", fc);
+            throw new IllegalArgumentException("Frequenza cardiaca non valida");
+        }
+        if (rr < 0) {
+            logger.warn("Frequenza respiratoria non valida: {}", rr);
+            throw new IllegalArgumentException("Frequenza respiratoria non valida");
+        }
+        if (spo2 < 0 || spo2 > 100) {
+            logger.warn("Saturazione di ossigeno non valida: {}", spo2);
+            throw new IllegalArgumentException("Saturazione di ossigeno non valida, deve essere tra 0 e 100");
+        }
+        if (etco2 < 0) {
+            logger.warn("EtCO2 non valido: {}", etco2);
+            throw new IllegalArgumentException("EtCO2 non valido");
+        }
+        if (!pa.matches("^\\s*\\d+\\s*/\\s*\\d+\\s*$")) {
+            logger.warn("Formato della pressione arteriosa non valido: {}", pa);
+            throw new IllegalArgumentException("Formato PA non valido, atteso 'sistolica/diastolica' (es. '120/80')");
+        }
         try {
             conn = DBConnect.getInstance().getConnection();
             conn.setAutoCommit(false);
@@ -678,7 +698,23 @@ public class ScenarioService {
         // Verifica se esiste già
         boolean exists = getPazienteT0ById(scenarioId) != null;
 
-        if(!pa.matches("^\\s*\\d+\\s*/\\s*\\d+\\s*$")) {
+        if (fc < 0) {
+            logger.warn("Frequenza cardiaca non valida: {}", fc);
+            throw new IllegalArgumentException("Frequenza cardiaca non valida");
+        }
+        if (rr < 0) {
+            logger.warn("Frequenza respiratoria non valida: {}", rr);
+            throw new IllegalArgumentException("Frequenza respiratoria non valida");
+        }
+        if (spo2 < 0 || spo2 > 100) {
+            logger.warn("Saturazione di ossigeno non valida: {}", spo2);
+            throw new IllegalArgumentException("Saturazione di ossigeno non valida, deve essere tra 0 e 100");
+        }
+        if (etco2 < 0) {
+            logger.warn("EtCO2 non valido: {}", etco2);
+            throw new IllegalArgumentException("EtCO2 non valido");
+        }
+        if (!pa.matches("^\\s*\\d+\\s*/\\s*\\d+\\s*$")) {
             logger.warn("Formato della pressione arteriosa non valido: {}", pa);
             throw new IllegalArgumentException("Formato PA non valido, atteso 'sistolica/diastolica' (es. '120/80')");
         }
@@ -1137,14 +1173,49 @@ public class ScenarioService {
 
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 for (TempoData tempo : tempiData) {
+                    // Validazione parametri vitali
+                    double fc = tempo.fc();
+                    double rr = tempo.rr();
+                    double spo2 = tempo.spo2();
+                    double etco2 = tempo.etco2();
+                    String pa = tempo.pa();
+                    int tsi = tempo.tSiId();
+                    int tno = tempo.tNoId();
+
+                    if (fc < 0) {
+                        logger.warn("Frequenza cardiaca non valida: {}", fc);
+                        throw new IllegalArgumentException("Frequenza cardiaca non valida");
+                    }
+                    if (rr < 0) {
+                        logger.warn("Frequenza respiratoria non valida: {}", rr);
+                        throw new IllegalArgumentException("Frequenza respiratoria non valida");
+                    }
+                    if (spo2 < 0 || spo2 > 100) {
+                        logger.warn("Saturazione di ossigeno non valida: {}", spo2);
+                        throw new IllegalArgumentException("Saturazione di ossigeno non valida, deve essere tra 0 e 100");
+                    }
+                    if (etco2 < 0) {
+                        logger.warn("EtCO2 non valido: {}", etco2);
+                        throw new IllegalArgumentException("EtCO2 non valido");
+                    }
+                    if (pa != null && !pa.isEmpty() && !pa.matches("^\\s*\\d+\\s*/\\s*\\d+\\s*$")) {
+                        logger.warn("Formato della pressione arteriosa non valido: {}", pa);
+                        throw new IllegalArgumentException("Formato PA non valido, atteso 'sistolica/diastolica' (es. '120/80')");
+                    }
+
+                    if(tsi < 0 || tno < 0) {
+                        logger.warn("ID TSi o TNo non valido: TSi={}, TNo={}", tsi, tno);
+                        throw new IllegalArgumentException("ID TSi o TNo non valido");
+                    }
+
                     stmt.setInt(1, tempo.idTempo());
                     stmt.setInt(2, scenarioId);
-                    stmt.setString(3, tempo.pa());
-                    stmt.setInt(4, (int) tempo.fc());
-                    stmt.setInt(5, (int) tempo.rr());
-                    stmt.setDouble(6, tempo.t());
-                    stmt.setInt(7, (int) tempo.spo2());
-                    stmt.setInt(8, (int) tempo.etco2());
+                    stmt.setString(3, pa);
+                    stmt.setInt(4, (int) fc);
+                    stmt.setInt(5, (int) rr);
+                    stmt.setDouble(6, Math.round(tempo.t() * 10) / 10.0); // Tronca temperatura a 1 decimale
+                    stmt.setInt(7, (int) spo2);
+                    stmt.setInt(8, (int) etco2);
                     stmt.setString(9, tempo.azione());
                     stmt.setInt(10, tempo.tSiId());
                     stmt.setInt(11, tempo.tNoId());

@@ -69,6 +69,7 @@ public class PazienteT0 {
      */
     public PazienteT0(int idPaziente, String PA, Integer FC, Integer RR, double t, Integer spO2, Integer etCO2, String monitor, List<Accesso> accessiVenosi, List<Accesso> accessiArteriosi) {
         this.idPaziente = idPaziente;
+
         if (PA != null) {
             String trimmedPA = PA.trim();
             if (!trimmedPA.matches("^\\s*\\d+\\s*/\\s*\\d+\\s*$")) {
@@ -78,11 +79,29 @@ public class PazienteT0 {
         } else {
             this.PA = null;
         }
-        this.FC = FC;
-        this.RR = RR;
-        T = t;
-        SpO2 = spO2;
-        EtCO2 = etCO2;
+
+        if(FC < 0) {
+            throw new IllegalArgumentException("FC non può essere negativa");
+        }
+        else this.FC = FC;
+
+        if(RR < 0) {
+            throw new IllegalArgumentException("RR non può essere negativa");
+        }
+        else this.RR = RR;
+
+        this.T = t;
+
+        if(spO2 < 0 || spO2 > 100) {
+            throw new IllegalArgumentException("SpO2 deve essere compresa tra 0 e 100");
+        }
+        else SpO2 = spO2;
+
+        if(etCO2 < 0) {
+            throw new IllegalArgumentException("EtCO2 non può essere negativa");
+        }
+        else EtCO2 = etCO2;
+
         Monitor = monitor;
         this.accessiVenosi = accessiVenosi;
         this.accessiArteriosi = accessiArteriosi;
@@ -147,7 +166,10 @@ public class PazienteT0 {
      * @param FC la nuova frequenza cardiaca
      */
     public void setFC(Integer FC) {
-        this.FC = FC;
+        if(FC < 0) {
+            throw new IllegalArgumentException("FC non può essere negativa");
+        }
+        else this.FC = FC;
     }
 
     /**
@@ -165,7 +187,10 @@ public class PazienteT0 {
      * @param RR la nuova frequenza respiratoria
      */
     public void setRR(Integer RR) {
-        this.RR = RR;
+        if(RR < 0) {
+            throw new IllegalArgumentException("RR non può essere negativa");
+        }
+        else this.RR = RR;
     }
 
     /**
@@ -201,7 +226,10 @@ public class PazienteT0 {
      * @param spO2 la nuova saturazione di ossigeno
      */
     public void setSpO2(Integer spO2) {
-        SpO2 = spO2;
+        if(spO2 < 0 || spO2 > 100) {
+            throw new IllegalArgumentException("SpO2 deve essere compresa tra 0 e 100");
+        }
+        else SpO2 = spO2;
     }
 
     /**
@@ -219,7 +247,10 @@ public class PazienteT0 {
      * @param etCO2 la nuova pressione parziale di CO2 espirata
      */
     public void setEtCO2(Integer etCO2) {
-        EtCO2 = etCO2;
+        if(etCO2 < 0) {
+            throw new IllegalArgumentException("EtCO2 non può essere negativa");
+        }
+        else EtCO2 = etCO2;
     }
 
     /**

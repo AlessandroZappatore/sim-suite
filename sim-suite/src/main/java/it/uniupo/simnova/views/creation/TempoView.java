@@ -1207,7 +1207,8 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             String pa = paField.getValue() != null ? paField.getValue().trim() : "";
             double fc = fcField.getValue() != null ? fcField.getValue() : 0.0;
             double rr = rrField.getValue() != null ? rrField.getValue() : 0.0;
-            double t = tField.getValue() != null ? tField.getValue() : 0.0;
+            double rawT = tField.getValue() != null ? tField.getValue() : 0.0;
+            double t = Math.round(rawT * 10.0) / 10.0;
             double spo2 = spo2Field.getValue() != null ? spo2Field.getValue() : 0.0;
             double etco2 = etco2Field.getValue() != null ? etco2Field.getValue() : 0.0;
 
@@ -1302,9 +1303,13 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         /**
          * Imposta il valore Temperatura per T0 e rende il campo non modificabile.
          */
-        public void setTValue(Double value) { // Usa Double per gestire null e decimali
-            // double roundedValue = (value != null) ? Math.round(value * 10.0) / 10.0 : null; // Arrotonda a 1 decimale se necessario
-            tField.setValue(value); // Imposta direttamente il double
+        public void setTValue(Double value) {
+            if (value != null) {
+                double roundedValue = Math.round(value * 10.0) / 10.0;
+                tField.setValue(roundedValue);
+            } else {
+                tField.setValue(null);
+            }
             tField.setReadOnly(true);
             tField.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }

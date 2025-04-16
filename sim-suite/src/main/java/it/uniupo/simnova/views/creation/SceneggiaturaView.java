@@ -139,7 +139,7 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
 
         // Gestione degli eventi dei pulsanti
         backButton.addClickListener(e ->
-                backButton.getUI().ifPresent(ui -> ui.navigate("moulage/" + scenarioId)));
+                backButton.getUI().ifPresent(ui -> ui.navigate("tempi/" + scenarioId+"/edit")));
 
         nextButton.addClickListener(e -> {
             // Validazione dell'input
