@@ -61,7 +61,9 @@ public class ScenariosListView extends Composite<VerticalLayout> {
      * Servizio per l'esportazione in PDF.
      */
     private final PdfExportService pdfExportService;
-
+    /**
+     * Servizio per l'esportazione in ZIP.
+     */
     private final ZipExportService zipExportService;
     /**
      * Griglia per visualizzare gli scenari.
@@ -103,17 +105,29 @@ public class ScenariosListView extends Composite<VerticalLayout> {
      * Span per visualizzare le informazioni sulla pagina corrente.
      */
     private Span pageInfo;
-
+    /**
+     * Lunghezza massima per il titolo
+     */
     final int MAX_TITLE_LENGTH = 20;
+    /**
+     * Lunghezza massima per la descrizione
+     */
     final int MAX_DESCRIPTION_LENGTH = 30;
+    /**
+     * Lunghezza massima per il nome del paziente
+     */
     final int MAX_PATIENT_NAME_LENGTH = 20;
+    /**
+     * Lunghezza massima per la patologia
+     */
     final int MAX_PATHOLOGY_LENGTH = 20;
 
     /**
      * Costruttore della vista.
      *
-     * @param scenarioService  Servizio per la gestione degli scenari
-     * @param pdfExportService Servizio per l'esportazione in PDF
+     * @param scenarioService servizio per la gestione degli scenari
+     * @param pdfExportService servizio per l'esportazione in PDF
+     * @param zipExportService servizio per l'esportazione in ZIP
      */
     @Autowired
     public ScenariosListView(ScenarioService scenarioService, PdfExportService pdfExportService,ZipExportService zipExportService) {
@@ -690,6 +704,11 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         return new Anchor(resource, "Download PDF");
     }
 
+    /**
+     * Esporta lo scenario selezionato in un file ZIP per sim.execution.
+     *
+     * @param scenario Scenario da esportare
+     */
     private void exportToSimExecution(Scenario scenario) {
         if (detached.get()) {
             return;
@@ -718,6 +737,12 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         }
     }
 
+    /**
+     * Crea un anchor per il download dello ZIP dello scenario.
+     *
+     * @param scenario Scenario da esportare
+     * @return Anchor per il download dello ZIP
+     */
     private Anchor getAnchorZip(Scenario scenario) {
         StreamResource resource = new StreamResource(
                 "scenario_" + scenario.getTitolo() + ".zip",

@@ -12,10 +12,9 @@ import java.util.List;
 /**
  * Servizio per la gestione dello storage dei file.
  * <p>
- * Fornisce metodi per memorizzare, eliminare e gestire file all'interno di una directory specificata.
- * </p>
+ * Questo servizio consente di memorizzare, eliminare e recuperare file
  *
- * @author Alessandro Zappatore
+ * @author Alesasndro Zappatore
  * @version 1.0
  */
 @Service
@@ -34,7 +33,7 @@ public class FileStorageService {
      */
     public FileStorageService() {
         try {
-            // Ottieni il percorso assoluto della directory resources
+            // Ottiene la directory di root per lo storage dei file
             File resourcesDir = ResourceUtils.getFile("classpath:META-INF/resources/Media");
             this.rootLocation = resourcesDir.toPath();
 
@@ -52,8 +51,9 @@ public class FileStorageService {
     /**
      * Memorizza un file nella directory di root.
      *
-     * @param file     l'InputStream del file da memorizzare
-     * @param filename il nome del file
+     * @param file       il file da memorizzare
+     * @param filename   il nome del file
+     * @param idScenario l'id dello scenario
      * @return il nome del file memorizzato
      */
     public String storeFile(InputStream file, String filename, Integer idScenario) {
@@ -63,7 +63,7 @@ public class FileStorageService {
                 return null;
             }
 
-            // Estrai estensione e nome del file
+            // Ottiene il nome del file con l'idScenario
             String sanitizedFilename = getSanitizedFilename(filename, idScenario);
             Path destinationFile = this.rootLocation.resolve(sanitizedFilename)
                     .normalize().toAbsolutePath();
@@ -73,7 +73,7 @@ public class FileStorageService {
                 logger.error("Tentativo di memorizzare il file fuori dalla directory corrente");
                 throw new RuntimeException("Cannot store file outside current directory");
             }
-
+            // Memorizza il file
             Files.copy(file, destinationFile, StandardCopyOption.REPLACE_EXISTING);
             logger.info("File memorizzato con successo: {}", sanitizedFilename);
             return sanitizedFilename;
@@ -83,6 +83,13 @@ public class FileStorageService {
         }
     }
 
+    /**
+     * Restituisce il nome del file con l'idScenario incluso.
+     *
+     * @param filename   il nome del file originale
+     * @param idScenario l'id dello scenario
+     * @return il nome del file con l'idScenario incluso
+     */
     private static String getSanitizedFilename(String filename, Integer idScenario) {
         String extension = "";
         String baseName = filename;
@@ -95,12 +102,12 @@ public class FileStorageService {
         // Crea il nuovo nome del file con il formato nomefile_idScenario.estensione
         String newFilename = baseName + "_" + idScenario + extension;
 
-        // Sanitize filename
+        // Sanitized filename
         return newFilename.replaceAll("[^a-zA-Z0-9.-]", "_");
     }
 
     /**
-     * Elimina una lista di file dalla directory di root.
+     * Elimina un file dalla directory di root.
      *
      * @param filenames la lista dei nomi dei file da eliminare
      */
@@ -146,6 +153,11 @@ public class FileStorageService {
         }
     }
 
+    /**
+     * Restituisce la directory dei media.
+     *
+     * @return la directory dei media
+     */
     public Object getMediaDirectory() {
         try {
             return ResourceUtils.getFile("classpath:META-INF/resources/Media");

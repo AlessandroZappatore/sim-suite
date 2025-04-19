@@ -128,14 +128,7 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("descrizione/" + scenarioId)));
 
-        nextButton.addClickListener(e -> {
-            if (briefingArea.getValue().trim().isEmpty()) {
-                Notification.show("Inserisci un briefing per lo scenario",
-                        3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                return;
-            }
-            saveBriefingAndNavigate(nextButton.getUI());
-        });
+        nextButton.addClickListener(e -> saveBriefingAndNavigate(nextButton.getUI()));
     }
 
     /**

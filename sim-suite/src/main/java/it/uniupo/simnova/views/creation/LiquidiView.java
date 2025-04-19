@@ -141,13 +141,7 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("moulage/" + scenarioId)));
 
-        nextButton.addClickListener(e -> {
-            if (liquidiArea.getValue().trim().isEmpty()) {
-                Notification.show("Inserisci i liquidi e presidi per lo scenario", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                return;
-            }
-            saveLiquidiAndNavigate(nextButton.getUI());
-        });
+        nextButton.addClickListener(e -> saveLiquidiAndNavigate(nextButton.getUI()));
     }
 
     /**

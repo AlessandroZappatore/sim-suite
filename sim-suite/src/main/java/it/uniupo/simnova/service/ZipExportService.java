@@ -15,19 +15,33 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 /**
- * Servizio per l'esportazione di scenari in formato ZIP.
- * <p>
- * Questo servizio gestisce la creazione di file ZIP contenenti il JSON dello scenario
- * e gli allegati multimediali associati.
- * </p>
+ * Servizio per l'esportazione di uno scenario in un file ZIP.
+ * Contiene il file JSON dello scenario e gli allegati multimediali.
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
  */
 @Service
 public class ZipExportService {
+    /**
+     * Logger per la registrazione delle informazioni e degli errori.
+     */
     private static final Logger logger = LoggerFactory.getLogger(ZipExportService.class);
-
+    /**
+     * Servizio per la gestione dei file.
+     */
     private final FileStorageService fileStorageService;
+    /**
+     * Servizio per la gestione degli scenari.
+     */
     private final ScenarioService scenarioService;
 
+    /**
+     * Costruttore del servizio ZipExportService.
+     *
+     * @param fileStorageService servizio per la gestione dei file
+     * @param scenarioService    servizio per la gestione degli scenari
+     */
     @Autowired
     public ZipExportService(FileStorageService fileStorageService, ScenarioService scenarioService) {
         this.fileStorageService = fileStorageService;
@@ -35,30 +49,31 @@ public class ZipExportService {
     }
 
     /**
-     * Crea un file ZIP contenente lo scenario in formato JSON e gli allegati multimediali.
+     * Esporta uno scenario in un file ZIP.
      *
      * @param scenarioId ID dello scenario da esportare
-     * @return Array di byte contenente il file ZIP
-     * @throws IOException in caso di errori durante la creazione del ZIP
+     * @return byte[] contenente il file ZIP
+     * @throws IOException in caso di errore durante la scrittura del file ZIP
      */
     public byte[] exportScenarioToZip(Integer scenarioId) throws IOException {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              ZipOutputStream zipOut = new ZipOutputStream(baos)) {
 
-            // Aggiungi il file JSON allo ZIP
+            // Aggiunge il file JSON dello scenario allo ZIP
             byte[] jsonBytes = JSONExportService.exportScenarioToJSON(scenarioId);
             ZipEntry jsonEntry = new ZipEntry("scenario.json");
             zipOut.putNextEntry(jsonEntry);
             zipOut.write(jsonBytes);
             zipOut.closeEntry();
 
-            // Ottieni le immagini associate allo scenario e aggiungile allo ZIP
+            // Aggiunge gli allegati multimediali allo ZIP
             List<String> mediaFiles = scenarioService.getScenarioMediaFiles(scenarioId);
             if (mediaFiles != null && !mediaFiles.isEmpty()) {
-                // Crea una cartella "esami" per le immagini
+                // Crea una directory per gli allegati multimediali
                 zipOut.putNextEntry(new ZipEntry("esami/"));
                 zipOut.closeEntry();
 
+                // Aggiunge ogni file multimediale allo ZIP
                 for (String filename : mediaFiles) {
                     try {
                         Path imagePath = Paths.get(fileStorageService.getMediaDirectory().toString(), filename);
@@ -74,7 +89,6 @@ public class ZipExportService {
                     }
                 }
             }
-
             zipOut.finish();
             zipOut.flush();
             return baos.toByteArray();

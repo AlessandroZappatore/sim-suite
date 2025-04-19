@@ -127,13 +127,7 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("startCreation")));
 
-        nextButton.addClickListener(e -> {
-            if (descriptionArea.getValue().trim().isEmpty()) {
-                Notification.show("Inserisci una descrizione per lo scenario", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                return;
-            }
-            saveDescriptionAndNavigate(nextButton.getUI());
-        });
+        nextButton.addClickListener(e -> saveDescriptionAndNavigate(nextButton.getUI()));
     }
 
     /**
@@ -157,7 +151,7 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
             loadExistingDescription();
         } catch (NumberFormatException e) {
             logger.error("ID scenario non valido: {}", parameter, e);
-            event.rerouteToError(NotFoundException.class, "ID scenario "+scenarioId+ " non valido");
+            event.rerouteToError(NotFoundException.class, "ID scenario " + scenarioId + " non valido");
         }
     }
 
@@ -183,6 +177,7 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
             getContent().add(progressBar);
 
             try {
+                // Salva la descrizione, anche se vuota
                 boolean success = scenarioService.updateScenarioDescription(
                         scenarioId, descriptionArea.getValue()
                 );

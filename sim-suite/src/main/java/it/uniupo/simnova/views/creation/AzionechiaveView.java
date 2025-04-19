@@ -135,14 +135,7 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("pattoaula/" + scenarioId)));
 
-        nextButton.addClickListener(e -> {
-            if (azioniChiaveArea.getValue().trim().isEmpty()) {
-                Notification.show("Inserisci le azioni chiave per lo scenario",
-                        3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                return;
-            }
-            saveAzioniChiaveAndNavigate(nextButton.getUI());
-        });
+        nextButton.addClickListener(e -> saveAzioniChiaveAndNavigate(nextButton.getUI()));
     }
 
     /**

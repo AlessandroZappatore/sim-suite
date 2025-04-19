@@ -141,14 +141,7 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("esamiReferti/" + scenarioId)));
 
-        nextButton.addClickListener(e -> {
-            // Validazione dell'input
-            if (moulageArea.getValue().trim().isEmpty()) {
-                Notification.show("Inserisci la descrizione del moulage per lo scenario", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                return;
-            }
-            saveMoulageAndNavigate(nextButton.getUI());
-        });
+        nextButton.addClickListener(e -> saveMoulageAndNavigate(nextButton.getUI()));
     }
 
     /**

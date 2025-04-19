@@ -135,13 +135,7 @@ public class PattoaulaView extends Composite<VerticalLayout> implements HasUrlPa
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("briefing/" + scenarioId)));
 
-        nextButton.addClickListener(e -> {
-            if (pattoAulaArea.getValue().trim().isEmpty()) {
-                Notification.show("Inserisci il patto d'aula per lo scenario", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                return;
-            }
-            savePattoAulaAndNavigate(nextButton.getUI());
-        });
+        nextButton.addClickListener(e -> savePattoAulaAndNavigate(nextButton.getUI()));
     }
 
     /**

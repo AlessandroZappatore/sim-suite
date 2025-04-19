@@ -35,12 +35,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * View per la modifica di uno scenario esistente.
+ * Classe per la visualizzazione e modifica di uno scenario esistente.
  * <p>
- * Questa classe estende Composite<VerticalLayout> e implementa HasUrlParameter<String>.
+ * Questa classe estende Composite e implementa HasUrlParameter per gestire i parametri dell'URL.
  *
- * @author Alessandro Zappatore
  * @version 1.0
+ * @author Alessandro Zappatore
  */
 @PageTitle("Modifica Scenario")
 @Route(value = "modificaScenario", layout = MainLayout.class)
@@ -563,9 +563,21 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
      * Componente per rappresentare un accesso (venoso o arterioso).
      */
     private static class AccessoComponent extends HorizontalLayout {
+        /**
+         * Selettore per il tipo di accesso.
+         */
         private final Select<String> tipoSelect;
+        /**
+         * Campo di testo per la posizione dell'accesso.
+         */
         private final TextField posizioneField;
+        /**
+         * Container che contiene questo componente.
+         */
         private final VerticalLayout container;
+        /**
+         * Lista di accessi a cui appartiene questo componente.
+         */
         private final List<AccessoComponent> listaAccessi;
 
         /**
@@ -631,11 +643,10 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
     }
 
     /**
-     * Record per rappresentare i dati di un accesso.
+     * Crea un componente per visualizzare i tempi della simulazione.
+     *
+     * @return il componente creato
      */
-    public record AccessoData(String tipo, String posizione) {
-    }
-
     private Component createTempiComponent() {
         // Crea un layout verticale per contenere i componenti della TempoView
         VerticalLayout tempiLayout = new VerticalLayout();

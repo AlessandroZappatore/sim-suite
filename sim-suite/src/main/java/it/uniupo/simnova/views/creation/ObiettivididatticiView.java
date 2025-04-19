@@ -141,13 +141,7 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> implements
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("azionechiave/" + scenarioId)));
 
-        nextButton.addClickListener(e -> {
-            if (obiettiviArea.getValue().trim().isEmpty()) {
-                Notification.show("Inserisci gli obiettivi didattici per lo scenario", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                return;
-            }
-            saveObiettiviAndNavigate(nextButton.getUI());
-        });
+        nextButton.addClickListener(e -> saveObiettiviAndNavigate(nextButton.getUI()));
     }
 
     /**

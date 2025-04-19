@@ -62,7 +62,13 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
      * ID dello scenario corrente.
      */
     private Integer scenarioId;
+    /**
+     * Modalità di visualizzazione: "create" o "edit".
+     */
     private String mode;
+    /**
+     * Layout principale per la visualizzazione delle righe degli esami.
+     */
     private final VerticalLayout rowsContainer;
     /**
      * Contatore per il numero di righe degli esami.
@@ -151,13 +157,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("materialenecessario/" + scenarioId)));
 
-        nextButton.addClickListener(e -> {
-            if (formRows.isEmpty()) {
-                Notification.show("Aggiungi almeno un esame/referto", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                return;
-            }
-            saveEsamiRefertiAndNavigate(nextButton.getUI());
-        });
+        nextButton.addClickListener(e -> saveEsamiRefertiAndNavigate(nextButton.getUI()));
     }
 
     /**
@@ -212,6 +212,11 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         }
     }
 
+    /**
+     * Recupera il pulsante "Indietro" dal layout.
+     *
+     * @return il pulsante "Indietro"
+     */
     private Button getBackButton() {
         // Cerca il backButton nel layout
         // Esempio (adatta in base alla tua struttura):
@@ -225,6 +230,9 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                 .orElseThrow(() -> new IllegalStateException("Back button non trovato"));
     }
 
+    /**
+     * Carica i dati esistenti per lo scenario corrente in modalità "edit".
+     */
     private void loadExistingData() {
         List<EsameReferto> existingData = scenarioService.getEsamiRefertiByScenarioId(scenarioId); // Supponendo che esista un metodo simile
 
@@ -283,18 +291,14 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         rowsContainer.add(rowContainer);
     }
 
+    /**
+     * Popola una riga del form con i dati esistenti.
+     *
+     * @param data dati dell'esame/referto da popolare
+     */
     private void populateRow(EsameReferto data) {
         FormRow existingRow = new FormRow(rowCount++); // Usa il costruttore esistente
         formRows.add(existingRow);
-
-        // Popola i campi della riga 'existingRow' con i valori da 'data'
-        // Esempio:
-        // existingRow.getReportField().setValue(data.refertoTestuale());
-        // Devi decidere come gestire il tipo (selezionato vs custom) e l'upload
-        // Se l'esame era custom, seleziona "Inserisci manualmente" e popola customExamField
-        // Se era dall'elenco, seleziona "Seleziona da elenco" e popola selectedExamField
-        // Gestisci la visualizzazione del file caricato (data.media()) - l'Upload component non
-        // mostra facilmente file pre-esistenti, potresti dover aggiungere un link o un'anteprima.
 
         // Logica per determinare se l'esame era custom o selezionato
         boolean isCustom = !existingRow.allLabExams.contains(data.getTipo()) && !existingRow.allInstrExams.contains(data.getTipo());
@@ -312,10 +316,6 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
         // Gestione file esistente (più complesso con Upload component)
         if (data.getMedia() != null && !data.getMedia().isEmpty()) {
-            // L'Upload component non mostra facilmente file caricati in precedenza.
-            // Potresti aggiungere un componente separato (es. Link o Image)
-            // per mostrare/linkare il file esistente.
-            // Qui aggiungiamo solo un placeholder o un messaggio.
             Paragraph fileInfo = new Paragraph("File caricato: " + data.getMedia());
             fileInfo.addClassName(LumoUtility.FontSize.XSMALL);
             fileInfo.addClassName(LumoUtility.TextColor.SECONDARY);
@@ -366,7 +366,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             getContent().add(progressBar);
 
             try {
-                List<EsameRefertoData> esamiData = new ArrayList<>();
+                List<EsameReferto> esamiReferti = new ArrayList<>();
                 for (FormRow row : formRows) {
                     String fileName = "";
                     // Gestione upload file
@@ -379,16 +379,19 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                         }
                     }
 
-                    EsameRefertoData data = new EsameRefertoData(
-                            row.getRowNumber(),
-                            row.getSelectedExam(),
-                            fileName,
-                            row.getReportField().getValue()
+                    // Assumo che row.getRowNumber() fornisca un ID temporaneo per l'esame
+                    // e che row.getSelectedExam() fornisca il tipo di esame
+                    EsameReferto esameReferto = new EsameReferto(
+                            row.getRowNumber(),         // idEsame
+                            scenarioId,                 // id_scenario
+                            row.getSelectedExam(),      // tipo
+                            fileName,                   // media (percorso del file)
+                            row.getReportField().getValue()  // refertoTestuale
                     );
-                    esamiData.add(data);
+                    esamiReferti.add(esameReferto);
                 }
 
-                boolean success = scenarioService.saveEsamiReferti(scenarioId, esamiData);
+                boolean success = scenarioService.saveEsamiReferti(scenarioId, esamiReferti);
 
                 switch (mode) {
                     case "create" -> ui.accessSynchronously(() -> {
@@ -812,16 +815,5 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         public TextField getReportField() {
             return reportField;
         }
-    }
-
-    /**
-     * Record per il trasferimento dei dati degli esami/referti.
-     *
-     * @param idEsame         identificativo dell'esame
-     * @param tipo            tipologia dell'esame
-     * @param refertoTestuale contenuto testuale del referto
-     * @param media           percorso del file multimediale associato
-     */
-    public record EsameRefertoData(int idEsame, String tipo, String media, String refertoTestuale) {
     }
 }

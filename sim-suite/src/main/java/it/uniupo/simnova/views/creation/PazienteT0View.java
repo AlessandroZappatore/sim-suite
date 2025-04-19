@@ -22,6 +22,7 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import it.uniupo.simnova.api.model.Accesso;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
 import org.slf4j.Logger;
@@ -314,7 +315,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
      * Aggiunge un accesso venoso al layout e alla lista degli accessi.
      */
     private void addAccessoVenoso() {
-        AccessoComponent accesso = new AccessoComponent("Venoso", venosiAccessi.size() + 1);
+        AccessoComponent accesso = new AccessoComponent("Venoso");
         venosiAccessi.add(accesso);
         venosiContainer.add(accesso);
     }
@@ -323,7 +324,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
      * Aggiunge un accesso arterioso al layout e alla lista degli accessi.
      */
     private void addAccessoArterioso() {
-        AccessoComponent accesso = new AccessoComponent("Arterioso", arteriosiAccessi.size() + 1);
+        AccessoComponent accesso = new AccessoComponent("Arterioso");
         arteriosiAccessi.add(accesso);
         arteriosiContainer.add(accesso);
     }
@@ -350,19 +351,16 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
             getContent().add(progressBar);
 
             try {
-                // Prepara i dati degli accessi venosi
-                List<AccessoData> venosiData = new ArrayList<>();
-                for (AccessoComponent accesso : venosiAccessi) {
-                    venosiData.add(accesso.getData());
+                // Raccoglie gli accessi venosi e arteriosi direttamente dagli AccessoComponent
+                List<Accesso> venosi = new ArrayList<>();
+                for (AccessoComponent comp : venosiAccessi) {
+                    venosi.add(comp.getAccesso());
                 }
 
-                // Prepara i dati degli accessi arteriosi
-                List<AccessoData> arteriosiData = new ArrayList<>();
-                for (AccessoComponent accesso : arteriosiAccessi) {
-                    arteriosiData.add(accesso.getData());
+                List<Accesso> arteriosi = new ArrayList<>();
+                for (AccessoComponent comp : arteriosiAccessi) {
+                    arteriosi.add(comp.getAccesso());
                 }
-
-                System.out.println("Temperatura: " + tempField.getValue());
 
                 // Salva nel database
                 boolean success = scenarioService.savePazienteT0(
@@ -374,8 +372,8 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                         spo2Field.getValue().intValue(),
                         etco2Field.getValue().intValue(),
                         monitorArea.getValue(),
-                        venosiData,
-                        arteriosiData
+                        venosi,
+                        arteriosi
                 );
 
                 ui.accessSynchronously(() -> {
@@ -390,7 +388,8 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
             } catch (Exception e) {
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
-                    Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    Notification.show("Errore: " + e.getMessage(),
+                            5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     logger.error("Errore durante il salvataggio dei dati", e);
                 });
             }
@@ -410,17 +409,23 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
          * Campo di testo per la posizione dell'accesso.
          */
         private final TextField posizioneField;
+        /**
+         * Oggetto Accesso associato a questo componente.
+         */
+        private final Accesso accesso;
 
         /**
          * Costruttore del componente di accesso.
          *
-         * @param tipo          il tipo di accesso (venoso o arterioso)
-         * @param ignoredNumero numero di accessi (non utilizzato)
+         * @param tipo   il tipo di accesso (venoso o arterioso)
          */
-        public AccessoComponent(String tipo, int ignoredNumero) {
+        public AccessoComponent(String tipo) {
             setWidthFull();
             setAlignItems(Alignment.BASELINE);
             setSpacing(true);
+
+            // Inizializza l'oggetto Accesso con valori di default
+            this.accesso = new Accesso(0, "", "");
 
             tipoSelect = new Select<>();
             tipoSelect.setLabel("Tipo accesso " + tipo);
@@ -430,14 +435,20 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                 tipoSelect.setItems("Radiale", "Femorale", "Omerale", "Altro");
             }
             tipoSelect.setWidth("200px");
+            tipoSelect.addValueChangeListener(e -> {
+                if (e.getValue() != null) {
+                    accesso.setTipologia(e.getValue());
+                }
+            });
 
             posizioneField = new TextField("Posizione");
             posizioneField.setWidthFull();
+            posizioneField.addValueChangeListener(e -> accesso.setPosizione(e.getValue()));
 
             Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
             removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
             removeButton.getStyle().set("margin-top", "auto");
-            removeButton.addClickListener(e -> removeSelf()); // Aggiunto il listener
+            removeButton.addClickListener(e -> removeSelf());
 
             add(tipoSelect, posizioneField, removeButton);
         }
@@ -465,24 +476,15 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         }
 
         /**
-         * Restituisce i dati dell'accesso come oggetto AccessoData.
+         * Restituisce l'oggetto Accesso associato a questo componente.
          *
-         * @return i dati dell'accesso
+         * @return l'oggetto Accesso con i dati correnti
          */
-        public AccessoData getData() {
-            return new AccessoData(
-                    tipoSelect.getValue(),
-                    posizioneField.getValue()
-            );
+        public Accesso getAccesso() {
+            // Assicurati che i valori siano aggiornati prima di restituire l'oggetto
+            accesso.setTipologia(tipoSelect.getValue());
+            accesso.setPosizione(posizioneField.getValue());
+            return accesso;
         }
-    }
-
-    /**
-     * Classe record per rappresentare i dati di un accesso.
-     *
-     * @param tipo      il tipo di accesso (venoso o arterioso)
-     * @param posizione la posizione dell'accesso
-     */
-    public record AccessoData(String tipo, String posizione) {
     }
 }

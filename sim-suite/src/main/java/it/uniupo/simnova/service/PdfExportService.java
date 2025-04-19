@@ -557,14 +557,14 @@ public class PdfExportService {
 
             String azione = tempo.getAzione();
             if (azione != null && !azione.isEmpty()) {
-                drawWrappedText(fontBold, BODY_FONT_SIZE, MARGIN + 20, "Azioni da svolgere per passare a T"+ tempo.getTSi()+":");
+                drawWrappedText(fontBold, BODY_FONT_SIZE, MARGIN + 20, "Azioni da svolgere per passare a T" + tempo.getTSi() + ":");
                 drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 30, azione);
             }
 
             // Tempo se non avviene l'azione
             if (tempo.getTNo() >= 0) {
                 checkForNewPage(LEADING * 3);
-                drawWrappedText(fontBold, BODY_FONT_SIZE, MARGIN + 20, "Se non vengono svolte le azioni passare a T"+ tempo.getTNo());
+                drawWrappedText(fontBold, BODY_FONT_SIZE, MARGIN + 20, "Se non vengono svolte le azioni passare a T" + tempo.getTNo());
             }
 
             // Aggiungi spazio tra gli elementi della timeline

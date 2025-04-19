@@ -6,15 +6,27 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Classe di test per la classe {@link PazienteT0}.
+ */
 class PazienteT0Test {
+    /**
+     * Oggetto di test della classe PazienteT0.
+     */
     static PazienteT0 pazienteT0;
 
+    /**
+     * Test getId() per verificare che l'ID del paziente venga restituito correttamente.
+     */
     @Test
     void getIdPaziente() {
         pazienteT0 = new PazienteT0(2, "130/85", 80, 18, 38.0, 99, 36, "New Monitor", null, null);
         assertEquals(2, pazienteT0.getIdPaziente());
     }
 
+    /**
+     * Test setId() per verificare che l'ID del paziente venga impostato correttamente.
+     */
     @Test
     void setIdPaziente() {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
@@ -22,12 +34,18 @@ class PazienteT0Test {
         assertEquals(2, pazienteT0.getIdPaziente());
     }
 
+    /**
+     * Test getPA() per verificare che la pressione arteriosa venga restituita correttamente.
+     */
     @Test
     void getPA() {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
         assertEquals("120/80", pazienteT0.getPA());
     }
 
+    /**
+     * Test setPA() per verificare che la pressione arteriosa venga impostata correttamente.
+     */
     @Test
     void setPA() {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
@@ -37,12 +55,18 @@ class PazienteT0Test {
         assertThrows(IllegalArgumentException.class, () -> pazienteT0.setPA("21"));
     }
 
+    /**
+     * Test getFC() per verificare che la frequenza cardiaca venga restituita correttamente.
+     */
     @Test
     void getFC() {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
         assertEquals(75, pazienteT0.getFC());
     }
 
+    /**
+     * Test setFC() per verificare che la frequenza cardiaca venga impostata correttamente.
+     */
     @Test
     void setFC() {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
@@ -52,6 +76,9 @@ class PazienteT0Test {
         assertThrows(IllegalArgumentException.class, () -> pazienteT0.setFC(-1));
     }
 
+    /**
+     * Test getRR() per verificare che la frequenza respiratoria venga restituita correttamente.
+     */
     @Test
     void getRR() {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
@@ -60,6 +87,9 @@ class PazienteT0Test {
 
     }
 
+    /**
+     * Test setRR() per verificare che la frequenza respiratoria venga impostata correttamente.
+     */
     @Test
     void setRR() {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
@@ -69,12 +99,18 @@ class PazienteT0Test {
         assertThrows(IllegalArgumentException.class, () -> pazienteT0.setRR(-1));
     }
 
+    /**
+     * Test getT() per verificare che la temperatura venga restituita correttamente.
+     */
     @Test
     void getT() {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
         assertEquals(37.5, pazienteT0.getT());
     }
 
+    /**
+     * Test setT() per verificare che la temperatura venga impostata correttamente.
+     */
     @Test
     void setT() {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
@@ -82,12 +118,18 @@ class PazienteT0Test {
         assertEquals(38.0, pazienteT0.getT());
     }
 
+    /**
+     * Test getSpO2() per verificare che la saturazione di ossigeno venga restituita correttamente.
+     */
     @Test
     void getSpO2() {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
         assertEquals(98, pazienteT0.getSpO2());
     }
 
+    /**
+     * Test setSpO2() per verificare che la saturazione di ossigeno venga impostata correttamente.
+     */
     @Test
     void setSpO2() {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
@@ -97,12 +139,18 @@ class PazienteT0Test {
         assertThrows(IllegalArgumentException.class, () -> pazienteT0.setSpO2(-1));
     }
 
+    /**
+     * Test getEtCO2() per verificare che l'EtCO2 venga restituito correttamente.
+     */
     @Test
     void getEtCO2() {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
         assertEquals(35, pazienteT0.getEtCO2());
     }
 
+    /**
+     * Test setEtCO2() per verificare che l'EtCO2 venga impostato correttamente.
+     */
     @Test
     void setEtCO2() {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
@@ -112,12 +160,18 @@ class PazienteT0Test {
         assertThrows(IllegalArgumentException.class, () -> pazienteT0.setEtCO2(-1));
     }
 
+    /**
+     * Test getMonitor() per verificare che il monitor venga restituito correttamente.
+     */
     @Test
     void getMonitor() {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
         assertEquals("Monitor", pazienteT0.getMonitor());
     }
 
+    /**
+     * Test setMonitor() per verificare che il monitor venga impostato correttamente.
+     */
     @Test
     void setMonitor() {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
@@ -125,12 +179,18 @@ class PazienteT0Test {
         assertEquals("New Monitor", pazienteT0.getMonitor());
     }
 
+    /**
+     * Test getAccessiVenosi() per verificare che gli accessi venosi vengano restituiti correttamente.
+     */
     @Test
     void getAccessiVenosi() {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
         assertNull(pazienteT0.getAccessiVenosi());
     }
 
+    /**
+     * Test setAccessiVenosi() per verificare che gli accessi venosi vengano impostati correttamente.
+     */
     @Test
     void setAccessiVenosi() {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
@@ -142,12 +202,18 @@ class PazienteT0Test {
         assertEquals("Braccio Destro", pazienteT0.getAccessiVenosi().getFirst().getPosizione());
     }
 
+    /**
+     * Test getAccessiArteriosi() per verificare che gli accessi arteriosi vengano restituiti correttamente.
+     */
     @Test
     void getAccessiArteriosi() {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
         assertNull(pazienteT0.getAccessiArteriosi());
     }
 
+    /**
+     * Test setAccessiArteriosi() per verificare che gli accessi arteriosi vengano impostati correttamente.
+     */
     @Test
     void setAccessiArteriosi() {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);
@@ -159,6 +225,9 @@ class PazienteT0Test {
         assertEquals("Braccio Sinistro", pazienteT0.getAccessiArteriosi().getFirst().getPosizione());
     }
 
+    /**
+     * Test toString() per verificare che la rappresentazione in stringa del paziente venga restituita correttamente.
+     */
     @Test
     void testToString() {
         pazienteT0 = new PazienteT0(1, "120/80", 75, 16, 37.5, 98, 35, "Monitor", null, null);

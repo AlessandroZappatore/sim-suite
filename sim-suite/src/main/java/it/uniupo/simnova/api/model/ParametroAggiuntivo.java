@@ -58,6 +58,19 @@ public class ParametroAggiuntivo {
     }
 
     /**
+     * Costruttore per creare un nuovo parametro aggiuntivo senza scenarioId.
+     *
+     * @param nome il nome del parametro
+     * @param valore il valore del parametro
+     * @param unita l'unità di misura del parametro
+     */
+    public ParametroAggiuntivo(String nome, double valore, String unita) {
+        this.nome = nome;
+        this.valore = String.valueOf(valore);
+        this.unitaMisura = unita;
+    }
+
+    /**
      * Restituisce l'identificativo univoco del parametro.
      *
      * @return l'identificativo univoco del parametro

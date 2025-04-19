@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Servizio per l'esportazione di uno scenario in formato JSON.
+ * Servizio per l'esportazione di scenari in formato JSON.
  * Utilizza Gson per la serializzazione degli oggetti in JSON.
  *
  * @author Alessandro Zappatore

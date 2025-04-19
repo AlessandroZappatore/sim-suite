@@ -6,8 +6,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import it.uniupo.simnova.api.model.*;
 import it.uniupo.simnova.utils.DBConnect;
-import it.uniupo.simnova.views.creation.EsamiRefertiView;
-import it.uniupo.simnova.views.creation.PazienteT0View;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -524,7 +522,7 @@ public class ScenarioService {
      * @param esamiData  la lista di esami e referti da salvare
      * @return true se l'operazione ha avuto successo, false altrimenti
      */
-    public boolean saveEsamiReferti(int scenarioId, List<EsamiRefertiView.EsameRefertoData> esamiData) {
+    public boolean saveEsamiReferti(int scenarioId, List<EsameReferto> esamiData) {
         if (!deleteEsamiReferti(scenarioId)) {
             logger.warn("Impossibile eliminare i referti esistenti per lo scenario con ID {}", scenarioId);
             return false;
@@ -535,12 +533,12 @@ public class ScenarioService {
         try (Connection conn = DBConnect.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            for (EsamiRefertiView.EsameRefertoData esame : esamiData) {
-                stmt.setInt(1, esame.idEsame());
+            for (EsameReferto esame : esamiData) {
+                stmt.setInt(1, esame.getIdEsame());
                 stmt.setInt(2, scenarioId);
-                stmt.setString(3, esame.tipo());
-                stmt.setString(4, esame.media()); // Qui salva solo il nome del file
-                stmt.setString(5, esame.refertoTestuale());
+                stmt.setString(3, esame.getTipo());
+                stmt.setString(4, esame.getMedia()); // Qui salva solo il nome del file
+                stmt.setString(5, esame.getRefertoTestuale());
                 stmt.addBatch();
             }
 
@@ -603,8 +601,8 @@ public class ScenarioService {
     public boolean savePazienteT0(int scenarioId,
                                   String pa, int fc, int rr, double temp,
                                   int spo2, int etco2, String monitor,
-                                  List<PazienteT0View.AccessoData> venosiData,
-                                  List<PazienteT0View.AccessoData> arteriosiData) {
+                                  List<Accesso> venosiData,
+                                  List<Accesso> arteriosiData) {
         Connection conn = null;
         logger.debug("PA: {}", pa);
         if (fc < 0) {
@@ -784,7 +782,7 @@ public class ScenarioService {
      * @throws SQLException in caso di errore durante l'esecuzione della query
      */
     private boolean saveAccessi(Connection conn, int scenarioId,
-                                List<PazienteT0View.AccessoData> accessiData,
+                                List<Accesso> accessiData,
                                 boolean isVenoso) throws SQLException {
         if (accessiData == null || accessiData.isEmpty()) {
             logger.warn("Nessun accesso da salvare per lo scenario con ID {}", scenarioId);
@@ -808,12 +806,12 @@ public class ScenarioService {
                 "INSERT INTO AccessoVenoso (paziente_t0_id, accesso_id) VALUES (?, ?)" :
                 "INSERT INTO AccessoArterioso (paziente_t0_id, accesso_id) VALUES (?, ?)";
 
-        for (PazienteT0View.AccessoData data : accessiData) {
+        for (Accesso data : accessiData) {
             // Inserisci accesso
             int accessoId;
             try (PreparedStatement stmt = conn.prepareStatement(insertAccessoSql, Statement.RETURN_GENERATED_KEYS)) {
-                stmt.setString(1, data.tipo());
-                stmt.setString(2, data.posizione());
+                stmt.setString(1, data.getTipologia());
+                stmt.setString(2, data.getPosizione());
                 stmt.executeUpdate();
 
                 try (ResultSet rs = stmt.getGeneratedKeys()) {
@@ -1151,10 +1149,10 @@ public class ScenarioService {
      * Salva i tempi associati a uno scenario.
      *
      * @param scenarioId l'ID dello scenario
-     * @param tempiData  la lista di dati dei tempi da salvare
+     * @param tempi      la lista di tempi da salvare
      * @return true se l'operazione ha avuto successo, false altrimenti
      */
-    public boolean saveTempi(int scenarioId, List<TempoData> tempiData) {
+    public boolean saveTempi(int scenarioId, List<Tempo> tempi) {
         Connection conn = null;
         try {
             conn = DBConnect.getInstance().getConnection();
@@ -1171,29 +1169,29 @@ public class ScenarioService {
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                for (TempoData tempo : tempiData) {
+                for (Tempo tempo : tempi) {
                     // Validazione parametri vitali
-                    double fc = tempo.fc();
-                    double rr = tempo.rr();
-                    double spo2 = tempo.spo2();
-                    double etco2 = tempo.etco2();
-                    String pa = tempo.pa();
-                    int tsi = tempo.tSiId();
-                    int tno = tempo.tNoId();
+                    Integer fc = tempo.getFC();
+                    Integer rr = tempo.getRR();
+                    Integer spo2 = tempo.getSpO2();
+                    Integer etco2 = tempo.getEtCO2();
+                    String pa = tempo.getPA();
+                    int tsi = tempo.getTSi();
+                    int tno = tempo.getTNo();
 
-                    if (fc < 0) {
+                    if (fc != null && fc < 0) {
                         logger.warn("Frequenza cardiaca non valida: {}", fc);
                         throw new IllegalArgumentException("Frequenza cardiaca non valida");
                     }
-                    if (rr < 0) {
+                    if (rr != null && rr < 0) {
                         logger.warn("Frequenza respiratoria non valida: {}", rr);
                         throw new IllegalArgumentException("Frequenza respiratoria non valida");
                     }
-                    if (spo2 < 0 || spo2 > 100) {
+                    if (spo2 != null && (spo2 < 0 || spo2 > 100)) {
                         logger.warn("Saturazione di ossigeno non valida: {}", spo2);
                         throw new IllegalArgumentException("Saturazione di ossigeno non valida, deve essere tra 0 e 100");
                     }
-                    if (etco2 < 0) {
+                    if (etco2 != null && etco2 < 0) {
                         logger.warn("EtCO2 non valido: {}", etco2);
                         throw new IllegalArgumentException("EtCO2 non valido");
                     }
@@ -1202,24 +1200,24 @@ public class ScenarioService {
                         throw new IllegalArgumentException("Formato PA non valido, atteso 'sistolica/diastolica' (es. '120/80')");
                     }
 
-                    if(tsi < 0 || tno < 0) {
+                    if (tsi < 0 || tno < 0) {
                         logger.warn("ID TSi o TNo non valido: TSi={}, TNo={}", tsi, tno);
                         throw new IllegalArgumentException("ID TSi o TNo non valido");
                     }
 
-                    stmt.setInt(1, tempo.idTempo());
+                    stmt.setInt(1, tempo.getIdTempo());
                     stmt.setInt(2, scenarioId);
                     stmt.setString(3, pa);
-                    stmt.setInt(4, (int) fc);
-                    stmt.setInt(5, (int) rr);
-                    stmt.setDouble(6, Math.round(tempo.t() * 10) / 10.0); // Tronca temperatura a 1 decimale
-                    stmt.setInt(7, (int) spo2);
-                    stmt.setInt(8, (int) etco2);
-                    stmt.setString(9, tempo.azione());
-                    stmt.setInt(10, tempo.tSiId());
-                    stmt.setInt(11, tempo.tNoId());
-                    stmt.setString(12, tempo.altriDettagli());
-                    stmt.setInt(13, tempo.timerTempo());
+                    stmt.setObject(4, fc);
+                    stmt.setObject(5, rr);
+                    stmt.setDouble(6, Math.round(tempo.getT() * 10) / 10.0); // Tronca temperatura a 1 decimale
+                    stmt.setObject(7, spo2);
+                    stmt.setObject(8, etco2);
+                    stmt.setString(9, tempo.getAzione());
+                    stmt.setInt(10, tempo.getTSi());
+                    stmt.setInt(11, tempo.getTNo());
+                    stmt.setString(12, tempo.getAltriDettagli());
+                    stmt.setLong(13, tempo.getTimerTempo());
 
                     stmt.addBatch();
                 }
@@ -1235,7 +1233,7 @@ public class ScenarioService {
             }
 
             // Salva anche i parametri aggiuntivi
-            if (!saveParametriAggiuntivi(conn, scenarioId, tempiData)) {
+            if (!saveParametriAggiuntivi(conn, scenarioId, tempi)) {
                 conn.rollback();
                 logger.warn("Rollback: impossibile salvare i parametri aggiuntivi per lo scenario con ID {}", scenarioId);
                 return false;
@@ -1297,7 +1295,6 @@ public class ScenarioService {
      * @throws SQLException in caso di errore durante l'esecuzione della query
      */
     private boolean deleteParametriAggiuntivi(Connection conn, int scenarioId) throws SQLException {
-        // Ora possiamo eliminare direttamente per scenario_id
         final String sql = "DELETE FROM ParametriAggiuntivi WHERE scenario_id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, scenarioId);
@@ -1310,70 +1307,68 @@ public class ScenarioService {
      *
      * @param conn       la connessione al database
      * @param scenarioId l'ID dello scenario
-     * @param tempiData  la lista di dati dei tempi da salvare
+     * @param tempi      la lista di tempi da salvare
      * @return true se l'operazione ha avuto successo, false altrimenti
      * @throws SQLException in caso di errore durante l'esecuzione della query
      */
-    private boolean saveParametriAggiuntivi(Connection conn, int scenarioId, List<TempoData> tempiData) throws SQLException {
-        // Ensure the table name and columns are correct
+    private boolean saveParametriAggiuntivi(Connection conn, int scenarioId, List<Tempo> tempi) throws SQLException {
+        // Controlla se ci sono parametri aggiuntivi da salvare
         final String sql = "INSERT INTO ParametriAggiuntivi (parametri_aggiuntivi_id, tempo_id, scenario_id, nome, valore, unità_misura) " +
-                "VALUES (?, ?, ?, ?, ?, ?)"; // Assuming manual ID or adjust if auto-increment
+                "VALUES (?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            // Determine starting ID - CAUTION: This is prone to race conditions if concurrent access occurs.
-            // A sequence or auto-increment PK is strongly recommended.
-            // If parametri_aggiuntivi_id is auto-increment, remove it from INSERT and don't set param 1.
-            int paramId = getMaxParamId(conn) + 1; // Helper function needed if manual ID
+            int paramId = getMaxParamId(conn) + 1;
 
-            for (TempoData tempo : tempiData) {
-                for (Map.Entry<String, ParameterValueUnit> param : tempo.parametriAggiuntivi().entrySet()) {
-                    String paramName = param.getKey(); // This is the base name (e.g., "Glicemia" or "CustomParam")
-                    ParameterValueUnit paramData = param.getValue();
+            for (Tempo tempo : tempi) {
+                List<ParametroAggiuntivo> parametri = tempo.getParametriAggiuntivi();
+                if (parametri != null) {
+                    for (ParametroAggiuntivo param : parametri) {
+                        stmt.setInt(1, paramId++);
 
-                    // If parametri_aggiuntivi_id is AUTO_INCREMENT, remove this line and adjust indices below
-                    stmt.setInt(1, paramId++); // Set manual ID (or remove if auto)
+                        stmt.setInt(2, tempo.getIdTempo()); // tempo_id
+                        stmt.setInt(3, scenarioId); // scenario_id
+                        stmt.setString(4, param.getNome()); // nome (base name)
+                        stmt.setDouble(5, Double.parseDouble(param.getValore())); // valore
+                        stmt.setString(6, param.getUnitaMisura()); // unità_misura
 
-                    stmt.setInt(2, tempo.idTempo()); // tempo_id
-                    stmt.setInt(3, scenarioId); // scenario_id
-                    stmt.setString(4, paramName); // nome (base name)
-                    stmt.setDouble(5, paramData.value()); // valore
-                    // *** Use the unit from ParameterValueUnit ***
-                    stmt.setString(6, paramData.unit()); // unità_misura
-
-                    stmt.addBatch();
+                        stmt.addBatch();
+                    }
                 }
-
             }
 
-            if (stmt.getParameterMetaData().getParameterCount() > 0) { // Check if any batches were added
+            if (stmt.getParameterMetaData().getParameterCount() > 0) {
                 int[] results = stmt.executeBatch();
                 boolean allSuccess = true;
                 for (int result : results) {
-                    if (result <= 0 && result != Statement.SUCCESS_NO_INFO) { // Check for failures
+                    if (result <= 0 && result != Statement.SUCCESS_NO_INFO) {
                         allSuccess = false;
-                        logger.warn("Failed to insert at least one additional parameter batch for scenario {}", scenarioId);
-                        // Decide if this should cause a rollback (return false)
+                        logger.warn("Errore nel nel salvataggio dei parametri aggiuntivi dello scenario {}", scenarioId);
                     }
                 }
                 if (allSuccess && results.length > 0) {
-                    logger.info("Saved {} additional parameter entries for scenario {}", results.length, scenarioId);
+                    logger.info("Salvati {} parametri aggiuntivi per lo scenario {}", results.length, scenarioId);
                 } else if (results.length == 0) {
-                    logger.info("No additional parameters to save for scenario {}", scenarioId);
+                    logger.info("Non ci sono parametri aggiuntivi da aggiungere per lo scenario {}", scenarioId);
                 }
-                return allSuccess; // Or true if partial success is acceptable
+                return allSuccess;
             } else {
-                logger.info("No additional parameters batched for scenario {}", scenarioId);
-                return true; // Nothing to save, so technically successful
+                logger.info("Non ci sono parametri aggiuntivi da aggiungere per lo scenario {}", scenarioId);
+                return true;
             }
 
         } catch (SQLException e) {
-            logger.error("Error during batch insert of additional parameters for scenario {}", scenarioId, e);
-            throw e; // Re-throw to trigger rollback in saveTempi
+            logger.error("Errore del database durante l'inserimento dei parametri aggiuntivi per lo scenario {}", scenarioId, e);
+            throw e;
         }
     }
 
-    // Helper function if using manual ID (Needs implementation based on your DB)
-    // **Strongly recommend using Auto-Increment Primary Key instead**
+    /**
+     * Recupera il massimo ID dei parametri aggiuntivi.
+     *
+     * @param conn la connessione al database
+     * @return il massimo ID dei parametri aggiuntivi
+     * @throws SQLException in caso di errore durante l'esecuzione della query
+     */
     private int getMaxParamId(Connection conn) throws SQLException {
         // Example: SELECT MAX(parametri_aggiuntivi_id) FROM ParametriAggiuntivi
         // Handle case where table is empty (return 0)
@@ -1469,10 +1464,12 @@ public class ScenarioService {
         return scenario;
     }
 
-    /*public boolean updateAccessiPazienteT0(Integer scenarioId, List<ScenarioEditView.AccessoData> venosiData, List<ScenarioEditView.AccessoData> arteriosiData) {
-        return true;
-    }*/
-
+    /**
+     * Recupera i file media associati a uno scenario.
+     *
+     * @param scenarioId l'ID dello scenario
+     * @return una lista di nomi di file media
+     */
     public List<String> getScenarioMediaFiles(Integer scenarioId) {
         List<String> mediaFiles = new ArrayList<>();
         try (Connection conn = DBConnect.getInstance().getConnection();
@@ -1492,44 +1489,6 @@ public class ScenarioService {
         }
         return mediaFiles;
 
-    }
-
-    public record ParameterValueUnit(double value, String unit) {
-    }
-
-
-    /**
-     * Rappresenta i dati di un tempo associato a uno scenario.
-     *
-     * @param idTempo             l'ID del tempo
-     * @param pa                  la pressione arteriosa
-     * @param fc                  la frequenza cardiaca
-     * @param rr                  la frequenza respiratoria
-     * @param t                   la temperatura
-     * @param spo2                la saturazione di ossigeno
-     * @param etco2               il valore di EtCO2
-     * @param azione              l'azione associata
-     * @param tSiId               l'ID del tempo di inizio
-     * @param tNoId               l'ID del tempo di fine
-     * @param altriDettagli       altri dettagli
-     * @param timerTempo          il timer del tempo
-     * @param parametriAggiuntivi i parametri aggiuntivi
-     */
-    public record TempoData(
-            int idTempo,
-            String pa,
-            double fc,
-            double rr,
-            double t,
-            double spo2,
-            double etco2,
-            String azione,
-            int tSiId,
-            int tNoId,
-            String altriDettagli,
-            int timerTempo,
-            Map<String, ParameterValueUnit> parametriAggiuntivi
-    ) {
     }
 
     /**
@@ -1672,6 +1631,11 @@ public class ScenarioService {
         return "";
     }
 
+    /**
+     * Aggiorna uno scenario esistente nel database.
+     *
+     * @param scenario l'oggetto Scenario da aggiornare
+     */
     public void update(Scenario scenario) {
         final String sql = "UPDATE Scenario SET titolo = ?, nome_paziente = ?, patologia = ?, descrizione = ?, " +
                 "briefing = ?, patto_aula = ?, azione_chiave = ?, obiettivo = ?, " +
@@ -1771,6 +1735,9 @@ public class ScenarioService {
 
     /**
      * Crea uno scenario rapido a partire dai dati JSON.
+     *
+     * @param scenarioData i dati JSON contenenti le informazioni dello scenario
+     * @return true se lo scenario è stato creato con successo, false altrimenti
      */
     private boolean createQuickScenarioFromJson(Map<String, Object> scenarioData) {
         String titolo = (String) scenarioData.get("titolo");
@@ -1804,6 +1771,9 @@ public class ScenarioService {
 
     /**
      * Crea uno scenario avanzato a partire dai dati JSON.
+     *
+     * @param jsonData i dati JSON contenenti le informazioni dello scenario
+     * @return true se lo scenario è stato creato con successo, false altrimenti
      */
     private boolean createAdvancedScenarioFromJson(Map<String, Object> jsonData) {
         Map<String, Object> scenarioData = (Map<String, Object>) jsonData.get("scenario");
@@ -1832,6 +1802,9 @@ public class ScenarioService {
 
     /**
      * Crea uno scenario simulato per pazienti a partire dai dati JSON.
+     *
+     * @param jsonData i dati JSON contenenti le informazioni dello scenario
+     * @return true se lo scenario è stato creato con successo, false altrimenti
      */
     private boolean createPatientSimulatedScenarioFromJson(Map<String, Object> jsonData) {
         Map<String, Object> scenarioData = (Map<String, Object>) jsonData.get("scenario");
@@ -1860,7 +1833,11 @@ public class ScenarioService {
     }
 
     /**
-     * Salva i componenti aggiuntivi di uno scenario avanzato.
+     * Salva i componenti avanzati dello scenario.
+     *
+     * @param scenarioId l'ID dello scenario
+     * @param jsonData   i dati JSON contenenti le informazioni dello scenario
+     * @return true se il salvataggio è andato a buon fine, false altrimenti
      */
     private boolean saveAdvancedScenarioComponents(int scenarioId, Map<String, Object> jsonData) {
         // Salva esame fisico
@@ -1882,8 +1859,8 @@ public class ScenarioService {
             List<Map<String, Object>> venosiData = (List<Map<String, Object>>) pazienteT0Data.get("accessiVenosi");
             List<Map<String, Object>> arteriosiData = (List<Map<String, Object>>) pazienteT0Data.get("accessiArteriosi");
 
-            List<PazienteT0View.AccessoData> venosi = convertAccessoData(venosiData);
-            List<PazienteT0View.AccessoData> arteriosi = convertAccessoData(arteriosiData);
+            List<Accesso> venosi = convertAccessoData(venosiData);
+            List<Accesso> arteriosi = convertAccessoData(arteriosiData);
 
             if (!savePazienteT0(
                     scenarioId,
@@ -1904,8 +1881,9 @@ public class ScenarioService {
         // Salva esami e referti
         List<Map<String, Object>> esamiRefertiData = (List<Map<String, Object>>) jsonData.get("esamiReferti");
         if (esamiRefertiData != null) {
-            List<EsamiRefertiView.EsameRefertoData> esami = esamiRefertiData.stream()
-                    .map(e -> new EsamiRefertiView.EsameRefertoData(
+            List<EsameReferto> esami = esamiRefertiData.stream()
+                    .map(e -> new EsameReferto(
+                            ((Double) e.get("idEsameReferto")).intValue(),
                             ((Double) e.get("idEsame")).intValue(),
                             (String) e.get("tipo"),
                             (String) e.get("media"),
@@ -1921,10 +1899,10 @@ public class ScenarioService {
         // Salva tempi (solo per Advanced Scenario)
         List<Map<String, Object>> tempiData = (List<Map<String, Object>>) jsonData.get("tempi");
         if (tempiData != null) {
-            List<TempoData> tempi = tempiData.stream()
+            List<Tempo> tempi = tempiData.stream()
                     .map(t -> {
                         List<Map<String, Object>> paramsData = (List<Map<String, Object>>) t.get("parametriAggiuntivi");
-                        Map<String, ParameterValueUnit> params = new HashMap<>();
+                        List<ParametroAggiuntivo> params = new ArrayList<>();
 
                         if (paramsData != null) {
                             paramsData.forEach(p -> {
@@ -1933,25 +1911,27 @@ public class ScenarioService {
                                         Double.parseDouble((String) p.get("valore")) :
                                         (Double) p.get("valore");
                                 String unita = (String) p.get("unitaMisura");
-                                params.put(nome, new ParameterValueUnit(valore, unita));
+                                params.add(new ParametroAggiuntivo(nome, valore, unita));
                             });
                         }
 
-                        return new TempoData(
+                        Tempo tempo = new Tempo(
                                 ((Double) t.get("idTempo")).intValue(),
+                                scenarioId,
                                 (String) t.get("PA"),
-                                (Double) t.get("FC"),
-                                (Double) t.get("RR"),
+                                t.get("FC") != null ? ((Double) t.get("FC")).intValue() : null,
+                                t.get("RR") != null ? ((Double) t.get("RR")).intValue() : null,
                                 (Double) t.get("T"),
-                                (Double) t.get("SpO2"),
-                                (Double) t.get("EtCO2"),
+                                t.get("SpO2") != null ? ((Double) t.get("SpO2")).intValue() : null,
+                                t.get("EtCO2") != null ? ((Double) t.get("EtCO2")).intValue() : null,
                                 (String) t.get("Azione"),
                                 t.get("TSi") != null ? ((Double) t.get("TSi")).intValue() : 0,
                                 t.get("TNo") != null ? ((Double) t.get("TNo")).intValue() : 0,
                                 (String) t.get("altriDettagli"),
-                                ((Double) t.get("timerTempo")).intValue(),
-                                params
+                                ((Double) t.get("timerTempo")).longValue()
                         );
+                        tempo.setParametriAggiuntivi(params);
+                        return tempo;
                     })
                     .collect(Collectors.toList());
 
@@ -1964,18 +1944,20 @@ public class ScenarioService {
     }
 
     /**
-     * Converte i dati degli accessi dal formato JSON al formato atteso dal servizio.
+     * Converte i dati degli accessi in oggetti Accesso.
+     *
+     * @param accessiData la lista di mappe contenente i dati degli accessi
+     * @return una lista di oggetti Accesso
      */
-    private List<PazienteT0View.AccessoData> convertAccessoData(List<Map<String, Object>> accessiData) {
+    private List<Accesso> convertAccessoData(List<Map<String, Object>> accessiData) {
         if (accessiData == null) return new ArrayList<>();
 
         return accessiData.stream()
-                .map(a -> new PazienteT0View.AccessoData(
+                .map(a -> new Accesso(
+                        ((Double) a.get("idAccesso")).intValue(),
                         (String) a.get("tipologia"),
                         (String) a.get("posizione")
                 ))
                 .collect(Collectors.toList());
     }
-
-
 }

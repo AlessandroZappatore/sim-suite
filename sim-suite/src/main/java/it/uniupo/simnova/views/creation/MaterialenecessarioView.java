@@ -141,13 +141,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("obiettivididattici/" + scenarioId)));
 
-        nextButton.addClickListener(e -> {
-            if (materialeArea.getValue().trim().isEmpty()) {
-                Notification.show("Inserisci il materiale necessario per lo scenario", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                return;
-            }
-            saveMaterialeAndNavigate(nextButton.getUI());
-        });
+        nextButton.addClickListener(e -> saveMaterialeAndNavigate(nextButton.getUI()));
     }
 
     /**

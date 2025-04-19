@@ -6,8 +6,14 @@ import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Classe di test per la classe {@link PatientSimulatedScenario}.
+ */
 class PatientSimulatedScenarioTest {
 
+    /**
+     * Test getId() per verificare che l'ID del paziente simulato venga restituito correttamente.
+     */
     @Test
     void getIdPatientSimulatedScenario() {
         PatientSimulatedScenario scenario = new PatientSimulatedScenario(1, "Test Scenario", "John Doe", "Flu", "Description", "Briefing", "Patto Aula", "Azione Chiave", "Obiettivo", "Materiale", "Moulage", "Liquidi", 30.0f, 1, new ArrayList<>(), 1, 1, "Sceneggiatura");
@@ -15,6 +21,9 @@ class PatientSimulatedScenarioTest {
         assertEquals(1, scenario.getIdPatientSimulatedScenario());
     }
 
+    /**
+     * Test setId() per verificare che l'ID del paziente simulato venga impostato correttamente.
+     */
     @Test
     void setIdPatientSimulatedScenario() {
         PatientSimulatedScenario scenario = new PatientSimulatedScenario(1, "Test Scenario", "John Doe", "Flu", "Description", "Briefing", "Patto Aula", "Azione Chiave", "Obiettivo", "Materiale", "Moulage", "Liquidi", 30.0f, 1, new ArrayList<>(), 1, 1, "Sceneggiatura");
@@ -22,6 +31,9 @@ class PatientSimulatedScenarioTest {
         assertEquals(2, scenario.getIdPatientSimulatedScenario());
     }
 
+    /**
+     * Test getAdvancedScenario() per verificare che lo scenario avanzato venga restituito correttamente.
+     */
     @Test
     void getAdvancedScenario() {
         PatientSimulatedScenario scenario = new PatientSimulatedScenario(1, "Test Scenario", "John Doe", "Flu", "Description", "Briefing", "Patto Aula", "Azione Chiave", "Obiettivo", "Materiale", "Moulage", "Liquidi", 30.0f, 1, new ArrayList<>(), 1, 1, "Sceneggiatura");
@@ -29,6 +41,9 @@ class PatientSimulatedScenarioTest {
         assertEquals(1, scenario.getAdvancedScenario());
     }
 
+    /**
+     * Test setAdvancedScenario() per verificare che lo scenario avanzato venga impostato correttamente.
+     */
     @Test
     void setAdvancedScenario() {
         PatientSimulatedScenario scenario = new PatientSimulatedScenario(1, "Test Scenario", "John Doe", "Flu", "Description", "Briefing", "Patto Aula", "Azione Chiave", "Obiettivo", "Materiale", "Moulage", "Liquidi", 30.0f, 1, new ArrayList<>(), 1, 1, "Sceneggiatura");
@@ -36,6 +51,9 @@ class PatientSimulatedScenarioTest {
         assertEquals(2, scenario.getAdvancedScenario());
     }
 
+    /**
+     * Test getSceneggiatura() per verificare che la sceneggiatura venga restituita correttamente.
+     */
     @Test
     void getSceneggiatura() {
         PatientSimulatedScenario scenario = new PatientSimulatedScenario(1, "Test Scenario", "John Doe", "Flu", "Description", "Briefing", "Patto Aula", "Azione Chiave", "Obiettivo", "Materiale", "Moulage", "Liquidi", 30.0f, 1, new ArrayList<>(), 1, 1, "Sceneggiatura");
@@ -43,6 +61,9 @@ class PatientSimulatedScenarioTest {
         assertEquals("Sceneggiatura", scenario.getSceneggiatura());
     }
 
+    /**
+     * Test setSceneggiatura() per verificare che la sceneggiatura venga impostata correttamente.
+     */
     @Test
     void setSceneggiatura() {
         PatientSimulatedScenario scenario = new PatientSimulatedScenario(1, "Test Scenario", "John Doe", "Flu", "Description", "Briefing", "Patto Aula", "Azione Chiave", "Obiettivo", "Materiale", "Moulage", "Liquidi", 30.0f, 1, new ArrayList<>(), 1, 1, "Sceneggiatura");
@@ -50,6 +71,9 @@ class PatientSimulatedScenarioTest {
         assertEquals("New Sceneggiatura", scenario.getSceneggiatura());
     }
 
+    /**
+     * Test toString() per verificare che la rappresentazione in stringa dell'oggetto sia corretta.
+     */
     @Test
     void testToString() {
         PatientSimulatedScenario scenario = new PatientSimulatedScenario(1, "Test Scenario", "John Doe", "Flu", "Description", "Briefing", "Patto Aula", "Azione Chiave", "Obiettivo", "Materiale", "Moulage", "Liquidi", 30.0f, 1, new ArrayList<>(), 1, 1, "Sceneggiatura");

@@ -291,7 +291,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                 throw new NumberFormatException("ID Scenario non valido");
             }
 
-            if(scenarioService.getScenarioType(scenarioId).equals("Quick Scenario")) {
+            if (scenarioService.getScenarioType(scenarioId).equals("Quick Scenario")) {
                 logger.warn("ID Scenario non valido: {}", scenarioId);
                 throw new NumberFormatException("Quick Scenario non supporta la gestione dei tempi");
             }
@@ -564,21 +564,23 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
      */
     private void saveAllTimeSections() {
         try {
-            List<ScenarioService.TempoData> allTempiData = new ArrayList<>();
+            List<Tempo> allTempi = new ArrayList<>();
 
             // Prepara i dati per ogni sezione temporale
             for (TimeSection section : timeSections) {
-                ScenarioService.TempoData tempoData = section.prepareDataForSave();
-                allTempiData.add(tempoData);
-                logger.info("Dati preparati per salvare tempo T{}: {}", tempoData.idTempo(), tempoData);
+                Tempo tempo = section.prepareDataForSave();
+                allTempi.add(tempo);
+                logger.info("Dati preparati per salvare tempo T{}: {}", tempo.getIdTempo(), tempo);
             }
 
             // Invia tutti i dati raccolti al servizio per il salvataggio nel DB
-            boolean success = scenarioService.saveTempi(scenarioId, allTempiData);
+            boolean success = scenarioService.saveTempi(scenarioId, allTempi);
 
             if (success) {
-                if(!mode.equals("edit"))
-                    Notification.show("Tempi dello scenario salvati con successo!", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                if (!mode.equals("edit")) {
+                    Notification.show("Tempi dello scenario salvati con successo!", 3000,
+                            Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                }
                 logger.info("Tempi salvati con successo per scenario {}", scenarioId);
 
                 // Navigazione alla pagina successiva in base alla modalità e tipo scenario
@@ -587,31 +589,34 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                     switch (scenarioType) {
                         case "Advanced Scenario":
                             // Potrebbe andare a una dashboard o riepilogo scenario
-                            nextButton.getUI().ifPresent(ui -> ui.navigate("scenari/" + scenarioId)); // Es: Riepilogo scenario
+                            nextButton.getUI().ifPresent(ui -> ui.navigate("scenari/" + scenarioId));
                             break;
                         case "Patient Simulated Scenario":
                             // Va alla definizione della sceneggiatura
                             nextButton.getUI().ifPresent(ui -> ui.navigate("sceneggiatura/" + scenarioId));
                             break;
                         default:
-                            Notification.show("Tipo di scenario non riconosciuto per navigazione", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                            logger.error("Tipo di scenario '{}' non gestito per navigazione post-salvataggio tempi (ID {})", scenarioType, scenarioId);
-                            // Fallback: rimane sulla pagina o va a una dashboard generica
+                            Notification.show("Tipo di scenario non riconosciuto per navigazione", 3000,
+                                    Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                            logger.error("Tipo di scenario '{}' non gestito per navigazione post-salvataggio tempi (ID {})",
+                                    scenarioType, scenarioId);
                             break;
                     }
                 } else if ("edit".equals(mode)) {
                     // In modalità modifica, rimane sulla stessa pagina dopo il salvataggio
-                    Notification.show("Modifiche ai tempi salvate con successo!", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                    // Non c'è bisogno di navigare altrove
+                    Notification.show("Modifiche ai tempi salvate con successo!", 3000,
+                            Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 }
-
             } else {
-                Notification.show("Errore durante il salvataggio dei tempi nel database.", 5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                logger.error("Errore durante il salvataggio dei tempi (scenarioService.saveTempi ha restituito false) per scenario {}", scenarioId);
+                Notification.show("Errore durante il salvataggio dei tempi nel database.", 5000,
+                        Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                logger.error("Errore durante il salvataggio dei tempi (scenarioService.saveTempi ha restituito false) per scenario {}",
+                        scenarioId);
             }
         } catch (Exception e) {
             // Gestisce eccezioni impreviste durante la preparazione o il salvataggio
-            Notification.show("Errore imprevisto durante il salvataggio: " + e.getMessage(), 5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
+            Notification.show("Errore imprevisto durante il salvataggio: " + e.getMessage(), 5000,
+                    Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
             logger.error("Eccezione durante il salvataggio dei tempi per scenario {}", scenarioId, e);
         }
     }
@@ -1198,45 +1203,43 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         /**
          * Prepara i dati di questa sezione temporale per il salvataggio nel database.
          * Raccoglie i valori dai campi dell'interfaccia utente, recupera le unità di misura
-         * memorizzate e li assembla in un oggetto {@link ScenarioService.TempoData}.
+         * memorizzate e li assembla in un oggetto {@link Tempo}.
          *
-         * @return un oggetto {@link ScenarioService.TempoData} pronto per essere salvato.
+         * @return un oggetto {@link Tempo} pronto per essere salvato.
          */
-        public ScenarioService.TempoData prepareDataForSave() {
+        public Tempo prepareDataForSave() {
             // Recupera valori dai campi base, gestendo valori null o vuoti
             LocalTime time = timerPicker.getValue();
             String pa = paField.getValue() != null ? paField.getValue().trim() : "";
-            double fc = fcField.getValue() != null ? fcField.getValue() : 0.0;
-            double rr = rrField.getValue() != null ? rrField.getValue() : 0.0;
+            Integer fc = fcField.getValue() != null ? fcField.getValue().intValue() : null;
+            Integer rr = rrField.getValue() != null ? rrField.getValue().intValue() : null;
             double rawT = tField.getValue() != null ? tField.getValue() : 0.0;
             double t = Math.round(rawT * 10.0) / 10.0;
-            double spo2 = spo2Field.getValue() != null ? spo2Field.getValue() : 0.0;
-            double etco2 = etco2Field.getValue() != null ? etco2Field.getValue() : 0.0;
+            Integer spo2 = spo2Field.getValue() != null ? spo2Field.getValue().intValue() : null;
+            Integer etco2 = etco2Field.getValue() != null ? etco2Field.getValue().intValue() : null;
 
             String actionDescription = actionDetailsArea.getValue() != null ? actionDetailsArea.getValue().trim() : "";
-            int nextTimeIfYes = timeIfYesField.getValue() != null ? timeIfYesField.getValue() : 0; // Default a 0 se nullo
-            int nextTimeIfNo = timeIfNoField.getValue() != null ? timeIfNoField.getValue() : 0;   // Default a 0 se nullo
+            int nextTimeIfYes = timeIfYesField.getValue() != null ? timeIfYesField.getValue() : 0;
+            int nextTimeIfNo = timeIfNoField.getValue() != null ? timeIfNoField.getValue() : 0;
             String additionalDetails = additionalDetailsArea.getValue() != null ? additionalDetailsArea.getValue().trim() : "";
-            int timerSeconds = (time != null) ? time.toSecondOfDay() : 0; // Timer in secondi, 0 se non impostato
+            long timerSeconds = (time != null) ? time.toSecondOfDay() : 0L;
 
-            // Raccoglie i parametri aggiuntivi (predefiniti e custom)
-            Map<String, ScenarioService.ParameterValueUnit> additionalParamsMap = new HashMap<>();
+            // Raccoglie i parametri aggiuntivi come List<ParametroAggiuntivo>
+            List<ParametroAggiuntivo> additionalParamsList = new ArrayList<>();
             customParameters.forEach((key, field) -> {
                 double value = field.getValue() != null ? field.getValue() : 0.0;
                 String unit;
-                String paramNameForDb; // Nome da salvare nel DB (senza prefisso CUSTOM_)
+                String paramNameForDb;
 
                 if (key.startsWith(CUSTOM_PARAMETER_KEY)) {
-                    // Parametro Custom: estrae il nome originale e recupera l'unità memorizzata
+                    // Parametro Custom
                     paramNameForDb = key.substring(CUSTOM_PARAMETER_KEY.length() + 1).replace('_', ' ');
-                    unit = customParameterUnits.getOrDefault(key, ""); // Recupera unità salvata
+                    unit = customParameterUnits.getOrDefault(key, "");
                 } else {
-                    // Parametro Predefinito: la chiave è il nome, recupera l'unità (se presente nella mappa delle unità o dalla def.)
+                    // Parametro Predefinito
                     paramNameForDb = key;
-                    // Prova a prendere l'unità dalla mappa interna (se è stato aggiunto tramite dialog)
                     unit = customParameterUnits.get(key);
                     if (unit == null) {
-                        // Se non trovato lì, estrai dalla definizione statica (fallback)
                         String fullLabel = ADDITIONAL_PARAMETERS.getOrDefault(key, "");
                         if (fullLabel.contains("(") && fullLabel.contains(")")) {
                             try {
@@ -1249,14 +1252,19 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                         }
                     }
                 }
-                // Aggiunge alla mappa usando il nome base e l'oggetto ParameterValueUnit
-                additionalParamsMap.put(paramNameForDb, new ScenarioService.ParameterValueUnit(value, unit != null ? unit : ""));
+
+                additionalParamsList.add(new ParametroAggiuntivo(
+                        paramNameForDb,
+                        value,
+                        unit != null ? unit : ""
+                ));
             });
 
-            // Crea e restituisce l'oggetto TempoData con tutti i dati raccolti
-            return new ScenarioService.TempoData(
-                    timeNumber,
-                    pa,
+            // Crea e restituisce l'oggetto Tempo con tutti i dati raccolti
+            Tempo tempo = new Tempo(
+                    timeNumber,          // idTempo
+                    0,                   // advancedScenario (verrà impostato dal servizio)
+                    pa.isEmpty() ? null : pa,
                     fc,
                     rr,
                     t,
@@ -1265,17 +1273,19 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                     actionDescription,
                     nextTimeIfYes,
                     nextTimeIfNo,
-                    additionalDetails,
-                    timerSeconds,
-                    additionalParamsMap // Mappa contenente valore E unità
+                    additionalDetails.isEmpty() ? null : additionalDetails,
+                    timerSeconds
             );
+
+            tempo.setParametriAggiuntivi(additionalParamsList);
+            return tempo;
         }
 
 
-        // Metodi SETTER specifici per T0 (impostano valore e rendono read-only)
-
         /**
-         * Imposta il valore PA per T0 e rende il campo non modificabile.
+         * Crea un campo di testo per la Pressione Arteriosa (PA).
+         *
+         * @param value il valore iniziale da impostare (può essere null).
          */
         public void setPaValue(String value) {
             paField.setValue(value != null ? value : "");
@@ -1285,6 +1295,8 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
 
         /**
          * Imposta il valore FC per T0 e rende il campo non modificabile.
+         *
+         * @param value il valore da impostare (può essere null).
          */
         public void setFcValue(Integer value) { // Usa Integer per gestire null
             fcField.setValue(Optional.ofNullable(value).map(Double::valueOf).orElse(null));
@@ -1294,6 +1306,8 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
 
         /**
          * Imposta il valore RR per T0 e rende il campo non modificabile.
+         *
+         * @param value il valore da impostare (può essere null).
          */
         public void setRrValue(Integer value) {
             rrField.setValue(Optional.ofNullable(value).map(Double::valueOf).orElse(null));
@@ -1302,7 +1316,9 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         }
 
         /**
-         * Imposta il valore Temperatura per T0 e rende il campo non modificabile.
+         * Imposta il valore T per T0 e rende il campo non modificabile.
+         *
+         * @param value il valore da impostare (può essere null).
          */
         public void setTValue(Double value) {
             if (value != null) {
@@ -1317,6 +1333,8 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
 
         /**
          * Imposta il valore SpO2 per T0 e rende il campo non modificabile.
+         *
+         * @param value il valore da impostare (può essere null).
          */
         public void setSpo2Value(Integer value) {
             spo2Field.setValue(Optional.ofNullable(value).map(Double::valueOf).orElse(null));
@@ -1326,6 +1344,8 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
 
         /**
          * Imposta il valore EtCO2 per T0 e rende il campo non modificabile.
+         *
+         * @param value il valore da impostare (può essere null).
          */
         public void setEtco2Value(Integer value) {
             etco2Field.setValue(Optional.ofNullable(value).map(Double::valueOf).orElse(null));

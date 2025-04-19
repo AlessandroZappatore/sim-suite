@@ -65,7 +65,9 @@ public class Tempo {
      * Timer del tempo in millisecondi.
      */
     private long timerTempo;
-
+    /**
+     * Lista dei parametri aggiuntivi associati a questo tempo.
+     */
     private List<ParametroAggiuntivo> parametriAggiuntivi;
 
     /**
