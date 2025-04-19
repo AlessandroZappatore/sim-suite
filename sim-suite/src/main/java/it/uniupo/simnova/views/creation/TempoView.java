@@ -982,6 +982,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             timerPicker = new TimePicker("Timer associato a T" + timeNumber + " (opzionale)");
             timerPicker.setStep(Duration.ofSeconds(1)); // Precisione al secondo
             // timerPicker.setValue(LocalTime.MIDNIGHT); // Valore iniziale nullo o mezzanotte
+            timerPicker.setPlaceholder("hh:mm:ss");
             timerPicker.setWidth("200px"); // Larghezza fissa
             timerPicker.setClearButtonVisible(true);
 

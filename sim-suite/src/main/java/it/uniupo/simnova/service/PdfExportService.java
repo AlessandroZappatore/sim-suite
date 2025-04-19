@@ -525,7 +525,7 @@ public class PdfExportService {
 
             String title = String.format("Tempo %d (%.1f min)",
                     tempo.getIdTempo(),
-                    tempo.getTimerTempo() / 3600.0 // Converte i secondi in minuti
+                    tempo.getTimerTempo() / 60.0 // Converte i secondi in minuti
             );
 
             drawSubsection(title);
