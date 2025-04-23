@@ -89,9 +89,17 @@ public class HomeView extends Composite<VerticalLayout> {
         getContent().setAlignItems(FlexComponent.Alignment.CENTER);
         getContent().setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         getContent().getStyle().set("padding", "2rem");
+        getContent().getStyle().set("position", "relative"); // Necessario per posizionamento assoluto dei figli
+
+        CreditsComponent credits = new CreditsComponent();
+        credits.getStyle()
+               .set("position", "absolute")
+               .set("bottom", "1rem")
+               .set("left", "1rem")
+               .set("z-index", "10");
 
         // Aggiunta dei componenti al layout
-        getContent().add(header, title, subtitle, buttonContainer);
+        getContent().add(header, title, subtitle, buttonContainer, credits);
     }
 
     /**

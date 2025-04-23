@@ -8,6 +8,9 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -17,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Servizio per l'esportazione di scenari in formato PDF.
@@ -93,6 +97,7 @@ public class PdfExportService {
      * Font per il testo normale.
      */
     private PDFont fontRegular;
+    private PDFont fontItalic;
     /**
      * Font per il testo in grassetto di piccole dimensioni.
      */
@@ -125,7 +130,7 @@ public class PdfExportService {
             // Carica i font
             fontRegular = loadFont(document, "/fonts/LiberationSans-Regular.ttf");
             fontBold = loadFont(document, "/fonts/LiberationSans-Bold.ttf");
-
+            fontItalic = loadFont(document, "/fonts/LiberationSans-Italic.ttf");
             // Carica il logo
             logo = loadLogo(document);
 
@@ -303,8 +308,6 @@ public class PdfExportService {
         currentContentStream.setFont(fontRegular, BODY_FONT_SIZE);
         currentContentStream.beginText();
         currentContentStream.newLineAtOffset(MARGIN, currentYPosition);
-        currentContentStream.showText("ID Scenario: " + scenario.getId());
-        currentContentStream.newLineAtOffset(0, -LEADING);
         currentContentStream.showText("Paziente: " + scenario.getNomePaziente());
         currentContentStream.newLineAtOffset(0, -LEADING);
         currentContentStream.showText("Patologia: " + scenario.getPatologia());
@@ -452,7 +455,7 @@ public class PdfExportService {
             drawSubsection(examType);
             // Aggiunge il referto
             if (esame.getRefertoTestuale() != null && !esame.getRefertoTestuale().isEmpty()) {
-                drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, esame.getRefertoTestuale());
+                drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, "Referto: " + esame.getRefertoTestuale());
             }
             // Aggiunge il nome del media allegato
             if (esame.getMedia() != null && !esame.getMedia().isEmpty()) {
@@ -610,9 +613,154 @@ public class PdfExportService {
         currentYPosition -= LEADING * 1.5f;
 
         if (content != null && !content.isEmpty()) {
-            drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 10, content);
+            // Gestione speciale per contenuti che potrebbero contenere HTML
+            if (title.equals("Descrizione") || title.equals("Briefing") || title.equals("Patto d'Aula")) {
+                // Analizziamo l'HTML per mantenere grassetto e corsivo
+                renderHtmlWithFormatting(content);
+            } else {
+                drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 10, content);
+            }
             currentYPosition -= LEADING;
         }
+    }
+
+    private void renderHtmlWithFormatting(String htmlContent) throws IOException {
+        org.jsoup.nodes.Document doc = Jsoup.parse(htmlContent);
+        String plainText = doc.text();
+
+        // Estrai tutti i tag strong (grassetto) e (corsivo)
+        Elements boldElements = doc.select("strong, b");
+        Elements italicElements = doc.select("em, i");
+
+        // Crea mappe per ricordare quali porzioni di testo sono formattate
+        Map<Integer, Integer> boldRanges = new HashMap<>();
+        Map<Integer, Integer> italicRanges = new HashMap<>();
+
+        // Processa grassetto
+        for (org.jsoup.nodes.Element element : boldElements) {
+            String text = element.text();
+            int start = plainText.indexOf(text);
+            if (start >= 0) {
+                boldRanges.put(start, start + text.length());
+            }
+        }
+
+        // Processa corsivo
+        for (Element element : italicElements) {
+            String text = element.text();
+            int start = plainText.indexOf(text);
+            if (start >= 0) {
+                italicRanges.put(start, start + text.length());
+            }
+        }
+
+        // Dividi il testo in parole
+        String[] words = plainText.split(" ");
+        StringBuilder currentLine = new StringBuilder();
+        int charCount = 0;  // Tiene traccia della posizione dei caratteri
+
+        currentContentStream.beginText();
+        currentContentStream.newLineAtOffset((float) 60.0, currentYPosition);
+
+        for (String word : words) {
+            String testLine = !currentLine.isEmpty() ? currentLine + " " + word : word;
+            float width = fontRegular.getStringWidth(testLine) / 1000 * BODY_FONT_SIZE;
+
+            if (width > (PDRectangle.A4.getWidth() - 2 * MARGIN - 10)) {
+                // Disegna la linea corrente con la formattazione appropriata
+                drawFormattedLine(currentLine.toString(), charCount - currentLine.length(), boldRanges, italicRanges);
+
+                currentContentStream.endText();
+                currentYPosition -= LEADING;
+                checkForNewPage(LEADING);
+
+                currentContentStream.beginText();
+                currentContentStream.newLineAtOffset((float) 60.0, currentYPosition);
+                currentLine = new StringBuilder(word);
+                charCount += 1; // Per lo spazio
+            } else {
+                if (!currentLine.isEmpty()) {
+                    currentLine.append(" ");
+                    charCount++;
+                }
+                currentLine.append(word);
+            }
+            charCount += word.length();
+        }
+
+        // Disegna l'ultima linea
+        if (!currentLine.isEmpty()) {
+            drawFormattedLine(currentLine.toString(), charCount - currentLine.length(), boldRanges, italicRanges);
+        }
+        currentContentStream.endText();
+    }
+
+    private void drawFormattedLine(String line, int startPos, Map<Integer, Integer> boldRanges,
+                                   Map<Integer, Integer> italicRanges) throws IOException {
+        // Suddividi la linea in parti in base alla formattazione
+        StringBuilder currentPart = new StringBuilder();
+
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            int globalPos = startPos + i;
+
+            // Determina la formattazione per il carattere corrente
+            boolean isBold = isBold(globalPos, boldRanges);
+            boolean isItalic = isItalic(globalPos, italicRanges);
+
+            // Aggiungi il carattere alla parte corrente
+            currentPart.append(c);
+
+            // Se il carattere successivo ha una formattazione diversa, o siamo alla fine
+            if (i == line.length() - 1 ||
+                    isBold(globalPos + 1, boldRanges) != isBold ||
+                    isItalic(globalPos + 1, italicRanges) != isItalic) {
+
+                // Scegli il font appropriato in base alla formattazione
+                PDFont font = getPdFont(isBold, isItalic);
+
+                // Disegna questa parte del testo
+                currentContentStream.setFont(font, BODY_FONT_SIZE);
+                font.getStringWidth(currentPart.toString());
+                currentContentStream.showText(currentPart.toString());
+
+                // Prepara per la prossima parte
+                currentPart = new StringBuilder();
+            }
+        }
+    }
+
+    private PDFont getPdFont(boolean isBold, boolean isItalic) {
+        PDFont font = fontRegular;
+        if (isBold && isItalic) {
+            // Se hai un font per grassetto+corsivo, usalo qui
+            font = fontBold; // Usa grassetto come fallback
+        } else if (isBold) {
+            font = fontBold;
+        } else if (isItalic) {
+            font = fontItalic;
+            // Se hai un font per corsivo, usalo qui
+            // Per ora useremo il regular come fallback
+        }
+        return font;
+    }
+
+    private boolean isBold(int position, Map<Integer, Integer> boldRanges) {
+        for (Map.Entry<Integer, Integer> range : boldRanges.entrySet()) {
+            if (position >= range.getKey() && position < range.getValue()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isItalic(int position, Map<Integer, Integer> italicRanges) {
+        for (Map.Entry<Integer, Integer> range : italicRanges.entrySet()) {
+            if (position >= range.getKey() && position < range.getValue()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

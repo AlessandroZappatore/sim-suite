@@ -13,14 +13,15 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
-import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+import it.uniupo.simnova.views.home.CreditsComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vaadin.tinymce.TinyMce;
 
 import java.util.Optional;
 
@@ -53,7 +54,7 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
     /**
      * Area di testo per l'inserimento della descrizione dello scenario.
      */
-    private final TextArea descriptionArea;
+    private final TinyMce descriptionEditor;
 
     /**
      * Costruttore che inizializza l'interfaccia utente.
@@ -82,6 +83,23 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
         customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
         customHeader.add(backButton, header);
 
+        VerticalLayout headerSection = new VerticalLayout();
+        headerSection.setPadding(false);
+        headerSection.setSpacing(false);
+        headerSection.setWidthFull();
+
+        com.vaadin.flow.component.html.H2 title = new com.vaadin.flow.component.html.H2("Descrizione Scenario");
+        title.addClassName(LumoUtility.Margin.Bottom.NONE);
+        title.getStyle().set("text-align", "center");
+        title.setWidthFull();
+
+        Paragraph subtitle = new Paragraph("Inserisci una descrizione dettagliata dello scenario di simulazione. Questa descrizione fornirà il contesto generale e le informazioni di background ai partecipanti.");
+        subtitle.addClassName(LumoUtility.Margin.Top.XSMALL);
+        subtitle.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
+        subtitle.getStyle().set("color", "var(--lumo-secondary-text-color)");
+
+        headerSection.add(title, subtitle);
+
         // 2. CONTENUTO PRINCIPALE con area di testo
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.setWidth("100%");
@@ -93,14 +111,15 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
                 .set("margin", "0 auto")
                 .set("flex-grow", "1");
 
-        descriptionArea = new TextArea("DESCRIZIONE SCENARIO");
-        descriptionArea.setPlaceholder("Inserisci una descrizione dettagliata dello scenario...");
-        descriptionArea.setWidthFull();
-        descriptionArea.setMinHeight("300px");
-        descriptionArea.getStyle().set("max-width", "100%");
-        descriptionArea.addClassName(LumoUtility.Margin.Top.LARGE);
+        descriptionEditor = new TinyMce();
+        descriptionEditor.setWidthFull();
+        descriptionEditor.setHeight("400px");
+        descriptionEditor.configure("plugins: 'link lists', " +
+                "toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link', " +
+                "menubar: true, " +
+                "statusbar: true");
 
-        contentLayout.add(descriptionArea);
+        contentLayout.add(headerSection, descriptionEditor);
 
         // 3. FOOTER con pulsanti e crediti
         HorizontalLayout footerLayout = new HorizontalLayout();
@@ -113,12 +132,11 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
         nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         nextButton.setWidth("150px");
 
-        Paragraph credits = new Paragraph("Sviluppato e creato da Alessandro Zappatore");
-        credits.addClassName(LumoUtility.TextColor.SECONDARY);
-        credits.addClassName(LumoUtility.FontSize.XSMALL);
-        credits.getStyle().set("margin", "0");
+        CreditsComponent creditsLayout = new CreditsComponent();
 
-        footerLayout.add(credits, nextButton);
+        // Aggiunta dei crediti e del bottone al layout del footer
+        footerLayout.add(creditsLayout, nextButton);
+
 
         // Aggiunta componenti al layout principale
         mainLayout.add(customHeader, contentLayout, footerLayout);
@@ -161,7 +179,7 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
     private void loadExistingDescription() {
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
         if (scenario != null && scenario.getDescrizione() != null && !scenario.getDescrizione().isEmpty()) {
-            descriptionArea.setValue(scenario.getDescrizione());
+            descriptionEditor.setValue(scenario.getDescrizione());
         }
     }
 
@@ -179,7 +197,7 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
             try {
                 // Salva la descrizione, anche se vuota
                 boolean success = scenarioService.updateScenarioDescription(
-                        scenarioId, descriptionArea.getValue()
+                        scenarioId, descriptionEditor.getValue()
                 );
 
                 ui.accessSynchronously(() -> {

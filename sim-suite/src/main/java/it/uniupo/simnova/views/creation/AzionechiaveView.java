@@ -19,6 +19,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+import it.uniupo.simnova.views.home.CreditsComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,7 +96,7 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
                 .set("flex-grow", "1");
 
         // Area di testo per le azioni chiave
-        azioniChiaveArea = new TextArea("AZIONI CHIAVE");
+        azioniChiaveArea = new TextArea("AZIONI CHIAVE E STRUMENTI VALUTATIVI");
         azioniChiaveArea.setPlaceholder("Inserisci le azioni da valutare durante il debriefing...");
         azioniChiaveArea.setWidthFull();
         azioniChiaveArea.setMinHeight("300px");
@@ -121,10 +122,7 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
         nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         nextButton.setWidth("150px");
 
-        Paragraph credits = new Paragraph("Sviluppato e creato da Alessandro Zappatore");
-        credits.addClassName(LumoUtility.TextColor.SECONDARY);
-        credits.addClassName(LumoUtility.FontSize.XSMALL);
-        credits.getStyle().set("margin", "0");
+        CreditsComponent credits = new CreditsComponent();
 
         footerLayout.add(credits, nextButton);
 

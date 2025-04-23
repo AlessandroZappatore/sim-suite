@@ -1,9 +1,6 @@
 package it.uniupo.simnova.views.creation;
 
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Composite;
-import com.vaadin.flow.component.DetachEvent;
-import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -23,6 +20,7 @@ import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.*;
 import it.uniupo.simnova.service.ScenarioService;
+import it.uniupo.simnova.views.home.CreditsComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -308,14 +306,14 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         contentLayout.add(title, subtitle, accordion);
 
         // 3. FOOTER
-        HorizontalLayout footerLayout = new HorizontalLayout(
-                new Paragraph("Sviluppato e creato da Alessandro Zappatore")
-        );
+        HorizontalLayout footerLayout = new HorizontalLayout();
         footerLayout.addClassName(LumoUtility.TextColor.SECONDARY);
         footerLayout.setWidthFull();
         footerLayout.setPadding(true);
         footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        CreditsComponent credit = new CreditsComponent();
 
+        footerLayout.add(credit);
         // Assemblaggio finale
         mainLayout.add(
                 customHeader,
@@ -799,12 +797,18 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         H4 itemTitle = new H4(title);
         itemTitle.addClassName(LumoUtility.Margin.Bottom.XSMALL);
 
-        Paragraph itemContent = new Paragraph(content);
-        itemContent.getStyle()
-                .set("white-space", "pre-line")
-                .set("margin-top", "0");
+        // Usando Html invece di Paragraph per contenuto creato con TinyMCE
+        if (title.equals("Descrizione") || title.equals("Briefing") || title.equals("Patto Aula")) {
+            Html htmlContent = new Html("<div>" + content + "</div>");
+            layout.add(itemTitle, htmlContent);
+        } else {
+            Paragraph itemContent = new Paragraph(content);
+            itemContent.getStyle()
+                    .set("white-space", "pre-line")
+                    .set("margin-top", "0");
+            layout.add(itemTitle, itemContent);
+        }
 
-        layout.add(itemTitle, itemContent);
         return layout;
     }
 

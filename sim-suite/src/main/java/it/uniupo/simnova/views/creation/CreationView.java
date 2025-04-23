@@ -14,6 +14,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.views.home.AppHeader;
+import it.uniupo.simnova.views.home.CreditsComponent;
 
 /**
  * Vista principale per la creazione di nuovi scenari di simulazione.
@@ -124,6 +125,7 @@ public class CreationView extends Composite<VerticalLayout> {
         layout.setSizeFull();
         layout.setAlignItems(FlexComponent.Alignment.CENTER);
         layout.getStyle().set("min-height", "100vh");
+        layout.getStyle().set("position", "relative"); // Necessario per posizionamento assoluto dei figli
 
         // Aggiunta componenti al layout
         layout.add(header, backButton, pageTitle, contentContainer);
@@ -134,19 +136,30 @@ public class CreationView extends Composite<VerticalLayout> {
 
         // Media queries per la visualizzazione responsive
         layout.getElement().executeJs("""
-                    const style = document.createElement('style');
-                    style.textContent = `
-                        @media (max-width: 600px) {
-                            .short-desc { display: block !important; }
-                            .long-desc { display: none !important; }
-                        }
-                        @media (min-width: 601px) {
-                            .short-desc { display: none !important; }
-                            .long-desc { display: block !important; }
-                        }
-                    `;
-                    document.head.appendChild(style);
-                """);
+            const style = document.createElement('style');
+            style.textContent = `
+                @media (max-width: 600px) {
+                    .short-desc { display: block !important; }
+                    .long-desc { display: none !important; }
+                }
+                @media (min-width: 601px) {
+                    .short-desc { display: none !important; }
+                    .long-desc { display: block !important; }
+                }
+            `;
+            document.head.appendChild(style);
+        """);
+
+        // Configurazione dei crediti
+        CreditsComponent credits = new CreditsComponent();
+        credits.getStyle()
+               .set("position", "absolute")
+               .set("bottom", "1rem")
+               .set("left", "1rem")
+               .set("z-index", "10");
+
+        // Aggiunta dei crediti
+        layout.add(credits);
     }
 
     /**

@@ -19,6 +19,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+import it.uniupo.simnova.views.home.CreditsComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,7 +98,7 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
                 .set("flex-grow", "1");
 
         // Area di testo per liquidi e presidi
-        liquidiArea = new TextArea("LIQUIDI E PRESIDI IN T0");
+        liquidiArea = new TextArea("LIQUIDI E DOSI FARMACI IN T0");
         liquidiArea.setPlaceholder("Indica quantità di liquidi e presidi presenti all'inizio della simulazione...");
         liquidiArea.setWidthFull();
         liquidiArea.setMinHeight("300px");
@@ -123,10 +124,7 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
         nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         nextButton.setWidth("min(100%, 150px)");
 
-        Paragraph credits = new Paragraph("Sviluppato e creato da Alessandro Zappatore");
-        credits.addClassName(LumoUtility.TextColor.SECONDARY);
-        credits.addClassName(LumoUtility.FontSize.XSMALL);
-        credits.getStyle().set("margin", "0");
+        CreditsComponent credits = new CreditsComponent();
 
         footerLayout.add(credits, nextButton);
 

@@ -19,6 +19,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+import it.uniupo.simnova.views.home.CreditsComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,10 +124,7 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
         nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         nextButton.setWidth("150px"); // Larghezza fissa per uniformità
 
-        Paragraph credits = new Paragraph("Sviluppato e creato da Alessandro Zappatore");
-        credits.addClassName(LumoUtility.TextColor.SECONDARY);
-        credits.addClassName(LumoUtility.FontSize.XSMALL);
-        credits.getStyle().set("margin", "0");
+        CreditsComponent credits = new CreditsComponent();
 
         footerLayout.add(credits, nextButton);
 

@@ -2,11 +2,13 @@ package it.uniupo.simnova.views.creation;
 
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
@@ -28,6 +30,7 @@ import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
 import it.uniupo.simnova.service.*;
+import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayInputStream;
@@ -464,22 +467,44 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                 .setAutoWidth(true)
                 .setComparator(Scenario::getTitolo);
 
-        // Colonna Descrizione (con testo troncato)
-        scenariosGrid.addColumn(new ComponentRenderer<>(scenario -> {
+        // Colonna Descrizione (con testo HTML interpretato)
+                scenariosGrid.addColumn(new ComponentRenderer<>(scenario -> {
                     String descrizione = scenario.getDescrizione();
                     if (descrizione == null) {
                         descrizione = "";
                     }
+
+                    // Crea un container per il contenuto HTML
+                    Div container = new Div();
+                    container.setWidthFull();
+                    container.getStyle()
+                             .set("max-width", "200px")  // Limita la larghezza
+                             .set("overflow", "hidden")
+                             .set("text-overflow", "ellipsis")
+                             .set("white-space", "nowrap");
+
+                    if (descrizione.isEmpty()) {
+                        return container; // Container vuoto
+                    }
+
+                    // Versione corta per la visualizzazione in griglia
+                    String shortDesc;
                     if (descrizione.length() > MAX_DESCRIPTION_LENGTH) {
-                        descrizione = descrizione.substring(0, MAX_DESCRIPTION_LENGTH) + "...";
+                        // Estrai solo il testo senza tag per la versione troncata
+                        String plainText = Jsoup.parse(descrizione).text();
+                        shortDesc = plainText.substring(0, Math.min(plainText.length(), MAX_DESCRIPTION_LENGTH)) + "...";
+                        container.setText(shortDesc);
+                    } else {
+                        // Se è breve, mostra l'HTML interpretato
+                        container.add(new Html("<div>" + descrizione + "</div>"));
                     }
-                    Span descSpan = new Span(descrizione);
-                    if(!descrizione.isEmpty()) {
-                        descSpan.getElement().setAttribute("title", scenario.getDescrizione());
-                    }
-                    return descSpan;
+
+                    // Imposta il testo completo come tooltip
+                    container.getElement().setAttribute("title", Jsoup.parse(descrizione).text());
+
+                    return container;
                 })).setHeader("Descrizione")
-                .setAutoWidth(true);
+                  .setAutoWidth(true);
 
         // Colonna Azioni
         scenariosGrid.addComponentColumn(scenario -> {

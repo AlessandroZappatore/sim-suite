@@ -30,6 +30,7 @@ import it.uniupo.simnova.api.model.EsameReferto;
 import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+import it.uniupo.simnova.views.home.CreditsComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -145,10 +146,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         nextButton.setWidth("150px");
 
-        Paragraph credits = new Paragraph("Sviluppato e creato da Alessandro Zappatore");
-        credits.addClassName(LumoUtility.TextColor.SECONDARY);
-        credits.addClassName(LumoUtility.FontSize.XSMALL);
-        credits.getStyle().set("margin", "0");
+        CreditsComponent credits = new CreditsComponent();
 
         footerLayout.add(credits, nextButton);
 

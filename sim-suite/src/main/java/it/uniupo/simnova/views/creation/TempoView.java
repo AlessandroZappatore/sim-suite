@@ -29,6 +29,7 @@ import it.uniupo.simnova.api.model.PazienteT0;
 import it.uniupo.simnova.api.model.Tempo;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+import it.uniupo.simnova.views.home.CreditsComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -254,9 +255,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         nextButton.addClickListener(e -> saveAllTimeSections());
 
         // Testo crediti
-        Paragraph credits = new Paragraph("Sviluppato e creato da Alessandro Zappatore");
-        credits.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
-        credits.getStyle().set("margin", "0");
+        CreditsComponent credits = new CreditsComponent();
 
         footerLayout.add(credits, nextButton);
 
@@ -876,11 +875,6 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         }
     }
 
-
-    // =====================================================================================
-    // CLASSE INTERNA TimeSection
-    // =====================================================================================
-
     /**
      * Classe interna che rappresenta una sezione temporale nell'interfaccia utente (T0, T1, T2, ecc.).
      * Contiene i campi per i parametri vitali base, i parametri aggiuntivi, le azioni
@@ -1352,6 +1346,5 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             etco2Field.setReadOnly(true);
             etco2Field.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
-    } // --- Fine classe interna TimeSection ---
-
-} // --- Fine classe TempoView ---
+    }
+}

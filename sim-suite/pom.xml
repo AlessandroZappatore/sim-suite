@@ -114,7 +114,20 @@
             <artifactId>pdfbox</artifactId>
             <version>3.0.4</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.parttio</groupId>
+            <artifactId>tinymce-for-flow</artifactId>
+            <version>4.2.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.19.1</version>
+        </dependency>
     </dependencies>
+
 
 
     <build>
