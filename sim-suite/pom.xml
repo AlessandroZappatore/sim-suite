@@ -126,7 +126,15 @@
             <artifactId>jsoup</artifactId>
             <version>1.19.1</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.vaadin.olli</groupId>
+            <artifactId>file-download-wrapper</artifactId>
+            <version>7.1.0</version>
+        </dependency>
+
     </dependencies>
+
 
 
 

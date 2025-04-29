@@ -160,8 +160,8 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
             try {
                 // Implementazione di timeout con CompletableFuture
                 CompletableFuture<Scenario> future = CompletableFuture.supplyAsync(
-                    () -> scenarioService.getScenarioById(scenarioId),
-                    executorService
+                        () -> scenarioService.getScenarioById(scenarioId),
+                        executorService
                 );
 
                 Scenario loadedScenario;
@@ -180,7 +180,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                     try {
                         if (loadedScenario == null) {
                             Notification.show("Scenario non trovato", 3000, Position.MIDDLE)
-                                .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
                             ui.navigate("scenari");
                             return;
                         }
@@ -197,8 +197,8 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                     ui.access(() -> {
                         loadingCompleted.set(true);
                         Notification.show("Errore nel caricamento: " + e.getMessage(),
-                            3000, Position.MIDDLE)
-                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                                        3000, Position.MIDDLE)
+                                .addThemeVariants(NotificationVariant.LUMO_ERROR);
                         progressBar.setVisible(false);
                         ui.navigate("scenari");
                     });
@@ -215,8 +215,8 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                     ui.access(() -> {
                         logger.error("Forzato timeout per caricamento bloccato, scenario {}", scenarioId);
                         Notification.show("Caricamento bloccato, riprova più tardi",
-                            3000, Position.MIDDLE)
-                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                                        3000, Position.MIDDLE)
+                                .addThemeVariants(NotificationVariant.LUMO_ERROR);
                         progressBar.setVisible(false);
                         ui.navigate("scenari");
                     });
@@ -510,71 +510,88 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
     }
 
     /**
-     * Crea un'anteprima per i file multimediali.
-     *
-     * @param fileName nome del file
-     * @return il componente di anteprima
-     */
-    private Component createMediaPreview(String fileName) {
-        String fileExtension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+         * Crea un'anteprima per i file multimediali.
+         *
+         * @param fileName nome del file
+         * @return il componente di anteprima
+         */
+        private Component createMediaPreview(String fileName) {
+            String fileExtension;
+            // Assicurati che ci sia un punto prima di cercare l'estensione
+            int lastDotIndex = fileName.lastIndexOf(".");
+            if (lastDotIndex != -1 && lastDotIndex < fileName.length() - 1) {
+                fileExtension = fileName.substring(lastDotIndex + 1).toLowerCase();
+            } else {
+                // Gestisce il caso in cui non c'è estensione o il punto è l'ultimo carattere
+                logger.warn("Impossibile determinare l'estensione del file per l'anteprima: {}", fileName);
+                return new Div(new Text("Tipo file non riconosciuto: " + fileName));
+            }
 
-        Div previewContainer = new Div();
-        previewContainer.addClassName("media-preview");
+            logger.debug("Creazione anteprima media per file: {}, estensione: {}", fileName, fileExtension);
 
-        // Usa il percorso corretto per accedere ai file
-        String mediaPath = "/media/" + fileName; // Percorso relativo alla root delle risorse
+            Div previewContainer = new Div();
+            previewContainer.addClassName("media-preview");
 
-        switch (fileExtension) {
-            case "jpg":
-            case "jpeg":
-            case "png":
-            case "gif":
-                Image image = new Image(mediaPath, "Anteprima immagine");
-                image.setMaxWidth("100%");
-                image.setHeight("auto");
-                image.getStyle().set("max-height", "300px");
-                previewContainer.add(image);
-                break;
+            // Percorso relativo alla radice del contesto web, come configurato in application.properties
+            String mediaPath = "/" + fileName;
+            logger.debug("Percorso media per anteprima: {}", mediaPath);
 
-            case "pdf":
-                // Per PDF, mostriamo un'anteprima con un iframe
-                IFrame pdfPreview = new IFrame();
-                pdfPreview.setSrc(mediaPath);
-                pdfPreview.setWidth("100%");
-                pdfPreview.setHeight("500px");
-                pdfPreview.getStyle().set("border", "none");
-                previewContainer.add(pdfPreview);
-                break;
+            Component mediaComponent;
+            switch (fileExtension) {
+                case "jpg", "jpeg", "png", "gif", "webp":
+                    Image image = new Image(mediaPath, fileName);
+                    image.setMaxWidth("100%");
+                    image.setHeight("auto");
+                    image.getStyle().set("max-height", "300px");
+                    mediaComponent = image;
+                    break;
 
-            case "mp4":
-                // Video con controlli e autoplay disabilitato per l'anteprima
-                NativeVideo video = new NativeVideo();
-                video.setSrc(mediaPath);
-                video.setControls(true);
-                video.setWidth("100%");
-                video.getStyle().set("max-height", "300px");
-                previewContainer.add(video);
-                break;
+                case "pdf":
+                    IFrame pdfPreview = new IFrame();
+                    pdfPreview.setSrc(mediaPath);
+                    pdfPreview.setWidth("100%");
+                    pdfPreview.setHeight("500px"); // Altezza maggiore per PDF
+                    pdfPreview.getStyle().set("border", "1px solid lightgray"); // Bordo per visibilità
+                    mediaComponent = pdfPreview;
+                    break;
 
-            case "mp3":
-                // Audio con controlli
-                NativeAudio audio = new NativeAudio();
-                audio.setSrc(mediaPath);
-                audio.setControls(true);
-                audio.setWidth("100%");
-                previewContainer.add(audio);
-                break;
+                case "mp4":
+                    NativeVideo video = new NativeVideo();
+                    video.setSrc(mediaPath);
+                    video.setControls(true);
+                    video.setWidth("100%");
+                    video.getStyle().set("max-height", "300px");
+                    mediaComponent = video;
+                    break;
+
+                case "mp3":
+                    NativeAudio audio = new NativeAudio();
+                    audio.setSrc(mediaPath);
+                    audio.setControls(true);
+                    audio.setWidth("100%");
+                    mediaComponent = audio;
+                    break;
+
+                default:
+                    logger.warn("Formato file non supportato per l'anteprima: {}", fileName);
+                    mediaComponent = new Div(new Text("Anteprima non disponibile per: " + fileName));
+                    break; // Aggiunto break mancante
+            }
+
+            previewContainer.add(mediaComponent);
+
+            // Pulsante per aprire il file a schermo intero (o in nuova scheda)
+            Button fullscreenButton = new Button("Apri media", new Icon(VaadinIcon.EXTERNAL_LINK));
+            fullscreenButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+            fullscreenButton.getStyle().set("margin-left", "1em");
+            fullscreenButton.addClickListener(e -> openFullMedia(fileName)); // Usa il metodo esistente
+
+            // Aggiungi il pulsante accanto o sotto il media a seconda del tipo?
+            // Per semplicità, lo aggiungiamo sempre dopo.
+            previewContainer.add(fullscreenButton);
+
+            return previewContainer;
         }
-
-        // Pulsante per aprire il file a schermo intero
-        Button fullscreenButton = new Button("Apri a schermo intero",
-                new Icon(VaadinIcon.EXPAND_SQUARE));
-        fullscreenButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        fullscreenButton.addClickListener(e -> openFullMedia(fileName));
-
-        previewContainer.add(fullscreenButton);
-        return previewContainer;
-    }
 
     /**
      * Apre il file multimediale completo in una nuova scheda.
@@ -582,7 +599,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * @param fileName nome del file
      */
     private void openFullMedia(String fileName) {
-        // Implementa l'apertura del file completo
+        logger.debug("Opening full media for file: {}", fileName);
         UI.getCurrent().getPage().open("media/" + fileName, "_blank");
     }
 

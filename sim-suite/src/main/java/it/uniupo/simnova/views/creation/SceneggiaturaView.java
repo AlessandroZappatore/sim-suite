@@ -13,7 +13,6 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
-import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.PatientSimulatedScenario;
@@ -22,6 +21,7 @@ import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vaadin.tinymce.TinyMce;
 
 import java.util.Optional;
 
@@ -51,7 +51,7 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
     /**
      * Area di testo per l'inserimento della sceneggiatura.
      */
-    private final TextArea sceneggiaturaArea;
+    private final TinyMce sceneggiaturaEditor;
     /**
      * Logger per la registrazione delle operazioni.
      */
@@ -86,6 +86,25 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
         customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
         customHeader.add(backButton, header);
 
+        // Crea la sezione dell'intestazione
+        VerticalLayout headerSection = new VerticalLayout();
+        headerSection.setPadding(false);
+        headerSection.setSpacing(false);
+        headerSection.setWidthFull();
+
+        com.vaadin.flow.component.html.H2 title = new com.vaadin.flow.component.html.H2("Sceneggiatura");
+        title.addClassName(LumoUtility.Margin.Bottom.NONE);
+        title.getStyle().set("text-align", "center");
+        title.setWidthFull();
+
+        Paragraph subtitle = new Paragraph("Definisci la sceneggiatura dettagliata dello scenario, includendo tutte le azioni, i dialoghi e gli eventi chiave che si svolgeranno durante la simulazione. Questa sezione serve come guida per i facilitatori e supporta la coerenza dell'esperienza formativa.");
+        subtitle.addClassName(LumoUtility.Margin.Top.XSMALL);
+        subtitle.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
+        subtitle.getStyle().set("color", "var(--lumo-secondary-text-color)");
+
+        headerSection.add(title, subtitle);
+
+
         // 2. CONTENUTO PRINCIPALE con area di testo per la sceneggiatura
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.setWidth("100%");
@@ -97,21 +116,16 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
                 .set("margin", "0 auto") // Centratura orizzontale
                 .set("flex-grow", "1"); // Occupa tutto lo spazio verticale disponibile
 
-        // Configurazione dell'area di testo per la sceneggiatura
-        sceneggiaturaArea = new TextArea("SCENEGGIATURA");
-        sceneggiaturaArea.setPlaceholder("Inserisci la sceneggiatura dettagliata della simulazione...");
-        sceneggiaturaArea.setWidthFull();
-        sceneggiaturaArea.setMinHeight("400px"); // Altezza maggiore per contenere più testo
-        sceneggiaturaArea.getStyle().set("max-width", "100%");
-        sceneggiaturaArea.addClassName(LumoUtility.Margin.Top.LARGE);
+        sceneggiaturaEditor = new TinyMce();
+        sceneggiaturaEditor.setWidthFull();
+        sceneggiaturaEditor.setHeight("400px");
+        sceneggiaturaEditor.configure("plugins: 'link lists', " +
+                "toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link', " +
+                "menubar: true, " +
+                "statusbar: true");
 
-        // Istruzioni per l'utente
-        Paragraph instructions = new Paragraph("Descrivi le azioni, i dialoghi e gli eventi chiave della simulazione");
-        instructions.addClassName(LumoUtility.TextColor.SECONDARY);
-        instructions.addClassName(LumoUtility.FontSize.SMALL);
-        instructions.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
 
-        contentLayout.add(instructions, sceneggiaturaArea);
+        contentLayout.add(headerSection, sceneggiaturaEditor);
 
         // 3. FOOTER con pulsante avanti e crediti
         HorizontalLayout footerLayout = new HorizontalLayout();
@@ -141,7 +155,7 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
 
         nextButton.addClickListener(e -> {
             // Validazione dell'input
-            if (sceneggiaturaArea.getValue().trim().isEmpty()) {
+            if (sceneggiaturaEditor.getValue().trim().isEmpty()) {
                 Notification.show("Inserisci la sceneggiatura per lo scenario", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
                 return;
             }
@@ -189,7 +203,7 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
     private void loadExistingSceneggiatura() {
         PatientSimulatedScenario scenario = scenarioService.getPatientSimulatedScenarioById(scenarioId);
         if (scenario != null && scenario.getSceneggiatura() != null && !scenario.getSceneggiatura().isEmpty()) {
-            sceneggiaturaArea.setValue(scenario.getSceneggiatura());
+            sceneggiaturaEditor.setValue(scenario.getSceneggiatura());
         }
     }
 
@@ -208,7 +222,7 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
             try {
                 // Salvataggio della sceneggiatura tramite il service
                 boolean success = scenarioService.updateScenarioSceneggiatura(
-                        scenarioId, sceneggiaturaArea.getValue()
+                        scenarioId, sceneggiaturaEditor.getValue()
                 );
 
                 ui.accessSynchronously(() -> {

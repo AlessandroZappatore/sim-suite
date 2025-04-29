@@ -1,169 +1,164 @@
 package it.uniupo.simnova.service;
 
+import jakarta.annotation.PostConstruct; // Import corretto per @PostConstruct
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
 
 import java.io.*;
 import java.nio.file.*;
 import java.util.List;
 
-/**
- * Servizio per la gestione dello storage dei file.
- * <p>
- * Questo servizio consente di memorizzare, eliminare e recuperare file
- *
- * @author Alesasndro Zappatore
- * @version 1.0
- */
 @Service
 public class FileStorageService {
-    /**
-     * Logger per la registrazione delle operazioni del servizio.
-     */
     private static final Logger logger = LoggerFactory.getLogger(FileStorageService.class);
-    /**
-     * Directory di root per lo storage dei file.
-     */
+
     private final Path rootLocation;
 
     /**
-     * Costruttore che inizializza la directory di root per lo storage dei file.
+     * Costruttore che inizializza il servizio con il percorso della directory
+     * specificato in application.properties.
+     *
+     * @param mediaDir Il percorso della directory di archiviazione, iniettato da Spring.
      */
-    public FileStorageService() {
-        try {
-            // Ottiene la directory di root per lo storage dei file
-            File resourcesDir = ResourceUtils.getFile("classpath:META-INF/resources/Media");
-            this.rootLocation = resourcesDir.toPath();
+    public FileStorageService(@Value("${storage.media-dir}") String mediaDir) {
+        // Risolve il percorso assoluto e normalizza per sicurezza
+        this.rootLocation = Paths.get(mediaDir).toAbsolutePath().normalize();
+        logger.info("Percorso di archiviazione configurato: {}", this.rootLocation);
+    }
 
-            // Crea la directory se non esiste (solo in sviluppo)
-            if (!resourcesDir.exists()) {
-                Files.createDirectories(rootLocation);
-                logger.info("Directory di storage creata: {}", rootLocation);
-            }
+    /**
+     * Metodo eseguito dopo l'inizializzazione del bean per creare la directory
+     * di archiviazione se non esiste.
+     */
+    @PostConstruct
+    public void init() {
+        try {
+            Files.createDirectories(rootLocation);
+            logger.info("Directory di archiviazione creata (o già esistente): {}", rootLocation);
         } catch (IOException e) {
-            logger.error("Impossibile inizializzare lo storage", e);
-            throw new RuntimeException("Could not initialize storage", e);
+            logger.error("Impossibile creare la directory di archiviazione {}", rootLocation, e);
+            throw new RuntimeException("Could not initialize storage location", e);
         }
     }
 
     /**
-     * Memorizza un file nella directory di root.
+     * Salva un file nella directory di archiviazione.
+     * Il nome del file viene sanitizzato e viene aggiunto l'ID dello scenario.
      *
-     * @param file       il file da memorizzare
-     * @param filename   il nome del file
-     * @param idScenario l'id dello scenario
-     * @return il nome del file memorizzato
+     * @param file       InputStream del file da salvare.
+     * @param filename   Nome originale del file.
+     * @param idScenario ID dello scenario associato al file.
+     * @return Il nome del file sanitizzato e salvato, o null in caso di input non valido.
+     * @throws RuntimeException Se si verifica un errore durante il salvataggio.
      */
     public String storeFile(InputStream file, String filename, Integer idScenario) {
         try {
-            if (file == null || filename == null || filename.isEmpty() || idScenario == null) {
-                logger.warn("File, nome file o idScenario non valido");
-                return null;
+            if (file == null || filename == null || filename.isBlank() || idScenario == null) {
+                logger.warn("Input non valido per storeFile: file, nome file o idScenario mancanti.");
+                return null; // Ritorna null per input non validi
             }
-
-            // Ottiene il nome del file con l'idScenario
             String sanitizedFilename = getSanitizedFilename(filename, idScenario);
-            Path destinationFile = this.rootLocation.resolve(sanitizedFilename)
-                    .normalize().toAbsolutePath();
+            // Risolve il percorso completo del file di destinazione
+            Path destinationFile = this.rootLocation.resolve(sanitizedFilename).normalize();
 
-            // Verifica che il percorso sia valido
-            if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {
-                logger.error("Tentativo di memorizzare il file fuori dalla directory corrente");
+            // Controllo di sicurezza: verifica che il file sia salvato DENTRO la rootLocation
+            if (!destinationFile.getParent().equals(this.rootLocation)) {
+                logger.error("Tentativo di memorizzare il file fuori dalla directory consentita: {}", destinationFile);
                 throw new RuntimeException("Cannot store file outside current directory");
             }
-            // Memorizza il file
+
+            // Copia il file, sostituendo quello esistente se presente
             Files.copy(file, destinationFile, StandardCopyOption.REPLACE_EXISTING);
             logger.info("File memorizzato con successo: {}", sanitizedFilename);
-            return sanitizedFilename;
+            return sanitizedFilename; // Ritorna il nome del file come salvato
         } catch (IOException e) {
-            logger.error("Errore durante la memorizzazione del file {}", filename, e);
+            logger.error("Errore durante la memorizzazione del file {} (sanitized: {})", filename, getSanitizedFilename(filename, idScenario), e);
+            // Rilancia come RuntimeException per segnalare l'errore al chiamante
             throw new RuntimeException("Failed to store file " + filename, e);
         }
     }
 
     /**
-     * Restituisce il nome del file con l'idScenario incluso.
+     * Genera un nome file sicuro aggiungendo l'ID dello scenario e rimuovendo caratteri non validi.
      *
-     * @param filename   il nome del file originale
-     * @param idScenario l'id dello scenario
-     * @return il nome del file con l'idScenario incluso
+     * @param filename   Nome originale del file.
+     * @param idScenario ID dello scenario.
+     * @return Nome del file sanitizzato.
      */
     private static String getSanitizedFilename(String filename, Integer idScenario) {
         String extension = "";
         String baseName = filename;
         int lastDotIndex = filename.lastIndexOf('.');
-        if (lastDotIndex > 0) {
-            extension = filename.substring(lastDotIndex);
+        if (lastDotIndex >= 0) { // Usa >= 0 per gestire file che iniziano con '.'
+            extension = filename.substring(lastDotIndex); // Include il '.'
             baseName = filename.substring(0, lastDotIndex);
         }
+        // Pulisce il nome base e l'estensione separatamente se necessario
+        String sanitizedBaseName = baseName.replaceAll("[^a-zA-Z0-9_-]", "_");
+        String sanitizedExtension = extension.replaceAll("[^a-zA-Z0-9.]", ""); // Permette solo lettere, numeri e '.' nell'estensione
 
-        // Crea il nuovo nome del file con il formato nomefile_idScenario.estensione
-        String newFilename = baseName + "_" + idScenario + extension;
+        // Costruisce il nuovo nome file
+        String newFilename = sanitizedBaseName + "_" + idScenario + sanitizedExtension;
 
-        // Sanitized filename
-        return newFilename.replaceAll("[^a-zA-Z0-9.-]", "_");
+        // Ulteriore sanitizzazione generale (potrebbe essere ridondante ma sicura)
+        return newFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
     }
 
     /**
-     * Elimina un file dalla directory di root.
+     * Elimina una lista di file dalla directory di archiviazione.
      *
-     * @param filenames la lista dei nomi dei file da eliminare
+     * @param filenames Lista dei nomi dei file da eliminare.
      */
     public void deleteFiles(List<String> filenames) {
         if (filenames == null || filenames.isEmpty()) {
-            logger.warn("Lista di file da eliminare vuota o nulla");
+            logger.warn("Lista di file da eliminare vuota o nulla.");
             return;
         }
-
         for (String filename : filenames) {
-            try {
-                deleteFile(filename);
-            } catch (Exception e) {
-                logger.error("Errore durante l'eliminazione del file {}", filename, e);
-            }
+            // Chiama deleteFile per ogni file nella lista
+            deleteFile(filename);
         }
     }
 
     /**
-     * Elimina un file dalla directory di root.
+     * Elimina un singolo file dalla directory di archiviazione.
      *
-     * @param filename il nome del file da eliminare
+     * @param filename Nome del file da eliminare.
      */
     public void deleteFile(String filename) {
-        if (filename == null || filename.isEmpty()) {
-            logger.warn("Nome file non valido per l'eliminazione");
+        if (filename == null || filename.isBlank()) {
+            logger.warn("Nome file non valido per l'eliminazione.");
             return;
         }
-
         try {
-            Path filePath = this.rootLocation.resolve(filename).normalize().toAbsolutePath();
+            Path filePath = this.rootLocation.resolve(filename).normalize();
 
-            // Verifica che il file sia dentro la directory consentita
-            if (!filePath.getParent().equals(this.rootLocation.toAbsolutePath())) {
-                logger.error("Tentativo di eliminare il file fuori dalla directory corrente");
-                return;
+            // Controllo di sicurezza: verifica che il file sia DENTRO la rootLocation
+            if (!filePath.getParent().equals(this.rootLocation)) {
+                logger.error("Tentativo di eliminare il file fuori dalla directory consentita: {}", filePath);
+                return; // Non procedere se il percorso è sospetto
             }
 
-            Files.deleteIfExists(filePath);
-            logger.info("File eliminato con successo: {}", filename);
+            boolean deleted = Files.deleteIfExists(filePath);
+            if (deleted) {
+                logger.info("File eliminato con successo: {}", filename);
+            } else {
+                logger.warn("File non trovato per l'eliminazione: {}", filename);
+            }
         } catch (IOException e) {
+            // Logga l'errore ma non rilancia eccezioni per non bloccare eliminazioni multiple
             logger.error("Errore durante l'eliminazione del file {}", filename, e);
         }
     }
 
     /**
-     * Restituisce la directory dei media.
+     * Restituisce il percorso assoluto e normalizzato della directory di archiviazione.
      *
-     * @return la directory dei media
+     * @return Oggetto Path che rappresenta la directory di archiviazione.
      */
-    public Object getMediaDirectory() {
-        try {
-            return ResourceUtils.getFile("classpath:META-INF/resources/Media");
-        } catch (FileNotFoundException e) {
-            logger.error("Impossibile trovare la directory dei media", e);
-            return null;
-        }
+    public Path getMediaDirectory() {
+        return rootLocation;
     }
 }

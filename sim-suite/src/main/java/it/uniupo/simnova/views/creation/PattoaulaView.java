@@ -4,6 +4,7 @@ import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -12,7 +13,6 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
-import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
@@ -21,6 +21,7 @@ import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vaadin.tinymce.TinyMce;
 
 import java.util.Optional;
 
@@ -53,7 +54,7 @@ public class PattoaulaView extends Composite<VerticalLayout> implements HasUrlPa
     /**
      * Area di testo per il patto d'aula.
      */
-    private final TextArea pattoAulaArea;
+    private final TinyMce pattoAulaEditor;
 
     /**
      * Costruttore che inizializza l'interfaccia utente.
@@ -85,6 +86,24 @@ public class PattoaulaView extends Composite<VerticalLayout> implements HasUrlPa
         customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
         customHeader.add(backButton, header);
 
+        // Crea la sezione dell'intestazione
+        VerticalLayout headerSection = new VerticalLayout();
+        headerSection.setPadding(false);
+        headerSection.setSpacing(false);
+        headerSection.setWidthFull();
+
+        com.vaadin.flow.component.html.H2 title = new com.vaadin.flow.component.html.H2("Patto d'Aula / Familiarizzazione");
+        title.addClassName(LumoUtility.Margin.Bottom.NONE);
+        title.getStyle().set("text-align", "center");
+        title.setWidthFull();
+
+        Paragraph subtitle = new Paragraph("Inserisci il testo del patto d'aula che definisce le regole di interazione durante la simulazione e fornisce indicazioni per la familiarizzazione con l'ambiente virtuale.");
+        subtitle.addClassName(LumoUtility.Margin.Top.XSMALL);
+        subtitle.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
+        subtitle.getStyle().set("color", "var(--lumo-secondary-text-color)");
+
+        headerSection.add(title, subtitle);
+
         // 2. CONTENUTO PRINCIPALE
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.setWidth("100%");
@@ -96,15 +115,15 @@ public class PattoaulaView extends Composite<VerticalLayout> implements HasUrlPa
                 .set("margin", "0 auto")
                 .set("flex-grow", "1");
 
-        // Area di testo per il patto d'aula
-        pattoAulaArea = new TextArea("PATTO D'AULA / FAMILIARIZZAZIONE");
-        pattoAulaArea.setPlaceholder("Inserisci il testo da mostrare nella sala...");
-        pattoAulaArea.setWidthFull();
-        pattoAulaArea.setMinHeight("300px");
-        pattoAulaArea.getStyle().set("max-width", "100%");
-        pattoAulaArea.addClassName(LumoUtility.Margin.Top.LARGE);
+        pattoAulaEditor = new TinyMce();
+        pattoAulaEditor.setWidthFull();
+        pattoAulaEditor.setHeight("400px");
+        pattoAulaEditor.configure("plugins: 'link lists', " +
+                "toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link', " +
+                "menubar: true, " +
+                "statusbar: true");
 
-        contentLayout.add(pattoAulaArea);
+        contentLayout.add(headerSection, pattoAulaEditor);
 
         // 3. FOOTER con pulsanti e crediti
         HorizontalLayout footerLayout = new HorizontalLayout();
@@ -166,7 +185,7 @@ public class PattoaulaView extends Composite<VerticalLayout> implements HasUrlPa
     private void loadExistingPattoAula() {
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
         if (scenario != null && scenario.getPattoAula() != null && !scenario.getPattoAula().isEmpty()) {
-            pattoAulaArea.setValue(scenario.getPattoAula());
+            pattoAulaEditor.setValue(scenario.getPattoAula());
         }
     }
 
@@ -183,7 +202,7 @@ public class PattoaulaView extends Composite<VerticalLayout> implements HasUrlPa
 
             try {
                 boolean success = scenarioService.updateScenarioPattoAula(
-                        scenarioId, pattoAulaArea.getValue()
+                        scenarioId, pattoAulaEditor.getValue()
                 );
 
                 ui.accessSynchronously(() -> {

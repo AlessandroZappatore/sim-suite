@@ -150,16 +150,17 @@ public class CreationView extends Composite<VerticalLayout> {
             document.head.appendChild(style);
         """);
 
-        // Configurazione dei crediti
-        CreditsComponent credits = new CreditsComponent();
-        credits.getStyle()
-               .set("position", "absolute")
-               .set("bottom", "1rem")
-               .set("left", "1rem")
-               .set("z-index", "10");
+        VerticalLayout footerLayout = new VerticalLayout();
+        footerLayout.setPadding(true);
+        footerLayout.setSpacing(false);
+        footerLayout.setWidthFull();
+        footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.START);
+        footerLayout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.START);
 
-        // Aggiunta dei crediti
-        layout.add(credits);
+        CreditsComponent credits = new CreditsComponent();
+        footerLayout.add(credits);
+
+        layout.add(footerLayout);
     }
 
     /**

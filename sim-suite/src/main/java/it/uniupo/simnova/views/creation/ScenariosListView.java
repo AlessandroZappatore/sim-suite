@@ -7,7 +7,6 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
@@ -32,6 +31,7 @@ import it.uniupo.simnova.api.model.Scenario;
 import it.uniupo.simnova.service.*;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.vaadin.olli.FileDownloadWrapper;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -685,48 +685,45 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         Notification.show("Generazione del PDF...", 3000, Position.MIDDLE);
 
         try {
-            // Creazione della risorsa PDF
-            Anchor downloadLink = getAnchorPdf(scenario);
-            downloadLink.getElement().setAttribute("download", true);
-            downloadLink.getStyle().set("display", "none");
+            // Crea la risorsa PDF
+            StreamResource resource = getStreamResource(scenario);
+
+            // Crea il FileDownloadWrapper con un bottone invisibile
+            Button downloadButton = new Button();
+            downloadButton.getStyle().set("display", "none");
+            FileDownloadWrapper downloadWrapper = new FileDownloadWrapper(resource);
+            downloadWrapper.wrapComponent(downloadButton);
 
             UI ui = UI.getCurrent();
             if (ui != null && !detached.get()) {
                 ui.access(() -> {
-                    ui.add(downloadLink);
-                    downloadLink.getElement().executeJs("this.click()").then(result -> ui.access(() -> ui.remove(downloadLink)));
+                    ui.add(downloadWrapper);
+                    downloadButton.getElement().executeJs("this.click()")
+                        .then(result -> ui.access(() -> ui.remove(downloadWrapper)));
                 });
             }
         } catch (Exception e) {
             if (!detached.get()) {
-                Notification.show("Errore durante la generazione del PDF: " + e.getMessage(), 5000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                Notification.show("Errore durante la generazione del PDF: " + e.getMessage(), 5000, Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
         }
     }
 
-    /**
-     * Crea un anchor per il download del PDF dello scenario.
-     *
-     * @param scenario Scenario da esportare
-     * @return Anchor per il download del PDF
-     */
-    private Anchor getAnchorPdf(Scenario scenario) {
+    private StreamResource getStreamResource(Scenario scenario) {
         StreamResource resource = new StreamResource(
-                "scenario_" + scenario.getTitolo() + ".pdf",
-                () -> {
-                    try {
-                        byte[] pdfBytes = pdfExportService.exportScenarioToPdf(scenario.getId());
-                        return new ByteArrayInputStream(pdfBytes);
-                    } catch (IOException e) {
-                        throw new RuntimeException("Failed to generate PDF", e);
-                    }
+            "scenario_" + scenario.getTitolo() + ".pdf",
+            () -> {
+                try {
+                    byte[] pdfBytes = pdfExportService.exportScenarioToPdf(scenario.getId());
+                    return new ByteArrayInputStream(pdfBytes);
+                } catch (IOException e) {
+                    throw new RuntimeException("Failed to generate PDF", e);
                 }
+            }
         );
-
         resource.setContentType("application/pdf");
-
-        // Creazione e configurazione dell'anchor per il download
-        return new Anchor(resource, "Download PDF");
+        return resource;
     }
 
     /**
@@ -742,47 +739,45 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         Notification.show("Generazione dell'archivio...", 3000, Position.MIDDLE);
 
         try {
-            // Creazione della risorsa ZIP
-            Anchor downloadLink = getAnchorZip(scenario);
-            downloadLink.getElement().setAttribute("download", true);
-            downloadLink.getStyle().set("display", "none");
+            // Crea la risorsa ZIP
+            StreamResource resource = getResource(scenario);
+
+            // Crea il FileDownloadWrapper con un bottone invisibile
+            Button downloadButton = new Button();
+            downloadButton.getStyle().set("display", "none");
+            FileDownloadWrapper downloadWrapper = new FileDownloadWrapper(resource);
+            downloadWrapper.wrapComponent(downloadButton);
 
             UI ui = UI.getCurrent();
             if (ui != null && !detached.get()) {
                 ui.access(() -> {
-                    ui.add(downloadLink);
-                    downloadLink.getElement().executeJs("this.click()").then(result -> ui.access(() -> ui.remove(downloadLink)));
+                    ui.add(downloadWrapper);
+                    downloadButton.getElement().executeJs("this.click()")
+                        .then(result -> ui.access(() -> ui.remove(downloadWrapper)));
                 });
             }
         } catch (Exception e) {
             if (!detached.get()) {
                 Notification.show("Errore durante la generazione dell'archivio: " + e.getMessage(), 5000, Position.MIDDLE)
-                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
         }
     }
 
-    /**
-     * Crea un anchor per il download dello ZIP dello scenario.
-     *
-     * @param scenario Scenario da esportare
-     * @return Anchor per il download dello ZIP
-     */
-    private Anchor getAnchorZip(Scenario scenario) {
+    private StreamResource getResource(Scenario scenario) {
         StreamResource resource = new StreamResource(
-                "scenario_" + scenario.getTitolo() + ".zip",
-                () -> {
-                    try {
-                        byte[] zipBytes = zipExportService.exportScenarioToZip(scenario.getId());
-                        return new ByteArrayInputStream(zipBytes);
-                    } catch (IOException e) {
-                        throw new RuntimeException("Errore nella creazione del file ZIP", e);
-                    }
+            "scenario_" + scenario.getTitolo() + ".zip",
+            () -> {
+                try {
+                    byte[] zipBytes = zipExportService.exportScenarioToZip(scenario.getId());
+                    return new ByteArrayInputStream(zipBytes);
+                } catch (IOException e) {
+                    throw new RuntimeException("Errore nella creazione del file ZIP", e);
                 }
+            }
         );
-
         resource.setContentType("application/zip");
-        return new Anchor(resource, "Download ZIP");
+        return resource;
     }
 
     /**

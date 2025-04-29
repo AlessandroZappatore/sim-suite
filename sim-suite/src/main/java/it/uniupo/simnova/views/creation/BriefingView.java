@@ -4,6 +4,7 @@ import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -12,7 +13,6 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
-import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
@@ -21,6 +21,7 @@ import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vaadin.tinymce.TinyMce;
 
 import java.util.Optional;
 
@@ -49,7 +50,7 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
     /**
      * Area di testo per il briefing.
      */
-    private final TextArea briefingArea;
+    private final TinyMce briefingEditor;
     /**
      * Logger per la registrazione degli eventi.
      */
@@ -82,6 +83,23 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
         customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
         customHeader.add(backButton, header);
 
+        // Crea la sezione dell'intestazione
+        VerticalLayout headerSection = new VerticalLayout();
+        headerSection.setPadding(false);
+        headerSection.setSpacing(false);
+        headerSection.setWidthFull();
+
+        com.vaadin.flow.component.html.H2 title = new com.vaadin.flow.component.html.H2("Briefing Scenario");
+        title.addClassName(LumoUtility.Margin.Bottom.NONE);
+        title.getStyle().set("text-align", "center");
+        title.setWidthFull();
+
+        Paragraph subtitle = new Paragraph("Inserisci il testo del briefing che verrà presentato ai partecipanti prima dell'inizio della simulazione. Questo testo servirà a introdurre il contesto e gli obiettivi dell'attività.");
+        subtitle.addClassName(LumoUtility.Margin.Top.XSMALL);
+        subtitle.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
+        subtitle.getStyle().set("color", "var(--lumo-secondary-text-color)");
+
+        headerSection.add(title, subtitle);
         // 2. CONTENUTO PRINCIPALE con area di testo
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.setWidth("100%");
@@ -93,15 +111,15 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
                 .set("margin", "0 auto")
                 .set("flex-grow", "1");
 
-        // Area di testo per il briefing
-        briefingArea = new TextArea("BRIEFING");
-        briefingArea.setPlaceholder("Inserisci il testo da leggere ai discenti prima della simulazione...");
-        briefingArea.setWidthFull();
-        briefingArea.setMinHeight("300px");
-        briefingArea.getStyle().set("max-width", "100%");
-        briefingArea.addClassName(LumoUtility.Margin.Top.LARGE);
+        briefingEditor = new TinyMce();
+        briefingEditor.setWidthFull();
+        briefingEditor.setHeight("400px");
+        briefingEditor.configure("plugins: 'link lists', " +
+                "toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link', " +
+                "menubar: true, " +
+                "statusbar: true");
 
-        contentLayout.add(briefingArea);
+        contentLayout.add(headerSection, briefingEditor);
 
         // 3. FOOTER con pulsanti e crediti
         HorizontalLayout footerLayout = new HorizontalLayout();
@@ -159,7 +177,7 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
     private void loadExistingBriefing() {
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
         if (scenario != null && scenario.getBriefing() != null && !scenario.getBriefing().isEmpty()) {
-            briefingArea.setValue(scenario.getBriefing());
+            briefingEditor.setValue(scenario.getBriefing());
         }
     }
 
@@ -176,7 +194,7 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
 
             try {
                 boolean success = scenarioService.updateScenarioBriefing(
-                        scenarioId, briefingArea.getValue()
+                        scenarioId, briefingEditor.getValue()
                 );
 
                 ui.accessSynchronously(() -> {

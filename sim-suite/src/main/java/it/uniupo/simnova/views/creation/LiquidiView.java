@@ -13,7 +13,6 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
-import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
@@ -22,6 +21,7 @@ import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vaadin.tinymce.TinyMce;
 
 import java.util.Optional;
 
@@ -35,7 +35,7 @@ import java.util.Optional;
  * @author Alessandro Zappatore
  * @version 1.0
  */
-@PageTitle("Liquidi e Presidi")
+@PageTitle("Liquidi e dosi farmaci")
 @Route(value = "liquidi")
 @Menu(order = 11)
 public class LiquidiView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
@@ -50,7 +50,7 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
     /**
      * Area di testo per l'inserimento dei liquidi e presidi.
      */
-    private final TextArea liquidiArea;
+    private final TinyMce liquidiEditor;
     /**
      * Logger per la registrazione degli eventi.
      */
@@ -86,6 +86,24 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
         customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
         customHeader.add(backButton, header);
 
+        // Crea la sezione dell'intestazione
+        VerticalLayout headerSection = new VerticalLayout();
+        headerSection.setPadding(false);
+        headerSection.setSpacing(false);
+        headerSection.setWidthFull();
+
+        com.vaadin.flow.component.html.H2 title = new com.vaadin.flow.component.html.H2("Liquidi e dosi farmaci in T0");
+        title.addClassName(LumoUtility.Margin.Bottom.NONE);
+        title.getStyle().set("text-align", "center");
+        title.setWidthFull();
+
+        Paragraph subtitle = new Paragraph("Elenca i liquidi e le dosi farmacologiche disponibili all'inizio della simulazione (T0). Questa informazione è essenziale per i partecipanti per conoscere le risorse a loro disposizione durante lo scenario.");
+        subtitle.addClassName(LumoUtility.Margin.Top.XSMALL);
+        subtitle.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
+        subtitle.getStyle().set("color", "var(--lumo-secondary-text-color)");
+
+        headerSection.add(title, subtitle);
+
         // 2. CONTENUTO PRINCIPALE
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.setWidth("100%");
@@ -97,21 +115,16 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
                 .set("margin", "0 auto")
                 .set("flex-grow", "1");
 
-        // Area di testo per liquidi e presidi
-        liquidiArea = new TextArea("LIQUIDI E DOSI FARMACI IN T0");
-        liquidiArea.setPlaceholder("Indica quantità di liquidi e presidi presenti all'inizio della simulazione...");
-        liquidiArea.setWidthFull();
-        liquidiArea.setMinHeight("300px");
-        liquidiArea.getStyle().set("max-width", "100%");
-        liquidiArea.addClassName(LumoUtility.Margin.Top.LARGE);
+        liquidiEditor = new TinyMce();
+        liquidiEditor.setWidthFull();
+        liquidiEditor.setHeight("400px");
+        liquidiEditor.configure("plugins: 'link lists', " +
+                "toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link', " +
+                "menubar: true, " +
+                "statusbar: true");
 
-        // Esempi di formato
-        Paragraph examples = new Paragraph("Esempio: NaCl 0.9% - 500ml, Farmaco X - 2 flaconi, Siringhe 10ml - 5 unità");
-        examples.addClassName(LumoUtility.TextColor.SECONDARY);
-        examples.addClassName(LumoUtility.FontSize.SMALL);
-        examples.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
 
-        contentLayout.add(examples, liquidiArea);
+        contentLayout.add(headerSection, liquidiEditor);
 
         // 3. FOOTER con pulsanti e crediti
         HorizontalLayout footerLayout = new HorizontalLayout();
@@ -173,7 +186,7 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
     private void loadExistingLiquidi() {
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
         if (scenario != null && scenario.getLiquidi() != null && !scenario.getLiquidi().isEmpty()) {
-            liquidiArea.setValue(scenario.getLiquidi());
+            liquidiEditor.setValue(scenario.getLiquidi());
         }
     }
 
@@ -190,7 +203,7 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
 
             try {
                 boolean success = scenarioService.updateScenarioLiquidi(
-                        scenarioId, liquidiArea.getValue()
+                        scenarioId, liquidiEditor.getValue()
                 );
 
                 ui.accessSynchronously(() -> {

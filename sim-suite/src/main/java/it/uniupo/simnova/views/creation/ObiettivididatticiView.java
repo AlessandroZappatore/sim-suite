@@ -13,7 +13,6 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
-import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
@@ -22,6 +21,7 @@ import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vaadin.tinymce.TinyMce;
 
 import java.util.Optional;
 
@@ -54,7 +54,7 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> implements
     /**
      * Area di testo per l'inserimento degli obiettivi didattici.
      */
-    private final TextArea obiettiviArea;
+    private final TinyMce obiettiviEditor;
 
     /**
      * Costruttore che inizializza l'interfaccia utente.
@@ -86,6 +86,24 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> implements
         customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
         customHeader.add(backButton, header);
 
+        // Crea la sezione dell'intestazione
+        VerticalLayout headerSection = new VerticalLayout();
+        headerSection.setPadding(false);
+        headerSection.setSpacing(false);
+        headerSection.setWidthFull();
+
+        com.vaadin.flow.component.html.H2 title = new com.vaadin.flow.component.html.H2("Obiettivi Didattici");
+        title.addClassName(LumoUtility.Margin.Bottom.NONE);
+        title.getStyle().set("text-align", "center");
+        title.setWidthFull();
+
+        Paragraph subtitle = new Paragraph("Definisci gli obiettivi di apprendimento che i partecipanti dovranno raggiungere al termine della simulazione. Gli obiettivi didattici aiutano a strutturare l'esperienza formativa e a misurare l'efficacia dell'attività.");
+        subtitle.addClassName(LumoUtility.Margin.Top.XSMALL);
+        subtitle.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
+        subtitle.getStyle().set("color", "var(--lumo-secondary-text-color)");
+
+        headerSection.add(title, subtitle);
+
         // 2. CONTENUTO PRINCIPALE
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.setWidth("100%");
@@ -97,21 +115,15 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> implements
                 .set("margin", "0 auto")
                 .set("flex-grow", "1");
 
-        // Area di testo per gli obiettivi didattici
-        obiettiviArea = new TextArea("OBIETTIVI DIDATTICI");
-        obiettiviArea.setPlaceholder("Inserisci gli obiettivi didattici dello scenario...");
-        obiettiviArea.setWidthFull();
-        obiettiviArea.setMinHeight("300px");
-        obiettiviArea.getStyle().set("max-width", "100%");
-        obiettiviArea.addClassName(LumoUtility.Margin.Top.LARGE);
+        obiettiviEditor = new TinyMce();
+        obiettiviEditor.setWidthFull();
+        obiettiviEditor.setHeight("400px");
+        obiettiviEditor.configure("plugins: 'link lists', " +
+                "toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link', " +
+                "menubar: true, " +
+                "statusbar: true");
 
-        // Istruzioni aggiuntive
-        Paragraph instructions = new Paragraph("Definisci gli obiettivi di apprendimento per questa simulazione");
-        instructions.addClassName(LumoUtility.TextColor.SECONDARY);
-        instructions.addClassName(LumoUtility.FontSize.SMALL);
-        instructions.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
-
-        contentLayout.add(instructions, obiettiviArea);
+        contentLayout.add(headerSection, obiettiviEditor);
 
         // 3. FOOTER con pulsanti e crediti
         HorizontalLayout footerLayout = new HorizontalLayout();
@@ -173,7 +185,7 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> implements
     private void loadExistingObiettivi() {
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
         if (scenario != null && scenario.getObiettivo() != null && !scenario.getObiettivo().isEmpty()) {
-            obiettiviArea.setValue(scenario.getObiettivo());
+            obiettiviEditor.setValue(scenario.getObiettivo());
         }
     }
 
@@ -190,7 +202,7 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> implements
 
             try {
                 boolean success = scenarioService.updateScenarioObiettiviDidattici(
-                        scenarioId, obiettiviArea.getValue()
+                        scenarioId, obiettiviEditor.getValue()
                 );
 
                 ui.accessSynchronously(() -> {

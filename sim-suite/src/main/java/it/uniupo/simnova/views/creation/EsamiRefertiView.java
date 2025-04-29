@@ -93,9 +93,9 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
      *
      * @param scenarioService servizio per la gestione degli scenari
      */
-    public EsamiRefertiView(ScenarioService scenarioService) {
+    public EsamiRefertiView(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
-        this.fileStorageService = new FileStorageService();
+        this.fileStorageService = fileStorageService;
 
         VerticalLayout mainLayout = getContent();
         mainLayout.setSizeFull();
@@ -640,7 +640,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             this.upload = new Upload(buffer);
             upload.setDropAllowed(true);
             upload.setWidthFull();
-            upload.setAcceptedFileTypes(".pdf", ".jpg", ".png", ".gif", ".mp4", ".mp3");
+            upload.setAcceptedFileTypes(".pdf", ".jpg", "jpeg", ".png", ".gif", ".mp4", ".mp3", ".webp");
             upload.setMaxFiles(1);
             upload.setUploadButton(new Button("Carica File", new Icon(VaadinIcon.UPLOAD)));
             upload.setDropLabel(new Div(new Text("Trascina file qui o clicca per selezionare")));
