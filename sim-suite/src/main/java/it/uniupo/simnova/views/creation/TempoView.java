@@ -27,6 +27,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.ParametroAggiuntivo;
 import it.uniupo.simnova.api.model.PazienteT0;
 import it.uniupo.simnova.api.model.Tempo;
+import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
@@ -157,7 +158,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
      *
      * @param scenarioService servizio per la gestione degli scenari
      */
-    public TempoView(ScenarioService scenarioService) {
+    public TempoView(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
 
         // Configurazione layout principale
@@ -168,7 +169,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         mainLayout.getStyle().set("min-height", "100vh"); // Assicura altezza minima
 
         // 1. HEADER con pulsante indietro e titolo dell'applicazione
-        AppHeader header = new AppHeader();
+        AppHeader header = new AppHeader(fileStorageService);
 
         // Pulsante indietro con RouterLink per tornare alla vista precedente specifica
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));

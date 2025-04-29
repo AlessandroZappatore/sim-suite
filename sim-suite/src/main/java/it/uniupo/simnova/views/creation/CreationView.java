@@ -13,6 +13,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
 
@@ -36,9 +37,9 @@ public class CreationView extends Composite<VerticalLayout> {
     /**
      * Costruttore che inizializza l'interfaccia per la selezione del tipo di scenario.
      */
-    public CreationView() {
+    public CreationView(FileStorageService fileStorageService) {
         // Header dell'applicazione
-        AppHeader header = new AppHeader();
+        AppHeader header = new AppHeader(fileStorageService);
 
         // Titolo della pagina
         H2 pageTitle = new H2("Creazione Scenario");

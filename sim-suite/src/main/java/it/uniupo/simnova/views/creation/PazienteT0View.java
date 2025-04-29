@@ -22,6 +22,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Accesso;
+import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
@@ -109,7 +110,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
      *
      * @param scenarioService servizio per la gestione degli scenari
      */
-    public PazienteT0View(ScenarioService scenarioService) {
+    public PazienteT0View(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
 
         // Configurazione layout principale
@@ -120,7 +121,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         mainLayout.getStyle().set("min-height", "100vh");
 
         // 1. HEADER con pulsante indietro
-        AppHeader header = new AppHeader();
+        AppHeader header = new AppHeader(fileStorageService);
 
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);

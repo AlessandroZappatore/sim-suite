@@ -17,6 +17,7 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.EsameFisico;
+import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
@@ -45,6 +46,7 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
      * Servizio per la gestione degli scenari.
      */
     private final ScenarioService scenarioService;
+    private final FileStorageService fileStorageService;
     /**
      * ID dello scenario corrente.
      */
@@ -63,9 +65,10 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
      *
      * @param scenarioService servizio per la gestione degli scenari
      */
-    public EsamefisicoView(ScenarioService scenarioService) {
+    public EsamefisicoView(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
         setupView();
+        this.fileStorageService = fileStorageService;
     }
 
     /**
@@ -105,7 +108,7 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
      * @param mainLayout layout principale a cui aggiungere l'header
      */
     private void setupHeader(VerticalLayout mainLayout) {
-        AppHeader header = new AppHeader();
+        AppHeader header = new AppHeader(fileStorageService);
 
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);

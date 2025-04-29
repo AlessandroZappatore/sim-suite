@@ -2,6 +2,7 @@ package it.uniupo.simnova.views.creation;
 
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.RouterLayout;
+import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.views.home.AppHeader;
 
 /**
@@ -26,14 +27,14 @@ public class MainLayout extends VerticalLayout implements RouterLayout {
      * - Header dell'applicazione
      * </p>
      */
-    public MainLayout() {
+    public MainLayout(FileStorageService fileStorageService) {
         // Configurazione del layout base
         setSizeFull();
         setPadding(false);
         setSpacing(false);
 
         // Aggiunta dell'header comune a tutte le viste
-        AppHeader header = new AppHeader();
+        AppHeader header = new AppHeader(fileStorageService);
         add(header);
     }
 }

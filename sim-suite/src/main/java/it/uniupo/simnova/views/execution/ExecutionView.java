@@ -5,6 +5,7 @@ import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.views.home.AppHeader;
 
 /**
@@ -20,14 +21,15 @@ import it.uniupo.simnova.views.home.AppHeader;
 @PageTitle("Execution")
 @Route("execution")
 public class ExecutionView extends Composite<VerticalLayout> {
+
     /**
      * Costruttore della vista di esecuzione.
      * <p>
      * Inizializza l'intestazione e aggiunge un messaggio centrale alla vista.
      * </p>
      */
-    public ExecutionView() {
-        AppHeader header = new AppHeader();
+    public ExecutionView(FileStorageService fileStorageService) {
+        AppHeader header = new AppHeader(fileStorageService);
         getContent().setWidth("100%");
         getContent().getStyle().set("flex-grow", "1");
 

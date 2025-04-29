@@ -16,6 +16,7 @@ import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
+import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
@@ -62,7 +63,7 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
      *
      * @param scenarioService il servizio per la gestione degli scenari
      */
-    public MoulageView(ScenarioService scenarioService) {
+    public MoulageView(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
 
         // Configurazione del layout principale con altezza piena e senza spazi interni
@@ -73,7 +74,7 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
         mainLayout.getStyle().set("min-height", "100vh");
 
         // 1. HEADER con pulsante indietro e header dell'applicazione
-        AppHeader header = new AppHeader();
+        AppHeader header = new AppHeader(fileStorageService);
 
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);

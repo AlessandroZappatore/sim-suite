@@ -161,4 +161,46 @@ public class FileStorageService {
     public Path getMediaDirectory() {
         return rootLocation;
     }
+
+    /**
+     * Controlla se un file esiste nella directory di archiviazione.
+     *
+     * @param centerLogoFilename Nome del file da controllare.
+     * @return true se il file esiste, false altrimenti.
+     */
+    public boolean fileExists(String centerLogoFilename) {
+        Path filePath = rootLocation.resolve(centerLogoFilename);
+        return Files.exists(filePath);
+    }
+
+    public void store(InputStream inputStream, String centerLogoFilename) {
+        try {
+            Path destinationFile = rootLocation.resolve(centerLogoFilename).normalize();
+            // Controllo di sicurezza: verifica che il file sia salvato DENTRO la rootLocation
+            if (!destinationFile.getParent().equals(rootLocation)) {
+                logger.error("Tentativo di memorizzare il file fuori dalla directory consentita: {}", destinationFile);
+                throw new RuntimeException("Cannot store file outside current directory");
+            }
+            Files.copy(inputStream, destinationFile, StandardCopyOption.REPLACE_EXISTING);
+            logger.info("File memorizzato con successo: {}", centerLogoFilename);
+        } catch (IOException e) {
+            logger.error("Errore durante la memorizzazione del file {}", centerLogoFilename, e);
+            throw new RuntimeException("Failed to store file " + centerLogoFilename, e);
+        }
+    }
+
+    public InputStream readFile(String centerLogoFilename) {
+        try {
+            Path filePath = rootLocation.resolve(centerLogoFilename).normalize();
+            // Controllo di sicurezza: verifica che il file sia DENTRO la rootLocation
+            if (!filePath.getParent().equals(rootLocation)) {
+                logger.error("Tentativo di leggere il file fuori dalla directory consentita: {}", filePath);
+                throw new RuntimeException("Cannot read file outside current directory");
+            }
+            return Files.newInputStream(filePath);
+        } catch (IOException e) {
+            logger.error("Errore durante la lettura del file {}", centerLogoFilename, e);
+            throw new RuntimeException("Failed to read file " + centerLogoFilename, e);
+        }
+    }
 }

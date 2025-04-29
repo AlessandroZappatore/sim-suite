@@ -15,6 +15,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
@@ -71,7 +72,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
      *
      * @param scenarioService servizio per la gestione degli scenari
      */
-    public StartCreationView(ScenarioService scenarioService) {
+    public StartCreationView(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
 
         // Configurazione layout principale
@@ -82,7 +83,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         mainLayout.getStyle().set("min-height", "100vh");
 
         // 1. HEADER
-        AppHeader header = new AppHeader();
+        AppHeader header = new AppHeader(fileStorageService);
 
         // Pulsante indietro
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));

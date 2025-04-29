@@ -104,7 +104,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         mainLayout.getStyle().set("min-height", "100vh");
 
         // 1. HEADER con pulsante indietro
-        AppHeader header = new AppHeader();
+        AppHeader header = new AppHeader(fileStorageService);
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         backButton.getStyle().set("margin-right", "auto");

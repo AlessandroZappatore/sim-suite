@@ -16,6 +16,7 @@ import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
+import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
@@ -61,7 +62,7 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
      *
      * @param scenarioService servizio per la gestione degli scenari
      */
-    public BriefingView(ScenarioService scenarioService) {
+    public BriefingView(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
 
         // Configurazione del layout principale
@@ -72,7 +73,7 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
         mainLayout.getStyle().set("min-height", "100vh");
 
         // 1. HEADER con pulsante indietro e titolo
-        AppHeader header = new AppHeader();
+        AppHeader header = new AppHeader(fileStorageService);
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         backButton.getStyle().set("margin-right", "auto");

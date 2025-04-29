@@ -12,6 +12,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import it.uniupo.simnova.service.FileStorageService;
 
 /**
  * Vista principale dell'applicazione SIM SUITE.
@@ -37,9 +38,9 @@ public class HomeView extends Composite<VerticalLayout> {
      * - Pulsanti principali per la navigazione
      * </p>
      */
-    public HomeView() {
+    public HomeView(FileStorageService fileStorageService) {
         // Header dell'applicazione
-        AppHeader header = new AppHeader();
+        AppHeader header = new AppHeader(fileStorageService);
 
         // Titoli
         H1 title = new H1("SIM SUITE");

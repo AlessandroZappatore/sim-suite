@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -65,6 +66,8 @@ public class PdfExportService {
      * Altezza del logo.
      */
     private static final float LOGO_HEIGHT = 60;
+    private static final String CENTER_LOGO_FILENAME = "center_logo.png"; // Nome file standard per il logo del centro
+    private final FileStorageService fileStorageService;
     /**
      * Numero di pagina corrente.
      */
@@ -103,13 +106,16 @@ public class PdfExportService {
      */
     private PDImageXObject logo;
 
+    private PDImageXObject centerLogo;
+
     /**
      * Costruttore del servizio PdfExportService.
      *
      * @param scenarioService il servizio per la gestione degli scenari
      */
-    public PdfExportService(ScenarioService scenarioService) {
+    public PdfExportService(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
+        this.fileStorageService = fileStorageService;
     }
 
     /**
@@ -133,6 +139,7 @@ public class PdfExportService {
             fontItalic = loadFont(document, "/fonts/LiberationSans-Italic.ttf");
             // Carica il logo
             logo = loadLogo(document);
+            centerLogo = loadCenterLogo(document);
 
             // Inizializza la prima pagina
             initNewPage();
@@ -223,6 +230,32 @@ public class PdfExportService {
         }
     }
 
+    private PDImageXObject loadCenterLogo(PDDocument document) {
+        try (InputStream logoStream = fileStorageService.readFile(CENTER_LOGO_FILENAME)) {
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            int nRead;
+            byte[] data = new byte[1024];
+            while ((nRead = logoStream.read(data, 0, data.length)) != -1) {
+                buffer.write(data, 0, nRead);
+            }
+
+            if (buffer.size() == 0) {
+                logger.warn("Il file del logo del centro è vuoto: {}", CENTER_LOGO_FILENAME);
+                return null;
+            }
+
+            // Crea l'immagine dall'array di byte
+            return PDImageXObject.createFromByteArray(document, buffer.toByteArray(), CENTER_LOGO_FILENAME);
+
+        } catch (FileNotFoundException e) {
+            logger.info("Logo del centro non trovato nella directory di upload: {}", CENTER_LOGO_FILENAME);
+            return null; // Il logo non esiste, gestito come caso normale.
+        } catch (IOException e) {
+            logger.error("Errore durante il caricamento del logo del centro da upload: {}", CENTER_LOGO_FILENAME, e);
+            return null; // Errore durante la lettura o creazione dell'immagine
+        }
+    }
+
     /**
      * Inizializza una nuova pagina nel documento
      *
@@ -246,11 +279,38 @@ public class PdfExportService {
         currentContentStream = new PDPageContentStream(document, currentPage);
 
         // Aggiunge il logo se è la prima pagina
-        if (logo != null && pageNumber == 1) {
-            // Position the logo at the top center
-            float logoX = (PDRectangle.A4.getWidth() - LOGO_WIDTH) / 2;
+        if (pageNumber == 1) {
+            float totalWidth = 0;
+            int logoCount = 0;
+
+            // Calcola la larghezza totale necessaria
+            if (logo != null) {
+                totalWidth += LOGO_WIDTH;
+                logoCount++;
+            }
+            if (centerLogo != null) {
+                totalWidth += LOGO_WIDTH;
+                logoCount++;
+            }
+
+            // Aggiungi spaziatura tra i loghi se ce ne sono due
+            float spacing = logoCount > 1 ? 20 : 0;
+            totalWidth += spacing;
+
+            // Calcola la posizione iniziale X (per centrare l'insieme dei loghi)
+            float startX = (PDRectangle.A4.getWidth() - totalWidth) / 2;
             float logoY = PDRectangle.A4.getHeight() - MARGIN - LOGO_HEIGHT;
-            currentContentStream.drawImage(logo, logoX, logoY, LOGO_WIDTH, LOGO_HEIGHT);
+
+            // Disegna il primo logo se disponibile
+            if (logo != null) {
+                currentContentStream.drawImage(logo, startX, logoY, LOGO_WIDTH, LOGO_HEIGHT);
+                startX += LOGO_WIDTH + spacing;
+            }
+
+            // Disegna il logo del centro se disponibile
+            if (centerLogo != null) {
+                currentContentStream.drawImage(centerLogo, startX, logoY, LOGO_WIDTH, LOGO_HEIGHT);
+            }
 
             // Aggiorna la posizione Y corrente
             currentYPosition = logoY - LEADING;

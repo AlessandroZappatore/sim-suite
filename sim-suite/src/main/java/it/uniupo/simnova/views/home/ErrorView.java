@@ -10,6 +10,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import it.uniupo.simnova.service.FileStorageService;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
@@ -32,9 +33,9 @@ public class ErrorView extends Composite<VerticalLayout>
      * Costruttore della classe ErrorView.
      * Configura il layout della pagina di errore con un header, un logo, un titolo, un messaggio e un pulsante per tornare alla home.
      */
-    public ErrorView() {
+    public ErrorView(FileStorageService fileStorageService) {
         // Header dell'applicazione
-        AppHeader header = new AppHeader();
+        AppHeader header = new AppHeader(fileStorageService);
         header.getElement().getStyle()
                 .set("position", "fixed")
                 .set("top", "0")

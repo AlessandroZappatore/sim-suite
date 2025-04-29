@@ -17,6 +17,7 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
+import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
@@ -61,7 +62,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
      *
      * @param scenarioService servizio per la gestione degli scenari
      */
-    public MaterialenecessarioView(ScenarioService scenarioService) {
+    public MaterialenecessarioView(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
 
         // Configurazione layout principale
@@ -72,7 +73,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         mainLayout.getStyle().set("min-height", "100vh");
 
         // 1. HEADER
-        AppHeader header = new AppHeader();
+        AppHeader header = new AppHeader(fileStorageService);
 
         // Pulsante indietro
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
