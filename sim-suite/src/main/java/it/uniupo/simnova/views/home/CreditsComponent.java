@@ -17,7 +17,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 public class CreditsComponent extends VerticalLayout {
 
     final String version = "1.0.0";
-    final String date = "23/04/2025";
+    final String date = "30/04/2025";
 
     /**
      * Crea una nuova istanza del componente crediti.

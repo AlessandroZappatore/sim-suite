@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -47,19 +48,18 @@ public class FileStorageService {
      * Salva un file nella directory di archiviazione.
      * Il nome del file viene sanitizzato e viene aggiunto l'ID dello scenario.
      *
-     * @param file       InputStream del file da salvare.
-     * @param filename   Nome originale del file.
-     * @param idScenario ID dello scenario associato al file.
+     * @param file     InputStream del file da salvare.
+     * @param filename Nome originale del file.
      * @return Il nome del file sanitizzato e salvato, o null in caso di input non valido.
      * @throws RuntimeException Se si verifica un errore durante il salvataggio.
      */
-    public String storeFile(InputStream file, String filename, Integer idScenario) {
+    public String storeFile(InputStream file, String filename) {
         try {
-            if (file == null || filename == null || filename.isBlank() || idScenario == null) {
+            if (file == null || filename == null || filename.isBlank()) {
                 logger.warn("Input non valido per storeFile: file, nome file o idScenario mancanti.");
                 return null; // Ritorna null per input non validi
             }
-            String sanitizedFilename = getSanitizedFilename(filename, idScenario);
+            String sanitizedFilename = getSanitizedFilename(filename);
             // Risolve il percorso completo del file di destinazione
             Path destinationFile = this.rootLocation.resolve(sanitizedFilename).normalize();
 
@@ -74,7 +74,7 @@ public class FileStorageService {
             logger.info("File memorizzato con successo: {}", sanitizedFilename);
             return sanitizedFilename; // Ritorna il nome del file come salvato
         } catch (IOException e) {
-            logger.error("Errore durante la memorizzazione del file {} (sanitized: {})", filename, getSanitizedFilename(filename, idScenario), e);
+            logger.error("Errore durante la memorizzazione del file {} (sanitized: {})", filename, getSanitizedFilename(filename), e);
             // Rilancia come RuntimeException per segnalare l'errore al chiamante
             throw new RuntimeException("Failed to store file " + filename, e);
         }
@@ -83,11 +83,10 @@ public class FileStorageService {
     /**
      * Genera un nome file sicuro aggiungendo l'ID dello scenario e rimuovendo caratteri non validi.
      *
-     * @param filename   Nome originale del file.
-     * @param idScenario ID dello scenario.
+     * @param filename Nome originale del file.
      * @return Nome del file sanitizzato.
      */
-    private static String getSanitizedFilename(String filename, Integer idScenario) {
+    private static String getSanitizedFilename(String filename) {
         String extension = "";
         String baseName = filename;
         int lastDotIndex = filename.lastIndexOf('.');
@@ -100,7 +99,7 @@ public class FileStorageService {
         String sanitizedExtension = extension.replaceAll("[^a-zA-Z0-9.]", ""); // Permette solo lettere, numeri e '.' nell'estensione
 
         // Costruisce il nuovo nome file
-        String newFilename = sanitizedBaseName + "_" + idScenario + sanitizedExtension;
+        String newFilename = sanitizedBaseName + "_" + sanitizedExtension;
 
         // Ulteriore sanitizzazione generale (potrebbe essere ridondante ma sicura)
         return newFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
@@ -202,5 +201,23 @@ public class FileStorageService {
             logger.error("Errore durante la lettura del file {}", centerLogoFilename, e);
             throw new RuntimeException("Failed to read file " + centerLogoFilename, e);
         }
+    }
+
+    public ArrayList<String> getAllFiles() {
+        ArrayList<String> files = new ArrayList<>();
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(rootLocation)) {
+            for (Path path : directoryStream) {
+                if (Files.isRegularFile(path)) {
+                    String filename = path.getFileName().toString();
+                    // Esclude center_logo.png dalla lista dei file
+                    if (!filename.equals("center_logo.png")) {
+                        files.add(filename);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            logger.error("Errore durante la lettura dei file nella directory {}", rootLocation, e);
+        }
+        return files;
     }
 }

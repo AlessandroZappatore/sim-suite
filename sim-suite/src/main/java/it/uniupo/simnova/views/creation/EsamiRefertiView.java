@@ -1,5 +1,6 @@
 package it.uniupo.simnova.views.creation;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
@@ -9,6 +10,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.formlayout.FormLayout.ResponsiveStep;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -25,6 +27,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.router.*;
+import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.EsameReferto;
 import it.uniupo.simnova.service.FileStorageService;
@@ -64,10 +67,6 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
      */
     private Integer scenarioId;
     /**
-     * Modalità di visualizzazione: "create" o "edit".
-     */
-    private String mode;
-    /**
      * Layout principale per la visualizzazione delle righe degli esami.
      */
     private final VerticalLayout rowsContainer;
@@ -92,6 +91,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
      * Costruttore che inizializza l'interfaccia utente.
      *
      * @param scenarioService servizio per la gestione degli scenari
+     * @param fileStorageService servizio per la gestione dei file
      */
     public EsamiRefertiView(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
@@ -166,6 +166,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
      */
     @Override
     public void setParameter(BeforeEvent event, @WildcardParameter String parameter) {
+        String mode;
         try {
             if (parameter == null || parameter.trim().isEmpty()) {
                 logger.warn("Parametro mancante nell'URL.");
@@ -232,8 +233,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
      * Carica i dati esistenti per lo scenario corrente in modalità "edit".
      */
     private void loadExistingData() {
-        List<EsameReferto> existingData = scenarioService.getEsamiRefertiByScenarioId(scenarioId); // Supponendo che esista un metodo simile
-
+        List<EsameReferto> existingData = scenarioService.getEsamiRefertiByScenarioId(scenarioId);
 
         if (existingData == null || existingData.isEmpty()) {
             logger.warn("Nessun dato esistente trovato per scenario {} in modalità edit. Aggiungo una riga vuota.", this.scenarioId);
@@ -246,7 +246,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
             // Per ogni dato esistente, crea e popola una riga del form
             for (EsameReferto data : existingData) {
-                populateRow(data); // Implementa o adatta addNewRow per popolare i campi
+                populateRow(data);
             }
             logger.info("Popolate {} righe con dati esistenti.", existingData.size());
         }
@@ -256,7 +256,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
      * Aggiunge una nuova riga per l'inserimento di un esame/referto.
      */
     private void addNewRow() {
-        FormRow newRow = new FormRow(rowCount++);
+        FormRow newRow = new FormRow(rowCount++, fileStorageService);
         formRows.add(newRow);
 
         // Crea container per la riga con bordo e pulsante di eliminazione
@@ -290,12 +290,12 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
     }
 
     /**
-     * Popola una riga del form con i dati esistenti.
+     * Popola una riga con i dati esistenti di un esame/referto.
      *
      * @param data dati dell'esame/referto da popolare
      */
     private void populateRow(EsameReferto data) {
-        FormRow existingRow = new FormRow(rowCount++); // Usa il costruttore esistente
+        FormRow existingRow = new FormRow(rowCount++, fileStorageService);
         formRows.add(existingRow);
 
         // Logica per determinare se l'esame era custom o selezionato
@@ -303,25 +303,22 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
         if (isCustom) {
             existingRow.examTypeGroup.setValue("Inserisci manualmente");
-            existingRow.customExamField.setValue(data.getTipo());
+            existingRow.customExamField.setValue(data.getTipo() != null ? data.getTipo() : "");
         } else {
             existingRow.examTypeGroup.setValue("Seleziona da elenco");
-            existingRow.selectedExamField.setValue(data.getTipo());
+            existingRow.selectedExamField.setValue(data.getTipo() != null ? data.getTipo() : "");
         }
         existingRow.updateExamFieldVisibility(); // Aggiorna visibilità campi
 
         existingRow.getReportField().setValue(data.getRefertoTestuale() != null ? data.getRefertoTestuale() : "");
 
-        // Gestione file esistente (più complesso con Upload component)
+        // Gestione file esistente per i media
         if (data.getMedia() != null && !data.getMedia().isEmpty()) {
-            Paragraph fileInfo = new Paragraph("File caricato: " + data.getMedia());
-            fileInfo.addClassName(LumoUtility.FontSize.XSMALL);
-            fileInfo.addClassName(LumoUtility.TextColor.SECONDARY);
-            // Trova un posto dove inserirlo nel layout della riga
-            existingRow.getRowLayout().addComponentAtIndex(4, fileInfo);
-            logger.debug("File esistente '{}' associato alla riga {}", data.getMedia(), existingRow.getRowNumber());
+            existingRow.mediaSourceGroup.setValue("Seleziona da esistenti");
+            existingRow.selectedMediaField.setValue(data.getMedia());
+            existingRow.selectedExistingMedia = data.getMedia();
+            existingRow.updateMediaFieldVisibility();
         }
-
 
         // Aggiungi la riga al container (simile a addNewRow)
         VerticalLayout rowContainer = new VerticalLayout();
@@ -343,7 +340,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             formRows.remove(existingRow);
             rowsContainer.remove(rowContainer);
             if (formRows.isEmpty()) {
-                logger.info("Ultima riga eliminata in modalità edit.");
+                addNewRow(); // Mantieni almeno una riga
             }
         });
 
@@ -367,69 +364,51 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                 List<EsameReferto> esamiReferti = new ArrayList<>();
                 for (FormRow row : formRows) {
                     String fileName = "";
-                    // Gestione upload file
 
-                    if (row.getUpload().getReceiver() instanceof MemoryBuffer buffer) {
-                        if (buffer.getFileName() != null && !buffer.getFileName().isEmpty()) {
-                            try (InputStream fileData = buffer.getInputStream()) {
-                                fileName = fileStorageService.storeFile(fileData, buffer.getFileName(), scenarioId);
+                    // Controlla la fonte del media (nuovo upload o esistente)
+                    if ("Carica nuovo file".equals(row.mediaSourceGroup.getValue())) {
+                        // Gestione upload file
+                        if (row.getUpload().getReceiver() instanceof MemoryBuffer buffer) {
+                            if (buffer.getFileName() != null && !buffer.getFileName().isEmpty()) {
+                                try (InputStream fileData = buffer.getInputStream()) {
+                                    fileName = fileStorageService.storeFile(fileData, buffer.getFileName());
+                                }
                             }
                         }
+                    } else {
+                        // Usa il media esistente selezionato
+                        fileName = row.getSelectedMedia();
                     }
 
-                    // Assumo che row.getRowNumber() fornisca un ID temporaneo per l'esame
-                    // e che row.getSelectedExam() fornisca il tipo di esame
                     EsameReferto esameReferto = new EsameReferto(
-                            row.getRowNumber(),         // idEsame
-                            scenarioId,                 // id_scenario
-                            row.getSelectedExam(),      // tipo
-                            fileName,                   // media (percorso del file)
-                            row.getReportField().getValue()  // refertoTestuale
+                            row.getRowNumber(),
+                            scenarioId,
+                            row.getSelectedExam(),
+                            fileName,
+                            row.getReportField().getValue()
                     );
                     esamiReferti.add(esameReferto);
                 }
 
                 boolean success = scenarioService.saveEsamiReferti(scenarioId, esamiReferti);
-
-                switch (mode) {
-                    case "create" -> ui.accessSynchronously(() -> {
-                        getContent().remove(progressBar);
-                        if (success) {
-                            ui.navigate("moulage/" + scenarioId);
-                        } else {
-                            Notification.show("Errore durante il salvataggio degli esami/referti",
-                                    3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                        }
-                    });
-                    case "edit" -> ui.accessSynchronously(() -> {
-                        getContent().remove(progressBar);
-                        if (success) {
-                            Notification.show("Esami/referti salvati correttamente",
-                                    3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                        } else {
-                            Notification.show("Errore durante il salvataggio degli esami/referti",
-                                    3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                        }
-                    });
-                    default -> {
-                        logger.warn("Modalità non riconosciuta: {}", mode);
-                        Notification.show("Modalità non riconosciuta", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    }
+                if (success) {
+                    Notification.show("Esami e referti salvati con successo", 3000, Notification.Position.TOP_CENTER)
+                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    ui.navigate("moulage/" + scenarioId);
+                } else {
+                    throw new RuntimeException("Errore durante il salvataggio degli esami e referti");
                 }
-
             } catch (Exception e) {
-                ui.accessSynchronously(() -> {
-                    getContent().remove(progressBar);
-                    Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    logger.error("Errore durante il salvataggio degli esami/referti", e);
-                });
+                logger.error("Errore durante il salvataggio degli esami e referti", e);
+                Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.TOP_CENTER)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            } finally {
+                getContent().remove(progressBar);
             }
         });
     }
 
-    /**
-     * Classe interna che rappresenta una riga del form per l'inserimento di un esame/referto.
-     */
+    @SuppressWarnings("ThisExpressionReferencesGlobalObjectJS")
     private static class FormRow {
         /**
          * Numero della riga.
@@ -472,8 +451,31 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
          */
         private final TextField reportField;
         /**
+         * Opzioni per la sorgente del media.
+         */
+        final RadioButtonGroup<String> mediaSourceGroup = new RadioButtonGroup<>();
+        /**
+         * Pulsante per selezionare media esistente.
+         */
+        private final Button selectMediaButton = new Button("Seleziona da esistenti", new Icon(VaadinIcon.FOLDER_OPEN));
+        /**
+         * Dialog per visualizzare media esistenti.
+         */
+        private final Dialog mediaDialog = new Dialog();
+        /**
+         * Campo di testo per mostrare il media selezionato.
+         */
+        private final TextField selectedMediaField = new TextField("Media Selezionato");
+        /**
+         * Nome del media esistente selezionato.
+         */
+        String selectedExistingMedia = null;
+        /**
+         * Servizio per l'accesso ai file.
+         */
+        private final FileStorageService fileStorageService;
+        /**
          * Lista di esami di laboratorio disponibili.
-         * Questi esami possono essere selezionati dall'utente tramite un dialogo.
          */
         private final List<String> allLabExams = List.of(
                 "Emocromo con formula", "Glicemia", "Elettroliti sierici (Na⁺, K⁺, Cl⁻, Ca²⁺, Mg²⁺)",
@@ -484,7 +486,6 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         );
         /**
          * Lista di esami strumentali disponibili.
-         * Questi esami possono essere selezionati dall'utente tramite un dialogo.
          */
         private final List<String> allInstrExams = List.of(
                 "ECG (Elettrocardiogramma)", "RX Torace", "TC Torace (con mdc)", "TC Torace (senza mdc)",
@@ -498,9 +499,11 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
          * Costruttore per una riga del form.
          *
          * @param rowNumber numero della riga
+         * @param fileStorageService servizio per la gestione dei file
          */
-        public FormRow(int rowNumber) {
+        public FormRow(int rowNumber, FileStorageService fileStorageService) {
             this.rowNumber = rowNumber;
+            this.fileStorageService = fileStorageService;
 
             // Titolo della riga
             this.rowTitle = new Paragraph("Esame/Referto #" + rowNumber);
@@ -513,7 +516,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             examTypeGroup.setValue("Seleziona da elenco");
             examTypeGroup.addValueChangeListener(e -> updateExamFieldVisibility());
 
-            // Stile migliorato per i radio button
+            // Stile per i radio button
             examTypeGroup.getStyle()
                     .set("margin-top", "0")
                     .set("margin-bottom", "var(--lumo-space-s)");
@@ -534,26 +537,62 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             customExamField.setPlaceholder("Inserisci il nome dell'esame");
             customExamField.setPrefixComponent(new Icon(VaadinIcon.EDIT));
 
-            // Configurazione pulsante selezione
+            // Configurazione pulsante selezione esame
             selectExamButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             selectExamButton.addClassName(LumoUtility.Margin.Bottom.NONE);
             selectExamButton.setWidth("auto");
 
-            // Layout orizzontale per i campi di selezione
+            // Layout orizzontale per i campi di selezione esame
             HorizontalLayout selectionLayout = new HorizontalLayout(selectedExamField, selectExamButton);
             selectionLayout.setWidthFull();
             selectionLayout.setFlexGrow(1, selectedExamField);
             selectionLayout.setAlignItems(FlexComponent.Alignment.END);
             selectionLayout.setSpacing(true);
 
-            // Configurazione finestra di dialogo
+            // Configurazione finestra di dialogo per esami
             examDialog.setHeaderTitle("Seleziona Tipo Esame");
             examDialog.setWidth("600px");
             examDialog.setHeight("70vh");
             examDialog.setDraggable(true);
             examDialog.setResizable(true);
 
-            // Barra di ricerca
+            // Configurazione per la selezione di media esistenti
+            mediaSourceGroup.setLabel("Sorgente del media");
+            mediaSourceGroup.setItems("Carica nuovo file", "Seleziona da esistenti");
+            mediaSourceGroup.setValue("Carica nuovo file");
+            mediaSourceGroup.addValueChangeListener(e -> updateMediaFieldVisibility());
+
+            // Configurazione campo media selezionato
+            selectedMediaField.setReadOnly(true);
+            selectedMediaField.setWidthFull();
+            selectedMediaField.setPrefixComponent(new Icon(VaadinIcon.FILE));
+            selectedMediaField.setVisible(false);
+
+            // Configurazione pulsante selezione media
+            selectMediaButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            selectMediaButton.setWidth("auto");
+            selectMediaButton.setVisible(false);
+
+            // Layout per la selezione del media esistente
+            HorizontalLayout mediaSelectionLayout = new HorizontalLayout(selectedMediaField, selectMediaButton);
+            mediaSelectionLayout.setWidthFull();
+            mediaSelectionLayout.setFlexGrow(1, selectedMediaField);
+            mediaSelectionLayout.setAlignItems(FlexComponent.Alignment.END);
+            mediaSelectionLayout.setSpacing(true);
+
+            // Configurazione dialog per media esistenti
+            mediaDialog.setHeaderTitle("Seleziona Media");
+            mediaDialog.setWidth("600px");
+            mediaDialog.setDraggable(true);
+            mediaDialog.setResizable(true);
+
+            // Configurazione dialog per selezione media
+            configureMediaDialog();
+
+            // Listener per il pulsante di selezione media
+            selectMediaButton.addClickListener(e -> mediaDialog.open());
+
+            // Configurazione ricerca esami
             TextField searchField = new TextField();
             searchField.setPlaceholder("Cerca esame...");
             searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
@@ -561,14 +600,14 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             searchField.setClearButtonVisible(true);
             searchField.addClassName(LumoUtility.Margin.Bottom.SMALL);
 
-            // Creazione delle schede per le categorie
+            // Creazione delle schede per le categorie di esami
             Tabs categoryTabs = new Tabs();
             Tab labTab = new Tab("Laboratorio");
             Tab instrTab = new Tab("Strumentali");
             categoryTabs.add(labTab, instrTab);
             categoryTabs.setWidthFull();
 
-            // Stile migliorato per le tabs
+            // Stile per le tabs
             categoryTabs.getStyle()
                     .set("margin-bottom", "0")
                     .set("box-shadow", "0 -1px 0 0 var(--lumo-contrast-10pct) inset");
@@ -583,7 +622,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             pages.getStyle().set("overflow-y", "auto");
             pages.getStyle().set("max-height", "calc(70vh - 150px)");
 
-            // Listener per la ricerca
+            // Listener per la ricerca di esami
             searchField.addValueChangeListener(e -> {
                 String searchTerm = e.getValue().toLowerCase();
 
@@ -616,19 +655,19 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                 }
             });
 
-            // Pulsante per chiudere
+            // Pulsante per chiudere dialog esami
             Button closeButton = new Button("Chiudi", e -> examDialog.close());
             closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             examDialog.getFooter().add(closeButton);
 
-            // Aggiunta dei componenti alla finestra
+            // Aggiunta dei componenti alla finestra di esami
             VerticalLayout dialogContent = new VerticalLayout();
             dialogContent.setPadding(false);
             dialogContent.setSpacing(false);
             dialogContent.add(searchField, categoryTabs, pages);
             examDialog.add(dialogContent);
 
-            // Listener per il pulsante di selezione
+            // Listener per il pulsante di selezione esame
             selectExamButton.addClickListener(e -> {
                 if ("Seleziona da elenco".equals(examTypeGroup.getValue())) {
                     examDialog.open();
@@ -645,6 +684,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             upload.setUploadButton(new Button("Carica File", new Icon(VaadinIcon.UPLOAD)));
             upload.setDropLabel(new Div(new Text("Trascina file qui o clicca per selezionare")));
 
+            // Campo referto testuale
             this.reportField = new TextField("Referto Testuale");
             reportField.setWidthFull();
             reportField.setPrefixComponent(new Icon(VaadinIcon.COMMENT));
@@ -656,7 +696,9 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             rowLayout.add(examTypeGroup, 2);
             rowLayout.add(selectionLayout, 2);
             rowLayout.add(customExamField, 2);
+            rowLayout.add(mediaSourceGroup, 2);
             rowLayout.add(upload, 2);
+            rowLayout.add(mediaSelectionLayout, 2);
             rowLayout.add(reportField, 2);
             rowLayout.setResponsiveSteps(
                     new ResponsiveStep("0", 1),
@@ -664,14 +706,18 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                     new ResponsiveStep("900px", 3)
             );
 
-            // Spaziatura migliorata
-            rowLayout.getChildren().forEach(component -> component.getElement().getStyle().set("margin-bottom", "var(--lumo-space-s)"));
+            // Spaziatura
+            rowLayout.getChildren().forEach(component ->
+                    component.getElement().getStyle().set("margin-bottom", "var(--lumo-space-s)"));
+
+            // Imposta la visibilità iniziale
+            updateMediaFieldVisibility();
         }
 
         /**
          * Aggiorna la visibilità dei campi in base al tipo di inserimento selezionato.
          */
-        private void updateExamFieldVisibility() {
+        public void updateExamFieldVisibility() {
             boolean isCustom = "Inserisci manualmente".equals(examTypeGroup.getValue());
             selectedExamField.setVisible(!isCustom);
             selectExamButton.setVisible(!isCustom);
@@ -682,6 +728,246 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             } else {
                 customExamField.clear();
             }
+        }
+
+        /**
+         * Aggiorna la visibilità dei campi relativi al media in base all'opzione selezionata.
+         */
+        public void updateMediaFieldVisibility() {
+            boolean isNewUpload = "Carica nuovo file".equals(mediaSourceGroup.getValue());
+            upload.setVisible(isNewUpload);
+            selectedMediaField.setVisible(!isNewUpload);
+            selectMediaButton.setVisible(!isNewUpload);
+
+            // Se si cambia modalità, resetta l'altra opzione
+            if (isNewUpload) {
+                selectedMediaField.clear();
+                selectedExistingMedia = null;
+            } else {
+                // Reset dell'upload quando si passa alla selezione
+                upload.getElement().executeJs("this.files = []");
+            }
+        }
+
+        /**
+         * Configura il dialog per la selezione dei media esistenti.
+         */
+        private void configureMediaDialog() {
+            // Barra di ricerca
+            TextField searchField = new TextField();
+            searchField.setPlaceholder("Cerca media...");
+            searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
+            searchField.setWidthFull();
+            searchField.setClearButtonVisible(true);
+            searchField.addClassName(LumoUtility.Margin.Bottom.SMALL);
+
+            // Componente per visualizzare i media
+            Div mediaContent = new Div();
+            mediaContent.setWidthFull();
+            mediaContent.getStyle()
+                    .set("overflow-y", "auto")
+                    .set("padding", "var(--lumo-space-m)")
+                    .set("max-height", "400px");
+
+            // Pulsante per chiudere
+            Button closeButton = new Button("Chiudi", e -> mediaDialog.close());
+            closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+            mediaDialog.getFooter().add(closeButton);
+
+            // Ottieni e visualizza tutti i media disponibili
+            loadAvailableMedia(mediaContent);
+
+            // Aggiunta dei componenti alla finestra
+            VerticalLayout dialogContent = new VerticalLayout();
+            dialogContent.setPadding(false);
+            dialogContent.setSpacing(false);
+            dialogContent.add(searchField, mediaContent);
+            dialogContent.setSizeFull();
+
+            // Imposta una larghezza maggiore per il dialog
+            mediaDialog.setWidth("700px");
+            mediaDialog.setHeight("600px");
+            mediaDialog.add(dialogContent);
+
+            // Listener per la ricerca
+            searchField.addValueChangeListener(e -> {
+                String searchTerm = e.getValue().toLowerCase();
+                loadAvailableMedia(mediaContent, searchTerm);
+            });
+        }
+
+        /**
+         * Carica i media disponibili nel dialog di selezione.
+         *
+         * @param container contenitore per i media
+         */
+        private void loadAvailableMedia(Div container) {
+            loadAvailableMedia(container, null);
+        }
+
+        /**
+         * Carica i media disponibili nel dialog di selezione con filtro di ricerca.
+         *
+         * @param container contenitore per i media
+         * @param searchTerm termine di ricerca (opzionale)
+         */
+        private void loadAvailableMedia(Div container, String searchTerm) {
+            container.removeAll();
+
+            // Ottieni i media disponibili dal FileStorageService
+            List<String> availableMedia = getAvailableMedia();
+
+            // Filtra in base alla ricerca se necessario
+            if (searchTerm != null && !searchTerm.isEmpty()) {
+                availableMedia = availableMedia.stream()
+                        .filter(media -> media.toLowerCase().contains(searchTerm.toLowerCase()))
+                        .toList();
+            }
+
+            // Se non ci sono media disponibili
+            if (availableMedia.isEmpty()) {
+                Paragraph noResults = new Paragraph("Nessun media trovato");
+                noResults.addClassName(LumoUtility.TextColor.SECONDARY);
+                container.add(noResults);
+                return;
+            }
+
+            // Crea un layout a griglia per visualizzare i media
+            Div mediaGrid = new Div();
+            mediaGrid.setWidthFull();
+            mediaGrid.getStyle()
+                    .set("display", "grid")
+                    .set("grid-template-columns", "repeat(auto-fill, minmax(150px, 1fr))")
+                    .set("grid-gap", "var(--lumo-space-m)")
+                    .set("padding", "var(--lumo-space-s)");
+
+            // Per ogni media disponibile
+            for (String media : availableMedia) {
+                // Crea un componente per il media
+                VerticalLayout mediaItem = new VerticalLayout();
+                mediaItem.setPadding(false);
+                mediaItem.setSpacing(false);
+                mediaItem.setWidth("100%");
+                mediaItem.getStyle()
+                        .set("border-radius", "var(--lumo-border-radius-m)")
+                        .set("border", "1px solid var(--lumo-contrast-10pct)")
+                        .set("cursor", "pointer")
+                        .set("transition", "all 0.2s ease-in-out")
+                        .set("overflow", "hidden");
+
+                // Componente per l'anteprima del media
+                Component mediaPreview;
+                String mediaLower = media.toLowerCase();
+
+                if (mediaLower.endsWith(".jpg") || mediaLower.endsWith(".jpeg") ||
+                    mediaLower.endsWith(".png") || mediaLower.endsWith(".gif") ||
+                    mediaLower.endsWith(".webp")) {
+
+                    // Crea un'immagine per l'anteprima
+                    StreamResource resource = new StreamResource(media, () -> {
+                        try {
+                            return fileStorageService.readFile(media);
+                        } catch (Exception e) {
+                            logger.error("Errore nel caricamento dell'anteprima per " + media, e);
+                            return null;
+                        }
+                    });
+
+                    Image image = new Image(resource, "Anteprima");
+                    image.setWidth("100%");
+                    image.setHeight("100px");
+                    image.getStyle()
+                            .set("object-fit", "contain")
+                            .set("background-color", "var(--lumo-contrast-5pct)");
+
+                    mediaPreview = image;
+                } else {
+                    // Per i file non visualizzabili, usa un'icona
+                    Icon mediaIcon = getMediaIcon(media);
+                    mediaIcon.setSize("48px");
+                    mediaIcon.getStyle().set("margin", "var(--lumo-space-m) auto");
+
+                    Div iconContainer = new Div(mediaIcon);
+                    iconContainer.setWidth("100%");
+                    iconContainer.setHeight("100px");
+                    iconContainer.getStyle()
+                            .set("display", "flex")
+                            .set("align-items", "center")
+                            .set("justify-content", "center")
+                            .set("background-color", "var(--lumo-contrast-5pct)");
+
+                    mediaPreview = iconContainer;
+                }
+
+                // Etichetta con il nome del file, troncata se troppo lunga
+                Paragraph mediaName = new Paragraph(media);
+                mediaName.getStyle()
+                        .set("margin", "0")
+                        .set("padding", "var(--lumo-space-xs)")
+                        .set("font-size", "var(--lumo-font-size-s)")
+                        .set("white-space", "nowrap")
+                        .set("overflow", "hidden")
+                        .set("text-overflow", "ellipsis")
+                        .set("text-align", "center")
+                        .set("background-color", "var(--lumo-base-color)")
+                        .set("width", "100%");
+
+                // Tooltip per mostrare il nome completo al passaggio del mouse
+                mediaName.getElement().setAttribute("title", media);
+
+                mediaItem.add(mediaPreview, mediaName);
+
+                // Azione al click
+                mediaItem.addClickListener(e -> {
+                    selectedExistingMedia = media;
+                    selectedMediaField.setValue(media);
+                    mediaDialog.close();
+                });
+
+                // Effetto hover
+                mediaItem.getElement().addEventListener("mouseover", e ->
+                        mediaItem.getStyle().set("box-shadow", "0 0 5px var(--lumo-primary-color-50pct)"));
+                mediaItem.getElement().addEventListener("mouseout", e ->
+                        mediaItem.getStyle().set("box-shadow", "none"));
+
+                mediaGrid.add(mediaItem);
+            }
+
+            container.add(mediaGrid);
+        }
+
+        /**
+         * Determina l'icona appropriata in base al tipo di file.
+         *
+         * @param filename nome del file
+         * @return icona corrispondente
+         */
+        private Icon getMediaIcon(String filename) {
+            filename = filename.toLowerCase();
+            if (filename.endsWith(".jpg") || filename.endsWith(".jpeg") ||
+                filename.endsWith(".png") || filename.endsWith(".gif") ||
+                filename.endsWith(".webp")) {
+                return new Icon(VaadinIcon.PICTURE);
+            } else if (filename.endsWith(".pdf")) {
+                return new Icon(VaadinIcon.FILE);
+            } else if (filename.endsWith(".mp4") || filename.endsWith(".webm") ||
+                      filename.endsWith(".mov")) {
+                return new Icon(VaadinIcon.FILM);
+            } else if (filename.endsWith(".mp3") || filename.endsWith(".wav") ||
+                      filename.endsWith(".ogg")) {
+                return new Icon(VaadinIcon.HEADPHONES);
+            } else {
+                return new Icon(VaadinIcon.FILE);
+            }
+        }
+
+        /**
+         * Ottiene la lista dei media disponibili dal servizio di storage.
+         *
+         * @return lista dei media disponibili
+         */
+        private List<String> getAvailableMedia() {
+            return fileStorageService.getAllFiles();
         }
 
         /**
@@ -767,6 +1053,15 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             return "Inserisci manualmente".equals(examTypeGroup.getValue())
                     ? customExamField.getValue()
                     : selectedExamField.getValue();
+        }
+
+        /**
+         * Restituisce il media selezionato dall'elenco esistente.
+         *
+         * @return nome del file media selezionato
+         */
+        public String getSelectedMedia() {
+            return selectedExistingMedia;
         }
 
         /**
