@@ -123,6 +123,7 @@ public class FileStorageService {
 
     /**
      * Elimina un singolo file dalla directory di archiviazione.
+     * Verifica prima che il file non sia utilizzato da altri scenari.
      *
      * @param filename Nome del file da eliminare.
      */
@@ -131,6 +132,13 @@ public class FileStorageService {
             logger.warn("Nome file non valido per l'eliminazione.");
             return;
         }
+
+        // Verifica se il file è utilizzato in altri scenari
+        if (ScenarioService.isFileInUse(filename)) {
+            logger.info("File {} non eliminato perché è utilizzato in altri scenari", filename);
+            return;
+        }
+
         try {
             Path filePath = this.rootLocation.resolve(filename).normalize();
 

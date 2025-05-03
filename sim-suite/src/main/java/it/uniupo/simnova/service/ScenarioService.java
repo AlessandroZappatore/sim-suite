@@ -50,6 +50,29 @@ public class ScenarioService {
         this.fileStorageService = fileStorageService;
     }
 
+    public static boolean isFileInUse(String filename) {
+        if (filename == null || filename.isBlank()) {
+            logger.warn("Nome file non valido per controllo utilizzo.");
+            return false;
+        }
+
+        final String sql = "SELECT COUNT(*) FROM EsameReferto WHERE media = ?";
+
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, filename);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            logger.error("Errore durante il controllo del file in uso: {}", filename, e);
+        }
+        return false;
+    }
+
     /**
      * Recupera uno scenario dal database utilizzando il suo identificativo.
      *

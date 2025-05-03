@@ -67,8 +67,8 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
      */
     public EsamefisicoView(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
-        setupView();
         this.fileStorageService = fileStorageService;
+        setupView();
     }
 
     /**
