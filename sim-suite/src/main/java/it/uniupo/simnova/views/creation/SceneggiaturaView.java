@@ -134,6 +134,8 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
         footerLayout.setPadding(true);
         footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        footerLayout.addClassName(LumoUtility.Border.TOP);
+        footerLayout.getStyle().set("border-color", "var(--lumo-contrast-10pct)");
 
         Button nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
         nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);

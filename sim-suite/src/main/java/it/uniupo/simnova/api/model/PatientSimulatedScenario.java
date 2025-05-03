@@ -38,7 +38,6 @@ public class PatientSimulatedScenario extends AdvancedScenario {
      * @param patto_aula                 il patto d'aula dello scenario
      * @param azione_chiave              l'azione chiave dello scenario
      * @param obiettivo                  l'obiettivo dello scenario
-     * @param materiale                  il materiale necessario per lo scenario
      * @param moulage                    il moulage dello scenario
      * @param liquidi                    i liquidi dello scenario
      * @param timer_generale             il timer generale dello scenario
@@ -48,8 +47,8 @@ public class PatientSimulatedScenario extends AdvancedScenario {
      * @param advancedScenario           l'identificativo dello scenario avanzato associato
      * @param sceneggiatura              la sceneggiatura dello scenario
      */
-    public PatientSimulatedScenario(int id, String titolo, String nome_paziente, String patologia, String descrizione, String briefing, String patto_aula, String azione_chiave, String obiettivo, String materiale, String moulage, String liquidi, float timer_generale, int id_advanced_scenario, ArrayList<Tempo> tempi, int idPatientSimulatedScenario, int advancedScenario, String sceneggiatura) {
-        super(id, titolo, nome_paziente, patologia, descrizione, briefing, patto_aula, azione_chiave, obiettivo, materiale, moulage, liquidi, timer_generale, id_advanced_scenario, tempi);
+    public PatientSimulatedScenario(int id, String titolo, String nome_paziente, String patologia, String descrizione, String briefing, String patto_aula, String azione_chiave, String obiettivo, String moulage, String liquidi, float timer_generale, String autori, String tipologia, String target, String infoGenitore, int id_advanced_scenario, ArrayList<Tempo> tempi, int idPatientSimulatedScenario, int advancedScenario, String sceneggiatura) {
+        super(id, titolo, nome_paziente, patologia, descrizione, briefing, patto_aula, azione_chiave, obiettivo, moulage, liquidi, timer_generale, id_advanced_scenario, tempi,  autori, tipologia, infoGenitore, target);
         this.idPatientSimulatedScenario = idPatientSimulatedScenario;
         this.advancedScenario = advancedScenario;
         this.sceneggiatura = sceneggiatura;
@@ -116,23 +115,10 @@ public class PatientSimulatedScenario extends AdvancedScenario {
      */
     @Override
     public String toString() {
-        return "PatientSimulatedScenario{" +
+        return super.toString() + "PatientSimulatedScenario{" +
                 "idPatientSimulatedScenario=" + idPatientSimulatedScenario +
                 ", advancedScenario=" + advancedScenario +
                 ", sceneggiatura='" + sceneggiatura + '\'' +
-                ", id=" + getId() +
-                ", titolo='" + getTitolo() + '\'' +
-                ", nome_paziente='" + getNomePaziente() + '\'' +
-                ", patologia='" + getPatologia() + '\'' +
-                ", descrizione='" + getDescrizione() + '\'' +
-                ", briefing='" + getBriefing() + '\'' +
-                ", patto_aula='" + getPattoAula() + '\'' +
-                ", azione_chiave='" + getAzioneChiave() + '\'' +
-                ", obiettivo='" + getObiettivo() + '\'' +
-                ", materiale='" + getMateriale() + '\'' +
-                ", moulage='" + getMoulage() + '\'' +
-                ", liquidi='" + getLiquidi() + '\'' +
-                ", timer_generale=" + getTimerGenerale() +
                 '}';
     }
 }

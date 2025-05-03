@@ -47,10 +47,6 @@ public class Scenario {
      */
     private String obiettivo;
     /**
-     * Materiale necessario per lo scenario.
-     */
-    private String materiale;
-    /**
      * Moulage dello scenario.
      */
     private String moulage;
@@ -62,25 +58,25 @@ public class Scenario {
      * Timer generale dello scenario.
      */
     private float timer_generale;
-
     /**
-     * Costruttore completo per creare un nuovo scenario.
-     *
-     * @param id             l'identificativo univoco dello scenario
-     * @param titolo         il titolo dello scenario
-     * @param nome_paziente  il nome del paziente
-     * @param patologia      la patologia del paziente
-     * @param descrizione    la descrizione dello scenario
-     * @param briefing       il briefing dello scenario
-     * @param patto_aula     il patto d'aula dello scenario
-     * @param azione_chiave  l'azione chiave dello scenario
-     * @param obiettivo      l'obiettivo dello scenario
-     * @param materiale      il materiale necessario per lo scenario
-     * @param moulage        il moulage dello scenario
-     * @param liquidi        i liquidi dello scenario
-     * @param timer_generale il timer generale dello scenario
+     * Autori dello scenario.
      */
-    public Scenario(int id, String titolo, String nome_paziente, String patologia, String descrizione, String briefing, String patto_aula, String azione_chiave, String obiettivo, String materiale, String moulage, String liquidi, float timer_generale) {
+    private String autori;
+    /**
+     * Tipologia dello scenario.
+     */
+    private String tipologia;
+    /**
+     * Informazioni del genitore dello scenario.
+     */
+    private String infoGenitore;
+    /**
+     * Informazioni sul target dello scenario.
+     */
+    private String target;
+
+
+    public Scenario(int id, String titolo, String nome_paziente, String patologia, String descrizione, String briefing, String patto_aula, String azione_chiave, String obiettivo, String moulage, String liquidi, float timer_generale, String autori, String tipologia, String infoGenitore, String target) {
         this.id = id;
         this.titolo = titolo;
         this.nome_paziente = nome_paziente;
@@ -90,7 +86,6 @@ public class Scenario {
         this.patto_aula = patto_aula;
         this.azione_chiave = azione_chiave;
         this.obiettivo = obiettivo;
-        this.materiale = materiale;
         this.moulage = moulage;
         this.liquidi = liquidi;
         if (timer_generale < 0) {
@@ -98,6 +93,13 @@ public class Scenario {
         } else {
             this.timer_generale = timer_generale;
         }
+        this.autori = autori;
+        this.tipologia = tipologia;
+        if(tipologia.equals("Pediatrico"))
+            this.infoGenitore = infoGenitore;
+        else
+            this.infoGenitore = null;
+        this.target = target;
     }
 
     /**
@@ -280,24 +282,6 @@ public class Scenario {
     }
 
     /**
-     * Restituisce il materiale necessario per lo scenario.
-     *
-     * @return il materiale necessario per lo scenario
-     */
-    public String getMateriale() {
-        return materiale;
-    }
-
-    /**
-     * Imposta il materiale necessario per lo scenario.
-     *
-     * @param materiale il nuovo materiale
-     */
-    public void setMateriale(String materiale) {
-        this.materiale = materiale;
-    }
-
-    /**
      * Restituisce il moulage dello scenario.
      *
      * @return il moulage dello scenario
@@ -351,6 +335,40 @@ public class Scenario {
         this.timer_generale = timer_generale;
     }
 
+    public String getAutori() {
+        return autori;
+    }
+
+    public void setAutori(String autori) {
+        this.autori = autori;
+    }
+
+    public String getTipologia() {
+        return tipologia;
+    }
+
+    public void setTipologia(String tipologia) {
+        this.tipologia = tipologia;
+    }
+
+    public String getInfoGenitore() {
+        return infoGenitore;
+    }
+
+    public void setInfoGenitore(String infoGenitore) {
+        if(tipologia.equals("Pediatrico"))
+            this.infoGenitore = infoGenitore;
+        else
+            this.infoGenitore = null;
+    }
+
+    public String getTarget() {
+        return target;
+    }
+
+    public void setTarget(String target) {
+        this.target = target;
+    }
     /**
      * Restituisce una rappresentazione stringa dell'oggetto.
      *
@@ -361,17 +379,20 @@ public class Scenario {
         return "Scenario{" +
                 "id=" + id +
                 ", titolo='" + titolo + '\'' +
-                ", nomePaziente='" + nome_paziente + '\'' +
+                ", nome_paziente='" + nome_paziente + '\'' +
                 ", patologia='" + patologia + '\'' +
                 ", descrizione='" + descrizione + '\'' +
                 ", briefing='" + briefing + '\'' +
-                ", pattoAula='" + patto_aula + '\'' +
-                ", azioneChiave='" + azione_chiave + '\'' +
+                ", patto_aula='" + patto_aula + '\'' +
+                ", azione_chiave='" + azione_chiave + '\'' +
                 ", obiettivo='" + obiettivo + '\'' +
-                ", materiale='" + materiale + '\'' +
                 ", moulage='" + moulage + '\'' +
                 ", liquidi='" + liquidi + '\'' +
-                ", timerGenerale=" + timer_generale +
+                ", timer_generale=" + timer_generale +
+                ", autori='" + autori + '\'' +
+                ", tipologia='" + tipologia + '\'' +
+                ", infoGenitore='" + infoGenitore + '\'' +
+                ", target='" + target + '\'' +
                 '}';
     }
 }

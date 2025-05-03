@@ -100,10 +100,13 @@ public class ScenarioService {
                         rs.getString("patto_aula"),
                         rs.getString("azione_chiave"),
                         rs.getString("obiettivo"),
-                        rs.getString("materiale"),
                         rs.getString("moulage"),
                         rs.getString("liquidi"),
-                        rs.getFloat("timer_generale")
+                        rs.getFloat("timer_generale"),
+                        rs.getString("autori"),
+                        rs.getString("tipologia_paziente"),
+                        rs.getString("info_genitore"),
+                        rs.getString("target")
                 );
                 logger.info("Scenario con ID {} recuperato con successo", id);
             } else {
@@ -153,8 +156,8 @@ public class ScenarioService {
      * @param timerGenerale il timer generale
      * @return l'ID dello scenario creato, o -1 in caso di errore
      */
-    public int startQuickScenario(String titolo, String nomePaziente, String patologia, float timerGenerale) {
-        final String sql = "INSERT INTO Scenario (titolo, nome_paziente, patologia, timer_generale) VALUES (?,?,?,?)";
+    public int startQuickScenario(String titolo, String nomePaziente, String patologia, String autori, float timerGenerale, String tipologia) {
+        final String sql = "INSERT INTO Scenario (titolo, nome_paziente, patologia, autori, timer_generale, tipologia_paziente) VALUES (?,?,?,?,?,?)";
         int generatedId = -1;
 
         try (Connection conn = DBConnect.getInstance().getConnection();
@@ -163,7 +166,9 @@ public class ScenarioService {
             stmt.setString(1, titolo);
             stmt.setString(2, nomePaziente);
             stmt.setString(3, patologia);
-            stmt.setFloat(4, timerGenerale);
+            stmt.setString(4, autori);
+            stmt.setFloat(5, timerGenerale);
+            stmt.setString(6, tipologia);
 
             int affectedRows = stmt.executeUpdate();
             logger.info("Inserimento scenario: {} righe interessate", affectedRows);
@@ -191,9 +196,9 @@ public class ScenarioService {
      * @param timerGenerale il timer generale
      * @return l'ID dello scenario avanzato creato, o -1 in caso di errore
      */
-    public int startAdvancedScenario(String titolo, String nomePaziente, String patologia, float timerGenerale) {
+    public int startAdvancedScenario(String titolo, String nomePaziente, String patologia, String autori, float timerGenerale, String tipologia) {
         // Prima crea lo scenario base
-        int scenarioId = startQuickScenario(titolo, nomePaziente, patologia, timerGenerale);
+        int scenarioId = startQuickScenario(titolo, nomePaziente, patologia, autori, timerGenerale, tipologia);
 
         if (scenarioId > 0) {
             final String sql = "INSERT INTO AdvancedScenario (id_advanced_scenario) VALUES (?)";
@@ -222,9 +227,9 @@ public class ScenarioService {
      * @param timerGenerale il timer generale
      * @return l'ID dello scenario simulato per pazienti creato, o -1 in caso di errore
      */
-    public int startPatientSimulatedScenario(String titolo, String nomePaziente, String patologia, float timerGenerale) {
+    public int startPatientSimulatedScenario(String titolo, String nomePaziente, String patologia, String autori, float timerGenerale, String tipologia) {
         // Prima crea lo scenario avanzato
-        int scenarioId = startAdvancedScenario(titolo, nomePaziente, patologia, timerGenerale);
+        int scenarioId = startAdvancedScenario(titolo, nomePaziente, patologia, autori, timerGenerale, tipologia);
 
         if (scenarioId > 0) {
             final String sql = "INSERT INTO PatientSimulatedScenario (id_patient_simulated_scenario, id_advanced_scenario, sceneggiatura) VALUES (?,?,?)";
@@ -375,10 +380,13 @@ public class ScenarioService {
                         rsPaziente.getInt("RR"),
                         rsPaziente.getFloat("T"),
                         rsPaziente.getInt("SpO2"),
+                        rsPaziente.getInt("FiO2"),
+                        rsPaziente.getFloat("LitriOssigeno"),
                         rsPaziente.getInt("EtCO2"),
                         rsPaziente.getString("Monitor"),
                         accessiVenosi,
-                        accessiArteriosi
+                        accessiArteriosi,
+                        rsPaziente.getString("presidi")
                 );
                 logger.info("Paziente T0 con ID {} recuperato con successo", scenarioId);
             } else {
@@ -409,7 +417,9 @@ public class ScenarioService {
                 accessi.add(new Accesso(
                         rs.getInt("id_accesso"),
                         rs.getString("tipologia"),
-                        rs.getString("posizione")
+                        rs.getString("posizione"),
+                        rs.getString("lato"),
+                        rs.getInt("misura")
                 ));
             }
             logger.info("Recuperati {} accessi per lo scenario con ID {}", accessi.size(), scenarioId);
@@ -623,9 +633,9 @@ public class ScenarioService {
      */
     public boolean savePazienteT0(int scenarioId,
                                   String pa, int fc, int rr, double temp,
-                                  int spo2, int etco2, String monitor,
+                                  int spo2, int fio2, float litrio2, int etco2, String monitor,
                                   List<Accesso> venosiData,
-                                  List<Accesso> arteriosiData) {
+                                  List<Accesso> arteriosiData, String presidi) {
         Connection conn = null;
         logger.debug("PA: {}", pa);
         if (fc < 0) {
@@ -640,6 +650,14 @@ public class ScenarioService {
             logger.warn("Saturazione di ossigeno non valida: {}", spo2);
             throw new IllegalArgumentException("Saturazione di ossigeno non valida, deve essere tra 0 e 100");
         }
+        if (fio2 < 0 || fio2 > 100) {
+            logger.warn("FiO2 non valido: {}", fio2);
+            throw new IllegalArgumentException("FiO2 non valido, deve essere tra 0 e 100");
+        }
+        if (litrio2 < 0) {
+            logger.warn("LitriO2 non valido: {}", litrio2);
+            throw new IllegalArgumentException("LitriO2 non valido");
+        }
         if (etco2 < 0) {
             logger.warn("EtCO2 non valido: {}", etco2);
             throw new IllegalArgumentException("EtCO2 non valido");
@@ -653,7 +671,7 @@ public class ScenarioService {
             conn.setAutoCommit(false);
 
             // 1. Salva i parametri vitali del paziente
-            if (!savePazienteParams(conn, scenarioId, pa, fc, rr, temp, spo2, etco2, monitor)) {
+            if (!savePazienteParams(conn, scenarioId, pa, fc, rr, temp, spo2, fio2, litrio2, etco2, monitor, presidi)) {
                 conn.rollback();
                 logger.warn("Rollback: impossibile salvare i parametri vitali per lo scenario con ID {}", scenarioId);
                 return false;
@@ -714,7 +732,7 @@ public class ScenarioService {
      */
     private boolean savePazienteParams(Connection conn, int scenarioId,
                                        String pa, int fc, int rr, double temp,
-                                       int spo2, int etco2, String monitor) throws SQLException {
+                                       int spo2, int fio2, float litrio2, int etco2, String monitor, String presidi) throws SQLException {
         // Verifica se esiste già
         boolean exists = getPazienteT0ById(scenarioId) != null;
 
@@ -730,6 +748,14 @@ public class ScenarioService {
             logger.warn("Saturazione di ossigeno non valida: {}", spo2);
             throw new IllegalArgumentException("Saturazione di ossigeno non valida, deve essere tra 0 e 100");
         }
+        if (fio2 < 0 || fio2 > 100) {
+            logger.warn("FiO2 non valido: {}", fio2);
+            throw new IllegalArgumentException("FiO2 non valido, deve essere tra 0 e 100");
+        }
+        if (litrio2 < 0) {
+            logger.warn("LitriO2 non valido: {}", litrio2);
+            throw new IllegalArgumentException("LitriO2 non valido");
+            }
         if (etco2 < 0) {
             logger.warn("EtCO2 non valido: {}", etco2);
             throw new IllegalArgumentException("EtCO2 non valido");
@@ -739,22 +765,24 @@ public class ScenarioService {
             throw new IllegalArgumentException("Formato PA non valido, atteso 'sistolica/diastolica' (es. '120/80')");
         }
         final String sql = exists ?
-                "UPDATE PazienteT0 SET PA=?, FC=?, RR=?, T=?, SpO2=?, EtCO2=?, Monitor=? WHERE id_paziente=?" :
-                "INSERT INTO PazienteT0 (id_paziente, PA, FC, RR, T, SpO2, EtCO2, Monitor) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                "UPDATE PazienteT0 SET PA=?, FC=?, RR=?, T=?, SpO2=?, FiO2=?, LitriOssigeno=?, EtCO2=?, Monitor=?, Presidi=? WHERE id_paziente=?" :
+                "INSERT INTO PazienteT0 (id_paziente, PA, FC, RR, T, SpO2, FiO2, LitriOssigeno, EtCO2, Monitor, Presidi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             int paramIndex = 1;
 
             if (exists) {
                 // Ordine per UPDATE
-                paramIndex = getParamIndex(pa, fc, rr, temp, spo2, etco2, stmt, paramIndex);
+                paramIndex = getParamIndex(pa, fc, rr, temp, spo2, fio2, litrio2, etco2, stmt, paramIndex);
                 stmt.setString(paramIndex++, monitor);
+                stmt.setString(paramIndex++, presidi);
                 stmt.setInt(paramIndex, scenarioId); // WHERE condition
             } else {
                 // Ordine per INSERT
                 stmt.setInt(paramIndex++, scenarioId);
-                paramIndex = getParamIndex(pa, fc, rr, temp, spo2, etco2, stmt, paramIndex);
+                paramIndex = getParamIndex(pa, fc, rr, temp, spo2,fio2, litrio2, etco2, stmt, paramIndex);
                 stmt.setString(paramIndex, monitor);
+                stmt.setString(paramIndex + 1, presidi);
             }
 
             boolean result = stmt.executeUpdate() > 0;
@@ -784,12 +812,14 @@ public class ScenarioService {
      * @return l'indice del prossimo parametro
      * @throws SQLException in caso di errore durante l'esecuzione della query
      */
-    private int getParamIndex(String pa, int fc, int rr, double temp, int spo2, int etco2, PreparedStatement stmt, int paramIndex) throws SQLException {
+    private int getParamIndex(String pa, int fc, int rr, double temp, int spo2, int fio2, float litrio2, int etco2, PreparedStatement stmt, int paramIndex) throws SQLException {
         stmt.setString(paramIndex++, pa);
         stmt.setInt(paramIndex++, fc);
         stmt.setInt(paramIndex++, rr);
         stmt.setDouble(paramIndex++, temp);
         stmt.setInt(paramIndex++, spo2);
+        stmt.setInt(paramIndex++, fio2);
+        stmt.setFloat(paramIndex++, litrio2);
         stmt.setInt(paramIndex++, etco2);
         return paramIndex;
     }
@@ -1467,10 +1497,13 @@ public class ScenarioService {
                         rs.getString("patto_aula"),
                         rs.getString("azione_chiave"),
                         rs.getString("obiettivo"),
-                        rs.getString("materiale"),
                         rs.getString("moulage"),
                         rs.getString("liquidi"),
                         rs.getFloat("timer_generale"),
+                        rs.getString("autori"),
+                        rs.getString("tipologia_paziente"),
+                        rs.getString("target"),
+                        rs.getString("infoGenitore"),
                         rs.getInt("id_advanced_scenario"),
                         new ArrayList<>(), // Tempi vuoti inizialmente
                         rs.getInt("id_patient_simulated_scenario"),
@@ -1539,12 +1572,15 @@ public class ScenarioService {
                         rs.getInt("RR"),
                         rs.getFloat("T"),
                         rs.getInt("SpO2"),
+                        rs.getInt("FiO2"),
+                        rs.getFloat("LitriO2"),
                         rs.getInt("EtCO2"),
                         rs.getString("Azione"),
                         rs.getInt("TSi_id"),
                         rs.getInt("TNo_id"),
                         rs.getString("altri_dettagli"),
-                        rs.getInt("timer_tempo")
+                        rs.getInt("timer_tempo"),
+                        rs.getString("ruoloGenitore")
                 );
 
                 // Recupera i parametri aggiuntivi per questo tempo
@@ -1676,7 +1712,6 @@ public class ScenarioService {
             stmt.setString(6, scenario.getPattoAula());
             stmt.setString(7, scenario.getAzioneChiave());
             stmt.setString(8, scenario.getObiettivo());
-            stmt.setString(9, scenario.getMateriale());
             stmt.setString(10, scenario.getMoulage());
             stmt.setString(11, scenario.getLiquidi());
             stmt.setFloat(12, scenario.getTimerGenerale());
@@ -1766,9 +1801,11 @@ public class ScenarioService {
         String titolo = (String) scenarioData.get("titolo");
         String nomePaziente = (String) scenarioData.get("nome_paziente");
         String patologia = (String) scenarioData.get("patologia");
+        String autori = (String) scenarioData.get("autori");
         double timerGenerale = (Double) scenarioData.get("timer_generale");
+        String tipologia = (String) scenarioData.get("tipologia_paziente");
 
-        int newId = startQuickScenario(titolo, nomePaziente, patologia, (float) timerGenerale);
+        int newId = startQuickScenario(titolo, nomePaziente, patologia, autori, (float) timerGenerale, tipologia);
         if (newId <= 0) return false;
 
         // Aggiorna i campi aggiuntivi
@@ -1782,10 +1819,13 @@ public class ScenarioService {
                 (String) scenarioData.get("patto_aula"),
                 (String) scenarioData.get("azione_chiave"),
                 (String) scenarioData.get("obiettivo"),
-                (String) scenarioData.get("materiale"),
                 (String) scenarioData.get("moulage"),
                 (String) scenarioData.get("liquidi"),
-                (float) timerGenerale
+                (float) timerGenerale,
+                (String) scenarioData.get("autori"),
+                (String) scenarioData.get("tipologia_paziente"),
+                (String) scenarioData.get("infoGenitore"),
+                (String) scenarioData.get("target")
         );
 
         update(scenario);
@@ -1892,10 +1932,13 @@ public class ScenarioService {
                     ((Double) pazienteT0Data.get("RR")).intValue(),
                     (Double) pazienteT0Data.get("T"),
                     ((Double) pazienteT0Data.get("SpO2")).intValue(),
+                    ((Double) pazienteT0Data.get("FiO2")).intValue(),
+                    ((Double) pazienteT0Data.get("LitriOssigeno")).floatValue(),
                     ((Double) pazienteT0Data.get("EtCO2")).intValue(),
                     (String) pazienteT0Data.get("Monitor"),
                     venosi,
-                    arteriosi
+                    arteriosi,
+                    (String) pazienteT0Data.get("presidi")
             )) {
                 logger.warn("Errore durante il salvataggio del paziente T0");
             }
@@ -1946,12 +1989,15 @@ public class ScenarioService {
                                 t.get("RR") != null ? ((Double) t.get("RR")).intValue() : null,
                                 (Double) t.get("T"),
                                 t.get("SpO2") != null ? ((Double) t.get("SpO2")).intValue() : null,
+                                t.get("FiO2") != null ? ((Double) t.get("FiO2")).intValue() : null,
+                                t.get("LitriO2") != null ? ((Double) t.get("LitriO2")).floatValue() : null,
                                 t.get("EtCO2") != null ? ((Double) t.get("EtCO2")).intValue() : null,
                                 (String) t.get("Azione"),
                                 t.get("TSi") != null ? ((Double) t.get("TSi")).intValue() : 0,
                                 t.get("TNo") != null ? ((Double) t.get("TNo")).intValue() : 0,
                                 (String) t.get("altriDettagli"),
-                                ((Double) t.get("timerTempo")).longValue()
+                                ((Double) t.get("timerTempo")).longValue(),
+                                (String) t.get("ruoloGenitore")
                         );
                         tempo.setParametriAggiuntivi(params);
                         return tempo;
@@ -1979,8 +2025,71 @@ public class ScenarioService {
                 .map(a -> new Accesso(
                         ((Double) a.get("idAccesso")).intValue(),
                         (String) a.get("tipologia"),
-                        (String) a.get("posizione")
+                        (String) a.get("posizione"),
+                        (String) a.get("lato"),
+                        (Integer) a.get("misura")
                 ))
                 .collect(Collectors.toList());
+    }
+
+    public boolean isPediatric (int scenarioId) {
+        final String sql = "SELECT tipologia_paziente FROM Scenario WHERE id_scenario = ?";
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, scenarioId);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                String tipologiaPaziente = rs.getString("tipologia_paziente");
+                return "Pediatrico".equalsIgnoreCase(tipologiaPaziente);
+            }
+        } catch (SQLException e) {
+            logger.error("Errore durante il recupero della tipologia paziente per lo scenario con ID {}", scenarioId, e);
+        }
+        return false;
+
+    }
+
+    public boolean updateScenarioGenitoriInfo(Integer scenarioId, String value) {
+        final String sql = "UPDATE Scenario SET info_genitore = ? WHERE id_scenario = ?";
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, value);
+            stmt.setInt(2, scenarioId);
+
+            boolean result = stmt.executeUpdate() > 0;
+            if (result) {
+                logger.info("Informazioni per i genitori aggiornate con successo per lo scenario con ID {}", scenarioId);
+            } else {
+                logger.warn("Nessuna informazione aggiornata per i genitori dello scenario con ID {}", scenarioId);
+            }
+            return result;
+        } catch (SQLException e) {
+            logger.error("Errore durante l'aggiornamento delle informazioni per i genitori dello scenario con ID {}", scenarioId, e);
+            return false;
+        }
+    }
+
+    public boolean updateScenarioTarget(Integer scenarioId, String string) {
+        final String sql = "UPDATE Scenario SET target = ? WHERE id_scenario = ?";
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, string);
+            stmt.setInt(2, scenarioId);
+
+            boolean result = stmt.executeUpdate() > 0;
+            if (result) {
+                logger.info("Target aggiornato con successo per lo scenario con ID {}", scenarioId);
+            } else {
+                logger.warn("Nessun target aggiornato per lo scenario con ID {}", scenarioId);
+            }
+            return result;
+        } catch (SQLException e) {
+            logger.error("Errore durante l'aggiornamento del target dello scenario con ID {}", scenarioId, e);
+            return false;
+        }
     }
 }

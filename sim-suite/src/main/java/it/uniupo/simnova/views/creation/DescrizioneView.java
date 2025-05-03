@@ -128,6 +128,8 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
         footerLayout.setPadding(true);
         footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        footerLayout.addClassName(LumoUtility.Border.TOP);
+        footerLayout.getStyle().set("border-color", "var(--lumo-contrast-10pct)");
 
         Button nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
         nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -144,7 +146,7 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
 
         // Gestione eventi
         backButton.addClickListener(e ->
-                backButton.getUI().ifPresent(ui -> ui.navigate("startCreation")));
+                backButton.getUI().ifPresent(ui -> ui.navigate("target/" + scenarioId)));
 
         nextButton.addClickListener(e -> saveDescriptionAndNavigate(nextButton.getUI()));
     }

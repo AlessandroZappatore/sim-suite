@@ -401,11 +401,6 @@ public class PdfExportService {
             drawSection("Obiettivi Didattici", scenario.getObiettivo());
         }
 
-        // Materiale necessario
-        if (scenario.getMateriale() != null && !scenario.getMateriale().isEmpty()) {
-            drawSection("Materiale Necessario", scenario.getMateriale());
-        }
-
         // Moulage
         if (scenario.getMoulage() != null && !scenario.getMoulage().isEmpty()) {
             drawSection("Moulage", scenario.getMoulage());

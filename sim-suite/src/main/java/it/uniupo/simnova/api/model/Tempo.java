@@ -41,6 +41,10 @@ public class Tempo {
      * Saturazione di ossigeno del paziente.
      */
     private Integer SpO2;
+
+    private Integer FiO2;
+
+    private Float LitriO2;
     /**
      * Pressione parziale di CO2 espirata del paziente.
      */
@@ -70,40 +74,57 @@ public class Tempo {
      */
     private List<ParametroAggiuntivo> parametriAggiuntivi;
 
-    /**
-     * Costruttore completo per creare un nuovo tempo.
-     *
-     * @param idTempo          l'identificativo univoco del tempo
-     * @param advancedScenario l'identificativo dello scenario avanzato associato
-     * @param PA               la pressione arteriosa del paziente
-     * @param FC               la frequenza cardiaca del paziente
-     * @param RR               la frequenza respiratoria del paziente
-     * @param t                la temperatura del paziente
-     * @param spO2             la saturazione di ossigeno del paziente
-     * @param etCO2            la pressione parziale di CO2 espirata del paziente
-     * @param azione           l'azione associata a questo tempo
-     * @param TSi              il tempo di simulazione in secondi
-     * @param TNo              il tempo di non simulazione in secondi
-     * @param altriDettagli    altri dettagli rilevanti per questo tempo
-     * @param timerTempo       il timer del tempo in millisecondi
-     */
-    public Tempo(int idTempo, int advancedScenario, String PA, Integer FC, Integer RR, double t, Integer spO2, Integer etCO2, String azione, int TSi, int TNo, String altriDettagli, long timerTempo) {
+    private String ruoloGenitore;
+
+
+    public Tempo(int idTempo, int advancedScenario, String PA, Integer FC, Integer RR, double t, Integer spO2, Integer fiO2, Float litriO2, Integer etCO2, String azione, int TSi, int TNo, String altriDettagli, long timerTempo, String ruoloGenitore) {
         this.idTempo = idTempo;
         this.advancedScenario = advancedScenario;
-        if (PA != null && !PA.matches("\\d+/\\d+")) {
-            throw new IllegalArgumentException("Formato PA non valido, atteso 'sistolica/diastolica'");
+
+        if (PA != null) {
+            String trimmedPA = PA.trim();
+            if (!trimmedPA.matches("^\\s*\\d+\\s*/\\s*\\d+\\s*$")) {
+                throw new IllegalArgumentException("Formato PA non valido, atteso 'sistolica/diastolica' (es. '120/80')");
+            }
+            this.PA = trimmedPA;
+        } else {
+            this.PA = null;
         }
-        this.PA = PA;
-        this.FC = FC;
-        this.RR = RR;
-        T = t;
-        SpO2 = spO2;
-        EtCO2 = etCO2;
+
+        if (FC != null && FC < 0) {
+            throw new IllegalArgumentException("FC non può essere negativa");
+        } else this.FC = FC;
+
+        if (RR != null && RR < 0) {
+            throw new IllegalArgumentException("RR non può essere negativa");
+        } else this.RR = RR;
+
+        this.T = t;
+
+        if (spO2 != null && (spO2 < 0 || spO2 > 100)) {
+            throw new IllegalArgumentException("SpO2 deve essere compresa tra 0 e 100");
+        } else SpO2 = spO2;
+
+        if (fiO2 != null && (fiO2 < 0 || fiO2 > 100)) {
+            throw new IllegalArgumentException("FiO2 deve essere compresa tra 0 e 100");
+        } else FiO2 = fiO2;
+
+        if (litriO2 != null && litriO2 < 0) {
+            throw new IllegalArgumentException("LitriO2 non può essere negativo");
+        } else LitriO2 = litriO2;
+
+        if (etCO2 != null && etCO2 < 0) {
+            throw new IllegalArgumentException("EtCO2 non può essere negativa");
+        } else EtCO2 = etCO2;
+
         Azione = azione;
         this.TSi = TSi;
         this.TNo = TNo;
         this.altriDettagli = altriDettagli;
-        this.timerTempo = timerTempo;
+        if(timerTempo < 0){
+            throw new IllegalArgumentException("Il timer non può essere negativo");
+        } else this.timerTempo = timerTempo;
+        this.ruoloGenitore = ruoloGenitore;
     }
 
     /**
@@ -157,10 +178,15 @@ public class Tempo {
      * @param PA la nuova pressione arteriosa
      */
     public void setPA(String PA) {
-        if (PA != null && !PA.matches("\\d+/\\d+")) {
-            throw new IllegalArgumentException("Formato PA non valido, atteso 'sistolica/diastolica'");
+        if (PA != null) {
+            String trimmedPA = PA.trim();
+            if (!trimmedPA.matches("^\\s*\\d+\\s*/\\s*\\d+\\s*$")) {
+                throw new IllegalArgumentException("Formato PA non valido, atteso 'sistolica/diastolica' (es. '120/80')");
+            }
+            this.PA = trimmedPA;
+        } else {
+            this.PA = null;
         }
-        this.PA = PA;
     }
 
     /**
@@ -178,7 +204,9 @@ public class Tempo {
      * @param FC la nuova frequenza cardiaca
      */
     public void setFC(Integer FC) {
-        this.FC = FC;
+        if (FC != null && FC < 0) {
+            throw new IllegalArgumentException("FC non può essere negativa");
+        } else this.FC = FC;
     }
 
     /**
@@ -196,7 +224,9 @@ public class Tempo {
      * @param RR la nuova frequenza respiratoria
      */
     public void setRR(Integer RR) {
-        this.RR = RR;
+        if (RR != null && RR < 0) {
+            throw new IllegalArgumentException("RR non può essere negativa");
+        } else this.RR = RR;
     }
 
     /**
@@ -232,7 +262,21 @@ public class Tempo {
      * @param spO2 la nuova saturazione di ossigeno
      */
     public void setSpO2(Integer spO2) {
-        SpO2 = spO2;
+        if (spO2 != null && (spO2 < 0 || spO2 > 100)) {
+            throw new IllegalArgumentException("SpO2 deve essere compresa tra 0 e 100");
+        } else SpO2 = spO2;
+    }
+
+    public void setFiO2(Integer fiO2) {
+        if (fiO2 != null && (fiO2 < 0 || fiO2 > 100)) {
+            throw new IllegalArgumentException("FiO2 deve essere compresa tra 0 e 100");
+        } else FiO2 = fiO2;
+    }
+
+    public void setLitriO2(Float litriO2) {
+        if (litriO2 != null && litriO2 < 0) {
+            throw new IllegalArgumentException("LitriO2 non può essere negativo");
+        } else LitriO2 = litriO2;
     }
 
     /**
@@ -250,7 +294,9 @@ public class Tempo {
      * @param etCO2 la nuova pressione parziale di CO2 espirata
      */
     public void setEtCO2(Integer etCO2) {
-        EtCO2 = etCO2;
+        if (etCO2 != null && etCO2 < 0) {
+            throw new IllegalArgumentException("EtCO2 non può essere negativa");
+        } else EtCO2 = etCO2;
     }
 
     /**
@@ -361,6 +407,14 @@ public class Tempo {
         this.parametriAggiuntivi = parametriAggiuntivi;
     }
 
+    public String getRuoloGenitore() {
+        return ruoloGenitore;
+    }
+
+    public void setRuoloGenitore(String ruoloGenitore) {
+        this.ruoloGenitore = ruoloGenitore;
+    }
+
     /**
      * Restituisce una rappresentazione stringa dell'oggetto.
      *
@@ -376,12 +430,15 @@ public class Tempo {
                 ", RR=" + RR +
                 ", T=" + T +
                 ", SpO2=" + SpO2 +
+                ", FiO2=" + FiO2 +
+                ", LitriO2=" + LitriO2 +
                 ", EtCO2=" + EtCO2 +
-                ", azione='" + Azione + '\'' +
+                ", Azione='" + Azione + '\'' +
                 ", TSi=" + TSi +
                 ", TNo=" + TNo +
                 ", altriDettagli='" + altriDettagli + '\'' +
                 ", timerTempo=" + timerTempo +
+                ", parametriAggiuntivi=" + parametriAggiuntivi +
                 '}';
     }
 }

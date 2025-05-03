@@ -6,6 +6,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -80,6 +81,10 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
      * Campo per la saturazione di ossigeno (SpO₂).
      */
     private final NumberField spo2Field;
+
+    private final NumberField fio2Field;
+
+    private final NumberField litrio2Field;
     /**
      * Campo per la pressione parziale di anidride carbonica (EtCO₂).
      */
@@ -88,6 +93,8 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
      * Area di testo per il monitoraggio.
      */
     private final TextArea monitorArea;
+
+    private final ComboBox<String> presidiSelect;
     /**
      * Container per gli accessi venosi.
      */
@@ -154,6 +161,8 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         rrField = createNumberField("RR (atti/min)", "(es. 16)");
         tempField = createNumberField("Temperatura (°C)", "(es. 36.5)");
         spo2Field = createNumberField("SpO₂ (%)", "(es. 98)");
+        fio2Field = createNumberField("FiO₂ (%)", "(es. 21)");
+        litrio2Field = createNumberField("L/min O₂", "(es. 5)");
         etco2Field = createNumberField("EtCO₂ (mmHg)", "(es. 35)");
 
         // Container per accessi venosi
@@ -214,13 +223,20 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         monitorArea.setMinHeight("150px");
         monitorArea.addClassName(LumoUtility.Margin.Top.LARGE);
 
+        // Presidi
+        presidiSelect = new ComboBox<>("Presidi");
+        presidiSelect.setItems("Nessuno", "Catetere vescicale", "Sonda nasogastrica", "Altro");
+        presidiSelect.setPlaceholder("Seleziona un presidio");
+        presidiSelect.setWidthFull();
+
+
         // Aggiunta componenti al layout
         contentLayout.add(
                 title,
-                paField, fcField, rrField, tempField, spo2Field, etco2Field,
+                paField, fcField, rrField, tempField, spo2Field, fio2Field, litrio2Field,  etco2Field,
                 venosiCheckbox, venosiContainer, addVenosiButton,
                 arteriosiCheckbox, arteriosiContainer, addArteriosiButton,
-                monitorArea
+                monitorArea, presidiSelect
         );
 
         // 3. FOOTER con pulsanti e crediti
@@ -229,6 +245,8 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         footerLayout.setPadding(true);
         footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        footerLayout.addClassName(LumoUtility.Border.TOP);
+        footerLayout.getStyle().set("border-color", "var(--lumo-contrast-10pct)");
 
         Button nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
         nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -368,10 +386,13 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                         rrField.getValue().intValue(),
                         tempField.getValue(),
                         spo2Field.getValue().intValue(),
+                        fio2Field.getValue().intValue(),
+                        litrio2Field.getValue().intValue(),
                         etco2Field.getValue().intValue(),
                         monitorArea.getValue(),
                         venosi,
-                        arteriosi
+                        arteriosi,
+                        presidiSelect.getValue()
                 );
 
                 ui.accessSynchronously(() -> {
@@ -410,6 +431,10 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         /**
          * Oggetto Accesso associato a questo componente.
          */
+        private final ComboBox<String> latoSelect;
+
+        private final ComboBox<Integer> misuraSelect;
+
         private final Accesso accesso;
 
         /**
@@ -423,14 +448,19 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
             setSpacing(true);
 
             // Inizializza l'oggetto Accesso con valori di default
-            this.accesso = new Accesso(0, "", "");
+            this.accesso = new Accesso(0, "", "", "", 0);
 
             tipoSelect = new Select<>();
             tipoSelect.setLabel("Tipo accesso " + tipo);
             if (tipo.equals("Venoso")) {
-                tipoSelect.setItems("Periferico", "Centrale", "PICC", "Midline", "Altro");
+                tipoSelect.setItems(
+                        "Periferico", "Centrale", "CVC a breve termine", "CVC tunnellizzato",
+                        "PICC", "Midline", "Intraosseo", "PORT", "Dialysis catheter", "Altro"
+                );
             } else {
-                tipoSelect.setItems("Radiale", "Femorale", "Omerale", "Altro");
+                tipoSelect.setItems(
+                        "Radiale", "Femorale", "Omerale", "Brachiale", "Ascellare", "Pedidia", "Altro"
+                );
             }
             tipoSelect.setWidth("200px");
             tipoSelect.addValueChangeListener(e -> {
@@ -443,12 +473,22 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
             posizioneField.setWidthFull();
             posizioneField.addValueChangeListener(e -> accesso.setPosizione(e.getValue()));
 
+            latoSelect = new ComboBox<>("Lato");
+            latoSelect.setItems("DX", "SX");
+            latoSelect.setWidth("100px");
+            latoSelect.addValueChangeListener(e -> accesso.setLato(e.getValue()));
+
+            misuraSelect = new ComboBox<>("Misura (Gauge)");
+            misuraSelect.setItems(14, 16, 18, 20, 22, 24, 26);
+            misuraSelect.setWidth("100px");
+            misuraSelect.addValueChangeListener(e -> accesso.setMisura(e.getValue()));
+
             Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
             removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
             removeButton.getStyle().set("margin-top", "auto");
             removeButton.addClickListener(e -> removeSelf());
 
-            add(tipoSelect, posizioneField, removeButton);
+            add(tipoSelect, posizioneField, latoSelect, misuraSelect, removeButton);
         }
 
         /**
@@ -482,6 +522,8 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
             // Assicurati che i valori siano aggiornati prima di restituire l'oggetto
             accesso.setTipologia(tipoSelect.getValue());
             accesso.setPosizione(posizioneField.getValue());
+            accesso.setLato(latoSelect.getValue());
+            accesso.setMisura(misuraSelect.getValue());
             return accesso;
         }
     }

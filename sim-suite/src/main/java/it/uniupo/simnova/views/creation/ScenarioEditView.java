@@ -204,13 +204,6 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
                 scenario.getObiettivo()
         );
 
-        // Materiale necessario scenario
-        TextArea materialeArea = createTextArea(
-                "MATERIALE NECESSARIO",
-                "Elenca il materiale necessario per l'allestimento della sala...",
-                scenario.getMateriale()
-        );
-
         // Moulage scenario
         TextArea moulageArea = createTextArea(
                 "MOULAGE",
@@ -232,7 +225,6 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
                 pattoAulaArea,
                 azioniChiaveArea,
                 obiettiviArea,
-                materialeArea,
                 moulageArea,
                 liquidiArea
         );

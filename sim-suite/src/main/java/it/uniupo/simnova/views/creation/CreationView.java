@@ -157,6 +157,8 @@ public class CreationView extends Composite<VerticalLayout> {
         footerLayout.setWidthFull();
         footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.START);
         footerLayout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.START);
+        footerLayout.addClassName(LumoUtility.Border.TOP);
+        footerLayout.getStyle().set("border-color", "var(--lumo-contrast-10pct)");
 
         CreditsComponent credits = new CreditsComponent();
         footerLayout.add(credits);

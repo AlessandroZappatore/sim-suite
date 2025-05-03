@@ -311,6 +311,9 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         footerLayout.setWidthFull();
         footerLayout.setPadding(true);
         footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        footerLayout.addClassName(LumoUtility.Border.TOP);
+        footerLayout.getStyle().set("border-color", "var(--lumo-contrast-10pct)");
+
         CreditsComponent credit = new CreditsComponent();
 
         footerLayout.add(credit);
@@ -371,7 +374,6 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         Div prepCard = new Div();
         prepCard.addClassName("info-card");
         prepCard.add(
-                createInfoItem("Materiale Necessario", scenario.getMateriale()),
                 createInfoItem("Moulage", scenario.getMoulage()),
                 createInfoItem("Liquidi", scenario.getLiquidi())
         );

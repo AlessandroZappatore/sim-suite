@@ -120,6 +120,8 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         footerLayout.setPadding(true);
         footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        footerLayout.addClassName(LumoUtility.Border.TOP);
+        footerLayout.getStyle().set("border-color", "var(--lumo-contrast-10pct)");
 
         Button nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
         nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -173,9 +175,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
      */
     private void loadExistingMateriale() {
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
-        if (scenario != null && scenario.getMateriale() != null && !scenario.getMateriale().isEmpty()) {
-            materialeArea.setValue(scenario.getMateriale());
-        }
+
     }
 
     /**

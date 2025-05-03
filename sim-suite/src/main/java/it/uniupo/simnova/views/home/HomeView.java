@@ -98,7 +98,8 @@ public class HomeView extends Composite<VerticalLayout> {
                .set("bottom", "1rem")
                .set("left", "1rem")
                .set("z-index", "10");
-
+        credits.addClassName(LumoUtility.Border.TOP);
+        credits.getStyle().set("border-color", "var(--lumo-contrast-10pct)");
         // Aggiunta dei componenti al layout
         getContent().add(header, title, subtitle, buttonContainer, credits);
     }

@@ -27,19 +27,19 @@ import org.vaadin.tinymce.TinyMce;
 import java.util.Optional;
 
 /**
- * Vista per la gestione del briefing dello scenario di simulazione.
+ * Vista per la gestione delle informazioni per i genitori nello scenario di simulazione pediatrica.
  * <p>
- * Permette di definire il testo introduttivo che verrà presentato ai discenti
- * prima dell'inizio della simulazione. Fa parte del flusso di creazione scenario.
+ * Permette di definire il testo informativo che verrà presentato ai genitori o tutori
+ * prima dell'inizio della simulazione pediatrica. Fa parte del flusso di creazione scenario.
  * </p>
  *
  * @author Alessandro Zappatore
  * @version 1.0
  */
-@PageTitle("Briefing")
-@Route(value = "briefing")
-@Menu(order = 4)
-public class BriefingView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
+@PageTitle("Informazioni per i Genitori")
+@Route(value = "infoGenitori")
+@Menu(order = 5)
+public class GenitoriView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     /**
      * Servizio per la gestione degli scenari.
      */
@@ -49,20 +49,20 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
      */
     private Integer scenarioId;
     /**
-     * Area di testo per il briefing.
+     * Area di testo per le informazioni per i genitori.
      */
-    private final TinyMce briefingEditor;
+    private final TinyMce genitoriEditor;
     /**
      * Logger per la registrazione degli eventi.
      */
-    private static final Logger logger = LoggerFactory.getLogger(BriefingView.class);
+    private static final Logger logger = LoggerFactory.getLogger(GenitoriView.class);
 
     /**
      * Costruttore che inizializza l'interfaccia utente.
      *
      * @param scenarioService servizio per la gestione degli scenari
      */
-    public BriefingView(ScenarioService scenarioService, FileStorageService fileStorageService) {
+    public GenitoriView(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
 
         // Configurazione del layout principale
@@ -90,12 +90,12 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
         headerSection.setSpacing(false);
         headerSection.setWidthFull();
 
-        com.vaadin.flow.component.html.H2 title = new com.vaadin.flow.component.html.H2("Briefing Scenario");
+        com.vaadin.flow.component.html.H2 title = new com.vaadin.flow.component.html.H2("Informazioni dai Genitori");
         title.addClassName(LumoUtility.Margin.Bottom.NONE);
         title.getStyle().set("text-align", "center");
         title.setWidthFull();
 
-        Paragraph subtitle = new Paragraph("Inserisci il testo del briefing che verrà presentato ai partecipanti prima dell'inizio della simulazione. Questo testo servirà a introdurre il contesto e gli obiettivi dell'attività.");
+        Paragraph subtitle = new Paragraph("Inserisci le informazioni che il genitore fornirà durante la simulazione.");
         subtitle.addClassName(LumoUtility.Margin.Top.XSMALL);
         subtitle.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
         subtitle.getStyle().set("color", "var(--lumo-secondary-text-color)");
@@ -112,15 +112,15 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
                 .set("margin", "0 auto")
                 .set("flex-grow", "1");
 
-        briefingEditor = new TinyMce();
-        briefingEditor.setWidthFull();
-        briefingEditor.setHeight("400px");
-        briefingEditor.configure("plugins: 'link lists', " +
+        genitoriEditor = new TinyMce();
+        genitoriEditor.setWidthFull();
+        genitoriEditor.setHeight("400px");
+        genitoriEditor.configure("plugins: 'link lists', " +
                 "toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link', " +
                 "menubar: true, " +
                 "statusbar: true");
 
-        contentLayout.add(headerSection, briefingEditor);
+        contentLayout.add(headerSection, genitoriEditor);
 
         // 3. FOOTER con pulsanti e crediti
         HorizontalLayout footerLayout = new HorizontalLayout();
@@ -144,9 +144,9 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
 
         // Gestione eventi
         backButton.addClickListener(e ->
-                backButton.getUI().ifPresent(ui -> ui.navigate("descrizione/" + scenarioId)));
+                backButton.getUI().ifPresent(ui -> ui.navigate("briefing/" + scenarioId)));
 
-        nextButton.addClickListener(e -> saveBriefingAndNavigate(nextButton.getUI()));
+        nextButton.addClickListener(e -> saveGenitoriInfoAndNavigate(nextButton.getUI()));
     }
 
     /**
@@ -167,48 +167,45 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
                 throw new NumberFormatException();
             }
 
-            loadExistingBriefing();
+            loadExistingGenitoriInfo();
         } catch (NumberFormatException e) {
             logger.error("ID scenario non valido: {}", parameter, e);
-            event.rerouteToError(NotFoundException.class, "ID scenario "+scenarioId+ " non valido");
+            event.rerouteToError(NotFoundException.class, "ID scenario " + scenarioId + " non valido");
         }
     }
 
     /**
-     * Carica il briefing esistente per lo scenario corrente.
+     * Carica le informazioni per i genitori esistenti per lo scenario corrente.
      */
-    private void loadExistingBriefing() {
+    private void loadExistingGenitoriInfo() {
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
-        if (scenario != null && scenario.getBriefing() != null && !scenario.getBriefing().isEmpty()) {
-            briefingEditor.setValue(scenario.getBriefing());
+        if (scenario != null && scenario.getInfoGenitore() != null && !scenario.getInfoGenitore().isEmpty()) {
+            genitoriEditor.setValue(scenario.getInfoGenitore());
         }
     }
 
     /**
-     * Salva il briefing e naviga alla vista successiva.
+     * Salva le informazioni per i genitori e naviga alla vista successiva.
      *
      * @param uiOptional l'UI corrente (opzionale)
      */
-    private void saveBriefingAndNavigate(Optional<UI> uiOptional) {
+    private void saveGenitoriInfoAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {
             ProgressBar progressBar = new ProgressBar();
             progressBar.setIndeterminate(true);
             getContent().add(progressBar);
 
             try {
-                boolean success = scenarioService.updateScenarioBriefing(
-                        scenarioId, briefingEditor.getValue()
+                boolean success = scenarioService.updateScenarioGenitoriInfo(
+                        scenarioId, genitoriEditor.getValue()
                 );
 
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
                     if (success) {
-                        if(scenarioService.isPediatric(scenarioId))
-                            ui.navigate("infoGenitori/" + scenarioId);
-                        else
-                            ui.navigate("pattoaula/" + scenarioId);
+                        ui.navigate("pattoaula/" + scenarioId);
                     } else {
-                        Notification.show("Errore durante il salvataggio del briefing",
+                        Notification.show("Errore durante il salvataggio delle informazioni per i genitori",
                                 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     }
                 });
@@ -217,7 +214,7 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
                     getContent().remove(progressBar);
                     Notification.show("Errore: " + e.getMessage(),
                             5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    logger.error("Errore durante il salvataggio del briefing", e);
+                    logger.error("Errore durante il salvataggio delle informazioni per i genitori", e);
                 });
             }
         });

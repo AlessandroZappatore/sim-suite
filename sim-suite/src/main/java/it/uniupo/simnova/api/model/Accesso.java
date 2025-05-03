@@ -26,6 +26,9 @@ public class Accesso {
      */
     private String posizione;
 
+    private String lato;
+
+    private Integer misura;
     /**
      * Costruttore per creare un nuovo accesso venoso.
      *
@@ -33,10 +36,12 @@ public class Accesso {
      * @param tipologia tipologia dell'accesso (es. "CVC", "Agocannula")
      * @param posizione posizione anatomica (es. "Giugulare destra", "Cubitale sinistro")
      */
-    public Accesso(int idAccesso, String tipologia, String posizione) {
+    public Accesso(int idAccesso, String tipologia, String posizione, String lato, Integer misura) {
         this.idAccesso = idAccesso;
         this.tipologia = tipologia;
         this.posizione = posizione;
+        this.lato = lato;
+        this.misura = misura;
     }
 
     /**
@@ -93,6 +98,22 @@ public class Accesso {
         this.posizione = posizione;
     }
 
+    public String getLato() {
+        return lato;
+    }
+
+    public void setLato(String lato) {
+        this.lato = lato;
+    }
+
+    public Integer getMisura() {
+        return misura;
+    }
+
+    public void setMisura(Integer misura) {
+        this.misura = misura;
+    }
+
     /**
      * Restituisce una rappresentazione stringa dell'oggetto.
      *
@@ -104,6 +125,8 @@ public class Accesso {
                 "idAccesso=" + idAccesso +
                 ", tipologia='" + tipologia + '\'' +
                 ", posizione='" + posizione + '\'' +
+                ", lato='" + lato + '\'' +
+                ", misura=" + misura +
                 '}';
     }
 }

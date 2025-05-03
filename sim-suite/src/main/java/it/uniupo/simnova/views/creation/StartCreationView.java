@@ -67,6 +67,10 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
      */
     private String scenarioType;
 
+    private final TextField authorField;
+
+    private final ComboBox<String> typeField;
+
     /**
      * Costruttore che inizializza l'interfaccia utente.
      *
@@ -110,9 +114,13 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
 
         // Campi del form
         scenarioTitle = createTextField("TITOLO SCENARIO", "Inserisci il titolo dello scenario");
+        scenarioTitle.setRequired(true);
         patientName = createTextField("NOME PAZIENTE", "Inserisci il nome del paziente");
+        patientName.setRequired(true);
         pathology = createTextField("PATOLOGIA/MALATTIA", "Inserisci la patologia");
-
+        pathology.setRequired(true);
+        authorField = createTextField("AUTORE", "Inserisci il tuo nome");
+        authorField.setRequired(true);
         // Campo durata timer
         durationField = new ComboBox<>("DURATA SIMULAZIONE (minuti)");
         durationField.setItems(5, 10, 15, 20, 25, 30);
@@ -120,12 +128,23 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         durationField.setWidthFull();
         durationField.addClassName(LumoUtility.Margin.Top.LARGE);
         durationField.getStyle().set("max-width", "500px");
+        durationField.setRequired(true);
+
+        typeField = new ComboBox<>("TIPO SCENARIO");
+        typeField.setItems("Adulto", "Pediatrico", "Neonatale", "Prematuro");
+        typeField.setValue("Adulto");
+        typeField.setWidthFull();
+        typeField.addClassName(LumoUtility.Margin.Top.LARGE);
+        typeField.getStyle().set("max-width", "500px");
+        typeField.setRequired(true);
 
         contentLayout.add(
                 scenarioTitle,
                 patientName,
                 pathology,
-                durationField
+                authorField,
+                durationField,
+                typeField
         );
 
         // 3. FOOTER con pulsanti e crediti
@@ -134,6 +153,8 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         footerLayout.setPadding(true);
         footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        footerLayout.addClassName(LumoUtility.Border.TOP);
+        footerLayout.getStyle().set("border-color", "var(--lumo-contrast-10pct)");
 
         Button nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
         nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -183,7 +204,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
      * @return true se tutti i campi sono validi, false altrimenti
      */
     private boolean validateFields() {
-        if (scenarioTitle.isEmpty() || patientName.isEmpty() || pathology.isEmpty() || durationField.isEmpty()) {
+        if (scenarioTitle.isEmpty() || patientName.isEmpty() || pathology.isEmpty() || durationField.isEmpty() || authorField.isEmpty()) {
             Notification.show("Compila tutti i campi obbligatori", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
             return false;
         }
@@ -206,7 +227,9 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
                                 scenarioTitle.getValue(),
                                 patientName.getValue(),
                                 pathology.getValue(),
-                                durationField.getValue().floatValue()
+                                authorField.getValue(),
+                                durationField.getValue().floatValue(),
+                                typeField.getValue()
                         );
                         break;
                     case "advancedscenario":
@@ -214,7 +237,9 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
                                 scenarioTitle.getValue(),
                                 patientName.getValue(),
                                 pathology.getValue(),
-                                durationField.getValue().floatValue()
+                                authorField.getValue(),
+                                durationField.getValue().floatValue(),
+                                typeField.getValue()
                         );
                         break;
                     case "patientsimulatedscenario":
@@ -222,7 +247,9 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
                                 scenarioTitle.getValue(),
                                 patientName.getValue(),
                                 pathology.getValue(),
-                                durationField.getValue().floatValue()
+                                authorField.getValue(),
+                                durationField.getValue().floatValue(),
+                                typeField.getValue()
                         );
                         break;
                     default:
@@ -235,7 +262,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
 
                 if (scenarioId > 0) {
                     logger.info("Navigando a descrizione/{}", scenarioId);
-                    ui.navigate("descrizione/" + scenarioId);
+                    ui.navigate("target/" + scenarioId);
                 } else {
                     Notification.show("Errore durante il salvataggio dello scenario",
                             3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);

@@ -37,6 +37,14 @@ public class PazienteT0 {
      */
     private Integer SpO2;
     /**
+     * Percentuale di ossigeno somministrato al paziente.
+     */
+    private Integer FiO2;
+    /**
+     * Litri di ossigeno somministrati al paziente.
+     */
+    private Float LitriO2;
+    /**
      * Pressione parziale di CO2 espirata del paziente.
      */
     private Integer EtCO2;
@@ -52,22 +60,14 @@ public class PazienteT0 {
      * Lista degli accessi arteriosi del paziente.
      */
     private List<Accesso> accessiArteriosi;
-
     /**
-     * Costruttore completo per creare un nuovo paziente T0.
-     *
-     * @param idPaziente       l'identificativo univoco del paziente
-     * @param PA               la pressione arteriosa del paziente
-     * @param FC               la frequenza cardiaca del paziente
-     * @param RR               la frequenza respiratoria del paziente
-     * @param t                la temperatura del paziente
-     * @param spO2             la saturazione di ossigeno del paziente
-     * @param etCO2            la pressione parziale di CO2 espirata del paziente
-     * @param monitor          il monitoraggio del paziente
-     * @param accessiVenosi    la lista degli accessi venosi del paziente
-     * @param accessiArteriosi la lista degli accessi arteriosi del paziente
+     * Presidi al T0.
      */
-    public PazienteT0(int idPaziente, String PA, Integer FC, Integer RR, double t, Integer spO2, Integer etCO2, String monitor, List<Accesso> accessiVenosi, List<Accesso> accessiArteriosi) {
+    private String presidi;
+
+
+    public PazienteT0(int idPaziente, String PA, Integer FC, Integer RR, double t, Integer spO2, Integer fiO2, Float litriO2, Integer etCO2,
+                      String monitor, List<Accesso> accessiVenosi, List<Accesso> accessiArteriosi, String presidi) {
         this.idPaziente = idPaziente;
 
         if (PA != null) {
@@ -80,31 +80,36 @@ public class PazienteT0 {
             this.PA = null;
         }
 
-        if(FC < 0) {
+        if (FC < 0) {
             throw new IllegalArgumentException("FC non può essere negativa");
-        }
-        else this.FC = FC;
+        } else this.FC = FC;
 
-        if(RR < 0) {
+        if (RR < 0) {
             throw new IllegalArgumentException("RR non può essere negativa");
-        }
-        else this.RR = RR;
+        } else this.RR = RR;
 
         this.T = t;
 
-        if(spO2 < 0 || spO2 > 100) {
+        if (spO2 < 0 || spO2 > 100) {
             throw new IllegalArgumentException("SpO2 deve essere compresa tra 0 e 100");
-        }
-        else SpO2 = spO2;
+        } else SpO2 = spO2;
 
-        if(etCO2 < 0) {
+        if (fiO2 < 0 || fiO2 > 100) {
+            throw new IllegalArgumentException("FiO2 deve essere compresa tra 0 e 100");
+        } else FiO2 = fiO2;
+
+        if (litriO2 < 0) {
+            throw new IllegalArgumentException("LitriO2 non può essere negativo");
+        } else LitriO2 = litriO2;
+
+        if (etCO2 < 0) {
             throw new IllegalArgumentException("EtCO2 non può essere negativa");
-        }
-        else EtCO2 = etCO2;
+        } else EtCO2 = etCO2;
 
         Monitor = monitor;
         this.accessiVenosi = accessiVenosi;
         this.accessiArteriosi = accessiArteriosi;
+        this.presidi = presidi;
     }
 
     /**
@@ -166,10 +171,9 @@ public class PazienteT0 {
      * @param FC la nuova frequenza cardiaca
      */
     public void setFC(Integer FC) {
-        if(FC < 0) {
+        if (FC < 0) {
             throw new IllegalArgumentException("FC non può essere negativa");
-        }
-        else this.FC = FC;
+        } else this.FC = FC;
     }
 
     /**
@@ -187,10 +191,9 @@ public class PazienteT0 {
      * @param RR la nuova frequenza respiratoria
      */
     public void setRR(Integer RR) {
-        if(RR < 0) {
+        if (RR < 0) {
             throw new IllegalArgumentException("RR non può essere negativa");
-        }
-        else this.RR = RR;
+        } else this.RR = RR;
     }
 
     /**
@@ -226,10 +229,9 @@ public class PazienteT0 {
      * @param spO2 la nuova saturazione di ossigeno
      */
     public void setSpO2(Integer spO2) {
-        if(spO2 < 0 || spO2 > 100) {
+        if (spO2 < 0 || spO2 > 100) {
             throw new IllegalArgumentException("SpO2 deve essere compresa tra 0 e 100");
-        }
-        else SpO2 = spO2;
+        } else SpO2 = spO2;
     }
 
     /**
@@ -247,10 +249,9 @@ public class PazienteT0 {
      * @param etCO2 la nuova pressione parziale di CO2 espirata
      */
     public void setEtCO2(Integer etCO2) {
-        if(etCO2 < 0) {
+        if (etCO2 < 0) {
             throw new IllegalArgumentException("EtCO2 non può essere negativa");
-        }
-        else EtCO2 = etCO2;
+        } else EtCO2 = etCO2;
     }
 
     /**
@@ -307,6 +308,34 @@ public class PazienteT0 {
         this.accessiArteriosi = accessiArteriosi;
     }
 
+    public String getPresidi() {
+        return presidi;
+    }
+
+    public void setPresidi(String presidi) {
+        this.presidi = presidi;
+    }
+
+    public Integer getFiO2() {
+        return FiO2;
+    }
+
+    public void setFiO2(Integer fiO2) {
+        if (fiO2 < 0 || fiO2 > 100) {
+            throw new IllegalArgumentException("FiO2 deve essere compresa tra 0 e 100");
+        } else FiO2 = fiO2;
+    }
+
+    public Float getLitriO2() {
+        return LitriO2;
+    }
+
+    public void setLitriO2(Float litriO2) {
+        if (litriO2 < 0) {
+            throw new IllegalArgumentException("LitriO2 non può essere negativo");
+        } else LitriO2 = litriO2;
+    }
+
     /**
      * Restituisce una rappresentazione stringa dell'oggetto.
      *
@@ -316,15 +345,18 @@ public class PazienteT0 {
     public String toString() {
         return "PazienteT0{" +
                 "idPaziente=" + idPaziente +
-                ", PA=" + PA +
+                ", PA='" + PA + '\'' +
                 ", FC=" + FC +
                 ", RR=" + RR +
                 ", T=" + T +
                 ", SpO2=" + SpO2 +
+                ", FiO2=" + FiO2 +
+                ", LitriO2=" + LitriO2 +
                 ", EtCO2=" + EtCO2 +
                 ", Monitor='" + Monitor + '\'' +
                 ", accessiVenosi=" + accessiVenosi +
                 ", accessiArteriosi=" + accessiArteriosi +
+                ", presidi='" + presidi + '\'' +
                 '}';
     }
 }

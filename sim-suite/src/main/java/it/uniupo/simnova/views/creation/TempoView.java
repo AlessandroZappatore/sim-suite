@@ -247,6 +247,8 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         footerLayout.addClassName(LumoUtility.Margin.Top.LARGE); // Aggiunto margine sopra il footer
+        footerLayout.addClassName(LumoUtility.Border.TOP);
+        footerLayout.getStyle().set("border-color", "var(--lumo-contrast-10pct)");
 
         // Pulsante per salvare e andare avanti
         nextButton = new Button("Salva e Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
@@ -1211,6 +1213,8 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             double rawT = tField.getValue() != null ? tField.getValue() : 0.0;
             double t = Math.round(rawT * 10.0) / 10.0;
             Integer spo2 = spo2Field.getValue() != null ? spo2Field.getValue().intValue() : null;
+            Integer fiO2 = null; // Non usato in questa sezione
+            Float litriO2 = null; // Non usato in questa sezione
             Integer etco2 = etco2Field.getValue() != null ? etco2Field.getValue().intValue() : null;
 
             String actionDescription = actionDetailsArea.getValue() != null ? actionDetailsArea.getValue().trim() : "";
@@ -1218,7 +1222,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             int nextTimeIfNo = timeIfNoField.getValue() != null ? timeIfNoField.getValue() : 0;
             String additionalDetails = additionalDetailsArea.getValue() != null ? additionalDetailsArea.getValue().trim() : "";
             long timerSeconds = (time != null) ? time.toSecondOfDay() : 0L;
-
+            String ruoloGenitore = null; // Non usato in questa sezione
             // Raccoglie i parametri aggiuntivi come List<ParametroAggiuntivo>
             List<ParametroAggiuntivo> additionalParamsList = new ArrayList<>();
             customParameters.forEach((key, field) -> {
@@ -1264,12 +1268,15 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                     rr,
                     t,
                     spo2,
+                    fiO2,
+                    litriO2,
                     etco2,
                     actionDescription,
                     nextTimeIfYes,
                     nextTimeIfNo,
                     additionalDetails.isEmpty() ? null : additionalDetails,
-                    timerSeconds
+                    timerSeconds,
+                    ruoloGenitore
             );
 
             tempo.setParametriAggiuntivi(additionalParamsList);
