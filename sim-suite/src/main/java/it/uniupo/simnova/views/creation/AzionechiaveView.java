@@ -4,6 +4,7 @@ import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -13,7 +14,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
-import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
@@ -24,7 +25,10 @@ import it.uniupo.simnova.views.home.CreditsComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Vista per la gestione delle azioni chiave nello scenario di simulazione.
@@ -50,9 +54,17 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
      */
     private Integer scenarioId;
     /**
-     * Area di testo per l'inserimento delle azioni chiave.
+     * Layout contenente le caselle di testo per le azioni chiave.
      */
-    private final TextArea azioniChiaveArea;
+    private final VerticalLayout actionFieldsContainer;
+    /**
+     * Lista dei campi di testo per le azioni chiave.
+     */
+    private final List<TextField> actionFields = new ArrayList<>();
+    /**
+     * Delimitatore utilizzato per separare le azioni chiave nella stringa.
+     */
+    private static final String DELIMITER = ";";
     /**
      * Logger per la registrazione degli eventi.
      */
@@ -85,7 +97,7 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
         customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
         customHeader.add(backButton, header);
 
-        // 2. CONTENUTO PRINCIPALE con area di testo
+        // 2. CONTENUTO PRINCIPALE con azioni chiave dinamiche
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.setWidth("100%");
         contentLayout.setMaxWidth("800px");
@@ -96,21 +108,28 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
                 .set("margin", "0 auto")
                 .set("flex-grow", "1");
 
-        // Area di testo per le azioni chiave
-        azioniChiaveArea = new TextArea("AZIONI CHIAVE E STRUMENTI VALUTATIVI");
-        azioniChiaveArea.setPlaceholder("Inserisci le azioni da valutare durante il debriefing...");
-        azioniChiaveArea.setWidthFull();
-        azioniChiaveArea.setMinHeight("300px");
-        azioniChiaveArea.getStyle().set("max-width", "100%");
-        azioniChiaveArea.addClassName(LumoUtility.Margin.Top.LARGE);
+        H2 title = new H2("AZIONI CHIAVE E STRUMENTI VALUTATIVI");
+        title.addClassName(LumoUtility.Margin.Bottom.NONE);
+        title.getStyle().set("text-align", "center");
+        title.setWidthFull();
 
-        // Istruzioni aggiuntive
-        Paragraph instructions = new Paragraph("Queste azioni saranno valutate e discusse durante il debriefing");
-        instructions.addClassName(LumoUtility.TextColor.SECONDARY);
-        instructions.addClassName(LumoUtility.FontSize.SMALL);
-        instructions.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
+        Paragraph subtitle = new Paragraph("Queste azioni saranno valutate e discusse durante il debriefing");
+        subtitle.addClassName(LumoUtility.Margin.Top.XSMALL);
+        subtitle.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
+        subtitle.getStyle().set("color", "var(--lumo-secondary-text-color)");
 
-        contentLayout.add(instructions, azioniChiaveArea);
+        // Container per le azioni chiave
+        actionFieldsContainer = new VerticalLayout();
+        actionFieldsContainer.setWidthFull();
+        actionFieldsContainer.setPadding(false);
+        actionFieldsContainer.setSpacing(true);
+
+        // Pulsante per aggiungere nuove azioni chiave
+        Button addButton = new Button("Aggiungi azione chiave", new Icon(VaadinIcon.PLUS));
+        addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        addButton.addClickListener(e -> addNewActionField());
+
+        contentLayout.add(title, subtitle, actionFieldsContainer, addButton);
 
         // 3. FOOTER con pulsanti e crediti
         HorizontalLayout footerLayout = new HorizontalLayout();
@@ -137,6 +156,31 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
                 backButton.getUI().ifPresent(ui -> ui.navigate("pattoaula/" + scenarioId)));
 
         nextButton.addClickListener(e -> saveAzioniChiaveAndNavigate(nextButton.getUI()));
+    }
+
+    /**
+     * Aggiunge un nuovo campo di input per le azioni chiave.
+     */
+    private void addNewActionField() {
+        HorizontalLayout fieldLayout = new HorizontalLayout();
+        fieldLayout.setWidthFull();
+        fieldLayout.setSpacing(true);
+        fieldLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        TextField actionField = new TextField();
+        actionField.setWidthFull();
+        actionField.setPlaceholder("Inserisci un'azione chiave...");
+        actionFields.add(actionField);
+
+        Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
+        removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_ICON);
+        removeButton.addClickListener(e -> {
+            actionFields.remove(actionField);
+            actionFieldsContainer.remove(fieldLayout);
+        });
+
+        fieldLayout.add(actionField, removeButton);
+        actionFieldsContainer.add(fieldLayout);
     }
 
     /**
@@ -170,7 +214,36 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
     private void loadExistingAzioniChiave() {
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
         if (scenario != null && scenario.getAzioneChiave() != null && !scenario.getAzioneChiave().isEmpty()) {
-            azioniChiaveArea.setValue(scenario.getAzioneChiave());
+            String[] actions = scenario.getAzioneChiave().split(DELIMITER);
+
+            for (String action : actions) {
+                if (!action.trim().isEmpty()) {
+                    HorizontalLayout fieldLayout = new HorizontalLayout();
+                    fieldLayout.setWidthFull();
+                    fieldLayout.setSpacing(true);
+                    fieldLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+
+                    TextField actionField = new TextField();
+                    actionField.setWidthFull();
+                    actionField.setValue(action.trim());
+                    actionFields.add(actionField);
+
+                    Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
+                    removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_ICON);
+                    removeButton.addClickListener(e -> {
+                        actionFields.remove(actionField);
+                        actionFieldsContainer.remove(fieldLayout);
+                    });
+
+                    fieldLayout.add(actionField, removeButton);
+                    actionFieldsContainer.add(fieldLayout);
+                }
+            }
+        }
+
+        // Se non ci sono azioni, aggiungiamo un campo vuoto
+        if (actionFields.isEmpty()) {
+            addNewActionField();
         }
     }
 
@@ -186,8 +259,14 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
             getContent().add(progressBar);
 
             try {
+                // Concateniamo tutte le azioni chiave in una singola stringa separata da punto e virgola
+                String azioniChiave = actionFields.stream()
+                        .map(TextField::getValue)
+                        .filter(value -> value != null && !value.trim().isEmpty())
+                        .collect(Collectors.joining(DELIMITER));
+
                 boolean success = scenarioService.updateScenarioAzioneChiave(
-                        scenarioId, azioniChiaveArea.getValue()
+                        scenarioId, azioniChiave
                 );
 
                 ui.accessSynchronously(() -> {

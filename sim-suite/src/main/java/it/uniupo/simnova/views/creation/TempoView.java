@@ -240,14 +240,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         contentLayout.add(pageTitle, instructionText, timeSectionsContainer, addTimeButton);
 
         // 3. FOOTER con crediti e pulsante Avanti
-        HorizontalLayout footerLayout = new HorizontalLayout();
-        footerLayout.setWidthFull();
-        footerLayout.setPadding(true);
-        footerLayout.setSpacing(true); // Aggiunto spacing
-        footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        footerLayout.addClassName(LumoUtility.Margin.Top.LARGE); // Aggiunto margine sopra il footer
-        footerLayout.addClassName(LumoUtility.Border.TOP);
+        HorizontalLayout footerLayout = getHorizontalLayout();
         footerLayout.getStyle().set("border-color", "var(--lumo-contrast-10pct)");
 
         // Pulsante per salvare e andare avanti
@@ -264,6 +257,18 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
 
         // Assemblaggio finale: aggiunta header, contenuto e footer al layout principale
         mainLayout.add(customHeader, contentLayout, footerLayout);
+    }
+
+    private static HorizontalLayout getHorizontalLayout() {
+        HorizontalLayout footerLayout = new HorizontalLayout();
+        footerLayout.setWidthFull();
+        footerLayout.setPadding(true);
+        footerLayout.setSpacing(true); // Aggiunto spacing
+        footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        footerLayout.addClassName(LumoUtility.Margin.Top.LARGE); // Aggiunto margine sopra il footer
+        footerLayout.addClassName(LumoUtility.Border.TOP);
+        return footerLayout;
     }
 
     /**

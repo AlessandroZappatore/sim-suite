@@ -24,6 +24,7 @@ import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
+import it.uniupo.simnova.views.home.ValidationError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -176,7 +177,7 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
                 .set("flex-grow", "1");
 
         // Intestazione Sezione
-        H2 title = new H2("Destinatari dello Scenario");
+        H2 title = new H2("DESTINATARIO DELLO SCENARIO");
         title.addClassNames(LumoUtility.Margin.Bottom.NONE, LumoUtility.TextAlignment.CENTER);
         title.setWidthFull();
 
@@ -327,7 +328,8 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
         layout.setSpacing(true);
         Paragraph label = createBoldParagraph("Anno accademico:");
         HorizontalLayout radioLayout = new HorizontalLayout(studentiMedicinaYearRadio);
-        radioLayout.setPadding(false); radioLayout.setSpacing(true);
+        radioLayout.setPadding(false);
+        radioLayout.setSpacing(true);
         studentiMedicinaYearRadio.setItems(1, 2, 3, 4, 5, 6);
         studentiMedicinaYearRadio.setRequired(true);
         layout.add(label, radioLayout);
@@ -336,10 +338,12 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
 
     private void setupStudentiInfermieristicaOptions() {
         VerticalLayout layout = new VerticalLayout();
-        layout.setPadding(false); layout.setSpacing(true);
+        layout.setPadding(false);
+        layout.setSpacing(true);
         Paragraph label = createBoldParagraph("Anno accademico:");
         HorizontalLayout radioLayout = new HorizontalLayout(studentiInfermieristicaYearRadio);
-        radioLayout.setPadding(false); radioLayout.setSpacing(true);
+        radioLayout.setPadding(false);
+        radioLayout.setSpacing(true);
         studentiInfermieristicaYearRadio.setItems(1, 2, 3);
         studentiInfermieristicaYearRadio.setRequired(true);
         layout.add(label, radioLayout);
@@ -358,10 +362,12 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
 
     private void setupStudentiOdontoiatriaOptions() {
         VerticalLayout layout = new VerticalLayout();
-        layout.setPadding(false); layout.setSpacing(true);
+        layout.setPadding(false);
+        layout.setSpacing(true);
         Paragraph label = createBoldParagraph("Anno accademico:");
         HorizontalLayout radioLayout = new HorizontalLayout(studentiOdontoiatriaYearRadio);
-        radioLayout.setPadding(false); radioLayout.setSpacing(true);
+        radioLayout.setPadding(false);
+        radioLayout.setSpacing(true);
         studentiOdontoiatriaYearRadio.setItems(1, 2, 3, 4, 5);
         studentiOdontoiatriaYearRadio.setRequired(true);
         layout.add(label, radioLayout);
@@ -387,7 +393,7 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
     private void addListeners() {
         // Navigazione Indietro
         backButton.addClickListener(e ->
-                backButton.getUI().ifPresent(ui -> ui.navigate("descrizione/" + scenarioId)));
+                backButton.getUI().ifPresent(ui -> ui.navigate("startCreation/" + scenarioId)));
 
         // Navigazione Avanti (con salvataggio)
         nextButton.addClickListener(e -> saveTargetAndNavigate(e.getSource().getUI()));
@@ -407,13 +413,27 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
         if (selectedTarget == null) return;
 
         switch (selectedTarget) {
-            case MEDICI_ASSISTENTI: mediciAssistentiOptionsLayout.setVisible(true); break;
-            case MEDICI_SPECIALISTI: mediciSpecialistiOptionsLayout.setVisible(true); break;
-            case STUDENTI_MEDICINA: studentiMedicinaOptionsLayout.setVisible(true); break;
-            case STUDENTI_INFERMIERISTICA: studentiInfermieristicaOptionsLayout.setVisible(true); break;
-            case INFERMIERI_SPECIALIZZATI: infSpecOptionsLayout.setVisible(true); break;
-            case STUDENTI_ODONTOIATRIA: studentiOdontoiatriaOptionsLayout.setVisible(true); break;
-            case ALTRO: altroOptionsLayout.setVisible(true); break;
+            case MEDICI_ASSISTENTI:
+                mediciAssistentiOptionsLayout.setVisible(true);
+                break;
+            case MEDICI_SPECIALISTI:
+                mediciSpecialistiOptionsLayout.setVisible(true);
+                break;
+            case STUDENTI_MEDICINA:
+                studentiMedicinaOptionsLayout.setVisible(true);
+                break;
+            case STUDENTI_INFERMIERISTICA:
+                studentiInfermieristicaOptionsLayout.setVisible(true);
+                break;
+            case INFERMIERI_SPECIALIZZATI:
+                infSpecOptionsLayout.setVisible(true);
+                break;
+            case STUDENTI_ODONTOIATRIA:
+                studentiOdontoiatriaOptionsLayout.setVisible(true);
+                break;
+            case ALTRO:
+                altroOptionsLayout.setVisible(true);
+                break;
         }
     }
 
@@ -430,11 +450,21 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
         // Imposta required=true solo per i campi del target selezionato
         if (selectedTarget == null) return;
         switch (selectedTarget) {
-            case MEDICI_ASSISTENTI: mediciAssistentiYearRadio.setRequired(true); break;
-            case STUDENTI_MEDICINA: studentiMedicinaYearRadio.setRequired(true); break;
-            case STUDENTI_INFERMIERISTICA: studentiInfermieristicaYearRadio.setRequired(true); break;
-            case STUDENTI_ODONTOIATRIA: studentiOdontoiatriaYearRadio.setRequired(true); break;
-            case ALTRO: altroField.setRequired(true); break;
+            case MEDICI_ASSISTENTI:
+                mediciAssistentiYearRadio.setRequired(true);
+                break;
+            case STUDENTI_MEDICINA:
+                studentiMedicinaYearRadio.setRequired(true);
+                break;
+            case STUDENTI_INFERMIERISTICA:
+                studentiInfermieristicaYearRadio.setRequired(true);
+                break;
+            case STUDENTI_ODONTOIATRIA:
+                studentiOdontoiatriaYearRadio.setRequired(true);
+                break;
+            case ALTRO:
+                altroField.setRequired(true);
+                break;
             case MEDICI_SPECIALISTI:
                 // Il campo testo "Altro" è richiesto solo se il suo checkbox è selezionato (gestito nel listener)
                 // Potremmo voler richiedere che ALMENO un checkbox sia selezionato, ma la validazione manuale diventa complessa.
@@ -471,27 +501,27 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
 
         // Validazione campi condizionali (esempio)
         if (MEDICI_ASSISTENTI.equals(selectedTarget) && mediciAssistentiYearRadio.isEmpty()) {
-            showValidationError(mediciAssistentiYearRadio, "Selezionare l'anno per i Medici Assistenti.");
+            ValidationError.showValidationError(mediciAssistentiYearRadio, "Selezionare l'anno per i Medici Assistenti.");
             return;
         }
         if (STUDENTI_MEDICINA.equals(selectedTarget) && studentiMedicinaYearRadio.isEmpty()) {
-            showValidationError(studentiMedicinaYearRadio, "Selezionare l'anno per gli Studenti di Medicina.");
+            ValidationError.showValidationError(studentiMedicinaYearRadio, "Selezionare l'anno per gli Studenti di Medicina.");
             return;
         }
         if (STUDENTI_INFERMIERISTICA.equals(selectedTarget) && studentiInfermieristicaYearRadio.isEmpty()) {
-            showValidationError(studentiInfermieristicaYearRadio, "Selezionare l'anno per gli Studenti di Infermieristica.");
+            ValidationError.showValidationError(studentiInfermieristicaYearRadio, "Selezionare l'anno per gli Studenti di Infermieristica.");
             return;
         }
         if (STUDENTI_ODONTOIATRIA.equals(selectedTarget) && studentiOdontoiatriaYearRadio.isEmpty()) {
-            showValidationError(studentiOdontoiatriaYearRadio, "Selezionare l'anno per gli Studenti di Odontoiatria.");
+            ValidationError.showValidationError(studentiOdontoiatriaYearRadio, "Selezionare l'anno per gli Studenti di Odontoiatria.");
             return;
         }
         if (ALTRO.equals(selectedTarget) && altroField.isEmpty()) {
-            showValidationError(altroField, "Specificare il tipo di destinatario 'Altro'.");
+            ValidationError.showValidationError(altroField, "Specificare il tipo di destinatario 'Altro'.");
             return;
         }
         if (MEDICI_SPECIALISTI.equals(selectedTarget) && mediciSpecialistiAltroChk.getValue() && mediciSpecialistiAltroField.isEmpty()) {
-            showValidationError(mediciSpecialistiAltroField, "Specificare la specializzazione 'Altro'.");
+            ValidationError.showValidationError(mediciSpecialistiAltroField, "Specificare la specializzazione 'Altro'.");
             return;
         }
 
@@ -505,7 +535,6 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
 
             if (success) {
                 logger.info("Target aggiornato con successo per scenario {}", scenarioId);
-                Notification.show("Destinatari salvati.", 2000, Notification.Position.BOTTOM_START);
                 ui.ifPresent(theUI -> theUI.navigate("descrizione/" + scenarioId));
             } else {
                 logger.error("Salvataggio target fallito per scenario {} tramite updateScenarioTarget.", scenarioId);
@@ -518,20 +547,6 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
     }
-
-    // Mostra errore di validazione e imposta lo stato invalid
-    private void showValidationError(com.vaadin.flow.component.Component field, String message) {
-        Notification.show(message, 3000, Notification.Position.MIDDLE)
-                .addThemeVariants(NotificationVariant.LUMO_ERROR);
-        if (field instanceof com.vaadin.flow.component.HasValidation) {
-            ((com.vaadin.flow.component.HasValidation) field).setInvalid(true);
-            ((com.vaadin.flow.component.HasValidation) field).setErrorMessage(message); // Imposta anche il messaggio sul campo
-        }
-        if (field instanceof com.vaadin.flow.component.Focusable) {
-            ((com.vaadin.flow.component.Focusable<?>) field).focus();
-        }
-    }
-
 
     // Costruisce la stringa target leggendo manualmente i valori dai componenti
     private String buildTargetStringManually(String selectedTarget) {
@@ -672,7 +687,9 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
                     if (targetString.contains(":")) {
                         try {
                             mediciAssistentiYearRadio.setValue(Integer.parseInt(trim));
-                        } catch (NumberFormatException e) { logger.warn("Anno non valido per Medici Assistenti: '{}'", trim); }
+                        } catch (NumberFormatException e) {
+                            logger.warn("Anno non valido per Medici Assistenti: '{}'", trim);
+                        }
                     }
                     break;
                 case MEDICI_SPECIALISTI:
@@ -708,14 +725,18 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
                     if (targetString.contains(":")) {
                         try {
                             studentiMedicinaYearRadio.setValue(Integer.parseInt(trim));
-                        } catch (NumberFormatException e) { logger.warn("Anno non valido per Studenti Medicina: '{}'", trim); }
+                        } catch (NumberFormatException e) {
+                            logger.warn("Anno non valido per Studenti Medicina: '{}'", trim);
+                        }
                     }
                     break;
                 case STUDENTI_INFERMIERISTICA:
                     if (targetString.contains(":")) {
                         try {
                             studentiInfermieristicaYearRadio.setValue(Integer.parseInt(trim));
-                        } catch (NumberFormatException e) { logger.warn("Anno non valido per Studenti Infermieristica: '{}'", trim); }
+                        } catch (NumberFormatException e) {
+                            logger.warn("Anno non valido per Studenti Infermieristica: '{}'", trim);
+                        }
                     }
                     break;
                 case INFERMIERI_SPECIALIZZATI:
@@ -729,7 +750,9 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
                     if (targetString.contains(":")) {
                         try {
                             studentiOdontoiatriaYearRadio.setValue(Integer.parseInt(trim));
-                        } catch (NumberFormatException e) { logger.warn("Anno non valido per Studenti Odontoiatria: '{}'", trim); }
+                        } catch (NumberFormatException e) {
+                            logger.warn("Anno non valido per Studenti Odontoiatria: '{}'", trim);
+                        }
                     }
                     break;
                 case ALTRO:
@@ -755,7 +778,6 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
 
     // Resetta tutti i campi a uno stato vuoto/default
     private void resetAllFields() {
-        // targetRadioGroup.clear(); // Non pulire questo qui, lo gestisce il chiamante
         mediciAssistentiYearRadio.clear();
         studentiMedicinaYearRadio.clear();
         studentiInfermieristicaYearRadio.clear();
@@ -779,10 +801,10 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
         updateFieldsRequiredStatus(null);
 
         // Resetta stato invalidazione
-       // Resetta stato invalidazione
-       targetRadioGroup.setInvalid(false);
+        // Resetta stato invalidazione
+        targetRadioGroup.setInvalid(false);
 
-       // Gestisci i campi individualmente invece di usare un cast generico
+        // Gestisci i campi individualmente invece di usare un cast generico
         mediciAssistentiYearRadio.setInvalid(false);
         studentiMedicinaYearRadio.setInvalid(false);
         studentiInfermieristicaYearRadio.setInvalid(false);

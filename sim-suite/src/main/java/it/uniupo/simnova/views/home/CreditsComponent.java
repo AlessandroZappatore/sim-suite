@@ -16,8 +16,8 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
  */
 public class CreditsComponent extends VerticalLayout {
 
-    final String version = "1.0.0";
-    final String date = "30/04/2025";
+    final String VERSION = "1.0.0";
+    final String DATE = "04/05/2025";
 
     /**
      * Crea una nuova istanza del componente crediti.
@@ -91,14 +91,14 @@ public class CreditsComponent extends VerticalLayout {
         Icon versionIcon = new Icon(VaadinIcon.INFO_CIRCLE);
         versionIcon.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
 
-        Span versionText = new Span("Versione: " + version);
+        Span versionText = new Span("Versione: " + VERSION);
         versionText.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
 
         Icon dateIcon = new Icon(VaadinIcon.CALENDAR);
         dateIcon.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
         dateIcon.getStyle().set("margin-left", "8px");
 
-        Span dateText = new Span("Data: " + date);
+        Span dateText = new Span("Data: " + DATE);
         dateText.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
 
         versionRow.add(versionIcon, versionText, dateIcon, dateText);

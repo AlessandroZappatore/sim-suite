@@ -10,6 +10,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.formlayout.FormLayout.ResponsiveStep;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
@@ -124,6 +125,17 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                 .set("margin", "0 auto")
                 .set("flex-grow", "1");
 
+        H2 title = new H2("ESAMI E REFERTI");
+        title.addClassName(LumoUtility.Margin.Bottom.NONE);
+        title.getStyle().set("text-align", "center");
+        title.setWidthFull();
+
+        Paragraph subtitle = new Paragraph("Aggiungi gli esami e i referti clinici per il tuo scenario di simulazione. Puoi caricare file multimediali e inserire referti testuali.");
+        subtitle.addClassName(LumoUtility.Margin.Top.XSMALL);
+        subtitle.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
+        subtitle.addClassName(LumoUtility.TextAlignment.CENTER);
+        subtitle.getStyle().set("color", "var(--lumo-secondary-text-color)");
+
         rowsContainer = new VerticalLayout();
         rowsContainer.setWidthFull();
         rowsContainer.setSpacing(true);
@@ -133,7 +145,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         addButton.addClassName(LumoUtility.Margin.Top.MEDIUM);
         addButton.addClickListener(event -> addNewRow());
 
-        contentLayout.add(rowsContainer, addButton);
+        contentLayout.add(title, subtitle, rowsContainer, addButton);
 
         // 3. FOOTER con pulsante avanti
         HorizontalLayout footerLayout = new HorizontalLayout();
@@ -866,18 +878,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                     mediaLower.endsWith(".webp")) {
 
                     // Crea un'immagine per l'anteprima
-                    StreamResource resource = new StreamResource(media, () -> {
-                        try {
-                            return fileStorageService.readFile(media);
-                        } catch (Exception e) {
-                            logger.error("Errore nel caricamento dell'anteprima per " + media, e);
-                            return null;
-                        }
-                    });
-
-                    Image image = new Image(resource, "Anteprima");
-                    image.setWidth("100%");
-                    image.setHeight("100px");
+                    Image image = getImage(media);
                     image.getStyle()
                             .set("object-fit", "contain")
                             .set("background-color", "var(--lumo-contrast-5pct)");
@@ -936,6 +937,22 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             }
 
             container.add(mediaGrid);
+        }
+
+        private Image getImage(String media) {
+            StreamResource resource = new StreamResource(media, () -> {
+                try {
+                    return fileStorageService.readFile(media);
+                } catch (Exception e) {
+                    logger.error("Errore nel caricamento dell'anteprima per {}", media, e);
+                    return null;
+                }
+            });
+
+            Image image = new Image(resource, "Anteprima");
+            image.setWidth("100%");
+            image.setHeight("100px");
+            return image;
         }
 
         /**

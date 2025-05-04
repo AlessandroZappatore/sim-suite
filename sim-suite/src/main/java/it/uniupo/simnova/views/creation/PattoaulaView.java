@@ -4,6 +4,7 @@ import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -93,7 +94,7 @@ public class PattoaulaView extends Composite<VerticalLayout> implements HasUrlPa
         headerSection.setSpacing(false);
         headerSection.setWidthFull();
 
-        com.vaadin.flow.component.html.H2 title = new com.vaadin.flow.component.html.H2("Patto d'Aula / Familiarizzazione");
+        H2 title = new H2("PATTO D'AULA / FAMILIARIZZAZIONE");
         title.addClassName(LumoUtility.Margin.Bottom.NONE);
         title.getStyle().set("text-align", "center");
         title.setWidthFull();
@@ -151,9 +152,17 @@ public class PattoaulaView extends Composite<VerticalLayout> implements HasUrlPa
         );
 
         // Listener per i pulsanti
-        backButton.addClickListener(e ->
-                backButton.getUI().ifPresent(ui -> ui.navigate("briefing/" + scenarioId)));
-
+        backButton.addClickListener(e -> {
+            if (scenarioId != null) {
+                backButton.getUI().ifPresent(ui -> {
+                    if (scenarioService.isPediatric(scenarioId)) {
+                        ui.navigate("infoGenitori/" + scenarioId);
+                    } else {
+                        ui.navigate("briefing/" + scenarioId);
+                    }
+                });
+            }
+        });
         nextButton.addClickListener(e -> savePattoAulaAndNavigate(nextButton.getUI()));
     }
 
@@ -178,7 +187,7 @@ public class PattoaulaView extends Composite<VerticalLayout> implements HasUrlPa
             loadExistingPattoAula();
         } catch (NumberFormatException e) {
             logger.error("ID scenario non valido: {}", parameter, e);
-            event.rerouteToError(NotFoundException.class, "ID scenario "+scenarioId+ " non valido");
+            event.rerouteToError(NotFoundException.class, "ID scenario " + scenarioId + " non valido");
         }
     }
 

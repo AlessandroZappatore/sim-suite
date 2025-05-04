@@ -5,6 +5,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -19,6 +20,7 @@ import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
+import it.uniupo.simnova.views.home.ValidationError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,6 +114,9 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
                 .set("margin", "0 auto")
                 .set("flex-grow", "1");
 
+        H2 title = new H2("INIZIO CREAZIONE SCENARIO");
+        title.addClassName(LumoUtility.Margin.Bottom.LARGE);
+
         // Campi del form
         scenarioTitle = createTextField("TITOLO SCENARIO", "Inserisci il titolo dello scenario");
         scenarioTitle.setRequired(true);
@@ -139,6 +144,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         typeField.setRequired(true);
 
         contentLayout.add(
+                title,
                 scenarioTitle,
                 patientName,
                 pathology,
@@ -204,11 +210,28 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
      * @return true se tutti i campi sono validi, false altrimenti
      */
     private boolean validateFields() {
-        if (scenarioTitle.isEmpty() || patientName.isEmpty() || pathology.isEmpty() || durationField.isEmpty() || authorField.isEmpty()) {
-            Notification.show("Compila tutti i campi obbligatori", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
-            return false;
-        }
-        return true;
+        boolean isValid = true;
+
+        if (scenarioTitle.isEmpty())
+            isValid = ValidationError.showErrorAndReturnFalse(scenarioTitle, "Compila il campo TITOLO SCENARIO");
+
+        if (patientName.isEmpty())
+            isValid = ValidationError.showErrorAndReturnFalse(patientName, "Compila il campo NOME PAZIENTE");
+
+        if (pathology.isEmpty())
+            isValid = ValidationError.showErrorAndReturnFalse(pathology, "Compila il campo PATOLOGIA/MALATTIA");
+
+        if (authorField.isEmpty())
+            isValid = ValidationError.showErrorAndReturnFalse(authorField, "Compila il campo AUTORE");
+
+        if (durationField.isEmpty())
+            isValid = ValidationError.showErrorAndReturnFalse(durationField, "Compila il campo DURATA SIMULAZIONE");
+        else if (durationField.getValue() == null || durationField.getValue() < 0)
+            isValid = ValidationError.showErrorAndReturnFalse(durationField, "Inserisci una durata valida");
+
+        if (typeField.isEmpty())
+            isValid = ValidationError.showErrorAndReturnFalse(typeField, "Compila il campo TIPO SCENARIO");
+        return isValid;
     }
 
     /**

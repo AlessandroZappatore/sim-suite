@@ -4,6 +4,7 @@ import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -90,7 +91,7 @@ public class GenitoriView extends Composite<VerticalLayout> implements HasUrlPar
         headerSection.setSpacing(false);
         headerSection.setWidthFull();
 
-        com.vaadin.flow.component.html.H2 title = new com.vaadin.flow.component.html.H2("Informazioni dai Genitori");
+        H2 title = new H2("INFORMAZIONI DAI GENITORI");
         title.addClassName(LumoUtility.Margin.Bottom.NONE);
         title.getStyle().set("text-align", "center");
         title.setWidthFull();

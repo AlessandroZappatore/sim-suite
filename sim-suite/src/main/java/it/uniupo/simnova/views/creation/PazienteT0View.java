@@ -7,7 +7,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -152,7 +152,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                 .set("flex-grow", "1");
 
         // Titolo sezione
-        H3 title = new H3("PARAMETRI VITALI PRINCIPALI IN T0");
+        H2 title = new H2("PARAMETRI VITALI PRINCIPALI IN T0");
         title.addClassName(LumoUtility.Margin.Bottom.LARGE);
 
         // Campi parametri vitali
