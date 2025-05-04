@@ -698,6 +698,8 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                 t0Section.setRrValue(pazienteT0.getRR());
                 t0Section.setTValue(pazienteT0.getT());
                 t0Section.setSpo2Value(pazienteT0.getSpO2());
+                t0Section.setFio2Value(pazienteT0.getFiO2());
+                t0Section.setLitriO2Value(pazienteT0.getLitriO2());
                 t0Section.setEtco2Value(pazienteT0.getEtCO2());
 
                 // Mostra notifica che T0 non è modificabile qui
@@ -776,6 +778,8 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                             section.rrField.setValue(Optional.ofNullable(tempo.getRR()).map(Double::valueOf).orElse(null));
                             section.tField.setValue(Optional.of(tempo.getT()).orElse(null));
                             section.spo2Field.setValue(Optional.ofNullable(tempo.getSpO2()).map(Double::valueOf).orElse(null));
+                            section.fio2Field.setValue(Optional.ofNullable(tempo.getFiO2()).map(Double::valueOf).orElse(null));
+                            section.litriO2Field.setValue(Optional.ofNullable(tempo.getLitriO2()).map(Double::valueOf).orElse(null));
                             section.etco2Field.setValue(Optional.ofNullable(tempo.getEtCO2()).map(Double::valueOf).orElse(null));
                         }
 
@@ -784,7 +788,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                         section.timeIfYesField.setValue(tempo.getTSi()); // Usa l'ID del tempo
                         section.timeIfNoField.setValue(tempo.getTNo()); // Usa l'ID del tempo
                         section.additionalDetailsArea.setValue(tempo.getAltriDettagli() != null ? tempo.getAltriDettagli() : "");
-
+                        section.ruoloGenitoreArea.setValue(tempo.getRuoloGenitore() != null ? tempo.getRuoloGenitore() : "");
                         // Imposta il timer se presente
                         if (tempo.getTimerTempo() > 0) {
                             try {
@@ -921,6 +925,10 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
          * Campo numerico per la Saturazione dell'Ossigeno (%).
          */
         private final NumberField spo2Field;
+
+        private final NumberField fio2Field;
+
+        private final NumberField litriO2Field;
         /**
          * Campo numerico per la Capnometria di fine espirazione (mmHg).
          */
@@ -962,7 +970,10 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
          * Mappa che associa la chiave di un parametro aggiuntivo al layout orizzontale (campo + pulsante rimuovi) che lo contiene.
          */
         private final Map<String, HorizontalLayout> customParameterLayouts = new HashMap<>();
-
+        /**
+         * Area di testo per il ruolo del genitore.
+         */
+        private final TextArea ruoloGenitoreArea;
         /**
          * Costruttore per una sezione temporale.
          * Inizializza l'interfaccia utente (campi e layout) per questa sezione.
@@ -1008,10 +1019,12 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             rrField = createMedicalField("FR", "atti/min");
             tField = createMedicalField("Temp.", "°C");
             spo2Field = createMedicalField("SpO₂", "%");
+            fio2Field = createMedicalField("FiO₂", "%");
+            litriO2Field = createMedicalField("Litri O₂", "L/min");
             etco2Field = createMedicalField("EtCO₂", "mmHg");
 
             // Aggiunta campi al FormLayout
-            medicalParamsForm.add(paField, fcField, rrField, tField, spo2Field, etco2Field);
+            medicalParamsForm.add(paField, fcField, rrField, tField, spo2Field, fio2Field, litriO2Field, etco2Field);
             medicalParamsForm.addClassName(LumoUtility.Margin.Bottom.MEDIUM); // Spazio sotto i parametri base
 
             // Container per i parametri aggiuntivi (verrà popolato dinamicamente)
@@ -1081,10 +1094,20 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                 Notification.show("Tempo T" + timeNumber + " rimosso.", 2000, Notification.Position.BOTTOM_START).addThemeVariants(NotificationVariant.LUMO_CONTRAST);
             });
 
+            ruoloGenitoreArea = new TextArea("Ruolo Genitore (opzionale)");
+            ruoloGenitoreArea.setWidthFull();
+            ruoloGenitoreArea.setMinHeight("100px");
+            ruoloGenitoreArea.setPlaceholder("Es. Genitore riferisce delle informazioni sul paziente...");
+            ruoloGenitoreArea.addClassName(LumoUtility.Margin.Bottom.LARGE);
+
+
             // Aggiunta di tutti i componenti al layout principale della sezione
             layout.add(sectionTitle, timerPicker, medicalParamsForm, customParamsContainer, divider,
                     actionTitle, actionDetailsArea, timeSelectionContainer,
                     additionalDetailsArea);
+            if(scenarioService.isPediatric(scenarioId)) {
+                layout.add(ruoloGenitoreArea);
+            }
             // Aggiunge il pulsante Rimuovi solo se non è T0 (verrà nascosto se necessario)
             if (timeNumber > 0) {
                 layout.add(removeButton);
@@ -1218,8 +1241,8 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             double rawT = tField.getValue() != null ? tField.getValue() : 0.0;
             double t = Math.round(rawT * 10.0) / 10.0;
             Integer spo2 = spo2Field.getValue() != null ? spo2Field.getValue().intValue() : null;
-            Integer fiO2 = null; // Non usato in questa sezione
-            Float litriO2 = null; // Non usato in questa sezione
+            Integer fiO2 = fio2Field.getValue() != null ? fio2Field.getValue().intValue() : null;
+            Float litriO2 = litriO2Field.getValue() != null ? litriO2Field.getValue().floatValue() : null;
             Integer etco2 = etco2Field.getValue() != null ? etco2Field.getValue().intValue() : null;
 
             String actionDescription = actionDetailsArea.getValue() != null ? actionDetailsArea.getValue().trim() : "";
@@ -1227,7 +1250,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             int nextTimeIfNo = timeIfNoField.getValue() != null ? timeIfNoField.getValue() : 0;
             String additionalDetails = additionalDetailsArea.getValue() != null ? additionalDetailsArea.getValue().trim() : "";
             long timerSeconds = (time != null) ? time.toSecondOfDay() : 0L;
-            String ruoloGenitore = null; // Non usato in questa sezione
+            String ruoloGenitoreArea = this.ruoloGenitoreArea.getValue() != null ? this.ruoloGenitoreArea.getValue().trim() : "";
             // Raccoglie i parametri aggiuntivi come List<ParametroAggiuntivo>
             List<ParametroAggiuntivo> additionalParamsList = new ArrayList<>();
             customParameters.forEach((key, field) -> {
@@ -1281,7 +1304,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                     nextTimeIfNo,
                     additionalDetails.isEmpty() ? null : additionalDetails,
                     timerSeconds,
-                    ruoloGenitore
+                    ruoloGenitoreArea
             );
 
             tempo.setParametriAggiuntivi(additionalParamsList);
@@ -1349,6 +1372,17 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             spo2Field.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
 
+        public void setFio2Value(Integer value) {
+            fio2Field.setValue(Optional.ofNullable(value).map(Double::valueOf).orElse(null));
+            fio2Field.setReadOnly(true);
+            fio2Field.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
+        }
+
+        public void setLitriO2Value(Float value) {
+            litriO2Field.setValue(Optional.ofNullable(value).map(Double::valueOf).orElse(null));
+            litriO2Field.setReadOnly(true);
+            litriO2Field.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
+        }
         /**
          * Imposta il valore EtCO2 per T0 e rende il campo non modificabile.
          *

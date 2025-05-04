@@ -31,10 +31,7 @@ import it.uniupo.simnova.views.home.CreditsComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -51,40 +48,17 @@ import java.util.stream.Collectors;
 @Route(value = "materialenecessario")
 @Menu(order = 8)
 public class MaterialenecessarioView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-    /**
-     * Logger per la registrazione degli eventi e degli errori.
-     */
+    // ... (campi esistenti) ...
     private static final Logger logger = LoggerFactory.getLogger(MaterialenecessarioView.class);
-    /**
-     * Servizio per la gestione degli scenari.
-     */
     private final ScenarioService scenarioService;
-    /**
-     * Servizio per la gestione dei materiali.
-     */
     private final MaterialeService materialeService;
-    /**
-     * ID dello scenario corrente.
-     */
     private Integer scenarioId;
-    /**
-     * Grid che mostra i materiali disponibili.
-     */
     private final Grid<Materiale> materialiDisponibiliGrid;
-    /**
-     * Grid che mostra i materiali selezionati.
-     */
     private final Grid<Materiale> materialiSelezionatiGrid;
-    /**
-     * Lista di materiali selezionati.
-     */
     private final List<Materiale> materialiSelezionati = new ArrayList<>();
-    /**
-     * Lista di tutti i materiali disponibili.
-     */
     private List<Materiale> tuttiMateriali = new ArrayList<>();
-
     private TextField searchField;
+
 
     /**
      * Costruttore che inizializza l'interfaccia utente.
@@ -97,7 +71,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         this.scenarioService = scenarioService;
         this.materialeService = materialeService;
 
-        // Configurazione layout principale
+        // ... (Configurazione layout principale, header, ecc. come prima) ...
         VerticalLayout mainLayout = getContent();
         mainLayout.setSizeFull();
         mainLayout.setPadding(false);
@@ -106,13 +80,9 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
 
         // 1. HEADER
         AppHeader header = new AppHeader(fileStorageService);
-
-        // Pulsante indietro
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         backButton.getStyle().set("margin-right", "auto");
-
-        // Container per header personalizzato
         HorizontalLayout customHeader = new HorizontalLayout();
         customHeader.setWidthFull();
         customHeader.setPadding(true);
@@ -122,9 +92,9 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         // 2. CONTENUTO PRINCIPALE
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.setWidth("100%");
-        contentLayout.setMaxWidth("1000px");
+        contentLayout.setMaxWidth("1000px"); // Manteniamo un max-width ragionevole
         contentLayout.setPadding(true);
-        contentLayout.setSpacing(false);
+        contentLayout.setSpacing(false); // Riduciamo lo spacing se necessario
         contentLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         contentLayout.getStyle()
                 .set("margin", "0 auto")
@@ -135,7 +105,6 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         title.getStyle().set("text-align", "center");
         title.setWidthFull();
 
-        // Istruzioni
         Paragraph instructions = new Paragraph("Seleziona i materiali necessari per l'allestimento della sala o aggiungine di nuovi");
         instructions.addClassName(LumoUtility.TextColor.SECONDARY);
         instructions.addClassName(LumoUtility.FontSize.MEDIUM);
@@ -144,84 +113,109 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         // Grid per i materiali disponibili
         materialiDisponibiliGrid = new Grid<>();
         materialiDisponibiliGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
-        materialiDisponibiliGrid.setHeight("250px");
-        materialiDisponibiliGrid.addColumn(Materiale::getNome).setHeader("Materiale disponibile").setAutoWidth(true).setFlexGrow(1);
-        materialiDisponibiliGrid.addColumn(Materiale::getDescrizione).setHeader("Descrizione").setAutoWidth(true).setFlexGrow(2);
+        // --- RIMUOVI ALTEZZA FISSA ---
+        // materialiDisponibiliGrid.setHeight("250px");
+        materialiDisponibiliGrid.setAllRowsVisible(true); // Mostra tutte le righe adattando l'altezza
+        // --- FINE RIMOZIONE ---
+        materialiDisponibiliGrid.addColumn(Materiale::getNome).setHeader("Materiale disponibile").setFlexGrow(1); // Lascia flexGrow qui
+        materialiDisponibiliGrid.addColumn(Materiale::getDescrizione).setHeader("Descrizione").setFlexGrow(2); // Lascia flexGrow qui
         materialiDisponibiliGrid.addColumn(
-                new ComponentRenderer<>(materiale -> {
-                    // Creiamo un container div che conterrà il bottone o niente
-                    Div buttonContainer = new Div();
-
-                    // Verifichiamo se il materiale è già selezionato
-                    boolean isSelected = materialiSelezionati.contains(materiale);
-
-                    if (!isSelected) {
-                        Button addButton = new Button(new Icon(VaadinIcon.PLUS));
-                        addButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
-                        addButton.addClickListener(e -> {
-                            if (!materialiSelezionati.contains(materiale)) {
-                                materialiSelezionati.add(materiale);
-                                aggiornaGrids(); // Aggiorno entrambe le griglie per nascondere il pulsante
+                        new ComponentRenderer<>(materiale -> {
+                            Div buttonContainer = new Div();
+                            boolean isSelected = materialiSelezionati.stream().anyMatch(m -> m.getId().equals(materiale.getId())); // Controllo più sicuro per ID
+                            if (!isSelected) {
+                                Button addButton = new Button(new Icon(VaadinIcon.PLUS));
+                                addButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
+                                addButton.addClickListener(e -> {
+                                    // Riconferma prima di aggiungere per evitare race conditions
+                                    if (materialiSelezionati.stream().noneMatch(m -> m.getId().equals(materiale.getId()))) {
+                                        materialiSelezionati.add(materiale);
+                                        aggiornaGrids();
+                                    }
+                                });
+                                buttonContainer.add(addButton);
                             }
-                        });
-                        buttonContainer.add(addButton);
-                    }
+                            return buttonContainer;
+                        })
+                ).setHeader("Aggiungi")
+                .setWidth("90px") // Larghezza fissa
+                .setFlexGrow(0); // Non deve espandersi
 
-                    return buttonContainer;
-                })
-        ).setHeader("Aggiungi").setAutoWidth(true).setFlexGrow(0);
         materialiDisponibiliGrid.addColumn(
-                new ComponentRenderer<>(materiale -> {
-                    Button deleteButton = new Button(new Icon(VaadinIcon.TRASH));
-                    deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
-                    deleteButton.addClickListener(e -> showDeleteConfirmDialog(materiale));
-                    return deleteButton;
-                })
-        ).setHeader("Elimina").setAutoWidth(true).setFlexGrow(0);
+                        new ComponentRenderer<>(materiale -> {
+                            Button deleteButton = new Button(new Icon(VaadinIcon.TRASH));
+                            deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
+                            deleteButton.addClickListener(e -> showDeleteConfirmDialog(materiale));
+                            return deleteButton;
+                        })
+                ).setHeader("Elimina")
+                .setWidth("90px") // Larghezza fissa
+                .setFlexGrow(0); // Non deve espandersi
+
         // Grid per i materiali selezionati
         materialiSelezionatiGrid = new Grid<>();
         materialiSelezionatiGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
-        materialiSelezionatiGrid.setHeight("250px");
-        materialiSelezionatiGrid.addColumn(Materiale::getNome).setHeader("Materiale selezionato").setAutoWidth(true).setFlexGrow(1);
-        materialiSelezionatiGrid.addColumn(Materiale::getDescrizione).setHeader("Descrizione").setAutoWidth(true).setFlexGrow(2);
+        // --- RIMUOVI ALTEZZA FISSA ---
+        // materialiSelezionatiGrid.setHeight("250px");
+        materialiSelezionatiGrid.setAllRowsVisible(true); // Mostra tutte le righe adattando l'altezza
+        // --- FINE RIMOZIONE ---
+        materialiSelezionatiGrid.addColumn(Materiale::getNome).setHeader("Materiale selezionato").setFlexGrow(1); // Lascia flexGrow qui
+        materialiSelezionatiGrid.addColumn(Materiale::getDescrizione).setHeader("Descrizione").setFlexGrow(2); // Lascia flexGrow qui
         materialiSelezionatiGrid.addColumn(
-                new ComponentRenderer<>(materiale -> {
-                    Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
-                    removeButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
-                    removeButton.addClickListener(e -> {
-                        materialiSelezionati.remove(materiale);
-                        aggiornaGrids();
-                    });
-                    return removeButton;
-                })
-        ).setHeader("Rimuovi").setAutoWidth(true).setFlexGrow(0);
-        // Bottone per aggiungere nuovo materiale
-        Button addNewMaterialButton = new Button("Aggiungi nuovo materiale", new Icon(VaadinIcon.PLUS));
-        addNewMaterialButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
-        addNewMaterialButton.addClickListener(e -> showNuovoMaterialeDialog());
+                        new ComponentRenderer<>(materiale -> {
+                            Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
+                            removeButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
+                            removeButton.addClickListener(e -> {
+                                materialiSelezionati.removeIf(m -> m.getId().equals(materiale.getId())); // Rimuovi per ID
+                                aggiornaGrids();
+                            });
+                            return removeButton;
+                        })
+                ).setHeader("Rimuovi")
+                .setWidth("90px") // Larghezza fissa
+                .setFlexGrow(0); // Non deve espandersi
+
 
         // Layout per le due griglie
         HorizontalLayout gridsLayout = new HorizontalLayout();
         gridsLayout.setWidthFull();
         gridsLayout.setSpacing(true);
+        gridsLayout.setAlignItems(FlexComponent.Alignment.START); // Allinea le griglie all'inizio verticalmente
 
         VerticalLayout disponibiliLayout = new VerticalLayout();
-        disponibiliLayout.setWidthFull();
-        disponibiliLayout.setSpacing(false);
+        disponibiliLayout.setWidth("50%"); // Diamo larghezze esplicite o usa setExpandRatio
+        disponibiliLayout.setSpacing(true); // Aggiungi un po' di spazio
         disponibiliLayout.setPadding(false);
-        setupMaterialiDisponibiliLayout(disponibiliLayout);
+        setupMaterialiDisponibiliLayout(disponibiliLayout); // Setup con search etc.
 
         VerticalLayout selezionatiLayout = new VerticalLayout();
-        selezionatiLayout.setWidthFull();
-        selezionatiLayout.setSpacing(false);
+        selezionatiLayout.setWidth("50%"); // Diamo larghezze esplicite o usa setExpandRatio
+        selezionatiLayout.setSpacing(true); // Aggiungi un po' di spazio
         selezionatiLayout.setPadding(false);
-        selezionatiLayout.add(new Paragraph("Materiali selezionati:"), materialiSelezionatiGrid);
 
+        HorizontalLayout titleSelezionatiLayout = new HorizontalLayout(new Paragraph("Materiali selezionati:"));
+        titleSelezionatiLayout.setHeight("40px"); // Stessa altezza del titolo dei disponibili
+        titleSelezionatiLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        titleSelezionatiLayout.setPadding(false);
+        titleSelezionatiLayout.setMargin(false);
+
+// Aggiunta di uno spacer che occupa lo stesso spazio del layout di ricerca/bottoni
+        Div spacer = new Div();
+        spacer.setHeight("52px"); // Stesso spazio che occupa actionsLayout
+        spacer.getStyle().set("visibility", "hidden"); // Lo rendiamo invisibile
+
+        selezionatiLayout.add(
+                titleSelezionatiLayout,
+                spacer,
+                materialiSelezionatiGrid
+        );
         gridsLayout.add(disponibiliLayout, selezionatiLayout);
+        // Optional: Fai in modo che i layout interni si espandano correttamente
+        // gridsLayout.expand(disponibiliLayout, selezionatiLayout); // In alternativa a setWidth("50%")
 
-        contentLayout.add(title,instructions, gridsLayout);
+        contentLayout.add(title, instructions, gridsLayout); // Aggiungi gridsLayout qui
 
-        // 3. FOOTER con pulsanti e crediti
+        // 3. FOOTER (come prima)
         HorizontalLayout footerLayout = new HorizontalLayout();
         footerLayout.setWidthFull();
         footerLayout.setPadding(true);
@@ -238,134 +232,121 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
 
         footerLayout.add(credits, nextButton);
 
-        // Aggiunta di tutti i componenti al layout principale
         mainLayout.add(
                 customHeader,
                 contentLayout,
                 footerLayout
         );
 
-        // Listener per i pulsanti
+        // Listener (come prima)
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("obiettivididattici/" + scenarioId)));
-
         nextButton.addClickListener(e -> saveMaterialiAndNavigate(nextButton.getUI()));
     }
 
-    /**
-     * Gestisce il parametro ricevuto dall'URL (ID scenario).
-     *
-     * @param event     l'evento di navigazione
-     * @param parameter l'ID dello scenario come stringa
-     */
+    // ... (setParameter, loadData, aggiornaGrids come prima, ma aggiornaGrids usa controlli ID) ...
+
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
         try {
             if (parameter == null || parameter.trim().isEmpty()) {
-                throw new NumberFormatException();
+                throw new NumberFormatException("ID Scenario mancante");
             }
 
             this.scenarioId = Integer.parseInt(parameter);
-            if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
-                throw new NumberFormatException();
+            if (scenarioId <= 0) { // Aggiunto controllo <= 0
+                throw new NumberFormatException("ID Scenario deve essere positivo");
+            }
+            // Controllo esistenza scenario (se necessario all'inizio)
+            if (!scenarioService.existScenario(scenarioId)) {
+                logger.warn("Tentativo di accesso a scenario non esistente: {}", scenarioId);
+                throw new NotFoundException("Scenario con ID " + scenarioId + " non trovato.");
             }
 
             loadData();
         } catch (NumberFormatException e) {
-            logger.error("ID scenario non valido: {}", parameter, e);
-            event.rerouteToError(NotFoundException.class, "ID scenario " + parameter + " non valido");
+            logger.error("ID scenario non valido o mancante: '{}'. Errore: {}", parameter, e.getMessage());
+            event.rerouteToError(NotFoundException.class, "ID scenario non valido: " + parameter);
+        } catch (NotFoundException e) {
+            event.rerouteToError(NotFoundException.class, e.getMessage());
         }
     }
 
-    /**
-     * Carica i materiali esistenti e quelli già selezionati.
-     */
     private void loadData() {
-        // Carica tutti i materiali disponibili
-        tuttiMateriali = materialeService.getAllMaterials();
-
-        // Carica i materiali già associati allo scenario
-        List<Materiale> materialiScenario = materialeService.getMaterialiByScenarioId(scenarioId);
-        materialiSelezionati.clear();
-        materialiSelezionati.addAll(materialiScenario);
-
-        aggiornaGrids();
+        try {
+            tuttiMateriali = materialeService.getAllMaterials();
+            List<Materiale> materialiScenario = materialeService.getMaterialiByScenarioId(scenarioId);
+            materialiSelezionati.clear();
+            materialiSelezionati.addAll(materialiScenario);
+            aggiornaGrids();
+        } catch (Exception e) {
+            logger.error("Errore durante il caricamento dei dati per lo scenario {}", scenarioId, e);
+            Notification.show("Errore nel caricamento dei materiali", 3000, Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            // Potresti voler mostrare un messaggio di errore più persistente o reindirizzare
+        }
     }
 
-    /**
-     * Aggiorna entrambe le griglie con i dati attuali.
-     */
     private void aggiornaGrids() {
+        // Usa gli ID per un confronto affidabile
         Set<Integer> idsSelezionati = materialiSelezionati.stream()
                 .map(Materiale::getId)
                 .collect(Collectors.toSet());
 
-        // Filtra i materiali per mostrare solo quelli non selezionati
         List<Materiale> materialiDisponibiliNonSelezionati = tuttiMateriali.stream()
-                .filter(m -> !idsSelezionati.contains(m.getId()))
+                .filter(m -> m.getId() != null && !idsSelezionati.contains(m.getId())) // Aggiunto controllo m.getId() != null
                 .collect(Collectors.toList());
 
-        // Se c'è un termine di ricerca attivo, applica il filtro
-        if (searchField != null && searchField.getValue() != null && !searchField.getValue().trim().isEmpty()) {
-            filtraMateriali(searchField.getValue());
-        } else {
-            materialiDisponibiliGrid.setItems(materialiDisponibiliNonSelezionati);
+        // Applica filtro ricerca se attivo
+        String searchTerm = (searchField != null) ? searchField.getValue() : null;
+        if (searchTerm != null && !searchTerm.trim().isEmpty()) {
+            String term = searchTerm.toLowerCase().trim();
+            materialiDisponibiliNonSelezionati = materialiDisponibiliNonSelezionati.stream()
+                    .filter(m -> (m.getNome() != null && m.getNome().toLowerCase().contains(term)) ||
+                            (m.getDescrizione() != null && m.getDescrizione().toLowerCase().contains(term)))
+                    .collect(Collectors.toList());
         }
 
-        materialiSelezionatiGrid.setItems(materialiSelezionati);
+        // Imposta i dati nelle griglie (usa copie difensive se necessario, ma qui va bene)
+        materialiDisponibiliGrid.setItems(materialiDisponibiliNonSelezionati);
+        materialiSelezionatiGrid.setItems(new ArrayList<>(materialiSelezionati)); // Usa una copia per sicurezza
     }
 
+
     private void setupMaterialiDisponibiliLayout(VerticalLayout disponibiliLayout) {
-        // Campo di ricerca
         searchField = new TextField();
         searchField.setPlaceholder("Cerca materiali...");
         searchField.setClearButtonVisible(true);
         searchField.setWidthFull();
-        searchField.addValueChangeListener(e -> filtraMateriali(e.getValue()));
+        searchField.addValueChangeListener(e -> aggiornaGrids());
 
-        // Bottone per aggiungere nuovo materiale
         Button addNewMaterialButton = new Button("Aggiungi nuovo materiale", new Icon(VaadinIcon.PLUS));
         addNewMaterialButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         addNewMaterialButton.addClickListener(e -> showNuovoMaterialeDialog());
 
+        // Layout per ricerca e bottone nuovo materiale
         HorizontalLayout actionsLayout = new HorizontalLayout(searchField, addNewMaterialButton);
         actionsLayout.setWidthFull();
-        actionsLayout.setFlexGrow(1, searchField);
+        actionsLayout.setPadding(false);
+        actionsLayout.setSpacing(true);
+
+        // Paragrafo in un layout separato con altezza fissa per garantire allineamento
+        HorizontalLayout titleLayout = new HorizontalLayout(new Paragraph("Materiali disponibili:"));
+        titleLayout.setHeight("40px"); // Altezza fissa per garantire allineamento
+        titleLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        titleLayout.setPadding(false);
+        titleLayout.setMargin(false);
 
         disponibiliLayout.add(
-                new Paragraph("Materiali disponibili:"),
+                titleLayout,
                 actionsLayout,
                 materialiDisponibiliGrid
         );
-    }
-
-    // Metodo per filtrare i materiali in base alla ricerca
-    private void filtraMateriali(String searchTerm) {
-        if (searchTerm == null || searchTerm.trim().isEmpty()) {
-            // Se la ricerca è vuota, mostra tutti i materiali disponibili
-            aggiornaGrids();
-        } else {
-            // Filtra per nome o descrizione contenente il termine di ricerca (case insensitive)
-            String term = searchTerm.toLowerCase();
-
-            Set<Integer> idsSelezionati = materialiSelezionati.stream()
-                    .map(Materiale::getId)
-                    .collect(Collectors.toSet());
-
-            List<Materiale> materialiDisponibiliFiltrati = tuttiMateriali.stream()
-                    .filter(m -> !idsSelezionati.contains(m.getId()))
-                    .filter(m -> (m.getNome() != null && m.getNome().toLowerCase().contains(term)) ||
-                            (m.getDescrizione() != null && m.getDescrizione().toLowerCase().contains(term)))
-                    .collect(Collectors.toList());
-
-            materialiDisponibiliGrid.setItems(materialiDisponibiliFiltrati);
-        }
+        disponibiliLayout.setFlexGrow(1.0, materialiDisponibiliGrid);
     }
 
 
-    /**
-     * Mostra un dialog per l'aggiunta di un nuovo materiale.
-     */
+    // ... (showNuovoMaterialeDialog come prima) ...
     private void showNuovoMaterialeDialog() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Aggiungi nuovo materiale");
@@ -373,45 +354,50 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         VerticalLayout dialogLayout = new VerticalLayout();
         dialogLayout.setPadding(true);
         dialogLayout.setSpacing(true);
+        dialogLayout.setAlignItems(FlexComponent.Alignment.STRETCH); // Allarga i campi
 
         TextField nomeField = new TextField("Nome");
-        nomeField.setWidthFull();
-        nomeField.setRequired(true);
+        // nomeField.setWidthFull(); // Non necessario con STRETCH sul layout
+        nomeField.setRequiredIndicatorVisible(true); // Indica che è richiesto
+        nomeField.setErrorMessage("Il nome è obbligatorio"); // Messaggio se invalido
 
         TextField descrizioneField = new TextField("Descrizione");
-        descrizioneField.setWidthFull();
+        // descrizioneField.setWidthFull(); // Non necessario con STRETCH
 
         Button saveButton = new Button("Salva");
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.addClickListener(e -> {
+            // Validazione più robusta
             if (nomeField.getValue() == null || nomeField.getValue().trim().isEmpty()) {
-                Notification.show("Inserisci un nome per il materiale", 3000, Notification.Position.MIDDLE)
-                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                nomeField.setInvalid(true); // Mostra l'errore sul campo
+                // Notification.show("Inserisci un nome per il materiale", 3000, Notification.Position.MIDDLE)
+                //         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 return;
             }
+            nomeField.setInvalid(false); // Resetta stato errore
 
             try {
                 Materiale nuovoMateriale = new Materiale(
-                        -1, // L'ID sarà generato dal database
-                        nomeField.getValue(),
-                        descrizioneField.getValue()
+                        -1, // ID nullo, sarà generato dal DB
+                        nomeField.getValue().trim(), // Pulisci spazi
+                        descrizioneField.getValue() != null ? descrizioneField.getValue().trim() : "" // Gestisci null e trim
                 );
 
                 Materiale savedMateriale = materialeService.saveMateriale(nuovoMateriale);
-                if (savedMateriale != null) {
+                if (savedMateriale != null && savedMateriale.getId() != null) { // Controlla anche l'ID di ritorno
                     tuttiMateriali.add(savedMateriale);
-                    materialiSelezionati.add(savedMateriale);
+                    materialiSelezionati.add(savedMateriale); // Aggiungi direttamente ai selezionati
                     aggiornaGrids();
                     dialog.close();
-                    Notification.show("Materiale aggiunto con successo", 3000, Notification.Position.MIDDLE)
+                    Notification.show("Materiale aggiunto e selezionato", 3000, Notification.Position.BOTTOM_START)
                             .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 } else {
-                    Notification.show("Errore durante il salvataggio del materiale", 3000, Notification.Position.MIDDLE)
+                    Notification.show("Errore: Salvataggio del materiale fallito", 3000, Notification.Position.MIDDLE)
                             .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 }
             } catch (Exception ex) {
                 logger.error("Errore durante il salvataggio del nuovo materiale", ex);
-                Notification.show("Errore: " + ex.getMessage(), 5000, Notification.Position.MIDDLE)
+                Notification.show("Errore tecnico: " + ex.getMessage(), 5000, Notification.Position.MIDDLE)
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
         });
@@ -419,73 +405,91 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         Button cancelButton = new Button("Annulla");
         cancelButton.addClickListener(e -> dialog.close());
 
-        HorizontalLayout buttonLayout = new HorizontalLayout();
-        buttonLayout.setWidthFull();
-        buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-        buttonLayout.add(cancelButton, saveButton);
+        HorizontalLayout buttonLayout = new HorizontalLayout(cancelButton, saveButton);
+        //buttonLayout.setWidthFull(); // Non serve se il VLayout fa stretch
+        buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END); // Allinea a destra
 
-        dialogLayout.add(nomeField, descrizioneField, new Div(), buttonLayout);
+        dialogLayout.add(nomeField, descrizioneField, buttonLayout);
         dialog.add(dialogLayout);
         dialog.open();
     }
 
-    /**
-     * Salva i materiali selezionati e naviga alla vista successiva.
-     *
-     * @param uiOptional l'UI corrente (opzionale)
-     */
+
+    // ... (saveMaterialiAndNavigate come prima, ma aggiorna il controllo dell'ID) ...
     private void saveMaterialiAndNavigate(Optional<UI> uiOptional) {
+        if (scenarioId == null) {
+            Notification.show("ID Scenario non disponibile. Impossibile salvare.", 3000, Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            return;
+        }
+
         uiOptional.ifPresent(ui -> {
+            // Mostra un indicatore di caricamento
+            Dialog progressDialog = new Dialog();
             ProgressBar progressBar = new ProgressBar();
             progressBar.setIndeterminate(true);
-            getContent().add(progressBar);
+            progressDialog.add(new H2("Salvataggio..."), progressBar);
+            progressDialog.setCloseOnEsc(false);
+            progressDialog.setCloseOnOutsideClick(false);
+            progressDialog.open();
 
+            // Esegui il salvataggio in background se possibile o usa access per aggiornare l'UI
             try {
-                // Estrai gli ID dei materiali selezionati
                 List<Integer> idsMateriali = materialiSelezionati.stream()
                         .map(Materiale::getId)
+                        .filter(Objects::nonNull) // Assicurati che non ci siano ID nulli
                         .collect(Collectors.toList());
 
-                // Salva l'associazione tra scenario e materiali
                 boolean success = materialeService.associaMaterialiToScenario(scenarioId, idsMateriali);
 
-                ui.accessSynchronously(() -> {
-                    getContent().remove(progressBar);
+                ui.access(() -> { // Usa access per interagire con l'UI dal thread principale
+                    progressDialog.close(); // Chiudi il dialogo di progresso
                     if (success) {
+                        Notification.show("Materiali salvati.", 2000, Notification.Position.BOTTOM_START)
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        // Naviga alla pagina successiva
                         ui.navigate("esamiReferti/" + scenarioId + "/create");
                     } else {
-                        Notification.show("Errore durante il salvataggio dei materiali", 3000, Notification.Position.MIDDLE)
+                        Notification.show("Errore durante il salvataggio dei materiali.", 3000, Notification.Position.MIDDLE)
                                 .addThemeVariants(NotificationVariant.LUMO_ERROR);
                     }
                 });
             } catch (Exception e) {
-                ui.accessSynchronously(() -> {
-                    getContent().remove(progressBar);
-                    Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.MIDDLE)
+                logger.error("Errore grave durante il salvataggio dei materiali per scenario {}", scenarioId, e);
+                ui.access(() -> {
+                    progressDialog.close();
+                    Notification.show("Errore tecnico: " + e.getMessage(), 5000, Notification.Position.MIDDLE)
                             .addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    logger.error("Errore durante il salvataggio dei materiali", e);
                 });
             }
         });
     }
 
-    // Metodo per mostrare il dialog di conferma eliminazione
+
+    // ... (showDeleteConfirmDialog e deleteMateriale come prima, ma aggiungi controllo ID in removeIf) ...
     private void showDeleteConfirmDialog(Materiale materiale) {
+        if (materiale == null || materiale.getId() == null) {
+            logger.warn("Tentativo di eliminare materiale nullo o senza ID.");
+            return;
+        }
+
         Dialog confirmDialog = new Dialog();
         confirmDialog.setHeaderTitle("Conferma eliminazione");
 
         VerticalLayout dialogLayout = new VerticalLayout();
         dialogLayout.setPadding(true);
         dialogLayout.setSpacing(true);
+        dialogLayout.setAlignItems(FlexComponent.Alignment.STRETCH);
 
-        Paragraph message = new Paragraph("Sei sicuro di voler eliminare il materiale \"" + materiale.getNome() + "\"?");
-        message.getStyle().set("margin-top", "0");
+        Paragraph message = new Paragraph("Sei sicuro di voler eliminare definitivamente il materiale \"" + materiale.getNome() + "\"?");
+        // message.getStyle().set("margin-top", "0"); // Vaadin gestisce il padding
 
-        Paragraph warning = new Paragraph("Questa operazione non può essere annullata e rimuoverà il materiale dal database.");
-        warning.addClassName(LumoUtility.TextColor.ERROR);
+        Paragraph warning = new Paragraph("L'operazione non può essere annullata e rimuoverà il materiale da TUTTI gli scenari che lo utilizzano.");
+        warning.addClassNames(LumoUtility.TextColor.ERROR, LumoUtility.FontSize.SMALL);
 
         Button deleteButton = new Button("Elimina");
-        deleteButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR); // Solo errore è più chiaro qui
+        deleteButton.getStyle().set("margin-left", "auto"); // Spingi a destra nel layout bottoni
         deleteButton.addClickListener(e -> {
             deleteMateriale(materiale);
             confirmDialog.close();
@@ -494,41 +498,42 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         Button cancelButton = new Button("Annulla");
         cancelButton.addClickListener(e -> confirmDialog.close());
 
-        HorizontalLayout buttonLayout = new HorizontalLayout();
-        buttonLayout.setWidthFull();
-        buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-        buttonLayout.add(cancelButton, deleteButton);
+        HorizontalLayout buttonLayout = new HorizontalLayout(cancelButton, deleteButton);
+        buttonLayout.setWidthFull(); // Occupa tutta la larghezza per justify
+        // buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END); // Già fatto con margin-left auto
 
         dialogLayout.add(message, warning, buttonLayout);
         confirmDialog.add(dialogLayout);
         confirmDialog.open();
     }
 
-    // Metodo per eliminare effettivamente il materiale
     private void deleteMateriale(Materiale materiale) {
+        if (materiale == null || materiale.getId() == null) return; // Check aggiunto
+        Integer materialeId = materiale.getId(); // Salva l'ID
+
         try {
-            boolean success = materialeService.deleteMateriale(materiale.getId());
+            boolean success = materialeService.deleteMateriale(materialeId);
             if (success) {
-                // Rimuovi dalla lista di tutti i materiali
-                tuttiMateriali.removeIf(m -> m.getId().equals(materiale.getId()));
+                // Rimuovi dalle liste locali usando l'ID
+                tuttiMateriali.removeIf(m -> materialeId.equals(m.getId()));
+                materialiSelezionati.removeIf(m -> materialeId.equals(m.getId()));
 
-                // Se era anche nei materiali selezionati, rimuovilo
-                materialiSelezionati.removeIf(m -> m.getId().equals(materiale.getId()));
+                aggiornaGrids(); // Aggiorna la UI
 
-                // Aggiorna le griglie
-                aggiornaGrids();
-
-                Notification.show("Materiale eliminato con successo",
-                                3000, Notification.Position.MIDDLE)
+                Notification.show("Materiale \"" + materiale.getNome() + "\" eliminato.",
+                                3000, Notification.Position.BOTTOM_START)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             } else {
-                Notification.show("Impossibile eliminare il materiale",
-                                3000, Notification.Position.MIDDLE)
-                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                // Potrebbe fallire per vincoli di integrità referenziale o altri motivi
+                String nomeMateriale = (materiale.getNome() != null) ? materiale.getNome() : "ID " + materialeId;
+                Notification.show("Impossibile eliminare il materiale \"" + nomeMateriale + "\". Potrebbe essere in uso.",
+                                4000, Notification.Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_WARNING); // Warning invece di Error se è un fallimento atteso
             }
         } catch (Exception ex) {
-            logger.error("Errore durante l'eliminazione del materiale", ex);
-            Notification.show("Errore: " + ex.getMessage(),
+            String nomeMateriale = (materiale.getNome() != null) ? materiale.getNome() : "ID " + materialeId;
+            logger.error("Errore durante l'eliminazione del materiale {}", nomeMateriale, ex);
+            Notification.show("Errore tecnico durante l'eliminazione: " + ex.getMessage(),
                             5000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
         }

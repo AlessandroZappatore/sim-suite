@@ -19,12 +19,14 @@ import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.*;
+import it.uniupo.simnova.service.MaterialeService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.CreditsComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +50,8 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * Servizio per la gestione degli scenari.
      */
     private final ScenarioService scenarioService;
+
+    private final MaterialeService materialeService;
     /**
      * ID dello scenario attualmente visualizzato.
      */
@@ -75,8 +79,9 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * @param scenarioService servizio per la gestione degli scenari
      */
     @Autowired
-    public ScenarioDetailsView(ScenarioService scenarioService) {
+    public ScenarioDetailsView(ScenarioService scenarioService, MaterialeService materialeService) {
         this.scenarioService = scenarioService;
+        this.materialeService = materialeService;
         UI.getCurrent();
         getContent().addClassName("scenario-details-view");
         getContent().setPadding(false);
@@ -278,6 +283,13 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                 LumoUtility.Margin.Bottom.NONE,
                 LumoUtility.FontSize.XXLARGE
         );
+        Paragraph authors = new Paragraph("Autori: " + scenario.getAutori());
+        authors.addClassNames(
+                LumoUtility.TextColor.SECONDARY,
+                LumoUtility.TextAlignment.CENTER,
+                LumoUtility.Margin.Top.NONE,
+                LumoUtility.FontSize.XLARGE
+        );
 
         Paragraph subtitle = getParagraph();
 
@@ -303,7 +315,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         // Espandi il primo pannello di default
         accordion.open(0);
 
-        contentLayout.add(title, subtitle, accordion);
+        contentLayout.add(title, authors, subtitle, accordion);
 
         // 3. FOOTER
         HorizontalLayout footerLayout = new HorizontalLayout();
@@ -334,10 +346,12 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      */
     private Paragraph getParagraph() {
         Paragraph subtitle = new Paragraph(
-                String.format("Paziente: %s | Patologia: %s | Durata: %.1f minuti",
+                String.format("Paziente: %s | Patologia: %s | Durata: %.1f minuti | Target: %s",
                         scenario.getNomePaziente(),
                         scenario.getPatologia(),
-                        scenario.getTimerGenerale())
+                        scenario.getTimerGenerale(),
+                        scenario.getTarget()
+                )
         );
         subtitle.addClassNames(
                 LumoUtility.TextColor.SECONDARY,
@@ -366,19 +380,14 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                 createInfoItem("Descrizione", scenario.getDescrizione()),
                 createInfoItem("Briefing", scenario.getBriefing()),
                 createInfoItem("Patto Aula", scenario.getPattoAula()),
-                createInfoItem("Azione Chiave", scenario.getAzioneChiave()),
-                createInfoItem("Obiettivi Didattici", scenario.getObiettivo())
-        );
-
-        // Card per materiali e preparazione
-        Div prepCard = new Div();
-        prepCard.addClassName("info-card");
-        prepCard.add(
+                createInfoItem("Azioni Chiave", scenario.getAzioneChiave()),
+                createInfoItem("Obiettivi Didattici", scenario.getObiettivo()),
                 createInfoItem("Moulage", scenario.getMoulage()),
-                createInfoItem("Liquidi", scenario.getLiquidi())
+                createInfoItem("Liquidi", scenario.getLiquidi()),
+                createInfoItem("Materiale necessario", materialeService.toStringAllMaterialsByScenarioId(scenarioId))
         );
 
-        layout.add(card, prepCard);
+        layout.add(card);
         return layout;
     }
 
@@ -479,7 +488,6 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
 
         // Ottieni gli esami/referti dal servizio
         List<EsameReferto> esami = scenarioService.getEsamiRefertiByScenarioId(scenarioId);
-
         if (esami != null && !esami.isEmpty()) {
             for (EsameReferto esame : esami) {
                 Div examCard = new Div();
@@ -491,14 +499,14 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                 examContent.setPadding(false);
                 examContent.setSpacing(true);
 
-                // Referto testuale
-                if (esame.getRefertoTestuale() != null && !esame.getRefertoTestuale().isEmpty()) {
-                    examContent.add(createInfoItem("Referto", esame.getRefertoTestuale()));
-                }
-
                 // Anteprima file multimediale
                 if (esame.getMedia() != null && !esame.getMedia().isEmpty()) {
                     examContent.add(createMediaPreview(esame.getMedia()));
+                }
+
+                // Referto testuale
+                if (esame.getRefertoTestuale() != null && !esame.getRefertoTestuale().isEmpty()) {
+                    examContent.add(createInfoItem("Referto", esame.getRefertoTestuale()));
                 }
 
                 examCard.add(examTitle, examContent);
@@ -512,88 +520,88 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
     }
 
     /**
-         * Crea un'anteprima per i file multimediali.
-         *
-         * @param fileName nome del file
-         * @return il componente di anteprima
-         */
-        private Component createMediaPreview(String fileName) {
-            String fileExtension;
-            // Assicurati che ci sia un punto prima di cercare l'estensione
-            int lastDotIndex = fileName.lastIndexOf(".");
-            if (lastDotIndex != -1 && lastDotIndex < fileName.length() - 1) {
-                fileExtension = fileName.substring(lastDotIndex + 1).toLowerCase();
-            } else {
-                // Gestisce il caso in cui non c'è estensione o il punto è l'ultimo carattere
-                logger.warn("Impossibile determinare l'estensione del file per l'anteprima: {}", fileName);
-                return new Div(new Text("Tipo file non riconosciuto: " + fileName));
-            }
-
-            logger.debug("Creazione anteprima media per file: {}, estensione: {}", fileName, fileExtension);
-
-            Div previewContainer = new Div();
-            previewContainer.addClassName("media-preview");
-
-            // Percorso relativo alla radice del contesto web, come configurato in application.properties
-            String mediaPath = "/" + fileName;
-            logger.debug("Percorso media per anteprima: {}", mediaPath);
-
-            Component mediaComponent;
-            switch (fileExtension) {
-                case "jpg", "jpeg", "png", "gif", "webp":
-                    Image image = new Image(mediaPath, fileName);
-                    image.setMaxWidth("100%");
-                    image.setHeight("auto");
-                    image.getStyle().set("max-height", "300px");
-                    mediaComponent = image;
-                    break;
-
-                case "pdf":
-                    IFrame pdfPreview = new IFrame();
-                    pdfPreview.setSrc(mediaPath);
-                    pdfPreview.setWidth("100%");
-                    pdfPreview.setHeight("500px"); // Altezza maggiore per PDF
-                    pdfPreview.getStyle().set("border", "1px solid lightgray"); // Bordo per visibilità
-                    mediaComponent = pdfPreview;
-                    break;
-
-                case "mp4":
-                    NativeVideo video = new NativeVideo();
-                    video.setSrc(mediaPath);
-                    video.setControls(true);
-                    video.setWidth("100%");
-                    video.getStyle().set("max-height", "300px");
-                    mediaComponent = video;
-                    break;
-
-                case "mp3":
-                    NativeAudio audio = new NativeAudio();
-                    audio.setSrc(mediaPath);
-                    audio.setControls(true);
-                    audio.setWidth("100%");
-                    mediaComponent = audio;
-                    break;
-
-                default:
-                    logger.warn("Formato file non supportato per l'anteprima: {}", fileName);
-                    mediaComponent = new Div(new Text("Anteprima non disponibile per: " + fileName));
-                    break; // Aggiunto break mancante
-            }
-
-            previewContainer.add(mediaComponent);
-
-            // Pulsante per aprire il file a schermo intero (o in nuova scheda)
-            Button fullscreenButton = new Button("Apri media", new Icon(VaadinIcon.EXTERNAL_LINK));
-            fullscreenButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
-            fullscreenButton.getStyle().set("margin-left", "1em");
-            fullscreenButton.addClickListener(e -> openFullMedia(fileName)); // Usa il metodo esistente
-
-            // Aggiungi il pulsante accanto o sotto il media a seconda del tipo?
-            // Per semplicità, lo aggiungiamo sempre dopo.
-            previewContainer.add(fullscreenButton);
-
-            return previewContainer;
+     * Crea un'anteprima per i file multimediali.
+     *
+     * @param fileName nome del file
+     * @return il componente di anteprima
+     */
+    private Component createMediaPreview(String fileName) {
+        String fileExtension;
+        // Assicurati che ci sia un punto prima di cercare l'estensione
+        int lastDotIndex = fileName.lastIndexOf(".");
+        if (lastDotIndex != -1 && lastDotIndex < fileName.length() - 1) {
+            fileExtension = fileName.substring(lastDotIndex + 1).toLowerCase();
+        } else {
+            // Gestisce il caso in cui non c'è estensione o il punto è l'ultimo carattere
+            logger.warn("Impossibile determinare l'estensione del file per l'anteprima: {}", fileName);
+            return new Div(new Text("Tipo file non riconosciuto: " + fileName));
         }
+
+        logger.debug("Creazione anteprima media per file: {}, estensione: {}", fileName, fileExtension);
+
+        Div previewContainer = new Div();
+        previewContainer.addClassName("media-preview");
+
+        // Percorso relativo alla radice del contesto web, come configurato in application.properties
+        String mediaPath = "/" + fileName;
+        logger.debug("Percorso media per anteprima: {}", mediaPath);
+
+        Component mediaComponent;
+        switch (fileExtension) {
+            case "jpg", "jpeg", "png", "gif", "webp":
+                Image image = new Image(mediaPath, fileName);
+                image.setMaxWidth("100%");
+                image.setHeight("auto");
+                image.getStyle().set("max-height", "300px");
+                mediaComponent = image;
+                break;
+
+            case "pdf":
+                IFrame pdfPreview = new IFrame();
+                pdfPreview.setSrc(mediaPath);
+                pdfPreview.setWidth("100%");
+                pdfPreview.setHeight("500px"); // Altezza maggiore per PDF
+                pdfPreview.getStyle().set("border", "1px solid lightgray"); // Bordo per visibilità
+                mediaComponent = pdfPreview;
+                break;
+
+            case "mp4":
+                NativeVideo video = new NativeVideo();
+                video.setSrc(mediaPath);
+                video.setControls(true);
+                video.setWidth("100%");
+                video.getStyle().set("max-height", "300px");
+                mediaComponent = video;
+                break;
+
+            case "mp3":
+                NativeAudio audio = new NativeAudio();
+                audio.setSrc(mediaPath);
+                audio.setControls(true);
+                audio.setWidth("100%");
+                mediaComponent = audio;
+                break;
+
+            default:
+                logger.warn("Formato file non supportato per l'anteprima: {}", fileName);
+                mediaComponent = new Div(new Text("Anteprima non disponibile per: " + fileName));
+                break; // Aggiunto break mancante
+        }
+
+        previewContainer.add(mediaComponent);
+
+        // Pulsante per aprire il file a schermo intero (o in nuova scheda)
+        Button fullscreenButton = new Button("Apri media", new Icon(VaadinIcon.EXTERNAL_LINK));
+        fullscreenButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+        fullscreenButton.getStyle().set("margin-left", "1em");
+        fullscreenButton.addClickListener(e -> openFullMedia(fileName)); // Usa il metodo esistente
+
+        // Aggiungi il pulsante accanto o sotto il media a seconda del tipo?
+        // Per semplicità, lo aggiungiamo sempre dopo.
+        previewContainer.add(fullscreenButton);
+
+        return previewContainer;
+    }
 
     /**
      * Apre il file multimediale completo in una nuova scheda.
@@ -689,6 +697,11 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                 actionLayout.add(new Paragraph(tempo.getAltriDettagli()));
             }
 
+            if (tempo.getRuoloGenitore() != null && !tempo.getRuoloGenitore().isEmpty()) {
+                actionLayout.add(new H4("Ruolo Genitore"));
+                actionLayout.add(new Paragraph(tempo.getRuoloGenitore()));
+            }
+
             timeCard.add(
                     timeTitle,
                     paramsGrid,
@@ -722,16 +735,29 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * @return la griglia creata
      */
     private Grid<String> createParamsGrid(PazienteT0 paziente) {
+        List<String> items = new ArrayList<>();
+
+        items.add("PA: " + paziente.getPA() + " mmHg");
+        items.add("FC: " + paziente.getFC() + " bpm");
+        items.add("RR: " + paziente.getRR() + " atti/min");
+        items.add(String.format("Temperatura: %.1f °C", paziente.getT()));
+        items.add("SpO2: " + paziente.getSpO2() + "%");
+
+        // Aggiungi FiO2 solo se non è null e diverso da zero
+        if (paziente.getFiO2() != null && paziente.getFiO2() != 0) {
+            items.add("FiO2: " + paziente.getFiO2() + "%");
+        }
+
+        // Aggiungi LitriO2 solo se non è null e diverso da zero
+        if (paziente.getLitriO2() != null && paziente.getLitriO2() != 0) {
+            items.add("Litri O2: " + paziente.getLitriO2() + " L/min");
+        }
+
+        items.add("EtCO2: " + paziente.getEtCO2() + " mmHg");
+        items.add("Monitor: " + paziente.getMonitor());
+
         Grid<String> grid = new Grid<>();
-        grid.setItems(
-                "PA: " + paziente.getPA() + " mmHg",
-                "FC: " + paziente.getFC() + " bpm",
-                "RR: " + paziente.getRR() + " atti/min",
-                String.format("Temperatura: %.1f °C", paziente.getT()),
-                "SpO2: " + paziente.getSpO2() + "%",
-                "EtCO2: " + paziente.getEtCO2() + " mmHg",
-                "Monitor: " + paziente.getMonitor()
-        );
+        grid.setItems(items);
         grid.setWidth("250px");
 
         grid.addColumn(s -> s).setHeader("Parametro");
@@ -746,15 +772,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * @return la griglia creata
      */
     private Grid<String> createTimelineParamsGrid(Tempo tempo) {
-        Grid<String> grid = new Grid<>();
-        grid.setItems(
-                "PA: " + tempo.getPA(),
-                "FC: " + tempo.getFC() + " bpm",
-                "RR: " + tempo.getRR() + " atti/min",
-                String.format("Temperatura: %.1f °C", tempo.getT()),
-                "SpO2: " + tempo.getSpO2() + "%",
-                "EtCO2: " + tempo.getEtCO2() + " mmHg"
-        );
+        Grid<String> grid = getStringGrid(tempo);
 
         grid.addColumn(s -> {
             if (s.contains(":")) {
@@ -772,6 +790,21 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
 
         grid.setAllRowsVisible(true);
         grid.setWidth("100%");
+        return grid;
+    }
+
+    private static Grid<String> getStringGrid(Tempo tempo) {
+        Grid<String> grid = new Grid<>();
+        grid.setItems(
+                "PA: " + tempo.getPA(),
+                "FC: " + tempo.getFC() + " bpm",
+                "RR: " + tempo.getRR() + " atti/min",
+                String.format("Temperatura: %.1f °C", tempo.getT()),
+                "SpO2: " + tempo.getSpO2() + "%",
+                tempo.getFiO2() != null ? "FiO2: " + tempo.getFiO2() + "%" : "",
+                tempo.getLitriO2() != null ? "Litri O2: " + tempo.getLitriO2() + " L/min" : "",
+                "EtCO2: " + tempo.getEtCO2() + " mmHg"
+        );
         return grid;
     }
 
@@ -817,7 +850,23 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         itemTitle.addClassName(LumoUtility.Margin.Bottom.XSMALL);
 
         // Usando Html invece di Paragraph per contenuto creato con TinyMCE
-        if (title.equals("Descrizione") || title.equals("Briefing") || title.equals("Patto Aula")) {
+        if (title.equals("Descrizione")
+                || title.equals("Briefing")
+                || title.equals("Patto Aula")
+                || title.equals("Obiettivi Didattici")
+                || title.equals("Moulage")
+                || title.equals("Liquidi")
+                || title.equals("Generale")
+                || title.equals("Pupille")
+                || title.equals("Collo")
+                || title.equals("Torace")
+                || title.equals("Cuore")
+                || title.equals("Addome")
+                || title.equals("Retto")
+                || title.equals("Cute")
+                || title.equals("Estremità")
+                || title.equals("Neurologico")
+                || title.equals("FAST")) {
             Html htmlContent = new Html("<div>" + content + "</div>");
             layout.add(itemTitle, htmlContent);
         } else {

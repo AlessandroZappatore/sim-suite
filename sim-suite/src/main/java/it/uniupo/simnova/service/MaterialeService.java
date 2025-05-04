@@ -216,4 +216,16 @@ package it.uniupo.simnova.service;
                 }
             }
         }
+
+        public String toStringAllMaterialsByScenarioId(int scenarioId) {
+            StringBuilder sb = new StringBuilder();
+            List<Materiale> materiali = getMaterialiByScenarioId(scenarioId);
+            for (Materiale materiale : materiali) {
+                sb.append(materiale.getNome())
+                  .append(": ")
+                  .append(materiale.getDescrizione())
+                  .append("\n");
+            }
+            return sb.toString();
+        }
     }

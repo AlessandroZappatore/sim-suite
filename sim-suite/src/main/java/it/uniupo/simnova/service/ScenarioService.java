@@ -124,7 +124,7 @@ public class ScenarioService {
      * @return una lista di tutti gli scenari presenti nel database
      */
     public List<Scenario> getAllScenarios() {
-        final String sql = "SELECT id_scenario, titolo, nome_paziente, patologia, descrizione FROM Scenario";
+        final String sql = "SELECT id_scenario, titolo, autori, patologia, descrizione FROM Scenario";
         List<Scenario> scenarios = new ArrayList<>();
 
         try (Connection conn = DBConnect.getInstance().getConnection();
@@ -135,7 +135,7 @@ public class ScenarioService {
                 Scenario scenario = new Scenario(
                         rs.getInt("id_scenario"),
                         rs.getString("titolo"),
-                        rs.getString("nome_paziente"),
+                        rs.getString("autori"),
                         rs.getString("patologia"),
                         rs.getString("descrizione"));
                 scenarios.add(scenario);
@@ -483,17 +483,6 @@ public class ScenarioService {
      */
     public boolean updateScenarioObiettiviDidattici(int scenarioId, String obiettivo) {
         return updateScenarioField(scenarioId, "obiettivo", obiettivo);
-    }
-
-    /**
-     * Aggiorna il materiale necessario dello scenario.
-     *
-     * @param scenarioId l'ID dello scenario da aggiornare
-     * @param materiale  il nuovo materiale necessario
-     * @return true se l'operazione ha avuto successo, false altrimenti
-     */
-    public boolean updateScenarioMaterialeNecessario(int scenarioId, String materiale) {
-        return updateScenarioField(scenarioId, "materiale", materiale);
     }
 
     /**
@@ -1218,8 +1207,8 @@ public class ScenarioService {
                 return false;
             }
 
-            final String sql = "INSERT INTO Tempo (id_tempo, id_advanced_scenario, PA, FC, RR, T, SpO2, EtCO2, Azione, TSi_id, TNo_id, altri_dettagli, timer_tempo) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            final String sql = "INSERT INTO Tempo (id_tempo, id_advanced_scenario, PA, FC, RR, T, SpO2, FiO2, LitriOssigeno, EtCO2, Azione, TSi_id, TNo_id, altri_dettagli, timer_tempo, RuoloGenitore) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 for (Tempo tempo : tempi) {
@@ -1227,6 +1216,8 @@ public class ScenarioService {
                     Integer fc = tempo.getFC();
                     Integer rr = tempo.getRR();
                     Integer spo2 = tempo.getSpO2();
+                    Integer fio2 = tempo.getFiO2();
+                    Float litrio2 = tempo.getLitriO2();
                     Integer etco2 = tempo.getEtCO2();
                     String pa = tempo.getPA();
                     int tsi = tempo.getTSi();
@@ -1243,6 +1234,14 @@ public class ScenarioService {
                     if (spo2 != null && (spo2 < 0 || spo2 > 100)) {
                         logger.warn("Saturazione di ossigeno non valida: {}", spo2);
                         throw new IllegalArgumentException("Saturazione di ossigeno non valida, deve essere tra 0 e 100");
+                    }
+                    if( fio2 != null && (fio2 < 0 || fio2 > 100)) {
+                        logger.warn("FiO2 non valido: {}", fio2);
+                        throw new IllegalArgumentException("FiO2 non valido, deve essere tra 0 e 100");
+                    }
+                    if (litrio2 != null && litrio2 < 0) {
+                        logger.warn("LitriO2 non valido: {}", litrio2);
+                        throw new IllegalArgumentException("LitriO2 non valido");
                     }
                     if (etco2 != null && etco2 < 0) {
                         logger.warn("EtCO2 non valido: {}", etco2);
@@ -1265,12 +1264,15 @@ public class ScenarioService {
                     stmt.setObject(5, rr);
                     stmt.setDouble(6, Math.round(tempo.getT() * 10) / 10.0); // Tronca temperatura a 1 decimale
                     stmt.setObject(7, spo2);
-                    stmt.setObject(8, etco2);
-                    stmt.setString(9, tempo.getAzione());
-                    stmt.setInt(10, tempo.getTSi());
-                    stmt.setInt(11, tempo.getTNo());
-                    stmt.setString(12, tempo.getAltriDettagli());
-                    stmt.setLong(13, tempo.getTimerTempo());
+                    stmt.setObject(8, fio2);
+                    stmt.setObject(9, litrio2);
+                    stmt.setObject(10, etco2);
+                    stmt.setString(11, tempo.getAzione());
+                    stmt.setInt(12, tempo.getTSi());
+                    stmt.setInt(13, tempo.getTNo());
+                    stmt.setString(14, tempo.getAltriDettagli());
+                    stmt.setLong(15, tempo.getTimerTempo());
+                    stmt.setString(16, tempo.getRuoloGenitore());
 
                     stmt.addBatch();
                 }
@@ -1573,7 +1575,7 @@ public class ScenarioService {
                         rs.getFloat("T"),
                         rs.getInt("SpO2"),
                         rs.getInt("FiO2"),
-                        rs.getFloat("LitriO2"),
+                        rs.getFloat("LitriOssigeno"),
                         rs.getInt("EtCO2"),
                         rs.getString("Azione"),
                         rs.getInt("TSi_id"),

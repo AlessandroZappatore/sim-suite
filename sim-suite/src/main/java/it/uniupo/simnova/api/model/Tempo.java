@@ -267,6 +267,14 @@ public class Tempo {
         } else SpO2 = spO2;
     }
 
+    public Integer getFiO2() {
+        return FiO2;
+    }
+
+    public Float getLitriO2() {
+        return LitriO2;
+    }
+
     public void setFiO2(Integer fiO2) {
         if (fiO2 != null && (fiO2 < 0 || fiO2 > 100)) {
             throw new IllegalArgumentException("FiO2 deve essere compresa tra 0 e 100");

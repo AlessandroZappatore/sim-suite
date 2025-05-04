@@ -376,8 +376,12 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
             try {
                 List<EsameReferto> esamiReferti = new ArrayList<>();
+                boolean hasValidData = false;
+
                 for (FormRow row : formRows) {
                     String fileName = "";
+                    String selectedExam = row.getSelectedExam();
+                    String reportText = row.getReportField().getValue();
 
                     // Controlla la fonte del media (nuovo upload o esistente)
                     if ("Carica nuovo file".equals(row.mediaSourceGroup.getValue())) {
@@ -386,32 +390,48 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                             if (buffer.getFileName() != null && !buffer.getFileName().isEmpty()) {
                                 try (InputStream fileData = buffer.getInputStream()) {
                                     fileName = fileStorageService.storeFile(fileData, buffer.getFileName());
+                                    hasValidData = true;
                                 }
                             }
                         }
                     } else {
                         // Usa il media esistente selezionato
                         fileName = row.getSelectedMedia();
+                        if (fileName != null && !fileName.isEmpty()) {
+                            hasValidData = true;
+                        }
+                    }
+
+                    // Verifica se ci sono dati validi nell'esame o nel referto testuale
+                    if ((selectedExam != null && !selectedExam.trim().isEmpty()) ||
+                        (reportText != null && !reportText.trim().isEmpty())) {
+                        hasValidData = true;
                     }
 
                     EsameReferto esameReferto = new EsameReferto(
                             row.getRowNumber(),
                             scenarioId,
-                            row.getSelectedExam(),
+                            selectedExam,
                             fileName,
-                            row.getReportField().getValue()
+                            reportText
                     );
                     esamiReferti.add(esameReferto);
                 }
 
-                boolean success = scenarioService.saveEsamiReferti(scenarioId, esamiReferti);
-                if (success) {
-                    Notification.show("Esami e referti salvati con successo", 3000, Notification.Position.TOP_CENTER)
-                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                    ui.navigate("moulage/" + scenarioId);
+                // Salva i dati solo se ci sono contenuti validi
+                if (hasValidData) {
+                    boolean success = scenarioService.saveEsamiReferti(scenarioId, esamiReferti);
+                    if (success) {
+                        Notification.show("Esami e referti salvati con successo", 3000, Notification.Position.TOP_CENTER)
+                                .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    }
                 } else {
-                    throw new RuntimeException("Errore durante il salvataggio degli esami e referti");
+                    logger.info("Nessun dato significativo da salvare per gli esami e referti dello scenario {}", scenarioId);
                 }
+
+                // Naviga alla prossima vista indipendentemente dall'esito del salvataggio
+                ui.navigate("moulage/" + scenarioId);
+
             } catch (Exception e) {
                 logger.error("Errore durante il salvataggio degli esami e referti", e);
                 Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.TOP_CENTER)

@@ -5,6 +5,8 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -13,7 +15,6 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
-import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.EsameFisico;
@@ -23,6 +24,7 @@ import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vaadin.tinymce.TinyMce;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -54,7 +56,7 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
     /**
      * Mappa per memorizzare le aree di testo delle sezioni dell'esame fisico.
      */
-    private final Map<String, TextArea> examSections = new HashMap<>();
+    private final Map<String, TinyMce> examSections = new HashMap<>();
     /**
      * Logger per la registrazione degli eventi.
      */
@@ -174,9 +176,22 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
 
         // Creazione delle aree di testo per ogni sezione
         for (String[] section : sections) {
-            TextArea area = createExamSection(section[0], section[1]);
-            examSections.put(section[0], area);
-            examSectionsLayout.add(area);
+            H3 sectionTitle = new H3(section[0]);
+            sectionTitle.addClassName(LumoUtility.Margin.Bottom.NONE);
+
+            Paragraph sectionDescription = new Paragraph(section[1]);
+            sectionDescription.addClassName(LumoUtility.Margin.Top.XSMALL);
+            sectionDescription.addClassName(LumoUtility.Margin.Bottom.SMALL);
+            sectionDescription.getStyle().set("color", "var(--lumo-secondary-text-color)");
+
+            VerticalLayout headerLayout = new VerticalLayout(sectionTitle, sectionDescription);
+            headerLayout.setPadding(false);
+            headerLayout.setSpacing(false);
+
+            TinyMce editor = createExamSection();
+            examSections.put(section[0], editor);
+
+            examSectionsLayout.add(headerLayout, editor);
         }
 
         contentLayout.add(examSectionsLayout);
@@ -238,17 +253,18 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
     /**
      * Crea un'area di testo per una sezione specifica dell'esame fisico.
      *
-     * @param title       titolo della sezione
-     * @param placeholder testo descrittivo della sezione
-     * @return TextArea configurata
+     * @return TinyMce configurato
      */
-    private TextArea createExamSection(String title, String placeholder) {
-        TextArea area = new TextArea(title);
-        area.setPlaceholder(placeholder);
-        area.setWidthFull();
-        area.setMinHeight("120px");
-        area.addClassName(LumoUtility.Margin.Bottom.SMALL);
-        return area;
+    private TinyMce createExamSection() {
+        TinyMce editor = new TinyMce();
+        editor.setWidthFull();
+        editor.setHeight("200px");
+        editor.addClassName(LumoUtility.Margin.Bottom.SMALL);
+        editor.configure("plugins: 'link lists', " +
+                "toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link', " +
+                "menubar: false, " +
+                "statusbar: false");
+        return editor;
     }
 
     /**
@@ -260,13 +276,13 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
         if (esameFisico != null) {
             Map<String, String> savedSections = esameFisico.getSections();
             savedSections.forEach((sectionName, value) -> {
-                TextArea textArea = examSections.get(sectionName);
-                if (textArea != null) {
-                    textArea.setValue(value != null ? value : "");
+                TinyMce editor = examSections.get(sectionName);
+                if (editor != null) {
+                    editor.setValue(value != null ? value : "");
                 }
             });
         } else {
-            examSections.values().forEach(textArea -> textArea.setValue(""));
+            examSections.values().forEach(editor -> editor.setValue(""));
         }
     }
 
@@ -283,7 +299,7 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
 
             try {
                 Map<String, String> examData = new HashMap<>();
-                examSections.forEach((section, area) -> examData.put(section, area.getValue()));
+                examSections.forEach((section, editor) -> examData.put(section, editor.getValue()));
 
                 boolean success = scenarioService.addEsameFisico(
                         scenarioId, examData

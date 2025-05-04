@@ -107,14 +107,13 @@ public class Scenario {
      *
      * @param id             l'identificativo univoco dello scenario
      * @param titolo         il titolo dello scenario
-     * @param nome_paziente  il nome del paziente
      * @param patologia      la patologia del paziente
      * @param descrizione    la descrizione dello scenario
      */
-    public Scenario(int id, String titolo, String nome_paziente, String patologia, String descrizione) {
+    public Scenario(int id, String titolo, String autori, String patologia, String descrizione) {
         this.id = id;
         this.titolo = titolo;
-        this.nome_paziente = nome_paziente;
+        this.autori = autori;
         this.patologia = patologia;
         this.descrizione = descrizione;
     }
@@ -251,7 +250,21 @@ public class Scenario {
      * @return l'azione chiave dello scenario
      */
     public String getAzioneChiave() {
-        return azione_chiave;
+        if (azione_chiave == null) {
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        String[] azioni = azione_chiave.split(";");
+
+        for (int i = 0; i < azioni.length; i++) {
+            sb.append(azioni[i].trim());
+            if (i < azioni.length - 1) {
+                sb.append("\n");
+            }
+        }
+
+        return sb.toString();
     }
 
     /**
