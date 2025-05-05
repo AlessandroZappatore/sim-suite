@@ -7,9 +7,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.details.Details;
-import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.H4;
-import com.vaadin.flow.component.html.IFrame;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -18,11 +16,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.router.BeforeEvent;
-import com.vaadin.flow.router.HasUrlParameter;
-import com.vaadin.flow.router.NotFoundException;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.EsameFisico;
 import it.uniupo.simnova.api.model.PazienteT0;
@@ -30,6 +24,7 @@ import it.uniupo.simnova.api.model.Scenario;
 import it.uniupo.simnova.service.ScenarioService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vaadin.tinymce.TinyMce;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -139,6 +134,9 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         scenarioTypeField.setValue(scenarioType);
         scenarioTypeField.setReadOnly(true);
 
+        TextField editAuthorField = createTextField("AUTORE", "Inserisci il tuo nome");
+        editAuthorField.setRequired(true);
+
         // Titolo scenario
         TextField scenarioTitle = createTextField("TITOLO SCENARIO", "Inserisci il titolo dello scenario");
         scenarioTitle.setValue(scenario.getTitolo());
@@ -160,6 +158,13 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         durationField.getStyle().set("max-width", "500px");
         durationField.setValue((int) scenario.getTimerGenerale());
 
+        ComboBox<String> scenarioTypeSelect = new ComboBox<>("TIPO SCENARIO");
+        scenarioTypeSelect.setItems("Adulto", "Pediatrico", "Neonatale", "Prematuro");
+        scenarioTypeSelect.setValue(scenario.getTipologia());
+        scenarioTypeSelect.setWidthFull();
+        scenarioTypeSelect.addClassName(LumoUtility.Margin.Top.LARGE);
+        scenarioTypeSelect.getStyle().set("max-width", "500px");
+
         // Layout per le informazioni generali
         VerticalLayout informazioniGeneraliLayout = new VerticalLayout();
         informazioniGeneraliLayout.setWidth("100%");
@@ -169,22 +174,23 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         informazioniGeneraliLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         informazioniGeneraliLayout.getStyle().set("margin", "0 auto").set("flex-grow", "1");
 
+
         // Descrizione scenario
-        TextArea descriptionArea = createTextArea(
+        VerticalLayout descriptionArea = createTinyMcePanel(
                 "DESCRIZIONE SCENARIO",
-                "Inserisci una descrizione dettagliata dello scenario...",
+                "Questa descrizione fornirà il contesto generale e le informazioni di background ai partecipanti.",
                 scenario.getDescrizione()
         );
 
         // Briefing scenario
-        TextArea briefingArea = createTextArea(
+        VerticalLayout briefingArea = createTinyMcePanel(
                 "BRIEFING",
                 "Inserisci il testo da leggere ai discenti prima della simulazione...",
                 scenario.getBriefing()
         );
 
         // Patto d'aula scenario
-        TextArea pattoAulaArea = createTextArea(
+        VerticalLayout pattoAulaArea = createTinyMcePanel(
                 "PATTO D'AULA / FAMILIARIZZAZIONE",
                 "Inserisci il testo da mostrare nella sala...",
                 scenario.getPattoAula()
@@ -198,23 +204,23 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         );
 
         // Obiettivi didattici scenario
-        TextArea obiettiviArea = createTextArea(
+        VerticalLayout obiettiviArea = createTinyMcePanel(
                 "OBIETTIVI DIDATTICI",
                 "Inserisci gli obiettivi didattici dello scenario...",
                 scenario.getObiettivo()
         );
 
         // Moulage scenario
-        TextArea moulageArea = createTextArea(
+        VerticalLayout moulageArea = createTinyMcePanel(
                 "MOULAGE",
                 "Descrivi il trucco da applicare al manichino/paziente simulato...",
                 scenario.getMoulage()
         );
 
         // Liquidi e presidi scenario
-        TextArea liquidiArea = createTextArea(
-                "LIQUIDI E PRESIDI IN T0",
-                "Indica quantità di liquidi e presidi presenti all'inizio della simulazione...",
+        VerticalLayout liquidiArea = createTinyMcePanel(
+                "LIQUIDI E FARMACI IN T0",
+                "Indica quantità di liquidi e farmaci presenti all'inizio della simulazione...",
                 scenario.getLiquidi()
         );
 
@@ -258,6 +264,14 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         TextField spo2Field = new TextField("SpO₂ (%)");
         spo2Field.setValue(parametriT0 != null && parametriT0.getSpO2() != 0 ? String.valueOf(parametriT0.getSpO2()) : "");
         spo2Field.setWidthFull();
+
+        TextField fio2Field = new TextField("FiO₂ (%)");
+        fio2Field.setValue(parametriT0 != null && parametriT0.getFiO2() != 0 ? String.valueOf(parametriT0.getFiO2()) : "");
+        fio2Field.setWidthFull();
+
+        TextField litriO2Field = new TextField("Litri O₂");
+        litriO2Field.setValue(parametriT0 != null && parametriT0.getLitriO2() != 0 ? String.valueOf(parametriT0.getLitriO2()) : "");
+        litriO2Field.setWidthFull();
 
         TextField etco2Field = new TextField("EtCO₂ (mmHg)");
         etco2Field.setValue(parametriT0 != null && parametriT0.getEtCO2() != 0 ? String.valueOf(parametriT0.getEtCO2()) : "");
@@ -351,77 +365,77 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         EsameFisico esamiFisici = scenarioService.getEsameFisicoById(scenarioId);
 
         // Esame fisico generale
-        TextArea generaleArea = createTextArea(
+        VerticalLayout generaleArea = createTinyMcePanel(
                 "GENERALE",
                 "Inserisci i dettagli dell'esame generale...",
                 esamiFisici != null ? esamiFisici.getSection("Generale") : ""
         );
 
         // Esame fisico pupille
-        TextArea pupilleArea = createTextArea(
+        VerticalLayout pupilleArea = createTinyMcePanel(
                 "PUPILLE",
                 "Inserisci i dettagli dell'esame delle pupille...",
                 esamiFisici != null ? esamiFisici.getSection("Pupille") : ""
         );
 
         // Esame fisico collo
-        TextArea colloArea = createTextArea(
+        VerticalLayout colloArea = createTinyMcePanel(
                 "COLLO",
                 "Inserisci i dettagli dell'esame del collo...",
                 esamiFisici != null ? esamiFisici.getSection("Collo") : ""
         );
 
         // Esame fisico torace
-        TextArea toraceArea = createTextArea(
+        VerticalLayout toraceArea = createTinyMcePanel(
                 "TORACE",
                 "Inserisci i dettagli dell'esame del torace...",
                 esamiFisici != null ? esamiFisici.getSection("Torace") : ""
         );
 
         // Esame fisico cuore
-        TextArea cuoreArea = createTextArea(
+        VerticalLayout cuoreArea = createTinyMcePanel(
                 "CUORE",
                 "Inserisci i dettagli dell'esame del cuore...",
                 esamiFisici != null ? esamiFisici.getSection("Cuore") : ""
         );
 
         // Esame fisico addome
-        TextArea addomeArea = createTextArea(
+        VerticalLayout addomeArea = createTinyMcePanel(
                 "ADDOME",
                 "Inserisci i dettagli dell'esame dell'addome...",
                 esamiFisici != null ? esamiFisici.getSection("Addome") : ""
         );
 
         // Esame fisico retto
-        TextArea rettoArea = createTextArea(
+        VerticalLayout rettoArea = createTinyMcePanel(
                 "RETTO",
                 "Inserisci i dettagli dell'esame rettale...",
                 esamiFisici != null ? esamiFisici.getSection("Retto") : ""
         );
 
         // Esame fisico cute
-        TextArea cuteArea = createTextArea(
+        VerticalLayout cuteArea = createTinyMcePanel(
                 "CUTE",
                 "Inserisci i dettagli dell'esame della cute...",
                 esamiFisici != null ? esamiFisici.getSection("Cute") : ""
         );
 
         // Esame fisico estremità
-        TextArea estremitaArea = createTextArea(
+        VerticalLayout estremitaArea = createTinyMcePanel(
                 "ESTREMITÀ",
                 "Inserisci i dettagli dell'esame delle estremità...",
                 esamiFisici != null ? esamiFisici.getSection("Estremità") : ""
         );
 
         // Esame fisico neurologico
-        TextArea neurologicoArea = createTextArea(
+        VerticalLayout neurologicoArea = createTinyMcePanel(
                 "NEUROLOGICO",
                 "Inserisci i dettagli dell'esame neurologico...",
                 esamiFisici != null ? esamiFisici.getSection("Neurologico") : ""
         );
 
         // Esame fisico FAST
-        TextArea FASTArea = createTextArea(
+        VerticalLayout FASTArea = createTinyMcePanel(
                 "FAST ECOGRAFIA",
                 "Inserisci i dettagli dell'ecografia FAST...",
                 esamiFisici != null ? esamiFisici.getSection("FAST") : ""
@@ -469,11 +483,13 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
 
         // Aggiunta dei componenti al layout principale
         contentLayout.add(
+                editAuthorField,
                 scenarioTypeField,
                 scenarioTitle,
                 patientName,
                 pathology,
                 durationField,
+                scenarioTypeSelect,
                 informazioniGeneraliDetails,
                 esamiRefertiDetails,
                 parametriT0Details,
@@ -683,5 +699,27 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         esamiLayout.add(openFullPageButton, esamiFrame);
 
         return esamiLayout;
+    }
+
+    /**
+     * Crea un pannello con titolo, sottotitolo e editor TinyMce.
+     *
+     * @param titolo     titolo del pannello
+     * @param sottotitolo sottotitolo del pannello
+     * @param valore     valore iniziale dell'editor
+     * @return layout verticale contenente il pannello completo
+     */
+    private VerticalLayout createTinyMcePanel(String titolo, String sottotitolo, String valore) {
+        H3 titleElement = new H3(titolo);
+        Paragraph subtitleElement = new Paragraph(sottotitolo);
+
+        TinyMce editor = new TinyMce();
+        editor.setValue(valore != null ? valore : "");
+        editor.setHeight("300px");
+
+        VerticalLayout panelLayout = new VerticalLayout();
+        panelLayout.add(titleElement, subtitleElement, editor);
+
+        return panelLayout;
     }
 }

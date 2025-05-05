@@ -555,7 +555,7 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
         switch (selectedTarget) {
             case MEDICI_ASSISTENTI:
                 if (!mediciAssistentiYearRadio.isEmpty()) {
-                    sb.append(": ").append(mediciAssistentiYearRadio.getValue());
+                    sb.append(" (").append(mediciAssistentiYearRadio.getValue()).append(" anno)");
                 }
                 break;
             case MEDICI_SPECIALISTI:
@@ -567,12 +567,12 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
                 break;
             case STUDENTI_MEDICINA:
                 if (!studentiMedicinaYearRadio.isEmpty()) {
-                    sb.append(": ").append(studentiMedicinaYearRadio.getValue());
+                    sb.append(" (").append(studentiMedicinaYearRadio.getValue()).append(" anno)");
                 }
                 break;
             case STUDENTI_INFERMIERISTICA:
                 if (!studentiInfermieristicaYearRadio.isEmpty()) {
-                    sb.append(": ").append(studentiInfermieristicaYearRadio.getValue());
+                    sb.append(" (").append(studentiInfermieristicaYearRadio.getValue()).append(" anno)");
                 }
                 break;
             case INFERMIERI_SPECIALIZZATI:
@@ -586,7 +586,7 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
                 break;
             case STUDENTI_ODONTOIATRIA:
                 if (!studentiOdontoiatriaYearRadio.isEmpty()) {
-                    sb.append(": ").append(studentiOdontoiatriaYearRadio.getValue());
+                    sb.append(" (").append(studentiOdontoiatriaYearRadio.getValue()).append(" anno)");
                 }
                 break;
             case ALTRO:

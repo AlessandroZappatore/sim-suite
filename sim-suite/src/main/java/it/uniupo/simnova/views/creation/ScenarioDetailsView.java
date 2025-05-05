@@ -346,8 +346,9 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      */
     private Paragraph getParagraph() {
         Paragraph subtitle = new Paragraph(
-                String.format("Paziente: %s | Patologia: %s | Durata: %.1f minuti | Target: %s",
+                String.format("Paziente: %s | Tipologia: %s | Patologia: %s | Durata: %.1f minuti | Target: %s",
                         scenario.getNomePaziente(),
+                        scenario.getTipologia(),
                         scenario.getPatologia(),
                         scenario.getTimerGenerale(),
                         scenario.getTarget()
@@ -378,12 +379,17 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         card.addClassName("info-card");
         card.add(
                 createInfoItem("Descrizione", scenario.getDescrizione()),
-                createInfoItem("Briefing", scenario.getBriefing()),
+                createInfoItem("Briefing", scenario.getBriefing())
+                );
+        if(scenarioService.isPediatric(scenarioId)) {
+            card.add(createInfoItem("Informazioni dai genitori", scenario.getInfoGenitore()));
+        }
+        card.add(
                 createInfoItem("Patto Aula", scenario.getPattoAula()),
                 createInfoItem("Azioni Chiave", scenario.getAzioneChiave()),
                 createInfoItem("Obiettivi Didattici", scenario.getObiettivo()),
                 createInfoItem("Moulage", scenario.getMoulage()),
-                createInfoItem("Liquidi", scenario.getLiquidi()),
+                createInfoItem("Liquidi e dosi farmaci", scenario.getLiquidi()),
                 createInfoItem("Materiale necessario", materialeService.toStringAllMaterialsByScenarioId(scenarioId))
         );
 
@@ -826,6 +832,14 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                 .setHeader("Posizione")
                 .setAutoWidth(true);
 
+        grid.addColumn(Accesso::getLato)
+                .setHeader("Lato")
+                .setAutoWidth(true);
+
+        grid.addColumn(Accesso::getMisura)
+                .setHeader("Misura")
+                .setAutoWidth(true);
+
         grid.setAllRowsVisible(true);
         return grid;
     }
@@ -852,10 +866,11 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         // Usando Html invece di Paragraph per contenuto creato con TinyMCE
         if (title.equals("Descrizione")
                 || title.equals("Briefing")
+                || title.equals("Informazioni dai genitori")
                 || title.equals("Patto Aula")
                 || title.equals("Obiettivi Didattici")
                 || title.equals("Moulage")
-                || title.equals("Liquidi")
+                || title.equals("Liquidi e dosi farmaci")
                 || title.equals("Generale")
                 || title.equals("Pupille")
                 || title.equals("Collo")
@@ -866,7 +881,8 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                 || title.equals("Cute")
                 || title.equals("Estremità")
                 || title.equals("Neurologico")
-                || title.equals("FAST")) {
+                || title.equals("FAST")
+                || title.equals("Sceneggiatura")) {
             Html htmlContent = new Html("<div>" + content + "</div>");
             layout.add(itemTitle, htmlContent);
         } else {
@@ -983,7 +999,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         if (sceneggiatura == null || sceneggiatura.trim().isEmpty()) {
             layout.add(new Paragraph("Nessuna sceneggiatura disponibile"));
         } else {
-            layout.add(new Paragraph(sceneggiatura));
+            layout.add(createInfoItem("Sceneggiatura", sceneggiatura));
         }
         return layout;
     }

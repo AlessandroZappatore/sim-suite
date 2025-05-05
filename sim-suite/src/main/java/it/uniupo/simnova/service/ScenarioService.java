@@ -843,7 +843,7 @@ public class ScenarioService {
         }
 
         // 2. Inserisci i nuovi accessi
-        final String insertAccessoSql = "INSERT INTO Accesso (tipologia, posizione) VALUES (?, ?)";
+        final String insertAccessoSql = "INSERT INTO Accesso (tipologia, posizione, lato, misura) VALUES (?, ?, ?, ?)";
         final String insertRelSql = isVenoso ?
                 "INSERT INTO AccessoVenoso (paziente_t0_id, accesso_id) VALUES (?, ?)" :
                 "INSERT INTO AccessoArterioso (paziente_t0_id, accesso_id) VALUES (?, ?)";
@@ -854,6 +854,8 @@ public class ScenarioService {
             try (PreparedStatement stmt = conn.prepareStatement(insertAccessoSql, Statement.RETURN_GENERATED_KEYS)) {
                 stmt.setString(1, data.getTipologia());
                 stmt.setString(2, data.getPosizione());
+                stmt.setString(3, data.getLato());
+                stmt.setInt(4, data.getMisura());
                 stmt.executeUpdate();
 
                 try (ResultSet rs = stmt.getGeneratedKeys()) {

@@ -37,11 +37,11 @@ public class PdfExportService {
     /**
      * Margini e spaziatura per il layout del PDF.
      */
-    private static final float MARGIN = 50;
+    private static final float MARGIN = 40;
     /**
      * Spaziatura tra le righe.
      */
-    private static final float LEADING = 15;
+    private static final float LEADING = 14;
     /**
      * Dimensioni dei font per i vari elementi del PDF.
      */
@@ -58,16 +58,9 @@ public class PdfExportService {
      * Dimensione del font per il testo di piccole dimensioni.
      */
     private static final float SMALL_FONT_SIZE = 9;
-    /**
-     * Larghezza del logo.
-     */
-    private static final float LOGO_WIDTH = 60;
-    /**
-     * Altezza del logo.
-     */
-    private static final float LOGO_HEIGHT = 60;
     private static final String CENTER_LOGO_FILENAME = "center_logo.png"; // Nome file standard per il logo del centro
     private final FileStorageService fileStorageService;
+    private final MaterialeService materialeService;
     /**
      * Numero di pagina corrente.
      */
@@ -109,13 +102,23 @@ public class PdfExportService {
     private PDImageXObject centerLogo;
 
     /**
+     * Larghezza originale del logo del centro.
+     */
+    private float centerLogoWidth;
+    /**
+     * Altezza originale del logo del centro.
+     */
+    private float centerLogoHeight;
+
+    /**
      * Costruttore del servizio PdfExportService.
      *
      * @param scenarioService il servizio per la gestione degli scenari
      */
-    public PdfExportService(ScenarioService scenarioService, FileStorageService fileStorageService) {
+    public PdfExportService(ScenarioService scenarioService, FileStorageService fileStorageService, MaterialeService materialeService) {
         this.scenarioService = scenarioService;
         this.fileStorageService = fileStorageService;
+        this.materialeService = materialeService;
     }
 
     /**
@@ -245,7 +248,13 @@ public class PdfExportService {
             }
 
             // Crea l'immagine dall'array di byte
-            return PDImageXObject.createFromByteArray(document, buffer.toByteArray(), CENTER_LOGO_FILENAME);
+            PDImageXObject logoImage = PDImageXObject.createFromByteArray(document, buffer.toByteArray(), CENTER_LOGO_FILENAME);
+
+            // Memorizza le dimensioni originali per poterle usare nel metodo initNewPage
+            centerLogoWidth = logoImage.getWidth();
+            centerLogoHeight = logoImage.getHeight();
+
+            return logoImage;
 
         } catch (FileNotFoundException e) {
             logger.info("Logo del centro non trovato nella directory di upload: {}", CENTER_LOGO_FILENAME);
@@ -280,40 +289,51 @@ public class PdfExportService {
 
         // Aggiunge il logo se è la prima pagina
         if (pageNumber == 1) {
-            float totalWidth = 0;
-            int logoCount = 0;
+            // Dimensioni ridotte per il logo SimSuite
+            float simLogoWidth = 40; // Ridotto da 60
+            float simLogoHeight = 40; // Ridotto da 60
 
-            // Calcola la larghezza totale necessaria
+            // Dimensioni più grandi per il logo del centro
+            float centerLogoMaxWidth = 120; // Aumentato (dimensione massima)
+            float centerLogoMaxHeight = 80; // Aumentato (dimensione massima)
+
+            float centerLogoWidth;
+            float centerLogoHeight = 0;
+
+            // Calcola la posizione iniziale per il logo SimSuite (spostato a sinistra)
+            float simLogoY = PDRectangle.A4.getHeight() - MARGIN - simLogoHeight;
+
+            // Disegna il logo SimSuite se disponibile
             if (logo != null) {
-                totalWidth += LOGO_WIDTH;
-                logoCount++;
+                currentContentStream.drawImage(logo, MARGIN, simLogoY, simLogoWidth, simLogoHeight);
             }
+
+            // Calcola le dimensioni per il logo del centro mantenendo le proporzioni
             if (centerLogo != null) {
-                totalWidth += LOGO_WIDTH;
-                logoCount++;
-            }
+                // Calcola il fattore di scala per mantenere le proporzioni
+                float scale = Math.min(
+                        centerLogoMaxWidth / this.centerLogoWidth,
+                        centerLogoMaxHeight / this.centerLogoHeight
+                );
 
-            // Aggiungi spaziatura tra i loghi se ce ne sono due
-            float spacing = logoCount > 1 ? 20 : 0;
-            totalWidth += spacing;
+                // Applica la scala mantenendo le proporzioni
+                centerLogoWidth = this.centerLogoWidth * scale;
+                centerLogoHeight = this.centerLogoHeight * scale;
 
-            // Calcola la posizione iniziale X (per centrare l'insieme dei loghi)
-            float startX = (PDRectangle.A4.getWidth() - totalWidth) / 2;
-            float logoY = PDRectangle.A4.getHeight() - MARGIN - LOGO_HEIGHT;
+                // Calcola la posizione per centrare il logo del centro nella pagina
+                float centerLogoX = (PDRectangle.A4.getWidth() - centerLogoWidth) / 2;
+                float centerLogoY = PDRectangle.A4.getHeight() - MARGIN - centerLogoHeight;
 
-            // Disegna il primo logo se disponibile
-            if (logo != null) {
-                currentContentStream.drawImage(logo, startX, logoY, LOGO_WIDTH, LOGO_HEIGHT);
-                startX += LOGO_WIDTH + spacing;
-            }
-
-            // Disegna il logo del centro se disponibile
-            if (centerLogo != null) {
-                currentContentStream.drawImage(centerLogo, startX, logoY, LOGO_WIDTH, LOGO_HEIGHT);
+                // Disegna il logo del centro
+                currentContentStream.drawImage(centerLogo, centerLogoX, centerLogoY, centerLogoWidth, centerLogoHeight);
             }
 
             // Aggiorna la posizione Y corrente
-            currentYPosition = logoY - LEADING;
+            float lowestY = simLogoY;
+            if (centerLogo != null) {
+                lowestY = Math.min(lowestY, PDRectangle.A4.getHeight() - MARGIN - centerLogoHeight);
+            }
+            currentYPosition = lowestY - LEADING;
         } else {
             currentYPosition = PDRectangle.A4.getHeight() - MARGIN;
         }
@@ -368,13 +388,19 @@ public class PdfExportService {
         currentContentStream.setFont(fontRegular, BODY_FONT_SIZE);
         currentContentStream.beginText();
         currentContentStream.newLineAtOffset(MARGIN, currentYPosition);
+        currentContentStream.showText("Autori: " + scenario.getAutori());
+        currentContentStream.newLineAtOffset(0, -LEADING);
+        currentContentStream.showText("Target: " + scenario.getTarget());
+        currentContentStream.newLineAtOffset(0, -LEADING);
+        currentContentStream.showText("Tipologia: " + scenario.getTipologia());
+        currentContentStream.newLineAtOffset(0, -LEADING);
         currentContentStream.showText("Paziente: " + scenario.getNomePaziente());
         currentContentStream.newLineAtOffset(0, -LEADING);
         currentContentStream.showText("Patologia: " + scenario.getPatologia());
         currentContentStream.newLineAtOffset(0, -LEADING);
         currentContentStream.showText("Durata: " + scenario.getTimerGenerale() + " minuti");
         currentContentStream.endText();
-        currentYPosition -= LEADING * 5;
+        currentYPosition -= LEADING * 7;
 
         // Descrizione
         if (scenario.getDescrizione() != null && !scenario.getDescrizione().isEmpty()) {
@@ -384,6 +410,10 @@ public class PdfExportService {
         // Briefing
         if (scenario.getBriefing() != null && !scenario.getBriefing().isEmpty()) {
             drawSection("Briefing", scenario.getBriefing());
+        }
+
+        if (scenarioService.isPediatric(scenario.getId()) && scenario.getInfoGenitore() != null && !scenario.getInfoGenitore().isEmpty()) {
+            drawSection("Informazioni dai genitori", scenario.getInfoGenitore());
         }
 
         // Patto d'aula
@@ -408,7 +438,12 @@ public class PdfExportService {
 
         // Liquidi
         if (scenario.getLiquidi() != null && !scenario.getLiquidi().isEmpty()) {
-            drawSection("Liquidi", scenario.getLiquidi());
+            drawSection("Liquidi e dosi farmaci", scenario.getLiquidi());
+        }
+
+        //Materiale necessario
+        if (materialeService.toStringAllMaterialsByScenarioId(scenario.getId()) != null && !materialeService.toStringAllMaterialsByScenarioId(scenario.getId()).isEmpty()) {
+            drawSection("Materiale necessario", materialeService.toStringAllMaterialsByScenarioId(scenario.getId()));
         }
 
         logger.info("Header creato");
@@ -421,67 +456,123 @@ public class PdfExportService {
      * @throws IOException se si verifica un errore durante la creazione della sezione
      */
     private void createPatientSection(Integer scenarioId) throws IOException {
-        // Verifica spazio disponibile e crea pagina se necessario
-        checkForNewPage(LEADING * 5);
-
-        // Titolo sezione
+        // Stima lo spazio solo per il titolo della sezione principale
+        checkForNewPage(LEADING * 3); // Spazio stimato per drawSection
+        // Disegna il titolo della sezione principale
         drawSection("Stato Paziente", "");
 
+        // Recupera i dati del paziente al tempo T0
         PazienteT0 paziente = scenarioService.getPazienteT0ById(scenarioId);
         if (paziente != null) {
-            // Parametri vitali
-            checkForNewPage(LEADING * 10);
+            // --- Parametri Vitali (Riga per Riga) ---
+            // Controlla lo spazio prima di disegnare il sottotitolo
+            checkForNewPage(LEADING * 3); // Spazio stimato per drawSubsection
             drawSubsection("Parametri Vitali");
 
-            String vitalParams = String.format(
-                    "PA: %s mmHg\nFC: %d bpm\nRR: %d atti/min\nTemperatura: %.1f °C\nSpO2: %d%%\nEtCO2: %d mmHg\nMonitor: %s",
-                    paziente.getPA(), paziente.getFC(), paziente.getRR(),
-                    paziente.getT(), paziente.getSpO2(), paziente.getEtCO2(),
-                    paziente.getMonitor()
-            );
+            // Stampa PA
+            checkForNewPage(LEADING * 2); // Spazio per una riga
+            drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("PA: %s mmHg", paziente.getPA()));
 
-            drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, vitalParams);
+            // Stampa FC
+            checkForNewPage(LEADING * 2); // Spazio per una riga
+            drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("FC: %d bpm", paziente.getFC()));
 
-            // Accessi venosi
-            if (!paziente.getAccessiVenosi().isEmpty()) {
-                checkForNewPage(LEADING * 3 + LEADING * paziente.getAccessiVenosi().size());
-                drawSubsection("Accessi Venosi");
-                for (Accesso accesso : paziente.getAccessiVenosi()) {
-                    drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20,
-                            "• " + accesso.getTipologia() + " - " + accesso.getPosizione());
-                }
+            // Stampa RR
+            checkForNewPage(LEADING * 2); // Spazio per una riga
+            drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("RR: %d atti/min", paziente.getRR()));
+
+            // Stampa Temperatura
+            checkForNewPage(LEADING * 2); // Spazio per una riga
+            drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("Temperatura: %.1f °C", paziente.getT()));
+
+            // Stampa SpO2
+            checkForNewPage(LEADING * 2); // Spazio per una riga
+            drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("SpO2: %d%%", paziente.getSpO2()));
+
+            // Stampa FiO2 (condizionale)
+            // Assumendo che getFiO2() ritorni un valore numerico (es. Float/double/int)
+            if (paziente.getFiO2() > 0) {
+                checkForNewPage(LEADING * 2); // Spazio per una riga
+                // Formattare come percentuale se è una frazione, o direttamente se è già percentuale
+                drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("FiO2: %d%%", paziente.getFiO2())); // Esempio: formatta come intero %
             }
 
-            // Accessi arteriosi
-            if (!paziente.getAccessiArteriosi().isEmpty()) {
-                checkForNewPage(LEADING * 3 + LEADING * paziente.getAccessiArteriosi().size());
-                drawSubsection("Accessi Arteriosi");
-                for (Accesso accesso : paziente.getAccessiArteriosi()) {
+            // Stampa LitriO2 (condizionale)
+            // Assumendo che getLitriO2() ritorni un valore numerico (es. Float/double/int)
+            if (paziente.getLitriO2() > 0) {
+                checkForNewPage(LEADING * 2); // Spazio per una riga
+                drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("Litri O2: %.1f L/min", paziente.getLitriO2())); // Esempio: formatta con un decimale L/min
+            }
+
+            // Stampa EtCO2
+            checkForNewPage(LEADING * 2); // Spazio per una riga
+            drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("EtCO2: %d mmHg", paziente.getEtCO2()));
+
+            // Stampa Monitor
+            if (paziente.getMonitor() != null && !paziente.getMonitor().isEmpty()) {
+                checkForNewPage(LEADING * 2); // Spazio per una riga
+                drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("Monitor: %s", paziente.getMonitor()));
+            }
+            currentYPosition -= LEADING; // Aggiungi un piccolo spazio dopo il blocco dei parametri vitali
+
+            // --- Accessi Venosi ---
+            List<Accesso> accessiVenosi = paziente.getAccessiVenosi();
+            if (accessiVenosi != null && !accessiVenosi.isEmpty()) {
+                // Controlla lo spazio prima di disegnare il sottotitolo
+                checkForNewPage(LEADING * 3); // Spazio stimato per drawSubsection
+                drawSubsection("Accessi Venosi");
+                // Itera sugli accessi venosi
+                for (Accesso accesso : accessiVenosi) {
+                    // Controlla lo spazio prima di disegnare ogni riga di accesso
+                    checkForNewPage(LEADING * 2); // Spazio stimato per una riga
                     drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20,
-                            "• " + accesso.getTipologia() + " - " + accesso.getPosizione());
+                            "• " + accesso.getTipologia() + " - " + accesso.getPosizione() + " (" + accesso.getLato() + ") - " + accesso.getMisura() + "G");
                 }
+                currentYPosition -= LEADING; // Aggiungi spazio dopo la sezione
+            }
+
+            // --- Accessi Arteriosi ---
+            List<Accesso> accessiArteriosi = paziente.getAccessiArteriosi();
+            if (accessiArteriosi != null && !accessiArteriosi.isEmpty()) {
+                // Controlla lo spazio prima di disegnare il sottotitolo
+                checkForNewPage(LEADING * 3); // Spazio stimato per drawSubsection
+                drawSubsection("Accessi Arteriosi");
+                // Itera sugli accessi arteriosi
+                for (Accesso accesso : accessiArteriosi) {
+                    // Controlla lo spazio prima di disegnare ogni riga di accesso
+                    checkForNewPage(LEADING * 2); // Spazio stimato per una riga
+                    drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20,
+                            "• " + accesso.getTipologia() + " - " + accesso.getPosizione() + " (" + accesso.getLato() + ") - " + accesso.getMisura() + "G");
+                }
+                currentYPosition -= LEADING; // Aggiungi spazio dopo la sezione
             }
         }
 
-        // Esame fisico
+        // --- Esame Fisico ---
         EsameFisico esame = scenarioService.getEsameFisicoById(scenarioId);
-        if (esame != null && !esame.getSections().isEmpty()) {
-            checkForNewPage(LEADING * 5);
+        if (esame != null && esame.getSections() != null && !esame.getSections().isEmpty()) {
+            // Controlla lo spazio prima di disegnare il sottotitolo
+            checkForNewPage(LEADING * 3); // Spazio stimato per drawSubsection
             drawSubsection("Esame Fisico");
 
             Map<String, String> sections = esame.getSections();
+            // Itera sulle sezioni dell'esame fisico (es. Cute, Torace, etc.)
             for (Map.Entry<String, String> entry : sections.entrySet()) {
-                if (entry.getValue() != null && !entry.getValue().trim().isEmpty()) {
-                    checkForNewPage(LEADING * 3);
-                    drawWrappedText(fontBold, BODY_FONT_SIZE, MARGIN + 20, entry.getKey() + ":");
-                    drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 30, entry.getValue());
+                String key = entry.getKey();
+                String value = entry.getValue();
+                // Disegna solo se la chiave e il valore sono validi e il valore non è vuoto/blank
+                if (key != null && !key.trim().isEmpty() && value != null && !value.trim().isEmpty()) {
+                    checkForNewPage(LEADING * 4);
+
+                    // Disegna la chiave (es. "Cute:") in grassetto
+                    drawWrappedText(fontBold, BODY_FONT_SIZE, MARGIN + 20, key + ":");
+                    renderHtmlWithFormatting(value);
+                    currentYPosition -= LEADING; // Aggiungi piccolo spazio tra le entry
                 }
             }
-            currentYPosition -= LEADING;
         }
 
-
-        logger.info("Patient section creata");
+        logger.info("Patient section creata con page break granulare e vitali riga per riga.");
     }
 
     /**
@@ -565,68 +656,140 @@ public class PdfExportService {
      * @throws IOException se si verifica un errore durante la creazione della sezione
      */
     private void createTimelineSection(Scenario scenario) throws IOException {
+        // Recupera i tempi associati allo scenario
         List<Tempo> tempi = ScenarioService.getTempiByScenarioId(scenario.getId());
         if (tempi.isEmpty()) {
+            // Se non ci sono tempi, non fare nulla
             return;
         }
 
-        // Verifica spazio disponibile e crea pagina se necessario
-        checkForNewPage(LEADING * 5);
+        // --- Inizio: Controllo Spazio Iniziale ---
+        // Stima lo spazio minimo per il titolo della sezione E il titolo del primo tempo
+        float spazioTitoloSezione = LEADING * 3; // Spazio stimato per drawSection("Timeline", "")
+        float spazioTitoloPrimoTempo = LEADING * 3; // Spazio stimato per drawSubsection del primo tempo
+        checkForNewPage(spazioTitoloSezione + spazioTitoloPrimoTempo);
+        // --- Fine: Controllo Spazio Iniziale ---
 
-        // Titolo sezione
+        // Disegna il titolo della sezione principale "Timeline"
         drawSection("Timeline", "");
 
-        for (Tempo tempo : tempi) {
-            // Verifica spazio disponibile per ogni tempo
-            checkForNewPage(LEADING * 10);
+        // Itera su ogni tempo nella lista
+        for (int i = 0; i < tempi.size(); i++) {
+            Tempo tempo = tempi.get(i);
 
+            // --- Inizio: Disegno Contenuto del Tempo (Riga per Riga) ---
 
+            // Formatta il titolo per questo tempo
             String title = String.format("Tempo %d (%.1f min)",
                     tempo.getIdTempo(),
                     tempo.getTimerTempo() / 60.0 // Converte i secondi in minuti
             );
 
+            // Controlla spazio e disegna il sottotitolo per questo tempo
+            checkForNewPage(LEADING * 3); // Spazio per sottotitolo
             drawSubsection(title);
 
-            // Parametri vitali
-            StringBuilder params = new StringBuilder(String.format(
-                    "PA: %s mmHg\nFC: %d bpm\nRR: %d atti/min\nTemperatura: %.1f °C\nSpO2: %d%%\nEtCO2: %d mmHg",
-                    tempo.getPA(), tempo.getFC(), tempo.getRR(),
-                    tempo.getT(), tempo.getSpO2(), tempo.getEtCO2()
-            ));
+            // --- Parametri Vitali (Riga per Riga) ---
+            float paramsIndent = MARGIN + 20; // Indentazione per i parametri
 
+            // Stampa PA
+            checkForNewPage(LEADING * 2);
+            drawWrappedText(fontRegular, BODY_FONT_SIZE, paramsIndent, String.format("PA: %s mmHg", tempo.getPA()));
+
+            // Stampa FC
+            checkForNewPage(LEADING * 2);
+            drawWrappedText(fontRegular, BODY_FONT_SIZE, paramsIndent, String.format("FC: %d bpm", tempo.getFC()));
+
+            // Stampa RR
+            checkForNewPage(LEADING * 2);
+            drawWrappedText(fontRegular, BODY_FONT_SIZE, paramsIndent, String.format("RR: %d atti/min", tempo.getRR()));
+
+            // Stampa Temperatura
+            checkForNewPage(LEADING * 2);
+            drawWrappedText(fontRegular, BODY_FONT_SIZE, paramsIndent, String.format("Temperatura: %.1f °C", tempo.getT()));
+
+            // Stampa SpO2
+            checkForNewPage(LEADING * 2);
+            drawWrappedText(fontRegular, BODY_FONT_SIZE, paramsIndent, String.format("SpO2: %d%%", tempo.getSpO2()));
+
+            // Stampa FiO2 (condizionale)
+            // Assumendo che getFiO2() ritorni un tipo numerico (Integer, Float, etc.) o null
+            Number fio2 = tempo.getFiO2(); // Usa Number per gestire diversi tipi numerici
+            if (fio2 != null && fio2.doubleValue() > 0) {
+                checkForNewPage(LEADING * 2);
+                drawWrappedText(fontRegular, BODY_FONT_SIZE, paramsIndent, String.format("FiO2: %.0f%%", fio2.doubleValue())); // Formatta come intero %
+            }
+
+            // Stampa LitriO2 (condizionale)
+            // Assumendo che getLitriO2() ritorni un tipo numerico o null
+            Number litriO2 = tempo.getLitriO2();
+            if (litriO2 != null && litriO2.doubleValue() > 0) {
+                checkForNewPage(LEADING * 2);
+                drawWrappedText(fontRegular, BODY_FONT_SIZE, paramsIndent, String.format("Litri O2: %.1f L/min", litriO2.doubleValue())); // Formatta con un decimale L/min
+            }
+
+            // Stampa EtCO2
+            checkForNewPage(LEADING * 2);
+            drawWrappedText(fontRegular, BODY_FONT_SIZE, paramsIndent, String.format("EtCO2: %d mmHg", tempo.getEtCO2()));
+
+            // --- Parametri Aggiuntivi ---
             List<ParametroAggiuntivo> parametriAggiuntivo = ScenarioService.getParametriAggiuntiviByTempoId(tempo.getIdTempo(), scenario.getId());
-
-            // Aggiungi parametri aggiuntivi
             if (!parametriAggiuntivo.isEmpty()) {
                 for (ParametroAggiuntivo parametro : parametriAggiuntivo) {
-                    params.append(String.format("\n%s: %s %s", parametro.getNome(), parametro.getValore(), parametro.getUnitaMisura()));
+                    checkForNewPage(LEADING * 2); // Spazio per ogni parametro aggiuntivo
+                    drawWrappedText(fontRegular, BODY_FONT_SIZE, paramsIndent,
+                            String.format("%s: %s %s", parametro.getNome(), parametro.getValore(), parametro.getUnitaMisura()));
                 }
             }
+            currentYPosition -= LEADING; // Piccolo spazio dopo i parametri
 
-            drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, params.toString());
+            // --- Dettagli Aggiuntivi ---
+            float detailsLabelIndent = MARGIN + 20;
+            float detailsTextIndent = MARGIN + 30;
 
-            // Dettagli aggiuntivi
             if (tempo.getAltriDettagli() != null && !tempo.getAltriDettagli().isEmpty()) {
-                checkForNewPage(LEADING * 3);
-                drawWrappedText(fontBold, BODY_FONT_SIZE, MARGIN + 20, "Dettagli:");
-                drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 30, tempo.getAltriDettagli());
+                checkForNewPage(LEADING * 3); // Spazio per etichetta "Dettagli:"
+                drawWrappedText(fontBold, BODY_FONT_SIZE, detailsLabelIndent, "Dettagli:");
+                checkForNewPage(LEADING * 2); // Spazio minimo per il testo (drawWrappedText gestirà il resto)
+                drawWrappedText(fontRegular, BODY_FONT_SIZE, detailsTextIndent, tempo.getAltriDettagli());
+                currentYPosition -= LEADING / 2; // Piccolo spazio dopo i dettagli
             }
 
+            // --- Dettagli Pediatrici (Condizionale) ---
+            if (scenarioService.isPediatric(scenario.getId()) && tempo.getRuoloGenitore() != null && !tempo.getRuoloGenitore().isEmpty()) {
+                checkForNewPage(LEADING * 3); // Spazio per etichetta "Ruolo del genitore:"
+                drawWrappedText(fontBold, BODY_FONT_SIZE, detailsLabelIndent, "Ruolo del genitore:");
+                checkForNewPage(LEADING * 2); // Spazio minimo per il testo
+                drawWrappedText(fontRegular, BODY_FONT_SIZE, detailsTextIndent, tempo.getRuoloGenitore());
+                currentYPosition -= LEADING / 2; // Piccolo spazio dopo i dettagli pediatrici
+            }
+
+            // --- Azioni ---
             String azione = tempo.getAzione();
             if (azione != null && !azione.isEmpty()) {
-                drawWrappedText(fontBold, BODY_FONT_SIZE, MARGIN + 20, "Azioni da svolgere per passare a T" + tempo.getTSi() + ":");
-                drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 30, azione);
+                checkForNewPage(LEADING * 3); // Spazio per etichetta Azioni
+                drawWrappedText(fontBold, BODY_FONT_SIZE, detailsLabelIndent, "Azioni da svolgere per passare a T" + tempo.getTSi() + ":");
+                checkForNewPage(LEADING * 2); // Spazio minimo per il testo delle azioni
+                drawWrappedText(fontRegular, BODY_FONT_SIZE, detailsTextIndent, azione);
+                currentYPosition -= LEADING / 2; // Piccolo spazio dopo le azioni
             }
 
-            // Tempo se non avviene l'azione
+            // --- Condizione TNo ---
             if (tempo.getTNo() >= 0) {
-                checkForNewPage(LEADING * 3);
-                drawWrappedText(fontBold, BODY_FONT_SIZE, MARGIN + 20, "Se non vengono svolte le azioni passare a T" + tempo.getTNo());
+                checkForNewPage(LEADING * 3); // Spazio per etichetta TNo
+                drawWrappedText(fontBold, BODY_FONT_SIZE, detailsLabelIndent, "Se non vengono svolte le azioni passare a T" + tempo.getTNo());
+                currentYPosition -= LEADING / 2; // Piccolo spazio dopo TNo
             }
+            // --- Fine: Disegno Contenuto del Tempo ---
 
-            // Aggiungi spazio tra gli elementi della timeline
-            currentYPosition -= LEADING * 2;
+            // --- Inizio: Aggiunta Spazio Verticale tra Tempi ---
+            // Aggiungi uno spazio verticale dopo aver disegnato l'elemento Tempo,
+            // tranne che per l'ultimo elemento.
+            if (i < tempi.size() - 1) {
+                checkForNewPage(LEADING * 2); // Controlla se c'è spazio per il padding
+                currentYPosition -= LEADING; // Spazio tra gli elementi della timeline
+            }
+            // --- Fine: Aggiunta Spazio Verticale ---
         }
     }
 
@@ -647,7 +810,8 @@ public class PdfExportService {
 
         // Titolo sezione
         drawSection("Sceneggiatura", "");
-        drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, sceneggiatura);
+        renderHtmlWithFormatting(sceneggiatura);
+        currentYPosition -= LEADING;
 
         logger.info("Sceneggiatura section created");
     }
@@ -669,9 +833,17 @@ public class PdfExportService {
 
         if (content != null && !content.isEmpty()) {
             // Gestione speciale per contenuti che potrebbero contenere HTML
-            if (title.equals("Descrizione") || title.equals("Briefing") || title.equals("Patto d'Aula")) {
+            if (title.equals("Descrizione")
+                    || title.equals("Briefing")
+                    || title.equals("Informazioni dai genitori")
+                    || title.equals("Patto d'Aula")
+                    || title.equals("Obiettivi Didattici")
+                    || title.equals("Moulage")
+                    || title.equals("Liquidi e dosi farmaci")
+            ) {
                 // Analizziamo l'HTML per mantenere grassetto e corsivo
                 renderHtmlWithFormatting(content);
+                currentYPosition -= LEADING / 2;
             } else {
                 drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 10, content);
             }
@@ -788,14 +960,11 @@ public class PdfExportService {
     private PDFont getPdFont(boolean isBold, boolean isItalic) {
         PDFont font = fontRegular;
         if (isBold && isItalic) {
-            // Se hai un font per grassetto+corsivo, usalo qui
-            font = fontBold; // Usa grassetto come fallback
+            font = fontBold;
         } else if (isBold) {
             font = fontBold;
         } else if (isItalic) {
             font = fontItalic;
-            // Se hai un font per corsivo, usalo qui
-            // Per ora useremo il regular come fallback
         }
         return font;
     }

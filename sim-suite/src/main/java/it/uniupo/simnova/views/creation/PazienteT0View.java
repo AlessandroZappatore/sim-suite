@@ -157,13 +157,21 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
 
         // Campi parametri vitali
         paField = createTextField();
+        paField.setRequired(true);
         fcField = createNumberField("FC (bpm)", "(es. 72)");
+        fcField.setRequired(true);
         rrField = createNumberField("RR (atti/min)", "(es. 16)");
+        rrField.setRequired(true);
         tempField = createNumberField("Temperatura (°C)", "(es. 36.5)");
+        tempField.setRequired(true);
         spo2Field = createNumberField("SpO₂ (%)", "(es. 98)");
+        spo2Field.setRequired(true);
         fio2Field = createNumberField("FiO₂ (%)", "(es. 21)");
+        fio2Field.setRequired(false);
         litrio2Field = createNumberField("L/min O₂", "(es. 5)");
+        litrio2Field.setRequired(false);
         etco2Field = createNumberField("EtCO₂ (mmHg)", "(es. 35)");
+        etco2Field.setRequired(true);
 
         // Container per accessi venosi
         venosiContainer = new VerticalLayout();
