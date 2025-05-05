@@ -89,6 +89,8 @@ public class PdfExportService {
      * Font per il testo in grassetto.
      */
     private PDFont fontBold;
+
+    private PDFont fontBoldItalic;
     /**
      * Font per il testo normale.
      */
@@ -140,6 +142,8 @@ public class PdfExportService {
             fontRegular = loadFont(document, "/fonts/LiberationSans-Regular.ttf");
             fontBold = loadFont(document, "/fonts/LiberationSans-Bold.ttf");
             fontItalic = loadFont(document, "/fonts/LiberationSans-Italic.ttf");
+            fontBoldItalic = loadFont(document, "/fonts/LiberationSans-BoldItalic.ttf");
+
             // Carica il logo
             logo = loadLogo(document);
             centerLogo = loadCenterLogo(document);
@@ -566,10 +570,14 @@ public class PdfExportService {
 
                     // Disegna la chiave (es. "Cute:") in grassetto
                     drawWrappedText(fontBold, BODY_FONT_SIZE, MARGIN + 20, key + ":");
-                    renderHtmlWithFormatting(value);
+
+                    // Usa un offset maggiore (40px in più rispetto al testo della chiave)
+                    renderHtmlWithFormatting(value, MARGIN + 40);
+
                     currentYPosition -= LEADING; // Aggiungi piccolo spazio tra le entry
                 }
             }
+            currentYPosition -= LEADING; // Aggiungi spazio dopo la sezione
         }
 
         logger.info("Patient section creata con page break granulare e vitali riga per riga.");
@@ -768,7 +776,7 @@ public class PdfExportService {
             String azione = tempo.getAzione();
             if (azione != null && !azione.isEmpty()) {
                 checkForNewPage(LEADING * 3); // Spazio per etichetta Azioni
-                drawWrappedText(fontBold, BODY_FONT_SIZE, detailsLabelIndent, "Azioni da svolgere per passare a T" + tempo.getTSi() + ":");
+                drawWrappedText(fontBold, BODY_FONT_SIZE, detailsLabelIndent, "Azioni da svolgere per passare a → T" + tempo.getTSi() + ":");
                 checkForNewPage(LEADING * 2); // Spazio minimo per il testo delle azioni
                 drawWrappedText(fontRegular, BODY_FONT_SIZE, detailsTextIndent, azione);
                 currentYPosition -= LEADING / 2; // Piccolo spazio dopo le azioni
@@ -777,7 +785,7 @@ public class PdfExportService {
             // --- Condizione TNo ---
             if (tempo.getTNo() >= 0) {
                 checkForNewPage(LEADING * 3); // Spazio per etichetta TNo
-                drawWrappedText(fontBold, BODY_FONT_SIZE, detailsLabelIndent, "Se non vengono svolte le azioni passare a T" + tempo.getTNo());
+                drawWrappedText(fontBold, BODY_FONT_SIZE, detailsLabelIndent, "Se non vengono svolte le azioni passare a → T" + tempo.getTNo());
                 currentYPosition -= LEADING / 2; // Piccolo spazio dopo TNo
             }
             // --- Fine: Disegno Contenuto del Tempo ---
@@ -810,7 +818,7 @@ public class PdfExportService {
 
         // Titolo sezione
         drawSection("Sceneggiatura", "");
-        renderHtmlWithFormatting(sceneggiatura);
+        renderHtmlWithFormatting(sceneggiatura, MARGIN + 20);
         currentYPosition -= LEADING;
 
         logger.info("Sceneggiatura section created");
@@ -842,7 +850,7 @@ public class PdfExportService {
                     || title.equals("Liquidi e dosi farmaci")
             ) {
                 // Analizziamo l'HTML per mantenere grassetto e corsivo
-                renderHtmlWithFormatting(content);
+                renderHtmlWithFormatting(content, MARGIN+ 20);
                 currentYPosition -= LEADING / 2;
             } else {
                 drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 10, content);
@@ -851,7 +859,7 @@ public class PdfExportService {
         }
     }
 
-    private void renderHtmlWithFormatting(String htmlContent) throws IOException {
+    private void renderHtmlWithFormatting(String htmlContent, float xOffset) throws IOException {
         org.jsoup.nodes.Document doc = Jsoup.parse(htmlContent);
         String plainText = doc.text();
 
@@ -884,10 +892,10 @@ public class PdfExportService {
         // Dividi il testo in parole
         String[] words = plainText.split(" ");
         StringBuilder currentLine = new StringBuilder();
-        int charCount = 0;  // Tiene traccia della posizione dei caratteri
+        int charCount = 0;
 
         currentContentStream.beginText();
-        currentContentStream.newLineAtOffset((float) 60.0, currentYPosition);
+        currentContentStream.newLineAtOffset(xOffset, currentYPosition);
 
         for (String word : words) {
             String testLine = !currentLine.isEmpty() ? currentLine + " " + word : word;
@@ -960,7 +968,7 @@ public class PdfExportService {
     private PDFont getPdFont(boolean isBold, boolean isItalic) {
         PDFont font = fontRegular;
         if (isBold && isItalic) {
-            font = fontBold;
+            font = fontBoldItalic;
         } else if (isBold) {
             font = fontBold;
         } else if (isItalic) {

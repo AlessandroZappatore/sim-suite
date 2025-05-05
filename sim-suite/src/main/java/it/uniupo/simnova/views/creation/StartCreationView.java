@@ -247,6 +247,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
                 switch (scenarioType) {
                     case "quickscenario":
                         scenarioId = scenarioService.startQuickScenario(
+                                -1,
                                 scenarioTitle.getValue(),
                                 patientName.getValue(),
                                 pathology.getValue(),

@@ -148,43 +148,71 @@ public class ScenarioService {
     }
 
     /**
-     * Inizia uno scenario rapido e restituisce il suo ID.
+     * Crea o aggiorna uno scenario rapido nel database.
      *
+     * @param scenarioId    l'ID dello scenario (se null, crea un nuovo scenario)
      * @param titolo        il titolo dello scenario
      * @param nomePaziente  il nome del paziente
      * @param patologia     la patologia
+     * @param autori        gli autori
      * @param timerGenerale il timer generale
-     * @return l'ID dello scenario creato, o -1 in caso di errore
+     * @param tipologia     la tipologia del paziente
+     * @return l'ID dello scenario creato o aggiornato, o -1 in caso di errore
      */
-    public int startQuickScenario(String titolo, String nomePaziente, String patologia, String autori, float timerGenerale, String tipologia) {
-        final String sql = "INSERT INTO Scenario (titolo, nome_paziente, patologia, autori, timer_generale, tipologia_paziente) VALUES (?,?,?,?,?,?)";
-        int generatedId = -1;
+    public int startQuickScenario(Integer scenarioId, String titolo, String nomePaziente, String patologia, String autori, float timerGenerale, String tipologia) {
+        try (Connection conn = DBConnect.getInstance().getConnection()) {
+            // Se l'ID è fornito e lo scenario esiste, esegui un update
+            if (scenarioId != null && existScenario(scenarioId)) {
+                final String updateSql = "UPDATE Scenario SET titolo=?, nome_paziente=?, patologia=?, autori=?, timer_generale=?, tipologia_paziente=? WHERE id_scenario=?";
 
-        try (Connection conn = DBConnect.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                try (PreparedStatement stmt = conn.prepareStatement(updateSql)) {
+                    stmt.setString(1, titolo);
+                    stmt.setString(2, nomePaziente);
+                    stmt.setString(3, patologia);
+                    stmt.setString(4, autori);
+                    stmt.setFloat(5, timerGenerale);
+                    stmt.setString(6, tipologia);
+                    stmt.setInt(7, scenarioId);
 
-            stmt.setString(1, titolo);
-            stmt.setString(2, nomePaziente);
-            stmt.setString(3, patologia);
-            stmt.setString(4, autori);
-            stmt.setFloat(5, timerGenerale);
-            stmt.setString(6, tipologia);
+                    int affectedRows = stmt.executeUpdate();
+                    if (affectedRows > 0) {
+                        logger.info("Scenario con ID {} aggiornato con successo", scenarioId);
+                        return scenarioId;
+                    } else {
+                        logger.warn("Nessun scenario aggiornato con ID {}", scenarioId);
+                        return -1;
+                    }
+                }
+            } else {
+                // Altrimenti, esegui un insert
+                final String insertSql = "INSERT INTO Scenario (titolo, nome_paziente, patologia, autori, timer_generale, tipologia_paziente) VALUES (?,?,?,?,?,?)";
 
-            int affectedRows = stmt.executeUpdate();
-            logger.info("Inserimento scenario: {} righe interessate", affectedRows);
+                try (PreparedStatement stmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
+                    stmt.setString(1, titolo);
+                    stmt.setString(2, nomePaziente);
+                    stmt.setString(3, patologia);
+                    stmt.setString(4, autori);
+                    stmt.setFloat(5, timerGenerale);
+                    stmt.setString(6, tipologia);
 
-            if (affectedRows > 0) {
-                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        generatedId = generatedKeys.getInt(1);
-                        logger.info("Scenario creato con ID: {}", generatedId);
+                    int affectedRows = stmt.executeUpdate();
+                    logger.info("Inserimento scenario: {} righe interessate", affectedRows);
+
+                    if (affectedRows > 0) {
+                        try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                            if (generatedKeys.next()) {
+                                int generatedId = generatedKeys.getInt(1);
+                                logger.info("Scenario creato con ID: {}", generatedId);
+                                return generatedId;
+                            }
+                        }
                     }
                 }
             }
         } catch (SQLException e) {
-            logger.error("Errore durante l'inserimento dello scenario", e);
+            logger.error("Errore durante l'inserimento/aggiornamento dello scenario", e);
         }
-        return generatedId;
+        return -1;
     }
 
     /**
@@ -198,7 +226,7 @@ public class ScenarioService {
      */
     public int startAdvancedScenario(String titolo, String nomePaziente, String patologia, String autori, float timerGenerale, String tipologia) {
         // Prima crea lo scenario base
-        int scenarioId = startQuickScenario(titolo, nomePaziente, patologia, autori, timerGenerale, tipologia);
+        int scenarioId = startQuickScenario(-1,titolo, nomePaziente, patologia, autori, timerGenerale, tipologia);
 
         if (scenarioId > 0) {
             final String sql = "INSERT INTO AdvancedScenario (id_advanced_scenario) VALUES (?)";
@@ -1809,7 +1837,7 @@ public class ScenarioService {
         double timerGenerale = (Double) scenarioData.get("timer_generale");
         String tipologia = (String) scenarioData.get("tipologia_paziente");
 
-        int newId = startQuickScenario(titolo, nomePaziente, patologia, autori, (float) timerGenerale, tipologia);
+        int newId = startQuickScenario(-1,titolo, nomePaziente, patologia, autori, (float) timerGenerale, tipologia);
         if (newId <= 0) return false;
 
         // Aggiorna i campi aggiuntivi
@@ -2095,5 +2123,45 @@ public class ScenarioService {
             logger.error("Errore durante l'aggiornamento del target dello scenario con ID {}", scenarioId, e);
             return false;
         }
+    }
+
+   public void updateScenario(Integer idScenario, Map<String, String> updatedFields, Map<String, String> updatedSections, EsameFisico esameFisico) {
+        // Recupera lo scenario esistente per ottenere gli autori attuali
+        Scenario esistente = getScenarioById(idScenario);
+        String autoriEsistenti = esistente != null ? esistente.getAutori() : "";
+
+        // Aggiungi il nuovo autore a quelli esistenti
+        String nuovoAutore = updatedFields.get("Autore");
+        String autoriCombinati;
+
+        if (autoriEsistenti == null || autoriEsistenti.isEmpty()) {
+            autoriCombinati = nuovoAutore;
+        } else if (nuovoAutore == null || nuovoAutore.isEmpty()) {
+            autoriCombinati = autoriEsistenti;
+        } else {
+            autoriCombinati = autoriEsistenti + ", " + nuovoAutore;
+        }
+
+        // Chiama startQuickScenario con gli autori combinati
+        startQuickScenario(
+                idScenario,
+                updatedFields.get("Titolo"),
+                updatedFields.get("NomePaziente"),
+                updatedFields.get("Patologia"),
+                autoriCombinati,
+                Float.parseFloat(updatedFields.get("Timer")),
+                updatedFields.get("TipologiaPaziente")
+        );
+
+        updateScenarioDescription(idScenario, updatedSections.get("Descrizione"));
+        updateScenarioBriefing(idScenario, updatedSections.get("Briefing"));
+        updateScenarioPattoAula(idScenario, updatedSections.get("PattoAula"));
+        if(isPediatric(idScenario)) {
+            updateScenarioGenitoriInfo(idScenario, updatedSections.get("InfoGenitore"));
+        }
+        updateScenarioLiquidi(idScenario, updatedSections.get("Liquidi"));
+        updateScenarioMoulage(idScenario, updatedSections.get("Moulage"));
+
+        addEsameFisico(idScenario, esameFisico.getSections());
     }
 }

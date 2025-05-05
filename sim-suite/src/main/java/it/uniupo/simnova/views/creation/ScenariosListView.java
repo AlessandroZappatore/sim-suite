@@ -61,7 +61,6 @@ import java.util.stream.Collectors; // Added
 @Menu(order = 3)
 public class ScenariosListView extends Composite<VerticalLayout> {
     private final ScenarioService scenarioService;
-    private final PdfExportService pdfExportService;
     private final ZipExportService zipExportService;
     private final Grid<Scenario> scenariosGrid = new Grid<>();
     // Removed dataProvider field, it will be managed locally in methods needing it or via grid's setItems
@@ -91,9 +90,8 @@ public class ScenariosListView extends Composite<VerticalLayout> {
 
 
     @Autowired
-    public ScenariosListView(ScenarioService scenarioService, PdfExportService pdfExportService, ZipExportService zipExportService) {
+    public ScenariosListView(ScenarioService scenarioService, ZipExportService zipExportService) {
         this.scenarioService = scenarioService;
-        this.pdfExportService = pdfExportService;
         this.zipExportService = zipExportService;
         initView();
         loadData(); // Initial data load
@@ -676,10 +674,10 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         Notification.show("Generazione del PDF...", 3000, Position.MIDDLE);
         try {
             StreamResource resource = new StreamResource(
-                    "scenario_" + sanitizeFileName(scenario.getTitolo()) + ".pdf", // Sanitize filename
+                    "scenario_" + sanitizeFileName(scenario.getTitolo()) + ".zip", // Sanitize filename
                     () -> {
                         try {
-                            byte[] pdfBytes = pdfExportService.exportScenarioToPdf(scenario.getId());
+                            byte[] pdfBytes = zipExportService.exportScenarioPdfToZip(scenario.getId());
                             return new ByteArrayInputStream(pdfBytes);
                         } catch (IOException | RuntimeException e) { // Catch potential runtime exceptions to Log
                             //  error server-side
@@ -691,7 +689,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                         }
                     }
             );
-            resource.setContentType("application/pdf");
+            resource.setContentType("application/zip");
             triggerDownload(resource); // Use helper method for download
         } catch (Exception e) { // Catch errors during resource creation itself
             handleExportError("Errore preparazione PDF", e);

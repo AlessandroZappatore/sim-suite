@@ -5,6 +5,7 @@ import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox; // Import Checkbox
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.*;
@@ -18,6 +19,8 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+// Import necessari per il nuovo AccessoComponent
+import it.uniupo.simnova.api.model.Accesso;
 import it.uniupo.simnova.api.model.EsameFisico;
 import it.uniupo.simnova.api.model.PazienteT0;
 import it.uniupo.simnova.api.model.Scenario;
@@ -26,16 +29,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vaadin.tinymce.TinyMce;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+// Import Optional
+
 
 /**
  * Classe per la visualizzazione e modifica di uno scenario esistente.
  * <p>
  * Questa classe estende Composite e implementa HasUrlParameter per gestire i parametri dell'URL.
  *
- * @version 1.0
  * @author Alessandro Zappatore
+ * @version 1.1 // Versione incrementata
  */
 @PageTitle("Modifica Scenario")
 @Route(value = "modificaScenario", layout = MainLayout.class)
@@ -57,6 +61,15 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
      */
     private static final Logger logger = LoggerFactory.getLogger(ScenarioEditView.class);
 
+    // --- Variabili d'istanza per la gestione accessi (come in PazienteT0View ma non statiche) ---
+    private VerticalLayout venosiContainer;
+    private VerticalLayout arteriosiContainer;
+    private List<AccessoComponent> venosiAccessi = new ArrayList<>();
+    private List<AccessoComponent> arteriosiAccessi = new ArrayList<>();
+    private Button addVenosiButton;
+    private Button addArteriosiButton;
+    // --- Fine variabili gestione accessi ---
+
     /**
      * Costruttore della classe ScenarioEditView.
      *
@@ -76,21 +89,27 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
     public void setParameter(BeforeEvent event, String parameter) {
         try {
             if (parameter == null || parameter.trim().isEmpty()) {
-                throw new NumberFormatException();
+                throw new NumberFormatException("ID Scenario mancante");
             }
             this.scenarioId = Integer.parseInt(parameter);
             // Controlla se lo scenario esiste
-            if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
-                throw new NumberFormatException();
+            if (scenarioId <= 0) {
+                throw new NumberFormatException("ID Scenario deve essere positivo");
             }
-            // Recupera lo scenario dal servizio
             scenario = scenarioService.getScenarioById(scenarioId);
+            // Resetta le liste accessi ad ogni caricamento parametro
+            venosiAccessi = new ArrayList<>();
+            arteriosiAccessi = new ArrayList<>();
             buildView();
         } catch (NumberFormatException e) {
-            logger.error("ID scenario non valido: {}", parameter, e);
-            event.rerouteToError(NotFoundException.class, "ID scenario non valido");
+            logger.error("ID scenario non valido o scenario non esistente: {}", parameter, e);
+            event.rerouteToError(NotFoundException.class, "ID scenario non valido: " + parameter);
+        } catch (NotFoundException e) {
+            logger.error(e.getMessage());
+            event.rerouteToError(NotFoundException.class, e.getMessage());
         }
     }
+
 
     /**
      * Costruisce la vista per la modifica dello scenario.
@@ -106,7 +125,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         backButton.getStyle().set("margin-right", "auto");
-        /*TODO Sistemare caricamento infinito*/
+        /* TODO Sistemare caricamento infinito - Navigazione dovrebbe essere OK ora */
         backButton.addClickListener(e -> UI.getCurrent().navigate("scenari/" + scenarioId));
 
         H2 pageTitle = new H2("Modifica Scenario");
@@ -135,7 +154,8 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         scenarioTypeField.setReadOnly(true);
 
         TextField editAuthorField = createTextField("AUTORE", "Inserisci il tuo nome");
-        editAuthorField.setRequired(true);
+        // editAuthorField.setValue(scenario.getAutore()); // Assumendo ci sia un getter
+        editAuthorField.setRequired(true); // Mantenuto required, ma potrebbe essere pre-popolato
 
         // Titolo scenario
         TextField scenarioTitle = createTextField("TITOLO SCENARIO", "Inserisci il titolo dello scenario");
@@ -152,11 +172,11 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         // Campo durata timer
         ComboBox<Integer> durationField = new ComboBox<>("DURATA SIMULAZIONE (minuti)");
         durationField.setItems(5, 10, 15, 20, 25, 30);
-        durationField.setValue(10);
+        // Imposta il valore esistente, con fallback a 10 se non valido o zero
+        durationField.setValue(scenario.getTimerGenerale() > 0 ? (int) scenario.getTimerGenerale() : 10);
         durationField.setWidthFull();
         durationField.addClassName(LumoUtility.Margin.Top.LARGE);
         durationField.getStyle().set("max-width", "500px");
-        durationField.setValue((int) scenario.getTimerGenerale());
 
         ComboBox<String> scenarioTypeSelect = new ComboBox<>("TIPO SCENARIO");
         scenarioTypeSelect.setItems("Adulto", "Pediatrico", "Neonatale", "Prematuro");
@@ -189,6 +209,20 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
                 scenario.getBriefing()
         );
 
+        VerticalLayout InfoGenitoriArea = new VerticalLayout();
+        // Controllo più robusto per scenari pediatrici (assumendo che scenario.getTipologia() contenga il tipo)
+        boolean isPediatric = "Pediatrico".equalsIgnoreCase(scenario.getTipologia()) ||
+                "Neonatale".equalsIgnoreCase(scenario.getTipologia()) ||
+                "Prematuro".equalsIgnoreCase(scenario.getTipologia());
+
+        if (isPediatric) {
+            InfoGenitoriArea = createTinyMcePanel(
+                    "INFORMAZIONI DEI GENITORI",
+                    "Inserisci le informazioni fornite dai genitori...",
+                    scenario.getInfoGenitore()
+            );
+        }
+
         // Patto d'aula scenario
         VerticalLayout pattoAulaArea = createTinyMcePanel(
                 "PATTO D'AULA / FAMILIARIZZAZIONE",
@@ -197,10 +231,10 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         );
 
         // Azioni chiave scenario
-        TextArea azioniChiaveArea = createTextArea(
+        VerticalLayout azioniChiaveArea = createAzioniChiavePanel(
                 "AZIONI CHIAVE",
                 "Inserisci le azioni da valutare durante il debriefing...",
-                scenario.getAzioneChiave()
+                scenario.getAzione_chiave_raw() // Assumendo questo metodo restituisca la stringa ; separata
         );
 
         // Obiettivi didattici scenario
@@ -227,29 +261,36 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         // Aggiunta dei campi al layout delle informazioni generali
         informazioniGeneraliLayout.add(
                 descriptionArea,
-                briefingArea,
+                briefingArea
+        );
+
+        if (isPediatric) {
+            informazioniGeneraliLayout.add(InfoGenitoriArea);
+        }
+        informazioniGeneraliLayout.add(
                 pattoAulaArea,
                 azioniChiaveArea,
                 obiettiviArea,
+                createMaterialeNecessarioComponent(),
                 moulageArea,
                 liquidiArea
         );
 
         // Layout per i parametri del paziente T0
         VerticalLayout parametriT0Layout = new VerticalLayout();
-        parametriT0Layout.setPadding(false);
+        parametriT0Layout.setPadding(false); // Rimuovi padding se vuoi allineare con le checkbox
         parametriT0Layout.setSpacing(true);
         parametriT0Layout.setWidthFull();
 
-        // Recupera i dati del paziente T0
+        // Recupera i dati del paziente T0 (Optional per sicurezza)
         PazienteT0 parametriT0 = scenarioService.getPazienteT0ById(scenarioId);
 
         // Crea i componenti per visualizzare i dati
         TextField paField = new TextField("PA (mmHg)");
-        paField.setValue(parametriT0 != null ? parametriT0.getPA() : "");
+        paField.setValue(parametriT0 != null ? Objects.requireNonNullElse(parametriT0.getPA(), "") : "");
         paField.setWidthFull();
 
-        TextField fcField = new TextField("FC (bpm)");
+        TextField fcField = new TextField("FC (bpm)"); // TextField perché i NumberField di PazienteT0View non sono qui
         fcField.setValue(parametriT0 != null && parametriT0.getFC() != 0 ? String.valueOf(parametriT0.getFC()) : "");
         fcField.setWidthFull();
 
@@ -258,7 +299,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         rrField.setWidthFull();
 
         TextField tempField = new TextField("Temperatura (°C)");
-        tempField.setValue(parametriT0 != null && parametriT0.getT() != 0 ? String.valueOf(parametriT0.getT()) : "");
+        tempField.setValue(parametriT0 != null ? String.valueOf(parametriT0.getT()) : ""); // Controllo Null per Double
         tempField.setWidthFull();
 
         TextField spo2Field = new TextField("SpO₂ (%)");
@@ -279,81 +320,98 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
 
         // Area di testo per il monitoraggio
         TextArea monitorArea = new TextArea("Monitoraggio");
-        monitorArea.setValue(parametriT0 != null && parametriT0.getMonitor() != null ? parametriT0.getMonitor() : "");
+        monitorArea.setValue(parametriT0 != null ? Objects.requireNonNullElse(parametriT0.getMonitor(), "") : "");
         monitorArea.setWidthFull();
         monitorArea.setMinHeight("100px");
+        monitorArea.addClassName(LumoUtility.Margin.Top.LARGE); // Aggiunto margine
 
-        // Aggiunta dei campi al layout
-        parametriT0Layout.add(
-                paField, fcField, rrField, tempField, spo2Field, etco2Field, monitorArea
-        );
+        // === INIZIO GESTIONE ACCESSI NUOVA ===
 
         // Container per accessi venosi
-        VerticalLayout venosiContainer = new VerticalLayout();
+        venosiContainer = new VerticalLayout();
         venosiContainer.setWidthFull();
         venosiContainer.setSpacing(true);
         venosiContainer.setPadding(false);
+        venosiContainer.setVisible(false); // Inizialmente nascosto
 
         // Container per accessi arteriosi
-        VerticalLayout arteriosiContainer = new VerticalLayout();
+        arteriosiContainer = new VerticalLayout();
         arteriosiContainer.setWidthFull();
         arteriosiContainer.setSpacing(true);
         arteriosiContainer.setPadding(false);
+        arteriosiContainer.setVisible(false); // Inizialmente nascosto
 
-        // Liste per memorizzare gli accessi
-        List<AccessoComponent> venosiAccessi = new ArrayList<>();
-        List<AccessoComponent> arteriosiAccessi = new ArrayList<>();
-
-        // Titoli e pulsanti per gli accessi
-        H4 venosiTitle = new H4("Accessi Venosi");
-        venosiTitle.addClassName(LumoUtility.Margin.Top.MEDIUM);
-
-        Button addVenosiButton = new Button("Aggiungi accesso venoso", new Icon(VaadinIcon.PLUS));
+        // Pulsanti Aggiungi
+        addVenosiButton = new Button("Aggiungi accesso venoso", new Icon(VaadinIcon.PLUS));
         addVenosiButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addVenosiButton.addClassName(LumoUtility.Margin.Top.SMALL);
-        addVenosiButton.addClickListener(e -> {
-            AccessoComponent accesso = new AccessoComponent("Venoso", venosiContainer, venosiAccessi);
-            venosiAccessi.add(accesso);
-            venosiContainer.add(accesso);
-        });
+        addVenosiButton.setVisible(false); // Inizialmente nascosto
+        addVenosiButton.addClickListener(e -> addAccesso("Venoso"));
 
-        H4 arteriosiTitle = new H4("Accessi Arteriosi");
-        arteriosiTitle.addClassName(LumoUtility.Margin.Top.MEDIUM);
-
-        Button addArteriosiButton = new Button("Aggiungi accesso arterioso", new Icon(VaadinIcon.PLUS));
+        addArteriosiButton = new Button("Aggiungi accesso arterioso", new Icon(VaadinIcon.PLUS));
         addArteriosiButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addArteriosiButton.addClassName(LumoUtility.Margin.Top.SMALL);
-        addArteriosiButton.addClickListener(e -> {
-            AccessoComponent accesso = new AccessoComponent("Arterioso", arteriosiContainer, arteriosiAccessi);
-            arteriosiAccessi.add(accesso);
-            arteriosiContainer.add(accesso);
+        addArteriosiButton.setVisible(false); // Inizialmente nascosto
+        addArteriosiButton.addClickListener(e -> addAccesso("Arterioso"));
+
+        // Checkbox per mostrare/nascondere
+        Checkbox venosiCheckbox = new Checkbox("Accessi venosi");
+        venosiCheckbox.addClassName(LumoUtility.Margin.Top.MEDIUM);
+        venosiCheckbox.addValueChangeListener(e -> {
+            boolean isVisible = e.getValue();
+            venosiContainer.setVisible(isVisible);
+            addVenosiButton.setVisible(isVisible);
+            // Non rimuoviamo gli elementi quando si deseleziona in modifica
         });
 
-        // Aggiunta dei componenti al layout
-        parametriT0Layout.add(venosiTitle, venosiContainer, addVenosiButton,
-                arteriosiTitle, arteriosiContainer, addArteriosiButton);
+        Checkbox arteriosiCheckbox = new Checkbox("Accessi arteriosi");
+        arteriosiCheckbox.addClassName(LumoUtility.Margin.Top.MEDIUM);
+        arteriosiCheckbox.addValueChangeListener(e -> {
+            boolean isVisible = e.getValue();
+            arteriosiContainer.setVisible(isVisible);
+            addArteriosiButton.setVisible(isVisible);
+            // Non rimuoviamo gli elementi quando si deseleziona in modifica
+        });
 
-        // Carica accessi venosi esistenti
+
+        // Aggiunta dei campi e della nuova gestione accessi al layout parametriT0Layout
+        parametriT0Layout.add(
+                paField, fcField, rrField, tempField, spo2Field, fio2Field, litriO2Field, etco2Field, monitorArea, // Campi esistenti + Fio2/Litri
+                venosiCheckbox, venosiContainer, addVenosiButton,        // Nuova gestione venosi
+                arteriosiCheckbox, arteriosiContainer, addArteriosiButton // Nuova gestione arteriosi
+        );
+
+        // Carica accessi esistenti usando la nuova logica
+        boolean venosiPresenti = false;
         if (parametriT0 != null && parametriT0.getAccessiVenosi() != null && !parametriT0.getAccessiVenosi().isEmpty()) {
             for (var accesso : parametriT0.getAccessiVenosi()) {
-                AccessoComponent accessoComp = new AccessoComponent("Venoso", venosiContainer, venosiAccessi);
-                accessoComp.setTipo(accesso.getTipologia());
-                accessoComp.setPosizione(accesso.getPosizione());
-                venosiAccessi.add(accessoComp);
-                venosiContainer.add(accessoComp);
+                AccessoComponent accessoComp = addAccesso("Venoso"); // Aggiunge e ottiene il componente
+                accessoComp.setAccessoData(accesso); // Imposta tutti i dati
+                venosiPresenti = true;
             }
         }
+        // Imposta stato iniziale checkbox venosi
+        venosiCheckbox.setValue(venosiPresenti);
+        venosiContainer.setVisible(venosiPresenti);
+        addVenosiButton.setVisible(venosiPresenti);
 
-        // Carica accessi arteriosi esistenti
+
+        boolean arteriosiPresenti = false;
         if (parametriT0 != null && parametriT0.getAccessiArteriosi() != null && !parametriT0.getAccessiArteriosi().isEmpty()) {
             for (var accesso : parametriT0.getAccessiArteriosi()) {
-                AccessoComponent accessoComp = new AccessoComponent("Arterioso", arteriosiContainer, arteriosiAccessi);
-                accessoComp.setTipo(accesso.getTipologia());
-                accessoComp.setPosizione(accesso.getPosizione());
-                arteriosiAccessi.add(accessoComp);
-                arteriosiContainer.add(accessoComp);
+                AccessoComponent accessoComp = addAccesso("Arterioso"); // Aggiunge e ottiene il componente
+                accessoComp.setAccessoData(accesso); // Imposta tutti i dati
+                arteriosiPresenti = true;
             }
         }
+        // Imposta stato iniziale checkbox arteriosi
+        arteriosiCheckbox.setValue(arteriosiPresenti);
+        arteriosiContainer.setVisible(arteriosiPresenti);
+        addArteriosiButton.setVisible(arteriosiPresenti);
+
+
+        // === FINE GESTIONE ACCESSI NUOVA ===
+
 
         //Inizio Esame Fisico
         VerticalLayout esameFisicoLayout = new VerticalLayout();
@@ -361,7 +419,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         esameFisicoLayout.setSpacing(true);
         esameFisicoLayout.setWidthFull();
 
-        // Recupera i dati dell'esame fisico
+        // Recupera i dati dell'esame fisico (Optional per sicurezza)
         EsameFisico esamiFisici = scenarioService.getEsameFisicoById(scenarioId);
 
         // Esame fisico generale
@@ -371,91 +429,35 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
                 esamiFisici != null ? esamiFisici.getSection("Generale") : ""
         );
 
-        // Esame fisico pupille
+        // ... (altri pannelli esame fisico come prima) ...
         VerticalLayout pupilleArea = createTinyMcePanel(
-                "PUPILLE",
-                "Inserisci i dettagli dell'esame delle pupille...",
-                esamiFisici != null ? esamiFisici.getSection("Pupille") : ""
-        );
-
-        // Esame fisico collo
+                "PUPILLE", "...", esamiFisici != null ? esamiFisici.getSection("Pupille") : "");
         VerticalLayout colloArea = createTinyMcePanel(
-                "COLLO",
-                "Inserisci i dettagli dell'esame del collo...",
-                esamiFisici != null ? esamiFisici.getSection("Collo") : ""
-        );
-
-        // Esame fisico torace
+                "COLLO", "...", esamiFisici != null ? esamiFisici.getSection("Collo") : "");
         VerticalLayout toraceArea = createTinyMcePanel(
-                "TORACE",
-                "Inserisci i dettagli dell'esame del torace...",
-                esamiFisici != null ? esamiFisici.getSection("Torace") : ""
-        );
-
-        // Esame fisico cuore
+                "TORACE", "...", esamiFisici != null ? esamiFisici.getSection("Torace") : "");
         VerticalLayout cuoreArea = createTinyMcePanel(
-                "CUORE",
-                "Inserisci i dettagli dell'esame del cuore...",
-                esamiFisici != null ? esamiFisici.getSection("Cuore") : ""
-        );
-
-        // Esame fisico addome
+                "CUORE", "...", esamiFisici != null ? esamiFisici.getSection("Cuore") : "");
         VerticalLayout addomeArea = createTinyMcePanel(
-                "ADDOME",
-                "Inserisci i dettagli dell'esame dell'addome...",
-                esamiFisici != null ? esamiFisici.getSection("Addome") : ""
-        );
-
-        // Esame fisico retto
+                "ADDOME", "...", esamiFisici != null ? esamiFisici.getSection("Addome") : "");
         VerticalLayout rettoArea = createTinyMcePanel(
-                "RETTO",
-                "Inserisci i dettagli dell'esame rettale...",
-                esamiFisici != null ? esamiFisici.getSection("Retto") : ""
-        );
-
-        // Esame fisico cute
+                "RETTO", "...", esamiFisici != null ? esamiFisici.getSection("Retto") : "");
         VerticalLayout cuteArea = createTinyMcePanel(
-                "CUTE",
-                "Inserisci i dettagli dell'esame della cute...",
-                esamiFisici != null ? esamiFisici.getSection("Cute") : ""
-        );
-
-        // Esame fisico estremità
+                "CUTE", "...", esamiFisici != null ? esamiFisici.getSection("Cute") : "");
         VerticalLayout estremitaArea = createTinyMcePanel(
-                "ESTREMITÀ",
-                "Inserisci i dettagli dell'esame delle estremità...",
-                esamiFisici != null ? esamiFisici.getSection("Estremità") : ""
-        );
-
-        // Esame fisico neurologico
+                "ESTREMITÀ", "...", esamiFisici != null ? esamiFisici.getSection("Estremità") : "");
         VerticalLayout neurologicoArea = createTinyMcePanel(
-                "NEUROLOGICO",
-                "Inserisci i dettagli dell'esame neurologico...",
-                esamiFisici != null ? esamiFisici.getSection("Neurologico") : ""
-        );
-
-        // Esame fisico FAST
+                "NEUROLOGICO", "...", esamiFisici != null ? esamiFisici.getSection("Neurologico") : "");
         VerticalLayout FASTArea = createTinyMcePanel(
-                "FAST ECOGRAFIA",
-                "Inserisci i dettagli dell'ecografia FAST...",
-                esamiFisici != null ? esamiFisici.getSection("FAST") : ""
-        );
-        //Fine Esame Fisico
+                "FAST ECOGRAFIA", "...", esamiFisici != null ? esamiFisici.getSection("FAST") : "");
 
         // Aggiunta dei campi all'area dell'esame fisico
         esameFisicoLayout.add(
-                generaleArea,
-                pupilleArea,
-                colloArea,
-                toraceArea,
-                cuoreArea,
-                addomeArea,
-                rettoArea,
-                cuteArea,
-                estremitaArea,
-                neurologicoArea,
-                FASTArea
+                generaleArea, pupilleArea, colloArea, toraceArea, cuoreArea, addomeArea,
+                rettoArea, cuteArea, estremitaArea, neurologicoArea, FASTArea
         );
+        //Fine Esame Fisico
+
 
         // Creazione tendina per l'esame fisico
         Details esameFisicoDetails = new Details("ESAME FISICO", esameFisicoLayout);
@@ -481,6 +483,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         esamiRefertiDetails.addClassName(LumoUtility.Margin.Top.LARGE);
         esamiRefertiDetails.setOpened(false);
 
+
         // Aggiunta dei componenti al layout principale
         contentLayout.add(
                 editAuthorField,
@@ -492,42 +495,117 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
                 scenarioTypeSelect,
                 informazioniGeneraliDetails,
                 esamiRefertiDetails,
-                parametriT0Details,
+                parametriT0Details, // Contiene già la nuova gestione accessi
                 esameFisicoDetails
         );
 
-        if(!scenarioType.equals("Quick Scenario")){
-            // Creazione tendina per i tempi
+        // Gestione Quick Scenario (nessuna timeline)
+        if (!scenarioType.equals("Quick Scenario")) {
             Details tempiDetails = new Details("TIMELINE SIMULAZIONE", createTempiComponent());
             tempiDetails.setWidthFull();
             tempiDetails.addClassName(LumoUtility.Margin.Top.LARGE);
             tempiDetails.setOpened(false);
-
             contentLayout.add(tempiDetails);
         }
 
-        // Aggiunta della tendina per la sceneggiatura solo se il tipo di scenario è "Patient Simulated Scenario"
+        // Aggiunta della tendina per la sceneggiatura
         if (scenarioType.equals("Patient Simulated Scenario")) {
-            TextArea sceneggiaturaArea = createTextArea(
+            String sceneggiatura = ScenarioService.getSceneggiatura(scenarioId);
+            VerticalLayout sceneggiaturaArea = createTinyMcePanel(
                     "SCENEGGIATURA",
                     "Inserisci la sceneggiatura dello scenario...",
-                    ScenarioService.getSceneggiatura(scenarioId)
+                    sceneggiatura
             );
-            VerticalLayout sceneggiaturaLayout = new VerticalLayout();
+            VerticalLayout sceneggiaturaLayout = new VerticalLayout(sceneggiaturaArea); // Layout semplice
             sceneggiaturaLayout.setPadding(false);
-            sceneggiaturaLayout.setSpacing(true);
+            sceneggiaturaLayout.setSpacing(false); // Rimosso spacing extra
             sceneggiaturaLayout.setWidthFull();
 
-            sceneggiaturaLayout.add(sceneggiaturaArea);
-
-            // Creazione tendina per la sceneggiatura
             Details sceneggiaturaDetails = new Details("SCENEGGIATURA", sceneggiaturaLayout);
             sceneggiaturaDetails.setWidthFull();
             sceneggiaturaDetails.addClassName(LumoUtility.Margin.Top.LARGE);
             sceneggiaturaDetails.setOpened(false);
-
             contentLayout.add(sceneggiaturaDetails);
         }
+
+        // Aggiungi un pulsante Salva (DA IMPLEMENTARE LA LOGICA)
+        Button saveButton = new Button("Salva Modifiche", new Icon(VaadinIcon.CHECK));
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        saveButton.getStyle().set("margin-top", LumoUtility.Margin.Top.XLARGE);
+        VerticalLayout finalInfoGenitoriArea = InfoGenitoriArea;
+        saveButton.addClickListener(e -> {
+            // TODO: Implementare la logica di salvataggio qui
+            String autore = editAuthorField.getValue();
+            String titolo = scenarioTitle.getValue();
+            String nomePaziente = patientName.getValue();
+            String patologia = pathology.getValue();
+            String tipoPaziente = scenarioTypeSelect.getValue();
+            String timer = durationField.getValue() != null ? String.valueOf(durationField.getValue()) : "0";
+
+            Map<String, String> updatedFields = new HashMap<>();
+            updatedFields.put("Autore", autore);
+            updatedFields.put("Titolo", titolo);
+            updatedFields.put("NomePaziente", nomePaziente);
+            updatedFields.put("Patologia", patologia);
+            updatedFields.put("TipologiaPaziente", tipoPaziente);
+            updatedFields.put("Timer", timer);
+
+
+            String descrizione = getTinyMceValue(descriptionArea);
+            String briefing = getTinyMceValue(briefingArea);
+            String infoGenitore = isPediatric ? getTinyMceValue(finalInfoGenitoriArea) : null;
+            String pattoAula = getTinyMceValue(pattoAulaArea);
+            String obiettivi = getTinyMceValue(obiettiviArea);
+            String moulage = getTinyMceValue(moulageArea);
+            String liquidi = getTinyMceValue(liquidiArea);
+            Map<String, String> updatedSections = new HashMap<>();
+            updatedSections.put("Descrizione", descrizione);
+            updatedSections.put("Briefing", briefing);
+            if (isPediatric) {
+                updatedSections.put("InfoGenitore", infoGenitore);
+            }
+            updatedSections.put("PattoAula", pattoAula);
+            updatedSections.put("Obiettivi", obiettivi);
+            updatedSections.put("Moulage", moulage);
+            updatedSections.put("Liquidi", liquidi);
+
+
+            EsameFisico esameFisico = new EsameFisico(scenarioId,
+                    getTinyMceValue(generaleArea),
+                    getTinyMceValue(pupilleArea),
+                    getTinyMceValue(colloArea),
+                    getTinyMceValue(toraceArea),
+                    getTinyMceValue(cuoreArea),
+                    getTinyMceValue(addomeArea),
+                    getTinyMceValue(rettoArea),
+                    getTinyMceValue(cuteArea),
+                    getTinyMceValue(estremitaArea),
+                    getTinyMceValue(neurologicoArea),
+                    getTinyMceValue(FASTArea)
+            );
+
+            scenarioService.updateScenario(scenarioId, updatedFields, updatedSections, esameFisico);
+
+
+            // Dovrà raccogliere i valori da tutti i campi (inclusi TinyMCE, azioni chiave, accessi, ecc.)
+            // e chiamare un metodo di update su scenarioService.
+            System.out.println("--- Raccolta dati Accessi ---");
+            List<Accesso> venosiDaSalvare = new ArrayList<>();
+            for (AccessoComponent comp : venosiAccessi) {
+                venosiDaSalvare.add(comp.getAccesso());
+                System.out.println("Venoso: " + comp.getAccesso());
+            }
+            List<Accesso> arteriosiDaSalvare = new ArrayList<>();
+            for (AccessoComponent comp : arteriosiAccessi) {
+                arteriosiDaSalvare.add(comp.getAccesso());
+                System.out.println("Arterioso: " + comp.getAccesso());
+            }
+            // ... raccogliere gli altri dati ...
+            // scenarioService.updateScenario(scenarioId, datiRaccolti...);
+            UI.getCurrent().navigate("scenari/" + scenarioId); // Torna alla vista dettagli
+        });
+
+        contentLayout.add(saveButton); // Aggiungi il pulsante Salva alla fine del contentLayout
 
         mainLayout.add(customHeader, contentLayout);
     }
@@ -549,135 +627,320 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
     }
 
     /**
-     * Crea un'area di testo con etichetta e segnaposto.
+     * Aggiunge un nuovo componente AccessoComponent (venoso o arterioso) al layout
+     * e alla lista corrispondente. Questo metodo viene chiamato sia quando si clicca
+     * il pulsante "Aggiungi" sia durante il caricamento iniziale dei dati.
      *
-     * @param label       etichetta dell'area di testo
-     * @param placeholder segnaposto dell'area di testo
-     * @param value       valore iniziale dell'area di testo
-     * @return area di testo creata
+     * @param tipo "Venoso" o "Arterioso"
+     * @return Il componente AccessoComponent creato e aggiunto.
      */
-    private TextArea createTextArea(String label, String placeholder, String value) {
-        TextArea area = new TextArea(label);
-        area.setPlaceholder(placeholder);
-        area.setValue(value != null ? value : "");
-        area.setWidthFull();
-        area.setMinHeight("300px");
-        area.getStyle().set("max-width", "100%");
-        area.addClassName(LumoUtility.Margin.Top.LARGE);
-        return area;
+    private AccessoComponent addAccesso(String tipo) {
+        AccessoComponent accessoComp;
+        if ("Venoso".equals(tipo)) {
+            // Passa il container e la lista d'istanza corretti
+            accessoComp = new AccessoComponent(tipo, venosiContainer, venosiAccessi);
+            venosiAccessi.add(accessoComp);
+            venosiContainer.add(accessoComp);
+        } else { // Arterioso
+            // Passa il container e la lista d'istanza corretti
+            accessoComp = new AccessoComponent(tipo, arteriosiContainer, arteriosiAccessi);
+            arteriosiAccessi.add(accessoComp);
+            arteriosiContainer.add(accessoComp);
+        }
+        return accessoComp;
+    }
+
+
+    /**
+     * Crea un pannello per la gestione delle azioni chiave con funzionalità di aggiunta/rimozione dinamica.
+     *
+     * @param titolo      titolo del pannello
+     * @param sottotitolo sottotitolo del pannello
+     * @param valore      valore iniziale delle azioni chiave (stringa separata da punto e virgola)
+     * @return layout verticale contenente il pannello completo
+     */
+    private VerticalLayout createAzioniChiavePanel(String titolo, String sottotitolo, String valore) {
+        // Lista per tenere traccia dei campi delle azioni chiave
+        List<TextField> actionFields = new ArrayList<>();
+
+        // Layout principale del pannello
+        VerticalLayout panelLayout = new VerticalLayout();
+        panelLayout.setWidthFull();
+        panelLayout.setPadding(false);
+        panelLayout.setSpacing(true);
+
+        // Titolo e sottotitolo
+        H3 titleElement = new H3(titolo);
+        Paragraph subtitleElement = new Paragraph(sottotitolo);
+
+        // Container per i campi delle azioni chiave
+        VerticalLayout actionFieldsContainer = new VerticalLayout();
+        actionFieldsContainer.setWidthFull();
+        actionFieldsContainer.setPadding(false);
+        actionFieldsContainer.setSpacing(true);
+
+        // Funzione per aggiungere un nuovo campo azione
+        Button addButton = new Button("Aggiungi azione chiave", new Icon(VaadinIcon.PLUS));
+        addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        addButton.addClickListener(e -> addActionField(actionFieldsContainer, actionFields)); // Estratta logica
+
+        // Carica le azioni esistenti se presenti
+        if (valore != null && !valore.isEmpty()) {
+            String[] actions = valore.split(";");
+            for (String action : actions) {
+                if (action != null && !action.trim().isEmpty()) { // Aggiunto controllo null
+                    addActionField(actionFieldsContainer, actionFields, action.trim()); // Usa metodo helper
+                }
+            }
+        }
+
+        // Se non ci sono azioni DOPO il caricamento, aggiungiamo un campo vuoto
+        if (actionFields.isEmpty()) {
+            addActionField(actionFieldsContainer, actionFields);
+        }
+
+        panelLayout.add(titleElement, subtitleElement, actionFieldsContainer, addButton);
+        return panelLayout;
     }
 
     /**
-     * Componente per rappresentare un accesso (venoso o arterioso).
+     * Metodo helper per aggiungere un campo azione (con o senza valore iniziale).
+     *
+     * @param container    Il layout dove aggiungere il campo.
+     * @param fieldsList   La lista dove tracciare il TextField.
+     * @param initialValue Il valore iniziale (può essere null o vuoto).
+     */
+    private void addActionField(VerticalLayout container, List<TextField> fieldsList, String... initialValue) {
+        HorizontalLayout fieldLayout = new HorizontalLayout();
+        fieldLayout.setWidthFull();
+        fieldLayout.setSpacing(true);
+        fieldLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        TextField actionField = new TextField();
+        actionField.setWidthFull();
+        actionField.setPlaceholder("Inserisci un'azione chiave...");
+        if (initialValue.length > 0 && initialValue[0] != null) {
+            actionField.setValue(initialValue[0]);
+        }
+        fieldsList.add(actionField); // Aggiungi alla lista per tracciamento
+
+        Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
+        removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_ICON);
+        removeButton.addClickListener(event -> {
+            fieldsList.remove(actionField); // Rimuovi dalla lista
+            container.remove(fieldLayout); // Rimuovi dal layout
+        });
+
+        fieldLayout.add(actionField, removeButton);
+        fieldLayout.expand(actionField); // Assicura che il textfield prenda lo spazio
+        container.add(fieldLayout);
+    }
+
+
+    // --- NUOVA CLASSE AccessoComponent (basata su PazienteT0View ma adattata) ---
+
+    /**
+     * Componente per la gestione degli accessi venosi e arteriosi.
+     * Contiene campi per tipo, posizione, lato e misura.
      */
     private static class AccessoComponent extends HorizontalLayout {
-        /**
-         * Selettore per il tipo di accesso.
-         */
         private final Select<String> tipoSelect;
-        /**
-         * Campo di testo per la posizione dell'accesso.
-         */
         private final TextField posizioneField;
-        /**
-         * Container che contiene questo componente.
-         */
-        private final VerticalLayout container;
-        /**
-         * Lista di accessi a cui appartiene questo componente.
-         */
-        private final List<AccessoComponent> listaAccessi;
+        private final ComboBox<String> latoSelect;
+        private final ComboBox<Integer> misuraSelect;
+        private final Accesso accesso; // Oggetto dati
+        private final VerticalLayout container; // Contenitore parent (passato)
+        private final List<AccessoComponent> listaAccessi; // Lista parent (passata)
 
         /**
          * Costruttore del componente di accesso.
          *
-         * @param tipo         tipo di accesso (Venoso o Arterioso)
-         * @param container    container che contiene questo componente
-         * @param listaAccessi lista dove viene memorizzato questo componente
+         * @param tipo         Il tipo di accesso ("Venoso" o "Arterioso").
+         * @param container    Il layout VerticalLayout che conterrà questo componente.
+         * @param listaAccessi La lista List<AccessoComponent> a cui aggiungere/rimuovere questo componente.
          */
         public AccessoComponent(String tipo, VerticalLayout container, List<AccessoComponent> listaAccessi) {
+            // "Venoso" o "Arterioso"
             this.container = container;
             this.listaAccessi = listaAccessi;
+            this.accesso = new Accesso(0, "", "", "", 0); // Inizializza oggetto dati vuoto
 
             setWidthFull();
-            setAlignItems(Alignment.BASELINE);
+            setAlignItems(Alignment.BASELINE); // Allinea alla base per estetica migliore
             setSpacing(true);
+
 
             tipoSelect = new Select<>();
             tipoSelect.setLabel("Tipo accesso " + tipo);
-            if (tipo.equals("Venoso")) {
-                tipoSelect.setItems("Periferico", "Centrale", "PICC", "Midline", "Altro");
-            } else {
-                tipoSelect.setItems("Radiale", "Femorale", "Omerale", "Altro");
+            if ("Venoso".equals(tipo)) {
+                tipoSelect.setItems(
+                        "Periferico", "Centrale", "CVC a breve termine", "CVC tunnellizzato",
+                        "PICC", "Midline", "Intraosseo", "PORT", "Dialysis catheter", "Altro"
+                );
+            } else { // Arterioso
+                tipoSelect.setItems(
+                        "Radiale", "Femorale", "Omerale", "Brachiale", "Ascellare", "Pedidia", "Altro"
+                );
             }
-            tipoSelect.setWidth("200px");
+            tipoSelect.setWidth("200px"); // Larghezza fissa per coerenza
+            tipoSelect.addValueChangeListener(e -> accesso.setTipologia(e.getValue()));
+
 
             posizioneField = new TextField("Posizione");
-            posizioneField.setWidthFull();
+            //posizioneField.setWidthFull(); // Lasciamo che si adatti? O diamo larghezza?
+            posizioneField.addValueChangeListener(e -> accesso.setPosizione(e.getValue()));
+
+            latoSelect = new ComboBox<>("Lato");
+            latoSelect.setItems("DX", "SX");
+            latoSelect.setWidth("100px");
+            latoSelect.addValueChangeListener(e -> accesso.setLato(e.getValue()));
+
+            misuraSelect = new ComboBox<>("Misura (G)"); // Abbreviato Gauge
+            misuraSelect.setItems(14, 16, 18, 20, 22, 24, 26); // Gauge comuni
+            misuraSelect.setAllowCustomValue(true); // Permette altri numeri
+            misuraSelect.setWidth("100px");
+            misuraSelect.addValueChangeListener(e -> accesso.setMisura(e.getValue()));
+            misuraSelect.addCustomValueSetListener(e -> {
+                try {
+                    int customValue = Integer.parseInt(e.getDetail());
+                    List<Integer> items = new ArrayList<>(misuraSelect.getListDataView().getItems().toList());
+                    if (!items.contains(customValue)) {
+                        items.add(customValue);
+                        items.sort(Integer::compareTo); // Mantieni ordinato
+                        misuraSelect.setItems(items);
+                    }
+                    misuraSelect.setValue(customValue); // Imposta il valore custom
+                } catch (NumberFormatException ex) {
+                    // Ignora se non è un numero valido
+                }
+            });
+
 
             Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
             removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
-            removeButton.getStyle().set("margin-top", "auto");
+            removeButton.getStyle().set("margin-top", "auto"); // Allinea verticalmente il bottone
             removeButton.addClickListener(e -> removeSelf());
 
-            add(tipoSelect, posizioneField, removeButton);
+            // Aggiungi i componenti al layout orizzontale
+            add(tipoSelect, posizioneField, latoSelect, misuraSelect, removeButton);
+            expand(posizioneField); // Fai espandere il campo posizione
         }
 
         /**
-         * Imposta il tipo di accesso.
-         *
-         * @param tipo tipo di accesso
-         */
-        public void setTipo(String tipo) {
-            tipoSelect.setValue(tipo);
-        }
-
-        /**
-         * Imposta la posizione dell'accesso.
-         *
-         * @param posizione posizione dell'accesso
-         */
-        public void setPosizione(String posizione) {
-            posizioneField.setValue(posizione);
-        }
-
-        /**
-         * Rimuove questo componente dal container e dalla lista.
+         * Rimuove questo componente dal suo contenitore e dalla lista di tracciamento.
          */
         private void removeSelf() {
-            container.remove(this);
-            listaAccessi.remove(this);
+            if (container != null) {
+                container.remove(this);
+            }
+            if (listaAccessi != null) {
+                listaAccessi.remove(this);
+            }
+        }
+
+        /**
+         * Restituisce l'oggetto Accesso con i dati correnti del componente.
+         *
+         * @return l'oggetto Accesso.
+         */
+        public Accesso getAccesso() {
+            // Assicurati che l'oggetto accesso sia aggiornato (anche se i listener dovrebbero averlo fatto)
+            accesso.setTipologia(tipoSelect.getValue());
+            accesso.setPosizione(posizioneField.getValue());
+            accesso.setLato(latoSelect.getValue());
+            accesso.setMisura(misuraSelect.getValue() != null ? misuraSelect.getValue() : 0); // Gestisci null per misura
+            return accesso;
+        }
+
+        /**
+         * Imposta i valori dei campi del componente basandosi su un oggetto Accesso esistente.
+         *
+         * @param accesso L'oggetto Accesso da cui caricare i dati.
+         */
+        public void setAccessoData(Accesso accesso) {
+            if (accesso == null) return;
+
+            // Imposta i valori nei componenti UI
+            tipoSelect.setValue(accesso.getTipologia());
+            posizioneField.setValue(accesso.getPosizione());
+            latoSelect.setValue(accesso.getLato());
+
+            // Gestione misura: assicurati che il valore esista nella ComboBox
+            Integer misura = accesso.getMisura();
+            if (misura != null && misura != 0) {
+                List<Integer> items = new ArrayList<>(misuraSelect.getListDataView().getItems().toList());
+                if (!items.contains(misura)) {
+                    items.add(misura);
+                    items.sort(Integer::compareTo);
+                    misuraSelect.setItems(items); // Aggiungi se non presente
+                }
+                misuraSelect.setValue(misura);
+            } else {
+                misuraSelect.clear(); // Pulisci se misura è 0 o null
+            }
+
+
+            // Aggiorna anche l'oggetto interno 'accesso' di questo componente
+            this.accesso.setId(accesso.getId()); // Mantieni l'ID se presente
+            this.accesso.setTipologia(accesso.getTipologia());
+            this.accesso.setPosizione(accesso.getPosizione());
+            this.accesso.setLato(accesso.getLato());
+            this.accesso.setMisura(accesso.getMisura());
         }
     }
+    // --- FINE NUOVA CLASSE AccessoComponent ---
+
 
     /**
-     * Crea un componente per visualizzare i tempi della simulazione.
+     * Crea un componente per visualizzare i tempi della simulazione (tramite IFrame).
      *
      * @return il componente creato
      */
     private Component createTempiComponent() {
-        // Crea un layout verticale per contenere i componenti della TempoView
         VerticalLayout tempiLayout = new VerticalLayout();
         tempiLayout.setPadding(false);
         tempiLayout.setSpacing(true);
         tempiLayout.setWidthFull();
 
-        // Aggiungi un bottone per aprire la pagina completa se necessario
-        Button openFullPageButton = new Button("Visualizza in pagina completa", new Icon(VaadinIcon.EXTERNAL_LINK));
+        Button openFullPageButton = new Button("Modifica Timeline in pagina dedicata", new Icon(VaadinIcon.EXTERNAL_LINK));
         openFullPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         openFullPageButton.addClickListener(e -> UI.getCurrent().navigate("tempi/" + scenarioId + "/edit"));
 
-        // Crea un iframe o embed della pagina TempoView
         IFrame tempiFrame = new IFrame("tempi/" + scenarioId + "/edit");
-        tempiFrame.setHeight("600px");
+        tempiFrame.setHeight("600px"); // Altezza fissa potrebbe essere un problema
         tempiFrame.setWidthFull();
-        tempiLayout.add(openFullPageButton, tempiFrame);
+        tempiFrame.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)"); // Bordo per chiarezza
 
+        tempiLayout.add(openFullPageButton, tempiFrame);
         return tempiLayout;
     }
 
     /**
-     * Crea un componente per visualizzare gli esami e i referti.
+     * Crea un componente per visualizzare il materiale necessario (tramite IFrame).
+     *
+     * @return il componente creato
+     */
+    private Component createMaterialeNecessarioComponent() {
+        VerticalLayout materialeLayout = new VerticalLayout();
+        materialeLayout.setPadding(false);
+        materialeLayout.setSpacing(true);
+        materialeLayout.setWidthFull();
+
+        Button openFullPageButton = new Button("Modifica Materiale in pagina dedicata", new Icon(VaadinIcon.EXTERNAL_LINK));
+        openFullPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        openFullPageButton.addClickListener(e -> UI.getCurrent().navigate("materialeNecessario/" + scenarioId + "/edit"));
+
+        IFrame materialeFrame = new IFrame("materialeNecessario/" + scenarioId + "/edit");
+        materialeFrame.setHeight("600px");
+        materialeFrame.setWidthFull();
+        materialeFrame.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
+
+        materialeLayout.add(openFullPageButton, materialeFrame);
+        return materialeLayout;
+    }
+
+    /**
+     * Crea un componente per visualizzare gli esami e i referti (tramite IFrame).
      *
      * @return il componente creato
      */
@@ -687,39 +950,61 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         esamiLayout.setSpacing(true);
         esamiLayout.setWidthFull();
 
-        // Aggiungi un bottone per aprire la pagina completa se necessario
-        Button openFullPageButton = new Button("Visualizza in pagina completa", new Icon(VaadinIcon.EXTERNAL_LINK));
+        Button openFullPageButton = new Button("Modifica Esami/Referti in pagina dedicata", new Icon(VaadinIcon.EXTERNAL_LINK));
         openFullPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         openFullPageButton.addClickListener(e -> UI.getCurrent().navigate("esamiReferti/" + scenarioId + "/edit"));
 
-        // Crea un iframe o embed della pagina EsamiRefertiView
         IFrame esamiFrame = new IFrame("esamiReferti/" + scenarioId + "/edit");
         esamiFrame.setHeight("600px");
         esamiFrame.setWidthFull();
-        esamiLayout.add(openFullPageButton, esamiFrame);
+        esamiFrame.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
 
+        esamiLayout.add(openFullPageButton, esamiFrame);
         return esamiLayout;
     }
 
     /**
-     * Crea un pannello con titolo, sottotitolo e editor TinyMce.
+     * Crea un pannello con titolo, sottotitolo ed editor TinyMce.
      *
-     * @param titolo     titolo del pannello
+     * @param titolo      titolo del pannello
      * @param sottotitolo sottotitolo del pannello
-     * @param valore     valore iniziale dell'editor
+     * @param valore      valore iniziale dell'editor
      * @return layout verticale contenente il pannello completo
      */
     private VerticalLayout createTinyMcePanel(String titolo, String sottotitolo, String valore) {
         H3 titleElement = new H3(titolo);
+        titleElement.addClassName(LumoUtility.Margin.Bottom.NONE); // Riduci margini titolo
         Paragraph subtitleElement = new Paragraph(sottotitolo);
+        subtitleElement.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.SMALL, LumoUtility.Margin.Top.XSMALL); // Stile sottotitolo
 
         TinyMce editor = new TinyMce();
-        editor.setValue(valore != null ? valore : "");
-        editor.setHeight("300px");
+        editor.setValue(Objects.requireNonNullElse(valore, "")); // Gestione null per valore iniziale
+        editor.setHeight("250px"); // Altezza ridotta per compattezza
+        editor.setWidthFull(); // Assicura larghezza piena
+        // Configurazione minima TinyMCE (opzionale, per rimuovere/aggiungere funzionalità)
+        // editor.setConfig("...");
 
-        VerticalLayout panelLayout = new VerticalLayout();
-        panelLayout.add(titleElement, subtitleElement, editor);
+        VerticalLayout panelLayout = new VerticalLayout(titleElement, subtitleElement, editor);
+        panelLayout.setPadding(false); // Rimuovi padding per compattezza
+        panelLayout.setSpacing(true); // Mantieni spaziatura interna
+        panelLayout.setWidthFull(); // Occupa tutta la larghezza disponibile
 
         return panelLayout;
+    }
+
+    // Ottieni il valore dall'editor TinyMce nel layout
+    private String getTinyMceValue(VerticalLayout panel) {
+        // L'editor è il terzo componente nel layout (indice 2)
+        Optional<Component> component = panel.getChildren()
+                .filter(c -> c instanceof TinyMce)
+                .findFirst();
+
+        if (component.isPresent()) {
+            TinyMce editor = (TinyMce) component.get();
+            return editor.getValue();
+        }
+
+        // Restituisci stringa vuota se l'editor non viene trovato
+        return "";
     }
 }

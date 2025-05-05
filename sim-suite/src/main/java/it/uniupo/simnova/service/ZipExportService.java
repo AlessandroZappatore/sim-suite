@@ -36,6 +36,8 @@ public class ZipExportService {
      */
     private final ScenarioService scenarioService;
 
+    private final PdfExportService pdfExportService;
+
     /**
      * Costruttore del servizio ZipExportService.
      *
@@ -43,9 +45,10 @@ public class ZipExportService {
      * @param scenarioService    servizio per la gestione degli scenari
      */
     @Autowired
-    public ZipExportService(FileStorageService fileStorageService, ScenarioService scenarioService) {
+    public ZipExportService(FileStorageService fileStorageService, ScenarioService scenarioService, PdfExportService pdfExportService) {
         this.fileStorageService = fileStorageService;
         this.scenarioService = scenarioService;
+        this.pdfExportService = pdfExportService;
     }
 
     /**
@@ -67,6 +70,45 @@ public class ZipExportService {
             zipOut.closeEntry();
 
             // Aggiunge gli allegati multimediali allo ZIP
+            List<String> mediaFiles = scenarioService.getScenarioMediaFiles(scenarioId);
+            if (mediaFiles != null && !mediaFiles.isEmpty()) {
+                // Crea una directory per gli allegati multimediali
+                zipOut.putNextEntry(new ZipEntry("esami/"));
+                zipOut.closeEntry();
+
+                // Aggiunge ogni file multimediale allo ZIP
+                for (String filename : mediaFiles) {
+                    try {
+                        Path imagePath = Paths.get(fileStorageService.getMediaDirectory().toString(), filename);
+                        if (Files.exists(imagePath)) {
+                            byte[] imageBytes = Files.readAllBytes(imagePath);
+                            ZipEntry imageEntry = new ZipEntry("esami/" + filename);
+                            zipOut.putNextEntry(imageEntry);
+                            zipOut.write(imageBytes);
+                            zipOut.closeEntry();
+                        }
+                    } catch (IOException e) {
+                        logger.error("Errore nell'aggiungere l'immagine {} allo ZIP", filename, e);
+                    }
+                }
+            }
+            zipOut.finish();
+            zipOut.flush();
+            return baos.toByteArray();
+        }
+    }
+
+    public byte[] exportScenarioPdfToZip(Integer scenarioId) throws IOException {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             ZipOutputStream zipOut = new ZipOutputStream(baos)) {
+
+            // Aggiunge il file PDF dello scenario allo ZIP
+            byte[] pdfBytes = pdfExportService.exportScenarioToPdf(scenarioId);
+            ZipEntry pdfEntry = new ZipEntry("scenario.pdf");
+            zipOut.putNextEntry(pdfEntry);
+            zipOut.write(pdfBytes);
+            zipOut.closeEntry();
+
             List<String> mediaFiles = scenarioService.getScenarioMediaFiles(scenarioId);
             if (mediaFiles != null && !mediaFiles.isEmpty()) {
                 // Crea una directory per gli allegati multimediali

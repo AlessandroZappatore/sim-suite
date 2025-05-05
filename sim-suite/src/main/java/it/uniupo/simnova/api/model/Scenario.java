@@ -267,6 +267,10 @@ public class Scenario {
         return sb.toString();
     }
 
+    public String getAzione_chiave_raw() {
+        return azione_chiave;
+    }
+
     /**
      * Imposta l'azione chiave dello scenario.
      *

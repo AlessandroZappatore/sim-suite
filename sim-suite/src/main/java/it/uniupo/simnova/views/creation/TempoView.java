@@ -308,28 +308,41 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
 
             logger.info("Scenario ID impostato a: {}, Mode: {}", this.scenarioId, mode);
 
-            // Nascondi il pulsante Indietro se in modalità "edit"
-            // Cerca il pulsante Indietro nella UI
-            getContent().getChildren()
-                    .filter(c -> c instanceof HorizontalLayout)
-                    .findFirst().flatMap(header -> header.getChildren()
-                            .filter(c -> c instanceof Button && "Indietro".equals(((Button) c).getText()))
-                            .findFirst()).ifPresent(backBtn -> backBtn.setVisible(!"edit".equals(mode)));
+            // Modifica la visibilità dell'header e dei crediti in modalità edit
+            VerticalLayout mainLayout = getContent();
 
+            // Cerca il primo HorizontalLayout che contiene l'header
+            mainLayout.getChildren()
+                    .filter(component -> component instanceof HorizontalLayout)
+                    .findFirst()
+                    .ifPresent(headerLayout -> {
+                        // Nascondi l'intero header in modalità edit
+                        headerLayout.setVisible(!"edit".equals(mode));
+                    });
+
+            // Cerca l'ultimo HorizontalLayout che contiene i crediti
+            mainLayout.getChildren()
+                    .filter(component -> component instanceof HorizontalLayout)
+                    .reduce((first, second) -> second) // Ottieni l'ultimo elemento (footer)
+                    .ifPresent(footerLayout -> {
+                        // Trova il componente Credits all'interno del footer e nascondilo
+                        footerLayout.getChildren()
+                                .filter(component -> component instanceof CreditsComponent)
+                                .forEach(credits -> credits.setVisible(!"edit".equals(mode)));
+                    });
+
+            // Carica i dati in base alla modalità
+            if ("edit".equals(mode)) {
+                logger.info("Modalità EDIT: caricamento dati Tempi esistenti per scenario {}", this.scenarioId);
+                loadInitialData(); // Carica sempre T0 se esiste
+                loadExistingTimes(); // Carica T1, T2... esistenti
+            } else {
+                logger.info("Modalità CREATE: caricamento dati iniziali T0 e preparazione per nuovi tempi per scenario {}", this.scenarioId);
+                loadInitialData(); // Carica T0 se esiste, altrimenti aggiunge sezione T0 vuota
+            }
         } catch (NumberFormatException e) {
             logger.error("Errore nel parsing o validazione dell'ID Scenario: '{}'", parameter, e);
             event.rerouteToError(NotFoundException.class, "ID scenario non valido o mancante.");
-            return; // Interrompi l'esecuzione se l'ID non è valido
-        }
-
-        // Carica i dati in base alla modalità
-        if ("edit".equals(mode)) {
-            logger.info("Modalità EDIT: caricamento dati Tempi esistenti per scenario {}", this.scenarioId);
-            loadInitialData(); // Carica sempre T0 se esiste
-            loadExistingTimes(); // Carica T1, T2... esistenti
-        } else {
-            logger.info("Modalità CREATE: caricamento dati iniziali T0 e preparazione per nuovi tempi per scenario {}", this.scenarioId);
-            loadInitialData(); // Carica T0 se esiste, altrimenti aggiunge sezione T0 vuota
         }
     }
 
@@ -757,10 +770,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             // Itera sui tempi recuperati dal DB
             for (Tempo tempo : existingTempi) {
                 int tempoId = tempo.getIdTempo();
-                // Aggiunge la sezione solo se non è T0 (T0 è gestito da loadInitialData)
-                // o se T0 non era stato aggiunto da loadInitialData
-                boolean t0AlreadyHandled = t0Section != null;
-                if (tempoId > 0 || (!t0AlreadyHandled && tempoId == 0)) {
+                if (tempoId >= 0) {
                     // Aggiungi la sezione per questo tempo (se non esiste già)
                     addTimeSection(tempoId); // addTimeSection ora controlla se esiste già
                     TimeSection section = timeSections.stream()

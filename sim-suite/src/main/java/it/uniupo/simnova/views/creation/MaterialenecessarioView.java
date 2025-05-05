@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  * @version 2.0
  */
 @PageTitle("Materiale Necessario")
-@Route(value = "materialenecessario")
+@Route(value = "materialeNecessario")
 @Menu(order = 8)
 public class MaterialenecessarioView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     // ... (campi esistenti) ...
@@ -58,6 +58,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
     private final List<Materiale> materialiSelezionati = new ArrayList<>();
     private List<Materiale> tuttiMateriali = new ArrayList<>();
     private TextField searchField;
+    private String mode;
 
 
     /**
@@ -244,24 +245,52 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         nextButton.addClickListener(e -> saveMaterialiAndNavigate(nextButton.getUI()));
     }
 
-    // ... (setParameter, loadData, aggiornaGrids come prima, ma aggiornaGrids usa controlli ID) ...
-
     @Override
-    public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
+    public void setParameter(BeforeEvent event, @WildcardParameter String parameter) {
         try {
             if (parameter == null || parameter.trim().isEmpty()) {
-                throw new NumberFormatException("ID Scenario mancante");
+                logger.warn("Parametro mancante nell'URL.");
+                throw new NumberFormatException("ID Scenario è richiesto");
             }
 
-            this.scenarioId = Integer.parseInt(parameter);
-            if (scenarioId <= 0) { // Aggiunto controllo <= 0
-                throw new NumberFormatException("ID Scenario deve essere positivo");
+            // Dividi il parametro usando '/' come separatore
+            String[] parts = parameter.split("/");
+            String scenarioIdStr = parts[0]; // Il primo elemento è l'ID dello scenario
+
+            // Verifica e imposta l'ID scenario
+            this.scenarioId = Integer.parseInt(scenarioIdStr.trim());
+            if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
+                logger.warn("ID Scenario non valido o non esistente: {}", scenarioId);
+                throw new NumberFormatException("ID Scenario non valido");
             }
-            // Controllo esistenza scenario (se necessario all'inizio)
-            if (!scenarioService.existScenario(scenarioId)) {
-                logger.warn("Tentativo di accesso a scenario non esistente: {}", scenarioId);
-                throw new NotFoundException("Scenario con ID " + scenarioId + " non trovato.");
-            }
+
+            // Imposta la modalità se presente come secondo elemento
+            mode = parts.length > 1 && "edit".equals(parts[1]) ? "edit" : "create";
+
+            logger.info("Scenario ID impostato a: {}, Mode: {}", this.scenarioId, mode);
+
+            // Modifica la visibilità dell'header e dei crediti
+            VerticalLayout mainLayout = getContent();
+
+            // Nasconde il pulsante Indietro, l'header e i credits in modalità "edit"
+            mainLayout.getChildren().forEach(component -> {
+                if (component instanceof HorizontalLayout layout) {
+
+                    // Gestione dell'header (il primo HorizontalLayout)
+                    if (layout.getComponentAt(1) instanceof AppHeader) {
+                        layout.setVisible(!"edit".equals(mode));
+                    }
+
+                    // Gestione del footer (l'ultimo HorizontalLayout con i credits)
+                    if (layout.getComponentCount() > 1 &&
+                        layout.getComponentAt(0) instanceof CreditsComponent) {
+                        if ("edit".equals(mode)) {
+                            // In modalità edit, nascondi i credits ma mantieni il pulsante Avanti
+                            layout.getComponentAt(0).setVisible(false);
+                        }
+                    }
+                }
+            });
 
             loadData();
         } catch (NumberFormatException e) {
@@ -447,8 +476,12 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                     if (success) {
                         Notification.show("Materiali salvati.", 2000, Notification.Position.BOTTOM_START)
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                        // Naviga alla pagina successiva
-                        ui.navigate("esamiReferti/" + scenarioId + "/create");
+
+                        // Verifica la modalità: se edit rimane nella pagina attuale, altrimenti naviga
+                        if (!"edit".equals(mode)) {
+                            // Naviga alla pagina successiva solo se NON è in modalità edit
+                            ui.navigate("esamiReferti/" + scenarioId + "/create");
+                        }
                     } else {
                         Notification.show("Errore durante il salvataggio dei materiali.", 3000, Notification.Position.MIDDLE)
                                 .addThemeVariants(NotificationVariant.LUMO_ERROR);

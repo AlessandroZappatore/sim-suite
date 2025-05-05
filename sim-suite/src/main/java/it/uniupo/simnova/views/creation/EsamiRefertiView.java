@@ -67,6 +67,8 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
      * ID dello scenario corrente.
      */
     private Integer scenarioId;
+
+    private String mode;
     /**
      * Layout principale per la visualizzazione delle righe degli esami.
      */
@@ -167,7 +169,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         mainLayout.add(customHeader, contentLayout, footerLayout);
 
         backButton.addClickListener(e ->
-                backButton.getUI().ifPresent(ui -> ui.navigate("materialenecessario/" + scenarioId)));
+                backButton.getUI().ifPresent(ui -> ui.navigate("materialeNecessario/" + scenarioId)));
 
         nextButton.addClickListener(e -> saveEsamiRefertiAndNavigate(nextButton.getUI()));
     }
@@ -180,7 +182,6 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
      */
     @Override
     public void setParameter(BeforeEvent event, @WildcardParameter String parameter) {
-        String mode;
         try {
             if (parameter == null || parameter.trim().isEmpty()) {
                 logger.warn("Parametro mancante nell'URL.");
@@ -203,44 +204,40 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
             logger.info("Scenario ID impostato a: {}, Mode: {}", this.scenarioId, mode);
 
+            // Modifica la visibilità dell'header e dei crediti
+            VerticalLayout mainLayout = getContent();
+
+            // Gestione dell'header (il primo HorizontalLayout)
+            mainLayout.getChildren()
+                .filter(component -> component instanceof HorizontalLayout)
+                .findFirst()
+                .ifPresent(header -> header.setVisible(!"edit".equals(mode)));
+
+            // Gestione del footer con i crediti (l'ultimo HorizontalLayout)
+            mainLayout.getChildren()
+                .filter(component -> component instanceof HorizontalLayout)
+                .reduce((first, second) -> second) // Prendi l'ultimo elemento
+                .ifPresent(footer -> {
+                    HorizontalLayout footerLayout = (HorizontalLayout) footer;
+                    footerLayout.getChildren()
+                        .filter(component -> component instanceof CreditsComponent)
+                        .forEach(credits -> credits.setVisible(!"edit".equals(mode)));
+                });
+
+            // Inizializza la vista in base alla modalità
+            if ("edit".equals(mode)) {
+                logger.info("Modalità EDIT: caricamento dati esistenti per scenario {}", this.scenarioId);
+                loadExistingData();
+            } else {
+                logger.info("Modalità CREATE: aggiunta prima riga vuota per scenario {}", this.scenarioId);
+                if (formRows.isEmpty()) {
+                    addNewRow();
+                }
+            }
         } catch (NumberFormatException e) {
             logger.error("Errore nel parsing o validazione dello Scenario ID: {}", parameter, e);
             event.rerouteToError(NotFoundException.class, "ID scenario non valido o mancante.");
-            return; // Interrompi l'esecuzione se l'ID non è valido
         }
-
-        // Aggiorna visibilità del pulsante indietro in base alla modalità
-        Button backButton = getBackButton(); // Metodo che dovrai implementare per ottenere il pulsante
-        backButton.setVisible("create".equals(mode));
-
-        // Inizializza la vista in base alla modalità
-        if ("edit".equals(mode)) {
-            logger.info("Modalità EDIT: caricamento dati esistenti per scenario {}", this.scenarioId);
-            loadExistingData();
-        } else {
-            logger.info("Modalità CREATE: aggiunta prima riga vuota per scenario {}", this.scenarioId);
-            if (formRows.isEmpty()) {
-                addNewRow();
-            }
-        }
-    }
-
-    /**
-     * Recupera il pulsante "Indietro" dal layout.
-     *
-     * @return il pulsante "Indietro"
-     */
-    private Button getBackButton() {
-        // Cerca il backButton nel layout
-        // Esempio (adatta in base alla tua struttura):
-        return getContent().getChildren()
-                .filter(c -> c instanceof HorizontalLayout)
-                .findFirst()
-                .flatMap(layout -> layout.getChildren()
-                        .filter(c -> c instanceof Button && "Indietro".equals(((Button) c).getText()))
-                        .findFirst())
-                .map(c -> (Button) c)
-                .orElseThrow(() -> new IllegalStateException("Back button non trovato"));
     }
 
     /**
@@ -429,8 +426,13 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                     logger.info("Nessun dato significativo da salvare per gli esami e referti dello scenario {}", scenarioId);
                 }
 
-                // Naviga alla prossima vista indipendentemente dall'esito del salvataggio
-                ui.navigate("moulage/" + scenarioId);
+                // Verifica la modalità: se è "edit" rimani nella pagina attuale,
+                // altrimenti naviga alla pagina successiva
+                boolean isEditMode = "edit".equals(mode);
+                if (!isEditMode) {
+                    // Naviga alla prossima vista solo se NON è in modalità edit
+                    ui.navigate("moulage/" + scenarioId);
+                }
 
             } catch (Exception e) {
                 logger.error("Errore durante il salvataggio degli esami e referti", e);

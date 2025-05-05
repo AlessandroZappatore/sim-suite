@@ -212,7 +212,7 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> implements
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
                     if (success) {
-                        ui.navigate("materialenecessario/" + scenarioId);
+                        ui.navigate("materialeNecessario/" + scenarioId);
                     } else {
                         Notification.show("Errore durante il salvataggio degli obiettivi didattici", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     }
