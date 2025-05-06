@@ -72,40 +72,91 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
         mainLayout.setPadding(false);
         mainLayout.setSpacing(false);
         mainLayout.getStyle().set("min-height", "100vh");
+        mainLayout.getStyle().set("background-color", "var(--lumo-base-color)");
 
         // 1. HEADER con pulsante indietro e titolo
         AppHeader header = new AppHeader(fileStorageService);
+
+        // Modernizzare il pulsante indietro
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
         backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        backButton.getStyle().set("margin-right", "auto");
+        backButton.getStyle()
+                .set("margin-right", "auto")
+                .set("transition", "all 0.2s ease")
+                .set("font-weight", "500");
+        backButton.addClassName("hover-effect");
 
         HorizontalLayout customHeader = new HorizontalLayout();
         customHeader.setWidthFull();
         customHeader.setPadding(true);
         customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
         customHeader.add(backButton, header);
+        customHeader.getStyle().set("box-shadow", "0 2px 10px rgba(0, 0, 0, 0.05)");
 
         VerticalLayout headerSection = new VerticalLayout();
-        headerSection.setPadding(false);
+        headerSection.setPadding(true);
         headerSection.setSpacing(false);
         headerSection.setWidthFull();
+        headerSection.getStyle()
+                .set("background", "var(--lumo-base-color)")
+                .set("border-radius", "8px")
+                .set("margin-top", "1rem")
+                .set("margin-bottom", "1rem")
+                .set("box-shadow", "0 1px 3px rgba(0,0,0,0.1)");
 
+        // Crea un layout dedicato per icona e titolo
+        HorizontalLayout titleWithIconLayout = new HorizontalLayout();
+        titleWithIconLayout.setSpacing(true);
+        titleWithIconLayout.setPadding(false);
+        titleWithIconLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        titleWithIconLayout.getStyle().set("margin-bottom", "0.5rem");
+
+        // Stile dell'icona migliorato
+        Icon icon = new Icon(VaadinIcon.PENCIL);
+        icon.setSize("2em");
+        icon.getStyle()
+                .set("margin-right", "0.75em")
+                .set("color", "#4285F4") // Colore blu Google-style
+                .set("background", "rgba(66, 133, 244, 0.1)")
+                .set("padding", "10px")
+                .set("border-radius", "50%");
+
+        // Titolo con colore personalizzato
         H2 title = new H2("DESCRIZIONE DELLO SCENARIO");
         title.addClassName(LumoUtility.Margin.Bottom.NONE);
-        title.getStyle().set("text-align", "center");
-        title.setWidthFull();
+        title.addClassName(LumoUtility.Margin.Top.NONE);
+        title.getStyle()
+                .set("text-align", "center")
+                .set("color", "#4285F4") // Colore blu Google-style
+                .set("font-weight", "600")
+                .set("letter-spacing", "0.5px");
+
+        // Aggiungi titolo e icona al layout dedicato
+        titleWithIconLayout.add(icon, title);
+
+        // Layout principale con centratura
+        HorizontalLayout headerLayout = new HorizontalLayout();
+        headerLayout.setWidthFull();
+        headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+
+        headerLayout.add(titleWithIconLayout);
 
         Paragraph subtitle = new Paragraph("Inserisci una descrizione dettagliata dello scenario di simulazione. Questa descrizione fornirà il contesto generale e le informazioni di background ai partecipanti.");
         subtitle.addClassName(LumoUtility.Margin.Top.XSMALL);
         subtitle.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
-        subtitle.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        subtitle.getStyle()
+                .set("color", "var(--lumo-secondary-text-color)")
+                .set("max-width", "750px")
+                .set("text-align", "center")
+                .set("font-weight", "400")
+                .set("line-height", "1.6");
 
-        headerSection.add(title, subtitle);
+        headerSection.add(headerLayout, subtitle);
 
         // 2. CONTENUTO PRINCIPALE con area di testo
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.setWidth("100%");
-        contentLayout.setMaxWidth("800px");
+        contentLayout.setMaxWidth("850px");
         contentLayout.setPadding(true);
         contentLayout.setSpacing(false);
         contentLayout.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -115,11 +166,20 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
 
         descriptionEditor = new TinyMce();
         descriptionEditor.setWidthFull();
-        descriptionEditor.setHeight("400px");
-        descriptionEditor.configure("plugins: 'link lists', " +
-                "toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link', " +
+        descriptionEditor.setHeight("450px");
+        descriptionEditor.configure("plugins: 'link lists table hr pagebreak image charmap preview', " +
+                "toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist | link image | table hr', " +
                 "menubar: true, " +
-                "statusbar: true");
+                "skin: 'oxide', " +
+                "content_css: 'default', " +
+                "statusbar: true, " +
+                "resize: true");
+
+        // Aggiungere un bordo moderno all'editor
+        descriptionEditor.getElement().getStyle()
+                .set("border-radius", "8px")
+                .set("overflow", "hidden")
+                .set("box-shadow", "0 2px 10px rgba(0, 0, 0, 0.05)");
 
         contentLayout.add(headerSection, descriptionEditor);
 
@@ -130,17 +190,33 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
         footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         footerLayout.addClassName(LumoUtility.Border.TOP);
-        footerLayout.getStyle().set("border-color", "var(--lumo-contrast-10pct)");
+        footerLayout.getStyle()
+                .set("border-color", "var(--lumo-contrast-10pct)")
+                .set("background", "var(--lumo-base-color)")
+                .set("box-shadow", "0 -2px 10px rgba(0, 0, 0, 0.03)");
 
         Button nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
         nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         nextButton.setWidth("150px");
+        nextButton.getStyle()
+                .set("border-radius", "30px")
+                .set("font-weight", "600")
+                .set("transition", "transform 0.2s ease");
+
+        // Aggiungere effetto hover tramite classe CSS globale
+        UI.getCurrent().getPage().executeJs(
+                "document.head.innerHTML += '<style>" +
+                        ".hover-effect:hover { transform: translateY(-2px); }" +
+                        "button:active { transform: scale(0.98); }" +
+                        "</style>';"
+        );
+
+        nextButton.addClassName("hover-effect");
 
         CreditsComponent creditsLayout = new CreditsComponent();
 
         // Aggiunta dei crediti e del bottone al layout del footer
         footerLayout.add(creditsLayout, nextButton);
-
 
         // Aggiunta componenti al layout principale
         mainLayout.add(customHeader, contentLayout, footerLayout);

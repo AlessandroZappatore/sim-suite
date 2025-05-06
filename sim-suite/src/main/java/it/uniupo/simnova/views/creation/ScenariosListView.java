@@ -683,7 +683,8 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         Dialog dialog = new Dialog();
         dialog.setWidth("500px");
         dialog.setCloseOnEsc(true);
-        dialog.setCloseOnOutsideClick(false);
+        dialog.setCloseOnOutsideClick(true);
+
 
         VerticalLayout layout = new VerticalLayout();
         layout.setSpacing(true);
@@ -708,55 +709,57 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         Checkbox esamiERefertiChk = new Checkbox("Esami e referti", true);
         Checkbox timelineChk = new Checkbox("Timeline", true);
 
-        var descrizione = scenario.getDescrizione();
+        var scenarioNew = scenarioService.getScenarioById(scenario.getId());
+        var descrizione = scenarioNew.getDescrizione();
         if (descrizione == null || descrizione.isEmpty()) {
             descChk.setEnabled(false);
             descChk.setValue(false);
         }
 
-        var briefing = scenario.getBriefing();
+        var briefing = scenarioNew.getBriefing();
+        System.out.println("Briefing: " + briefing);
         if (briefing == null || briefing.isEmpty()) {
             briefingChk.setEnabled(false);
             briefingChk.setValue(false);
         }
 
-        var patologia = scenario.getPatologia();
+        var patologia = scenarioNew.getPatologia();
         if (patologia == null || patologia.isEmpty()) {
             pattoChk.setEnabled(false);
             pattoChk.setValue(false);
         }
 
-        var obiettivo = scenario.getObiettivo();
+        var obiettivo = scenarioNew.getObiettivo();
         if (obiettivo == null || obiettivo.isEmpty()) {
             obiettiviChk.setEnabled(false);
             obiettiviChk.setValue(false);
         }
 
-        var infoGenitore = scenario.getInfoGenitore();
+        var infoGenitore = scenarioNew.getInfoGenitore();
         if (infoGenitore == null || infoGenitore.isEmpty()) {
             infoGenChk.setEnabled(false);
             infoGenChk.setValue(false);
         }
 
-        var pattoAula = scenario.getPattoAula();
+        var pattoAula = scenarioNew.getPattoAula();
         if (pattoAula == null || pattoAula.isEmpty()) {
             pattoChk.setEnabled(false);
             pattoChk.setValue(false);
         }
 
-        var moulage = scenario.getMoulage();
+        var moulage = scenarioNew.getMoulage();
         if (moulage == null || moulage.isEmpty()) {
             moulageChk.setEnabled(false);
             moulageChk.setValue(false);
         }
 
-        var liquidi = scenario.getLiquidi();
+        var liquidi = scenarioNew.getLiquidi();
         if (liquidi == null || liquidi.isEmpty()) {
             liquidiChk.setEnabled(false);
             liquidiChk.setValue(false);
         }
 
-        var azioniChiave = scenario.getAzioneChiave();
+        var azioniChiave = scenarioNew.getAzioneChiave();
         if (azioniChiave == null || azioniChiave.isEmpty()) {
             azioniChk.setEnabled(false);
             azioniChk.setValue(false);

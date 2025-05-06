@@ -378,24 +378,24 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         Div card = new Div();
         card.addClassName("info-card");
         if(scenario.getDescrizione() != null && !scenario.getDescrizione().isEmpty())
-            card.add(createInfoItem("Descrizione", scenario.getDescrizione()));
+            card.add(createInfoItem("Descrizione", scenario.getDescrizione(), new Icon(VaadinIcon.PENCIL)));
         if(scenario.getBriefing() != null && !scenario.getBriefing().isEmpty())
-            card.add(createInfoItem("Briefing", scenario.getBriefing()));
+            card.add(createInfoItem("Briefing", scenario.getBriefing(), new Icon(VaadinIcon.GROUP)));
         if(scenarioService.isPediatric(scenarioId) && scenario.getInfoGenitore() != null && !scenario.getInfoGenitore().isEmpty()) {
-            card.add(createInfoItem("Informazioni dai genitori", scenario.getInfoGenitore()));
+            card.add(createInfoItem("Informazioni dai genitori", scenario.getInfoGenitore(), new Icon(VaadinIcon.FAMILY)));
         }
         if(scenario.getPattoAula() != null && !scenario.getPattoAula().isEmpty())
-            card.add(createInfoItem("Patto Aula", scenario.getPattoAula()));
+            card.add(createInfoItem("Patto Aula", scenario.getPattoAula(), new Icon(VaadinIcon.HANDSHAKE)));
         if(scenario.getAzioneChiave() != null && !scenario.getAzioneChiave().isEmpty())
-            card.add(createInfoItem("Azioni Chiave", scenario.getAzioneChiave()));
+            card.add(createInfoItem("Azioni Chiave", scenario.getAzioneChiave(), new Icon(VaadinIcon.KEY)));
         if(scenario.getObiettivo() != null && !scenario.getObiettivo().isEmpty())
-            card.add(createInfoItem("Obiettivi Didattici", scenario.getObiettivo()));
+            card.add(createInfoItem("Obiettivi Didattici", scenario.getObiettivo(), new Icon(VaadinIcon.BOOK)));
         if(scenario.getMoulage() != null && !scenario.getMoulage().isEmpty())
-            card.add(createInfoItem("Moulage", scenario.getMoulage()));
+            card.add(createInfoItem("Moulage", scenario.getMoulage(), new Icon(VaadinIcon.EYE)));
         if(scenario.getLiquidi() != null && !scenario.getLiquidi().isEmpty())
-            card.add(createInfoItem("Liquidi e dosi farmaci", scenario.getLiquidi()));
+            card.add(createInfoItem("Liquidi e dosi farmaci", scenario.getLiquidi(), new Icon(VaadinIcon.DROP)));
         if(materialeService.toStringAllMaterialsByScenarioId(scenarioId) != null && !materialeService.toStringAllMaterialsByScenarioId(scenarioId).isEmpty())
-            card.add(createInfoItem("Materiale necessario", materialeService.toStringAllMaterialsByScenarioId(scenarioId)));
+            card.add(createInfoItem("Materiale necessario", materialeService.toStringAllMaterialsByScenarioId(scenarioId), new Icon(VaadinIcon.BED)));
 
         layout.add(card);
         return layout;
@@ -516,7 +516,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
 
                 // Referto testuale
                 if (esame.getRefertoTestuale() != null && !esame.getRefertoTestuale().isEmpty()) {
-                    examContent.add(createInfoItem("Referto", esame.getRefertoTestuale()));
+                    examContent.add(createInfoItem("Referto", esame.getRefertoTestuale(), new Icon(VaadinIcon.FILE_TEXT)));
                 }
 
                 examCard.add(examTitle, examContent);
@@ -855,7 +855,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * @param content il contenuto dell'elemento
      * @return il layout creato
      */
-    private VerticalLayout createInfoItem(String title, String content) {
+    private VerticalLayout createInfoItem(String title, String content, Icon titleIcon) {
         if (content == null || content.isEmpty()) {
             return new VerticalLayout();
         }
@@ -864,8 +864,24 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         layout.setPadding(false);
         layout.setSpacing(false);
 
+        // Crea un layout orizzontale per il titolo con l'icona
+        HorizontalLayout titleLayout = new HorizontalLayout();
+        titleLayout.setSpacing(true);
+        titleLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        titleLayout.setPadding(false);
+
+        // Aggiungi l'icona solo se non è null
+        if (titleIcon != null) {
+            titleIcon.setSize("1em");
+            titleLayout.add(titleIcon);
+        }
+
         H4 itemTitle = new H4(title);
         itemTitle.addClassName(LumoUtility.Margin.Bottom.XSMALL);
+        itemTitle.addClassName(LumoUtility.Margin.Top.XSMALL);
+        titleLayout.add(itemTitle);
+
+        layout.add(titleLayout);
 
         // Usando Html invece di Paragraph per contenuto creato con TinyMCE
         if (title.equals("Descrizione")
@@ -888,13 +904,13 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                 || title.equals("FAST")
                 || title.equals("Sceneggiatura")) {
             Html htmlContent = new Html("<div>" + content + "</div>");
-            layout.add(itemTitle, htmlContent);
+            layout.add(htmlContent);
         } else {
             Paragraph itemContent = new Paragraph(content);
             itemContent.getStyle()
                     .set("white-space", "pre-line")
                     .set("margin-top", "0");
-            layout.add(itemTitle, itemContent);
+            layout.add(itemContent);
         }
 
         return layout;
@@ -909,7 +925,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      */
     private void addSectionIfNotEmpty(VerticalLayout content, String title, String value) {
         if (value != null && !value.trim().isEmpty()) {
-            content.add(createInfoItem(title, value));
+            content.add(createInfoItem(title, value, new Icon(VaadinIcon.INFO)));
         }
     }
 
@@ -1003,7 +1019,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         if (sceneggiatura == null || sceneggiatura.trim().isEmpty()) {
             layout.add(new Paragraph("Nessuna sceneggiatura disponibile"));
         } else {
-            layout.add(createInfoItem("Sceneggiatura", sceneggiatura));
+            layout.add(createInfoItem("Sceneggiatura", sceneggiatura, new Icon(VaadinIcon.FILE_TEXT)));
         }
         return layout;
     }

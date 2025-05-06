@@ -1544,7 +1544,7 @@ public class ScenarioService {
                         rs.getString("autori"),
                         rs.getString("tipologia_paziente"),
                         rs.getString("target"),
-                        rs.getString("infoGenitore"),
+                        rs.getString("info_genitore"),
                         rs.getInt("id_advanced_scenario"),
                         new ArrayList<>(), // Tempi vuoti inizialmente
                         rs.getInt("id_patient_simulated_scenario"),
