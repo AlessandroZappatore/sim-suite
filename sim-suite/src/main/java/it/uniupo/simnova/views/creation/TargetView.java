@@ -41,6 +41,7 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
     private final FileStorageService fileStorageService; // Aggiunto per AppHeader
     private Integer scenarioId;
     private static final Logger logger = LoggerFactory.getLogger(TargetView.class);
+    private String mode;
 
     // --- Costanti Target Principali ---
     private static final String MEDICI_ASSISTENTI = "Medici Assistenti";
@@ -177,7 +178,7 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
                 .set("flex-grow", "1");
 
         // Intestazione Sezione
-        H2 title = new H2("DESTINATARIO DELLO SCENARIO");
+        H2 title = new H2("TARGET E LEARNING GROUPS");
         title.addClassNames(LumoUtility.Margin.Bottom.NONE, LumoUtility.TextAlignment.CENTER);
         title.setWidthFull();
 
@@ -535,7 +536,16 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
 
             if (success) {
                 logger.info("Target aggiornato con successo per scenario {}", scenarioId);
-                ui.ifPresent(theUI -> theUI.navigate("descrizione/" + scenarioId));
+                // Verifica la modalità: se è "edit" mostra solo la notifica, altrimenti naviga
+                boolean isEditMode = "edit".equals(mode);
+                
+                Notification.show("Target salvato con successo", 3000, Notification.Position.TOP_CENTER)
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                
+                if (!isEditMode) {
+                    // Naviga alla prossima vista solo se NON è in modalità edit
+                    ui.ifPresent(theUI -> theUI.navigate("descrizione/" + scenarioId));
+                }
             } else {
                 logger.error("Salvataggio target fallito per scenario {} tramite updateScenarioTarget.", scenarioId);
                 Notification.show("Errore durante il salvataggio dei destinatari.", 3000, Notification.Position.MIDDLE)
@@ -629,28 +639,62 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
     // --- Gestione Parametri e Caricamento Dati ---
 
     @Override
-    public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
+    public void setParameter(BeforeEvent event, @WildcardParameter String parameter) {
         try {
             if (parameter == null || parameter.trim().isEmpty()) {
-                throw new NumberFormatException("Parametro nullo o vuoto");
+                logger.warn("Parametro mancante nell'URL.");
+                throw new NumberFormatException("Scenario ID è richiesto");
             }
-            this.scenarioId = Integer.parseInt(parameter);
-            if (scenarioId <= 0) {
-                throw new NumberFormatException("ID scenario deve essere positivo");
+
+            // Dividi il parametro usando '/' come separatore
+            String[] parts = parameter.split("/");
+            String scenarioIdStr = parts[0]; // Il primo elemento è l'ID dello scenario
+
+            // Verifica e imposta l'ID scenario
+            this.scenarioId = Integer.parseInt(scenarioIdStr);
+            if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
+                logger.warn("Scenario ID non valido o non esistente: {}", scenarioId);
+                throw new NumberFormatException("Scenario ID non valido");
             }
-            logger.info("Caricamento vista Target per scenario ID: {}", scenarioId);
 
-            // Verifica esistenza (se il servizio lo permette in modo efficiente)
-            // if (!scenarioService.existScenario(scenarioId)) { ... }
+            // Imposta la modalità se presente come secondo elemento
+            mode = parts.length > 1 && "edit".equals(parts[1]) ? "edit" : "create";
 
-            loadExistingTargets(); // Carica i dati esistenti
+            logger.info("Scenario ID impostato a: {}, Mode: {}", this.scenarioId, mode);
 
+            // Modifica la visibilità dell'header e dei crediti
+            VerticalLayout mainLayout = getContent();
+
+            // Gestione dell'header (il primo HorizontalLayout)
+            mainLayout.getChildren()
+                    .filter(component -> component instanceof HorizontalLayout)
+                    .findFirst()
+                    .ifPresent(header -> header.setVisible(!"edit".equals(mode)));
+
+            // Gestione del footer con i crediti (l'ultimo HorizontalLayout)
+            mainLayout.getChildren()
+                    .filter(component -> component instanceof HorizontalLayout)
+                    .reduce((first, second) -> second) // Prendi l'ultimo elemento
+                    .ifPresent(footer -> {
+                        HorizontalLayout footerLayout = (HorizontalLayout) footer;
+                        footerLayout.getChildren()
+                                .filter(component -> component instanceof CreditsComponent)
+                                .forEach(credits -> credits.setVisible(!"edit".equals(mode)));
+                    });
+
+            // Inizializza la vista in base alla modalità
+            if ("edit".equals(mode)) {
+                logger.info("Modalità EDIT: caricamento dati esistenti per scenario {}", this.scenarioId);
+                nextButton.setText("Salva");
+                nextButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+                nextButton.setIcon(new Icon(VaadinIcon.CHECK));
+                loadExistingTargets();
+            } else {
+                logger.info("Modalità CREATE: aggiunta prima riga vuota per scenario {}", this.scenarioId);
+            }
         } catch (NumberFormatException e) {
-            logger.error("ID scenario non valido: '{}'. Errore: {}", parameter, e.getMessage());
-            event.rerouteToError(NotFoundException.class, "ID scenario non valido: " + parameter);
-        } catch (Exception e) {
-            logger.error("Errore imprevisto durante l'impostazione dei parametri per scenario ID: {}", parameter, e);
-            event.rerouteToError(NotFoundException.class, "Errore durante il caricamento dello scenario.");
+            logger.error("Errore nel parsing o validazione dello Scenario ID: {}", parameter, e);
+            event.rerouteToError(NotFoundException.class, "ID scenario non valido o mancante.");
         }
     }
 

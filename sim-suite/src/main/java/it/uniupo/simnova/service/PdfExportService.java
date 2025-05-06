@@ -631,30 +631,7 @@ public class PdfExportService {
     private static String getExamType(EsameReferto esame) {
         String examType = esame.getTipo();
         // Sostituisce i caratteri speciali con i numeri corrispondenti
-        if (examType != null) {
-            examType = examType.replace('₀', '0');
-            examType = examType.replace('₁', '1');
-            examType = examType.replace('₂', '2');
-            examType = examType.replace('₃', '3');
-            examType = examType.replace('₄', '4');
-            examType = examType.replace('₅', '5');
-            examType = examType.replace('₆', '6');
-            examType = examType.replace('₇', '7');
-            examType = examType.replace('₈', '8');
-            examType = examType.replace('⁻', '-');
-            examType = examType.replace('⁺', '+');
-            examType = examType.replace('⁰', '0');
-            examType = examType.replace('¹', '1');
-            examType = examType.replace('²', '2');
-            examType = examType.replace('³', '3');
-            examType = examType.replace('⁴', '4');
-            examType = examType.replace('⁵', '5');
-            examType = examType.replace('⁶', '6');
-            examType = examType.replace('⁷', '7');
-            examType = examType.replace('⁸', '8');
-            examType = examType.replace('⁹', '9');
-        } else examType = "";
-        return examType;
+        return replaceSubscriptCharacters(examType);
     }
 
     /**
@@ -745,8 +722,10 @@ public class PdfExportService {
             if (!parametriAggiuntivo.isEmpty()) {
                 for (ParametroAggiuntivo parametro : parametriAggiuntivo) {
                     checkForNewPage(LEADING * 2); // Spazio per ogni parametro aggiuntivo
+                    String parametroNome = replaceSubscriptCharacters(parametro.getNome());
+                    String parametroUnita = replaceSubscriptCharacters(parametro.getUnitaMisura());
                     drawWrappedText(fontRegular, BODY_FONT_SIZE, paramsIndent,
-                            String.format("%s: %s %s", parametro.getNome(), parametro.getValore(), parametro.getUnitaMisura()));
+                            String.format("%s: %s %s", parametroNome, parametro.getValore(), parametroUnita));
                 }
             }
             currentYPosition -= LEADING; // Piccolo spazio dopo i parametri
@@ -1093,5 +1072,32 @@ public class PdfExportService {
         currentContentStream.showText(text);
         currentContentStream.endText();
         currentYPosition -= LEADING;
+    }
+
+    private static String replaceSubscriptCharacters(String text) {
+        if (text == null) return null;
+
+        return text.replace('₁', '1')
+                .replace('₂', '2')
+                .replace('₃', '3')
+                .replace('₄', '4')
+                .replace('₅', '5')
+                .replace('₆', '6')
+                .replace('₇', '7')
+                .replace('₈', '8')
+                .replace('₉', '9')
+                .replace('₀', '0')
+                .replace('⁰', '0')
+                .replace('¹', '1')
+                .replace('²', '2')
+                .replace('³', '3')
+                .replace('⁴', '4')
+                .replace('⁵', '5')
+                .replace('⁶', '6')
+                .replace('⁷', '7')
+                .replace('⁸', '8')
+                .replace('⁹', '9')
+                .replace('⁻', '-')
+                .replace('⁺', '+');
     }
 }

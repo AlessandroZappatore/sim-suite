@@ -13,6 +13,7 @@ import java.util.Map;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@SuppressWarnings("NonAsciiCharacters")
 public class EsameFisico {
     /**
      * Identificativo univoco dell'esame fisico.
@@ -52,7 +53,7 @@ public class EsameFisico {
         sections.put("Addome", addome);
         sections.put("Retto", retto);
         sections.put("Cute", cute);
-        sections.put("Estremita", estremità);
+        sections.put("Estremità", estremità);
         sections.put("Neurologico", neurologico);
         sections.put("FAST", fast);
     }

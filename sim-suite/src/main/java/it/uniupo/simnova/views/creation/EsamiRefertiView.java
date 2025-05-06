@@ -67,6 +67,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
      * ID dello scenario corrente.
      */
     private Integer scenarioId;
+    Button nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
 
     private String mode;
     /**
@@ -158,7 +159,6 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         footerLayout.addClassName(LumoUtility.Border.TOP);
         footerLayout.getStyle().set("border-color", "var(--lumo-contrast-10pct)");
 
-        Button nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
         nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         nextButton.setWidth("150px");
 
@@ -227,6 +227,9 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             // Inizializza la vista in base alla modalità
             if ("edit".equals(mode)) {
                 logger.info("Modalità EDIT: caricamento dati esistenti per scenario {}", this.scenarioId);
+                nextButton.setText("Salva");
+                nextButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+                nextButton.setIcon(new Icon(VaadinIcon.CHECK));
                 loadExistingData();
             } else {
                 logger.info("Modalità CREATE: aggiunta prima riga vuota per scenario {}", this.scenarioId);

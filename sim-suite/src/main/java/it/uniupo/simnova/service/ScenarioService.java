@@ -989,6 +989,7 @@ public class ScenarioService {
             // 2. Esegui tutte le operazioni di cancellazione dal DB
             deleteAccessi(conn, scenarioId, "AccessoVenoso");
             deleteAccessi(conn, scenarioId, "AccessoArterioso");
+            deleteRelatedMaterial(conn, scenarioId);
             deleteRelatedAccessi(conn);
             deleteTempi(conn, scenarioId);
             deletePatientSimulatedScenario(conn, scenarioId);
@@ -1036,6 +1037,14 @@ public class ScenarioService {
      */
     private void deleteAccessi(Connection conn, int scenarioId, String tableName) throws SQLException {
         final String sql = "DELETE FROM " + tableName + " WHERE paziente_t0_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, scenarioId);
+            stmt.executeUpdate();
+        }
+    }
+
+    private void deleteRelatedMaterial(Connection conn, int scenarioId) throws SQLException {
+        final String sql = "DELETE FROM MaterialeScenario WHERE id_scenario = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, scenarioId);
             stmt.executeUpdate();
@@ -2125,7 +2134,7 @@ public class ScenarioService {
         }
     }
 
-   public void updateScenario(Integer idScenario, Map<String, String> updatedFields, Map<String, String> updatedSections, EsameFisico esameFisico) {
+   public void updateScenario(Integer idScenario, Map<String, String> updatedFields, Map<String, String> updatedSections, EsameFisico esameFisico, Map<String, String> pazienteT0, List<Accesso> accessiVenosi, List<Accesso> accessiArteriosi) {
         // Recupera lo scenario esistente per ottenere gli autori attuali
         Scenario esistente = getScenarioById(idScenario);
         String autoriEsistenti = esistente != null ? esistente.getAutori() : "";
@@ -2161,7 +2170,24 @@ public class ScenarioService {
         }
         updateScenarioLiquidi(idScenario, updatedSections.get("Liquidi"));
         updateScenarioMoulage(idScenario, updatedSections.get("Moulage"));
+        updateScenarioObiettiviDidattici(idScenario, updatedSections.get("Obiettivi"));
+        updateScenarioAzioneChiave(idScenario, updatedSections.get("AzioniChiave"));
 
         addEsameFisico(idScenario, esameFisico.getSections());
+
+       savePazienteT0(idScenario,
+                pazienteT0.get("PA"),
+                Integer.parseInt(pazienteT0.get("FC")),
+                Integer.parseInt(pazienteT0.get("RR")),
+                Float.parseFloat(pazienteT0.get("Temperatura")),
+                Integer.parseInt(pazienteT0.get("SpO2")),
+                Integer.parseInt(pazienteT0.get("FiO2")),
+                Float.parseFloat(pazienteT0.get("LitriO2")),
+                Integer.parseInt(pazienteT0.get("EtCO2")),
+                pazienteT0.get("Monitoraggio"),
+                accessiVenosi,
+                accessiArteriosi,
+                pazienteT0.get("Presidi")
+        );
     }
 }

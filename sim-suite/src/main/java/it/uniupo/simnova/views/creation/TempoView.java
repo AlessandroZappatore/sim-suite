@@ -334,6 +334,10 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             // Carica i dati in base alla modalità
             if ("edit".equals(mode)) {
                 logger.info("Modalità EDIT: caricamento dati Tempi esistenti per scenario {}", this.scenarioId);
+                nextButton.setText("Salva");
+                nextButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+                nextButton.setIcon(new Icon(VaadinIcon.CHECK));
+                nextButton.setIconAfterText(false);
                 loadInitialData(); // Carica sempre T0 se esiste
                 loadExistingTimes(); // Carica T1, T2... esistenti
             } else {

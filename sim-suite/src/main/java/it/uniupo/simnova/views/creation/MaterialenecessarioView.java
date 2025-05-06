@@ -59,6 +59,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
     private List<Materiale> tuttiMateriali = new ArrayList<>();
     private TextField searchField;
     private String mode;
+    Button nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
 
 
     /**
@@ -225,7 +226,6 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         footerLayout.addClassName(LumoUtility.Border.TOP);
         footerLayout.getStyle().set("border-color", "var(--lumo-contrast-10pct)");
 
-        Button nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
         nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         nextButton.setWidth("150px");
 
@@ -285,7 +285,10 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                     if (layout.getComponentCount() > 1 &&
                         layout.getComponentAt(0) instanceof CreditsComponent) {
                         if ("edit".equals(mode)) {
-                            // In modalità edit, nascondi i credits ma mantieni il pulsante Avanti
+                            logger.info("Modalità EDIT: caricamento dati esistenti per scenario {}", this.scenarioId);
+                            nextButton.setText("Salva");
+                            nextButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+                            nextButton.setIcon(new Icon(VaadinIcon.CHECK));
                             layout.getComponentAt(0).setVisible(false);
                         }
                     }
