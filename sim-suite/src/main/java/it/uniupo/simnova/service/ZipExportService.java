@@ -98,12 +98,27 @@ public class ZipExportService {
         }
     }
 
-    public byte[] exportScenarioPdfToZip(Integer scenarioId) throws IOException {
+    public byte[] exportScenarioPdfToZip(Integer scenarioId,
+                                         boolean desc,
+                                         boolean brief,
+                                         boolean infoGen,
+                                         boolean patto,
+                                         boolean azioni,
+                                         boolean obiettivi,
+                                         boolean moula,
+                                         boolean liqui,
+                                         boolean matNec,
+                                         boolean param,
+                                         boolean acces,
+                                         boolean fisic,
+                                         boolean esam,
+                                         boolean time,
+                                         boolean scen) throws IOException {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              ZipOutputStream zipOut = new ZipOutputStream(baos)) {
 
             // Aggiunge il file PDF dello scenario allo ZIP
-            byte[] pdfBytes = pdfExportService.exportScenarioToPdf(scenarioId);
+            byte[] pdfBytes = pdfExportService.exportScenarioToPdf(scenarioId, desc, brief, infoGen, patto, azioni, obiettivi, moula, liqui, matNec, param, acces, fisic, esam, time, scen);
             ZipEntry pdfEntry = new ZipEntry("scenario.pdf");
             zipOut.putNextEntry(pdfEntry);
             zipOut.write(pdfBytes);

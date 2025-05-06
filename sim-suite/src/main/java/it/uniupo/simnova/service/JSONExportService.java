@@ -72,7 +72,7 @@ public class JSONExportService implements Serializable {
 
         // Controlla il tipo di scenario e recupera i dati specifici
         if (scenarioType.equals("Advanced Scenario")) {
-            var tempi = ScenarioService.getTempiByScenarioId(scenarioId);
+            var tempi = scenarioService.getTempiByScenarioId(scenarioId);
             exportData.put("tempi", tempi);
         } else if (scenarioType.equals("Patient Simulated Scenario")) {
             var sceneggiatura = ScenarioService.getSceneggiatura(scenarioId);

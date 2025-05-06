@@ -724,41 +724,47 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
 
         // Popola i campi condizionali in base alla stringa
         try {
-            String trim = targetString.substring(targetString.indexOf(":") + 1).trim();
-            String substring = targetString.substring(targetString.indexOf("(") + 1, targetString.lastIndexOf(")"));
+            // Gestisci diversamente il parsing in base alla categoria e al formato
+            String substring = targetString.substring(targetString.indexOf("(") + 1, targetString.indexOf(")"));
+            String substring1 = targetString.substring(targetString.indexOf("(") + 1, targetString.lastIndexOf(")"));
             switch (mainTarget) {
                 case MEDICI_ASSISTENTI:
-                    if (targetString.contains(":")) {
+                    if (targetString.contains("(") && targetString.contains(")")) {
                         try {
-                            mediciAssistentiYearRadio.setValue(Integer.parseInt(trim));
+                            // Estrai il contenuto tra parentesi, converte in int e imposta
+                            String yearStr = substring.trim();
+                            // Rimuovi " anno" se presente nel testo estratto
+                            yearStr = yearStr.replace(" anno", "").trim();
+                            mediciAssistentiYearRadio.setValue(Integer.parseInt(yearStr));
                         } catch (NumberFormatException e) {
-                            logger.warn("Anno non valido per Medici Assistenti: '{}'", trim);
+                            logger.warn("Anno non valido per Medici Assistenti: '{}'", targetString);
                         }
                     }
                     break;
                 case MEDICI_SPECIALISTI:
-                    if (targetString.contains("(")) {
+                    if (targetString.contains("(") && targetString.contains(")")) {
                         // Popola i checkbox
-                        if (substring.contains(SPEC_ANESTESIA)) mediciSpecialistiAnestesiaChk.setValue(true);
-                        if (substring.contains(SPEC_EMERGENZA)) mediciSpecialistiEmergenzaChk.setValue(true);
-                        if (substring.contains(SPEC_CURE_INTENSE)) mediciSpecialistiCureIntenseChk.setValue(true);
-                        if (substring.contains(SPEC_CHIRURGIA)) mediciSpecialistiChirurgiaChk.setValue(true);
-                        if (substring.contains(SPEC_OSTETRICIA)) mediciSpecialistiOstetriciaChk.setValue(true);
-                        if (substring.contains(SPEC_PEDIATRIA)) mediciSpecialistiPediatriaChk.setValue(true);
-                        if (substring.contains(SPEC_INTERNA)) mediciSpecialistiInternaChk.setValue(true);
-                        if (substring.contains(SPEC_CARDIOLOGIA)) mediciSpecialistiCardiologiaChk.setValue(true);
-                        if (substring.contains(SPEC_DISASTRI)) mediciSpecialistiDisastriChk.setValue(true);
+                        if (substring1.contains(SPEC_ANESTESIA)) mediciSpecialistiAnestesiaChk.setValue(true);
+                        if (substring1.contains(SPEC_EMERGENZA)) mediciSpecialistiEmergenzaChk.setValue(true);
+                        if (substring1.contains(SPEC_CURE_INTENSE)) mediciSpecialistiCureIntenseChk.setValue(true);
+                        if (substring1.contains(SPEC_CHIRURGIA)) mediciSpecialistiChirurgiaChk.setValue(true);
+                        if (substring1.contains(SPEC_OSTETRICIA)) mediciSpecialistiOstetriciaChk.setValue(true);
+                        if (substring1.contains(SPEC_PEDIATRIA)) mediciSpecialistiPediatriaChk.setValue(true);
+                        if (substring1.contains(SPEC_INTERNA)) mediciSpecialistiInternaChk.setValue(true);
+                        if (substring1.contains(SPEC_CARDIOLOGIA)) mediciSpecialistiCardiologiaChk.setValue(true);
+                        if (substring1.contains(SPEC_DISASTRI)) mediciSpecialistiDisastriChk.setValue(true);
+
                         // Gestisci "Altro"
-                        if (substring.contains(ALTRO)) {
+                        if (substring1.contains(ALTRO)) {
                             mediciSpecialistiAltroChk.setValue(true);
                             // Estrai il testo dopo "Altro:" se presente
                             String marker = ALTRO + ":";
-                            int startIdx = substring.indexOf(marker);
+                            int startIdx = substring1.indexOf(marker);
                             if (startIdx != -1) {
-                                int endIdx = substring.indexOf(",", startIdx); // Trova la prossima virgola
+                                int endIdx = substring1.indexOf(",", startIdx); // Trova la prossima virgola
                                 String altroText = (endIdx == -1)
-                                        ? substring.substring(startIdx + marker.length()).trim() // Fino alla fine
-                                        : substring.substring(startIdx + marker.length(), endIdx).trim(); // Fino alla virgola
+                                        ? substring1.substring(startIdx + marker.length()).trim() // Fino alla fine
+                                        : substring1.substring(startIdx + marker.length(), endIdx).trim(); // Fino alla virgola
                                 mediciSpecialistiAltroField.setValue(altroText);
                                 mediciSpecialistiAltroField.setEnabled(true); // Abilita il campo
                             }
@@ -766,42 +772,48 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
                     }
                     break;
                 case STUDENTI_MEDICINA:
-                    if (targetString.contains(":")) {
+                    if (targetString.contains("(") && targetString.contains(")")) {
                         try {
-                            studentiMedicinaYearRadio.setValue(Integer.parseInt(trim));
+                            String yearStr = substring.trim();
+                            yearStr = yearStr.replace(" anno", "").trim();
+                            studentiMedicinaYearRadio.setValue(Integer.parseInt(yearStr));
                         } catch (NumberFormatException e) {
-                            logger.warn("Anno non valido per Studenti Medicina: '{}'", trim);
+                            logger.warn("Anno non valido per Studenti Medicina: '{}'", targetString);
                         }
                     }
                     break;
                 case STUDENTI_INFERMIERISTICA:
-                    if (targetString.contains(":")) {
+                    if (targetString.contains("(") && targetString.contains(")")) {
                         try {
-                            studentiInfermieristicaYearRadio.setValue(Integer.parseInt(trim));
+                            String yearStr = substring.trim();
+                            yearStr = yearStr.replace(" anno", "").trim();
+                            studentiInfermieristicaYearRadio.setValue(Integer.parseInt(yearStr));
                         } catch (NumberFormatException e) {
-                            logger.warn("Anno non valido per Studenti Infermieristica: '{}'", trim);
+                            logger.warn("Anno non valido per Studenti Infermieristica: '{}'", targetString);
                         }
                     }
                     break;
                 case INFERMIERI_SPECIALIZZATI:
-                    if (targetString.contains("(")) {
-                        if (substring.contains(SPEC_ANESTESIA)) infSpecAnestesiaChk.setValue(true);
-                        if (substring.contains(SPEC_CURE_INTENSE)) infSpecCureIntenseChk.setValue(true);
-                        if (substring.contains(SPEC_INF_CURE_URGENTI)) infSpecCureUrgentiChk.setValue(true);
+                    if (targetString.contains("(") && targetString.contains(")")) {
+                        if (substring1.contains(SPEC_ANESTESIA)) infSpecAnestesiaChk.setValue(true);
+                        if (substring1.contains(SPEC_CURE_INTENSE)) infSpecCureIntenseChk.setValue(true);
+                        if (substring1.contains(SPEC_INF_CURE_URGENTI)) infSpecCureUrgentiChk.setValue(true);
                     }
                     break;
                 case STUDENTI_ODONTOIATRIA:
-                    if (targetString.contains(":")) {
+                    if (targetString.contains("(") && targetString.contains(")")) {
                         try {
-                            studentiOdontoiatriaYearRadio.setValue(Integer.parseInt(trim));
+                            String yearStr = substring.trim();
+                            yearStr = yearStr.replace(" anno", "").trim();
+                            studentiOdontoiatriaYearRadio.setValue(Integer.parseInt(yearStr));
                         } catch (NumberFormatException e) {
-                            logger.warn("Anno non valido per Studenti Odontoiatria: '{}'", trim);
+                            logger.warn("Anno non valido per Studenti Odontoiatria: '{}'", targetString);
                         }
                     }
                     break;
                 case ALTRO:
                     if (targetString.contains(":")) {
-                        altroField.setValue(trim);
+                        altroField.setValue(targetString.substring(targetString.indexOf(":") + 1).trim());
                     } else if (!targetString.equals(ALTRO)) {
                         // Se la stringa è diversa da "Altro" ma non ha ':' la mettiamo comunque
                         altroField.setValue(targetString);

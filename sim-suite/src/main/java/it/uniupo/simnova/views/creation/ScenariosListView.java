@@ -5,11 +5,11 @@ import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Paragraph;
-import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -669,29 +669,203 @@ public class ScenariosListView extends Composite<VerticalLayout> {
     // --- Export and Delete Methods (largely unchanged, but ensure they use the passed 'scenario') ---
 
     private void exportToPdf(Scenario scenario) {
-        if (detached.get() || scenario == null) return; // Added null check
+        if (detached.get() || scenario == null) return;
+
+        String scenarioType = scenarioService.getScenarioType(scenario.getId());
+
+        // Per scenari semplici, esporta direttamente senza chiedere opzioni
+        if (!"Advanced Scenario".equals(scenarioType) && !"Patient Simulated Scenario".equals(scenarioType)) {
+            executeExport(scenario, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true);
+            return;
+        }
+
+        // Crea una finestra di dialogo per scenari avanzati o patient simulated
+        Dialog dialog = new Dialog();
+        dialog.setWidth("500px");
+        dialog.setCloseOnEsc(true);
+        dialog.setCloseOnOutsideClick(false);
+
+        VerticalLayout layout = new VerticalLayout();
+        layout.setSpacing(true);
+        layout.setPadding(true);
+
+        H3 title = new H3("Seleziona gli elementi da includere nel PDF");
+        layout.add(title);
+
+        // Creiamo i checkbox in base al tipo di scenario
+        Checkbox descChk = new Checkbox("Descrizione", true);
+        Checkbox briefingChk = new Checkbox("Briefing", true);
+        Checkbox infoGenChk = new Checkbox("Informazioni dai genitori", true);
+        Checkbox pattoChk = new Checkbox("Patto d'aula", true);
+        Checkbox azioniChk = new Checkbox("Azioni chiave", true);
+        Checkbox obiettiviChk = new Checkbox("Obiettivi didattici", true);
+        Checkbox moulageChk = new Checkbox("Moulage", true);
+        Checkbox liquidiChk = new Checkbox("Liquidi e farmaci in T0", true);
+        Checkbox matNecChk = new Checkbox("Materiale necessario", true);
+        Checkbox paramChk = new Checkbox("Parametri vitali", true);
+        Checkbox accessiChk = new Checkbox("Accessi", true);
+        Checkbox esameFisicoChk = new Checkbox("Esame fisico", true);
+        Checkbox esamiERefertiChk = new Checkbox("Esami e referti", true);
+        Checkbox timelineChk = new Checkbox("Timeline", true);
+
+        var descrizione = scenario.getDescrizione();
+        if (descrizione == null || descrizione.isEmpty()) {
+            descChk.setEnabled(false);
+            descChk.setValue(false);
+        }
+
+        var briefing = scenario.getBriefing();
+        if (briefing == null || briefing.isEmpty()) {
+            briefingChk.setEnabled(false);
+            briefingChk.setValue(false);
+        }
+
+        var patologia = scenario.getPatologia();
+        if (patologia == null || patologia.isEmpty()) {
+            pattoChk.setEnabled(false);
+            pattoChk.setValue(false);
+        }
+
+        var obiettivo = scenario.getObiettivo();
+        if (obiettivo == null || obiettivo.isEmpty()) {
+            obiettiviChk.setEnabled(false);
+            obiettiviChk.setValue(false);
+        }
+
+        var infoGenitore = scenario.getInfoGenitore();
+        if (infoGenitore == null || infoGenitore.isEmpty()) {
+            infoGenChk.setEnabled(false);
+            infoGenChk.setValue(false);
+        }
+
+        var pattoAula = scenario.getPattoAula();
+        if (pattoAula == null || pattoAula.isEmpty()) {
+            pattoChk.setEnabled(false);
+            pattoChk.setValue(false);
+        }
+
+        var moulage = scenario.getMoulage();
+        if (moulage == null || moulage.isEmpty()) {
+            moulageChk.setEnabled(false);
+            moulageChk.setValue(false);
+        }
+
+        var liquidi = scenario.getLiquidi();
+        if (liquidi == null || liquidi.isEmpty()) {
+            liquidiChk.setEnabled(false);
+            liquidiChk.setValue(false);
+        }
+
+        var azioniChiave = scenario.getAzioneChiave();
+        if (azioniChiave == null || azioniChiave.isEmpty()) {
+            azioniChk.setEnabled(false);
+            azioniChk.setValue(false);
+        }
+
+        var esameFisico = scenarioService.getEsameFisicoById(scenario.getId());
+        if (esameFisico == null || esameFisico.getSections().isEmpty()) {
+            esameFisicoChk.setEnabled(false);
+            esameFisicoChk.setValue(false);
+        }
+
+        var pazienteT0 = scenarioService.getPazienteT0ById(scenario.getId());
+        if (pazienteT0 == null) {
+            paramChk.setEnabled(false);
+            paramChk.setValue(false);
+            accessiChk.setEnabled(false);
+            accessiChk.setValue(false);
+        } else {
+            // Controlla gli accessi
+            var accessiVenosi = pazienteT0.getAccessiVenosi();
+            var accessiArteriosi = pazienteT0.getAccessiArteriosi();
+            boolean hasAccessi = (accessiVenosi != null && !accessiVenosi.isEmpty()) ||
+                                 (accessiArteriosi != null && !accessiArteriosi.isEmpty());
+            if (!hasAccessi) {
+                accessiChk.setEnabled(false);
+                accessiChk.setValue(false);
+            }
+        }
+
+        var esamiReferti = scenarioService.getEsamiRefertiByScenarioId(scenario.getId());
+        if (esamiReferti == null || esamiReferti.isEmpty()) {
+            esamiERefertiChk.setEnabled(false);
+            esamiERefertiChk.setValue(false);
+        }
+
+        var tempi = scenarioService.getTempiByScenarioId(scenario.getId());
+        if (tempi == null || tempi.isEmpty()) {
+            timelineChk.setEnabled(false);
+            timelineChk.setValue(false);
+        }
+
+        layout.add(descChk, briefingChk, infoGenChk, pattoChk, azioniChk, obiettiviChk,
+                moulageChk, liquidiChk, matNecChk, paramChk, accessiChk, esameFisicoChk,
+                esamiERefertiChk, timelineChk);
+
+        Checkbox sceneggiaturaChk = new Checkbox("Sceneggiatura", true);
+        if ("Patient Simulated Scenario".equals(scenarioType)) {
+            var sceneggiatura = scenarioService.getPatientSimulatedScenarioById(scenario.getId()).getSceneggiatura();
+            if (sceneggiatura == null || sceneggiatura.isEmpty()) {
+                sceneggiaturaChk.setEnabled(false);
+                sceneggiaturaChk.setValue(false);
+            }
+            layout.add(sceneggiaturaChk);
+        }
+
+
+        // Pulsanti di azione
+        Button confirmButton = new Button("Genera PDF", e -> {
+            dialog.close();
+            executeExport(scenario,
+                    descChk.getValue(), pattoChk.getValue(), infoGenChk.getValue(),
+                    pattoChk.getValue(), azioniChk.getValue(), obiettiviChk.getValue(),
+                    moulageChk.getValue(), liquidiChk.getValue(), matNecChk.getValue(),
+                    paramChk.getValue(), accessiChk.getValue(), esameFisicoChk.getValue(),
+                    esamiERefertiChk.getValue(), timelineChk.getValue(), sceneggiaturaChk.getValue());
+        });
+        confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        Button cancelButton = new Button("Annulla", e -> dialog.close());
+        cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+
+        HorizontalLayout buttons = new HorizontalLayout(confirmButton, cancelButton);
+        buttons.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+        buttons.setWidthFull();
+
+        layout.add(buttons);
+        dialog.add(layout);
+        dialog.open();
+    }
+
+    private void executeExport(Scenario scenario, boolean frontPage, boolean objectives, boolean generalInfo,
+                               boolean briefing, boolean signs, boolean xray, boolean tests, boolean ecg,
+                               boolean algorithms, boolean timeline, boolean debriefing, boolean medications,
+                               boolean equipment, boolean config, boolean scen) {
 
         Notification.show("Generazione del PDF...", 3000, Position.MIDDLE);
+
         try {
             StreamResource resource = new StreamResource(
-                    "scenario_" + sanitizeFileName(scenario.getTitolo()) + ".zip", // Sanitize filename
+                    "scenario_" + sanitizeFileName(scenario.getTitolo()) + ".zip",
                     () -> {
                         try {
-                            byte[] pdfBytes = zipExportService.exportScenarioPdfToZip(scenario.getId());
+                            byte[] pdfBytes = zipExportService.exportScenarioPdfToZip(
+                                    scenario.getId(), frontPage, objectives, generalInfo, briefing,
+                                    signs, xray, tests, ecg, algorithms, timeline, debriefing,
+                                    medications, equipment, config, scen);
                             return new ByteArrayInputStream(pdfBytes);
-                        } catch (IOException | RuntimeException e) { // Catch potential runtime exceptions to Log
-                            //  error server-side
-                            System.err.println("Error generating PDF for scenario " + scenario.getId() + ": " + e.getMessage());
-                            // Show error in UI thread if possible
-                            getUI().ifPresent(ui -> ui.access(() -> Notification.show("Errore creazione PDF", 5000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR)));
-                            // Return an empty stream to avoid browser errors, though the notification should indicate failure
+                        } catch (IOException | RuntimeException e) {
+                            System.err.println("Errore generazione PDF per lo scenario " + scenario.getId() + ": " + e.getMessage());
+                            getUI().ifPresent(ui -> ui.access(() ->
+                                    Notification.show("Errore creazione PDF", 5000, Position.MIDDLE)
+                                            .addThemeVariants(NotificationVariant.LUMO_ERROR)));
                             return new ByteArrayInputStream(new byte[0]);
                         }
                     }
             );
             resource.setContentType("application/zip");
-            triggerDownload(resource); // Use helper method for download
-        } catch (Exception e) { // Catch errors during resource creation itself
+            triggerDownload(resource);
+        } catch (Exception e) {
             handleExportError("Errore preparazione PDF", e);
         }
     }

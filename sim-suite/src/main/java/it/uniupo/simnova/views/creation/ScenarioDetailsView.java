@@ -302,7 +302,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         accordion.add("Stato Paziente", createPatientContent());
         accordion.add("Esami e Referti", createExamsContent());
 
-        List<Tempo> tempi = ScenarioService.getTempiByScenarioId(scenarioId);
+        List<Tempo> tempi = scenarioService.getTempiByScenarioId(scenarioId);
         if (!tempi.isEmpty()) {
             accordion.add("Timeline", createTimelineContent());
         }
@@ -377,21 +377,25 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         // Card per informazioni base
         Div card = new Div();
         card.addClassName("info-card");
-        card.add(
-                createInfoItem("Descrizione", scenario.getDescrizione()),
-                createInfoItem("Briefing", scenario.getBriefing())
-                );
-        if(scenarioService.isPediatric(scenarioId)) {
+        if(scenario.getDescrizione() != null && !scenario.getDescrizione().isEmpty())
+            card.add(createInfoItem("Descrizione", scenario.getDescrizione()));
+        if(scenario.getBriefing() != null && !scenario.getBriefing().isEmpty())
+            card.add(createInfoItem("Briefing", scenario.getBriefing()));
+        if(scenarioService.isPediatric(scenarioId) && scenario.getInfoGenitore() != null && !scenario.getInfoGenitore().isEmpty()) {
             card.add(createInfoItem("Informazioni dai genitori", scenario.getInfoGenitore()));
         }
-        card.add(
-                createInfoItem("Patto Aula", scenario.getPattoAula()),
-                createInfoItem("Azioni Chiave", scenario.getAzioneChiave()),
-                createInfoItem("Obiettivi Didattici", scenario.getObiettivo()),
-                createInfoItem("Moulage", scenario.getMoulage()),
-                createInfoItem("Liquidi e dosi farmaci", scenario.getLiquidi()),
-                createInfoItem("Materiale necessario", materialeService.toStringAllMaterialsByScenarioId(scenarioId))
-        );
+        if(scenario.getPattoAula() != null && !scenario.getPattoAula().isEmpty())
+            card.add(createInfoItem("Patto Aula", scenario.getPattoAula()));
+        if(scenario.getAzioneChiave() != null && !scenario.getAzioneChiave().isEmpty())
+            card.add(createInfoItem("Azioni Chiave", scenario.getAzioneChiave()));
+        if(scenario.getObiettivo() != null && !scenario.getObiettivo().isEmpty())
+            card.add(createInfoItem("Obiettivi Didattici", scenario.getObiettivo()));
+        if(scenario.getMoulage() != null && !scenario.getMoulage().isEmpty())
+            card.add(createInfoItem("Moulage", scenario.getMoulage()));
+        if(scenario.getLiquidi() != null && !scenario.getLiquidi().isEmpty())
+            card.add(createInfoItem("Liquidi e dosi farmaci", scenario.getLiquidi()));
+        if(materialeService.toStringAllMaterialsByScenarioId(scenarioId) != null && !materialeService.toStringAllMaterialsByScenarioId(scenarioId).isEmpty())
+            card.add(createInfoItem("Materiale necessario", materialeService.toStringAllMaterialsByScenarioId(scenarioId)));
 
         layout.add(card);
         return layout;
@@ -631,7 +635,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         layout.setWidthFull();
 
         // Ottieni tutti i tempi per questo scenario
-        List<Tempo> tempi = ScenarioService.getTempiByScenarioId(scenarioId);
+        List<Tempo> tempi = scenarioService.getTempiByScenarioId(scenarioId);
         if (tempi.isEmpty()) {
             layout.add(new Paragraph("Nessun tempo definito per questo scenario"));
             return layout;

@@ -755,7 +755,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
     private void loadExistingTimes() {
         if (!"edit".equals(mode)) return; // Esegui solo in modalità modifica
 
-        List<Tempo> existingTempi = ScenarioService.getTempiByScenarioId(scenarioId); // Usa il metodo statico corretto
+        List<Tempo> existingTempi = scenarioService.getTempiByScenarioId(scenarioId); // Usa il metodo statico corretto
 
         if (!existingTempi.isEmpty()) {
             logger.info("Trovati {} tempi esistenti per scenario {}", existingTempi.size(), scenarioId);

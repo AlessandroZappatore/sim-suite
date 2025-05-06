@@ -78,26 +78,26 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
     TextField pathology;
     ComboBox<Integer> durationField;
     ComboBox<String> scenarioTypeSelect;
-    VerticalLayout descriptionArea;
-    VerticalLayout briefingArea;
-    VerticalLayout pattoAulaArea;
-    VerticalLayout obiettiviArea;
-    VerticalLayout moulageArea;
-    VerticalLayout liquidiArea;
-    VerticalLayout generaleArea;
-    VerticalLayout pupilleArea;
-    VerticalLayout colloArea;
-    VerticalLayout toraceArea;
-    VerticalLayout cuoreArea;
-    VerticalLayout addomeArea;
-    VerticalLayout rettoArea;
-    VerticalLayout cuteArea;
-    VerticalLayout estremitaArea;
-    VerticalLayout neurologicoArea;
-    VerticalLayout FASTArea;
-    VerticalLayout azioniChiaveArea;
-    VerticalLayout InfoGenitoriArea;
-    TextArea monitorArea;
+    VerticalLayout descriptionArea = new VerticalLayout();
+    VerticalLayout briefingArea = new VerticalLayout();
+    VerticalLayout pattoAulaArea = new VerticalLayout();
+    VerticalLayout obiettiviArea = new VerticalLayout();
+    VerticalLayout moulageArea = new VerticalLayout();
+    VerticalLayout liquidiArea = new VerticalLayout();
+    VerticalLayout generaleArea = new VerticalLayout();
+    VerticalLayout pupilleArea = new VerticalLayout();
+    VerticalLayout colloArea = new VerticalLayout();
+    VerticalLayout toraceArea = new VerticalLayout();
+    VerticalLayout cuoreArea = new VerticalLayout();
+    VerticalLayout addomeArea = new VerticalLayout();
+    VerticalLayout rettoArea = new VerticalLayout();
+    VerticalLayout cuteArea = new VerticalLayout();
+    VerticalLayout estremitaArea = new VerticalLayout();
+    VerticalLayout neurologicoArea = new VerticalLayout();
+    VerticalLayout FASTArea = new VerticalLayout();
+    VerticalLayout azioniChiaveArea = new VerticalLayout();
+    VerticalLayout InfoGenitoriArea = new VerticalLayout();
+    TextArea monitorArea = new TextArea();
     TextField paField;
     TextField fcField;
     TextField rrField;
@@ -462,33 +462,72 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         EsameFisico esamiFisici = scenarioService.getEsameFisicoById(scenarioId);
 
         // Esame fisico generale
-        VerticalLayout generaleArea = createTinyMcePanel(
+        generaleArea = createTinyMcePanel(
                 "GENERALE",
                 "Inserisci i dettagli dell'esame generale...",
-                esamiFisici != null ? esamiFisici.getSection("Generale") : ""
+                esamiFisici.getSection("Generale")
         );
 
         // ... (altri pannelli esame fisico come prima) ...
-        VerticalLayout pupilleArea = createTinyMcePanel(
-                "PUPILLE", "...", esamiFisici != null ? esamiFisici.getSection("Pupille") : "");
-        VerticalLayout colloArea = createTinyMcePanel(
-                "COLLO", "...", esamiFisici != null ? esamiFisici.getSection("Collo") : "");
-        VerticalLayout toraceArea = createTinyMcePanel(
-                "TORACE", "...", esamiFisici != null ? esamiFisici.getSection("Torace") : "");
-        VerticalLayout cuoreArea = createTinyMcePanel(
-                "CUORE", "...", esamiFisici != null ? esamiFisici.getSection("Cuore") : "");
-        VerticalLayout addomeArea = createTinyMcePanel(
-                "ADDOME", "...", esamiFisici != null ? esamiFisici.getSection("Addome") : "");
-        VerticalLayout rettoArea = createTinyMcePanel(
-                "RETTO", "...", esamiFisici != null ? esamiFisici.getSection("Retto") : "");
-        VerticalLayout cuteArea = createTinyMcePanel(
-                "CUTE", "...", esamiFisici != null ? esamiFisici.getSection("Cute") : "");
-        VerticalLayout estremitaArea = createTinyMcePanel(
-                "ESTREMITÀ", "...", esamiFisici != null ? esamiFisici.getSection("Estremità") : "");
-        VerticalLayout neurologicoArea = createTinyMcePanel(
-                "NEUROLOGICO", "...", esamiFisici != null ? esamiFisici.getSection("Neurologico") : "");
-        VerticalLayout FASTArea = createTinyMcePanel(
-                "FAST ECOGRAFIA", "...", esamiFisici != null ? esamiFisici.getSection("FAST") : "");
+        pupilleArea = createTinyMcePanel(
+                "PUPILLE",
+                "Dimensione, reattività, simmetria",
+                esamiFisici.getSection("Pupille")
+        );
+
+        colloArea = createTinyMcePanel(
+                "COLLO",
+                "Esame del collo, tiroide, linfonodi",
+                esamiFisici.getSection("Collo")
+        );
+
+        toraceArea = createTinyMcePanel(
+                "TORACE",
+                "Ispezione, palpazione, percussione, auscultazione",
+                esamiFisici.getSection("Torace")
+        );
+
+        cuoreArea = createTinyMcePanel(
+                "CUORE",
+                "Frequenza, ritmo, soffi",
+                esamiFisici.getSection("Cuore")
+        );
+
+        addomeArea = createTinyMcePanel(
+                "ADDOME",
+                "Ispezione, palpazione, dolorabilità, organomegalie",
+                esamiFisici.getSection("Addome")
+        );
+
+        rettoArea = createTinyMcePanel(
+                "RETTO",
+                "Esame rettale se indicato",
+                esamiFisici.getSection("Retto")
+        );
+
+        cuteArea = createTinyMcePanel(
+                "CUTE",
+                "Colorito, turgore, lesioni",
+                esamiFisici.getSection("Cute")
+        );
+
+        estremitaArea = createTinyMcePanel(
+                "ESTREMITÀ",
+                "Edemi, pulsazioni periferiche",
+                esamiFisici.getSection("Estremità")
+        );
+
+        neurologicoArea = createTinyMcePanel(
+                "NEUROLOGICO",
+                "Stato mentale, nervi cranici, forza, sensibilità",
+                esamiFisici.getSection("Neurologico")
+        );
+
+        FASTArea = createTinyMcePanel(
+                "FAST ECOGRAFIA",
+                "Focused Assessment with Sonography for Trauma",
+                esamiFisici.getSection("FAST")
+        );
 
         // Aggiunta dei campi all'area dell'esame fisico
         esameFisicoLayout.add(
@@ -655,13 +694,14 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
                 scenarioTypeSelect.getValue().equals("Pediatrico");
 
         // Recupero dei valori dalle aree di testo con controlli null-safe
-        String descrizione = getTinyMceValue(descriptionArea);
-        String briefing = getTinyMceValue(briefingArea);
-        String infoGenitore = isPediatric ? getTinyMceValue(InfoGenitoriArea) : null;
-        String pattoAula = getTinyMceValue(pattoAulaArea);
-        String obiettivi = getTinyMceValue(obiettiviArea);
-        String moulage = getTinyMceValue(moulageArea);
-        String liquidi = getTinyMceValue(liquidiArea);
+        // Recupero dei valori dalle aree di testo con controlli null-safe più rigorosi
+        String descrizione = descriptionArea != null ? getTinyMceValue(descriptionArea) : "";
+        String briefing = briefingArea != null ? getTinyMceValue(briefingArea) : "";
+        String infoGenitore = isPediatric && InfoGenitoriArea != null ? getTinyMceValue(InfoGenitoriArea) : null;
+        String pattoAula = pattoAulaArea != null ? getTinyMceValue(pattoAulaArea) : "";
+        String obiettivi = obiettiviArea != null ? getTinyMceValue(obiettiviArea) : "";
+        String moulage = moulageArea != null ? getTinyMceValue(moulageArea) : "";
+        String liquidi = liquidiArea != null ? getTinyMceValue(liquidiArea) : "";
 
         Map<String, String> updatedSections = new HashMap<>();
         updatedSections.put("Descrizione", descrizione);
@@ -675,19 +715,19 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         updatedSections.put("Liquidi", liquidi);
         updatedSections.put("AzioniChiave", getAzioniChiaveValue(azioniChiaveArea));
 
-        // Controlli null-safe per i campi dell'esame fisico
+        System.out.println("DEBUG" + getTinyMceValue(generaleArea));
         EsameFisico esameFisico = new EsameFisico(scenarioId,
-                getTinyMceValueSafe(generaleArea),
-                getTinyMceValueSafe(pupilleArea),
-                getTinyMceValueSafe(colloArea),
-                getTinyMceValueSafe(toraceArea),
-                getTinyMceValueSafe(cuoreArea),
-                getTinyMceValueSafe(addomeArea),
-                getTinyMceValueSafe(rettoArea),
-                getTinyMceValueSafe(cuteArea),
-                getTinyMceValueSafe(estremitaArea),
-                getTinyMceValueSafe(neurologicoArea),
-                getTinyMceValueSafe(FASTArea)
+                generaleArea != null ? getTinyMceValue(generaleArea) : "",
+                pupilleArea != null ? getTinyMceValue(pupilleArea) : "",
+                colloArea != null ? getTinyMceValue(colloArea) : "",
+                toraceArea != null ? getTinyMceValue(toraceArea) : "",
+                cuoreArea != null ? getTinyMceValue(cuoreArea) : "",
+                addomeArea != null ? getTinyMceValue(addomeArea) : "",
+                rettoArea != null ? getTinyMceValue(rettoArea) : "",
+                cuteArea != null ? getTinyMceValue(cuteArea) : "",
+                estremitaArea != null ? getTinyMceValue(estremitaArea) : "",
+                neurologicoArea != null ? getTinyMceValue(neurologicoArea) : "",
+                FASTArea != null ? getTinyMceValue(FASTArea) : ""
         );
 
         // Ottieni i parametri T0 aggiornati
@@ -707,14 +747,6 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         // Salva le modifiche
         scenarioService.updateScenario(scenarioId, updatedFields, updatedSections,
                 esameFisico, updatedSectionsT0, venosiDaSalvare, arteriosiDaSalvare);
-    }
-
-    // Metodo per ottenere il valore di TinyMce con controllo null-safe
-    private String getTinyMceValueSafe(VerticalLayout panel) {
-        if (panel == null) {
-            return ""; // Restituisci stringa vuota se il pannello è nullo
-        }
-        return getTinyMceValue(panel);
     }
 
     private Map<String, String> getUpdatedSectionsT0() {
@@ -1162,7 +1194,13 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
     }
 
     // Ottieni il valore dall'editor TinyMce nel layout
+    // Ottieni il valore dall'editor TinyMce nel layout
     private String getTinyMceValue(VerticalLayout panel) {
+        // Verifica che il panel non sia nullo
+        if (panel == null) {
+            return ""; // Ritorna stringa vuota se il pannello è nullo
+        }
+
         // L'editor è il terzo componente nel layout (indice 2)
         Optional<Component> component = panel.getChildren()
                 .filter(c -> c instanceof TinyMce)

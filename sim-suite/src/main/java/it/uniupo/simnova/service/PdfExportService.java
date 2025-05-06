@@ -89,20 +89,26 @@ public class PdfExportService {
      * Font per il testo in grassetto.
      */
     private PDFont fontBold;
-
+    /**
+     * Font per il testo in grassetto e corsivo.
+     */
     private PDFont fontBoldItalic;
     /**
      * Font per il testo normale.
      */
     private PDFont fontRegular;
+    /**
+     * Font per il testo in corsivo.
+     */
     private PDFont fontItalic;
     /**
      * Font per il testo in grassetto di piccole dimensioni.
      */
     private PDImageXObject logo;
-
+    /**
+     * Logo del centro.
+     */
     private PDImageXObject centerLogo;
-
     /**
      * Larghezza originale del logo del centro.
      */
@@ -130,7 +136,22 @@ public class PdfExportService {
      * @return un array di byte contenente il PDF generato
      * @throws IOException se si verifica un errore durante la creazione del PDF
      */
-    public byte[] exportScenarioToPdf(int scenarioId) throws IOException {
+    public byte[] exportScenarioToPdf(int scenarioId,
+                                      boolean desc,
+                                      boolean brief,
+                                      boolean infoGen,
+                                      boolean patto,
+                                      boolean azioni,
+                                      boolean obiettivi,
+                                      boolean moula,
+                                      boolean liqui,
+                                      boolean matNec,
+                                      boolean param,
+                                      boolean acces,
+                                      boolean fisic,
+                                      boolean esam,
+                                      boolean time,
+                                      boolean scen) throws IOException {
         document = null;
         currentContentStream = null;
         pageNumber = 1;
@@ -157,20 +178,21 @@ public class PdfExportService {
 
             // Crea l'intestazione dello scenario
             createScenarioHeader(scenario);
-            createPatientSection(scenarioId);
-            createExamsSection(scenarioId);
+            createScenarioDescription(scenario, desc, brief, infoGen, patto, azioni, obiettivi, moula, liqui, matNec);
+            createPatientSection(scenarioId, param, acces, fisic);
+            createExamsSection(scenarioId, esam);
 
             // Controlla il tipo di scenario e crea le sezioni appropriate
             String scenarioType = scenarioService.getScenarioType(scenarioId);
             if (scenarioType != null && (scenarioType.equals("Advanced Scenario") ||
-                    scenarioType.equals("Patient Simulated Scenario"))) {
+                    scenarioType.equals("Patient Simulated Scenario")) && time) {
                 createTimelineSection(scenario);
                 logger.info("Timeline creata");
             }
 
             // Crea la sezione della sceneggiatura
             if (scenarioType != null && scenarioType.equals("Patient Simulated Scenario")) {
-                createSceneggiaturaSection(scenario);
+                createSceneggiaturaSection(scenario, scen);
             }
 
             // Chiude il contenuto corrente
@@ -406,51 +428,63 @@ public class PdfExportService {
         currentContentStream.endText();
         currentYPosition -= LEADING * 7;
 
+        logger.info("Header creato");
+    }
+
+    private void createScenarioDescription(Scenario scenario,
+                                           boolean desc,
+                                           boolean brief,
+                                           boolean infoGen,
+                                           boolean patto,
+                                           boolean azioni,
+                                           boolean obiettivi,
+                                           boolean moula,
+                                           boolean liqui,
+                                           boolean matNec) throws IOException {
         // Descrizione
-        if (scenario.getDescrizione() != null && !scenario.getDescrizione().isEmpty()) {
+        if (scenario.getDescrizione() != null && !scenario.getDescrizione().isEmpty() && desc) {
             drawSection("Descrizione", scenario.getDescrizione());
         }
 
         // Briefing
-        if (scenario.getBriefing() != null && !scenario.getBriefing().isEmpty()) {
+        if (scenario.getBriefing() != null && !scenario.getBriefing().isEmpty() && brief) {
             drawSection("Briefing", scenario.getBriefing());
         }
 
-        if (scenarioService.isPediatric(scenario.getId()) && scenario.getInfoGenitore() != null && !scenario.getInfoGenitore().isEmpty()) {
+        if (scenarioService.isPediatric(scenario.getId()) && scenario.getInfoGenitore() != null && !scenario.getInfoGenitore().isEmpty() && infoGen) {
             drawSection("Informazioni dai genitori", scenario.getInfoGenitore());
         }
 
         // Patto d'aula
-        if (scenario.getPattoAula() != null && !scenario.getPattoAula().isEmpty()) {
+        if (scenario.getPattoAula() != null && !scenario.getPattoAula().isEmpty() && patto) {
             drawSection("Patto d'Aula", scenario.getPattoAula());
         }
 
         // Azioni chiave
-        if (scenario.getAzioneChiave() != null && !scenario.getAzioneChiave().isEmpty()) {
+        if (scenario.getAzioneChiave() != null && !scenario.getAzioneChiave().isEmpty() && azioni) {
             drawSection("Azioni Chiave", scenario.getAzioneChiave());
         }
 
         // Obiettivi didattici
-        if (scenario.getObiettivo() != null && !scenario.getObiettivo().isEmpty()) {
+        if (scenario.getObiettivo() != null && !scenario.getObiettivo().isEmpty() && obiettivi) {
             drawSection("Obiettivi Didattici", scenario.getObiettivo());
         }
 
         // Moulage
-        if (scenario.getMoulage() != null && !scenario.getMoulage().isEmpty()) {
+        if (scenario.getMoulage() != null && !scenario.getMoulage().isEmpty() && moula) {
             drawSection("Moulage", scenario.getMoulage());
         }
 
         // Liquidi
-        if (scenario.getLiquidi() != null && !scenario.getLiquidi().isEmpty()) {
+        if (scenario.getLiquidi() != null && !scenario.getLiquidi().isEmpty() && liqui) {
             drawSection("Liquidi e dosi farmaci", scenario.getLiquidi());
         }
 
         //Materiale necessario
-        if (materialeService.toStringAllMaterialsByScenarioId(scenario.getId()) != null && !materialeService.toStringAllMaterialsByScenarioId(scenario.getId()).isEmpty()) {
+        if (materialeService.toStringAllMaterialsByScenarioId(scenario.getId()) != null && !materialeService.toStringAllMaterialsByScenarioId(scenario.getId()).isEmpty() && matNec) {
             drawSection("Materiale necessario", materialeService.toStringAllMaterialsByScenarioId(scenario.getId()));
         }
 
-        logger.info("Header creato");
     }
 
     /**
@@ -459,7 +493,14 @@ public class PdfExportService {
      * @param scenarioId l'ID dello scenario
      * @throws IOException se si verifica un errore durante la creazione della sezione
      */
-    private void createPatientSection(Integer scenarioId) throws IOException {
+    private void createPatientSection(Integer scenarioId,
+                                      boolean param,
+                                      boolean acces,
+                                      boolean fisic) throws IOException {
+        if(!param && !acces && !fisic) {
+            return; // Se tutte le sezioni sono false, non fare nulla
+        }
+
         // Stima lo spazio solo per il titolo della sezione principale
         checkForNewPage(LEADING * 3); // Spazio stimato per drawSection
         // Disegna il titolo della sezione principale
@@ -470,58 +511,59 @@ public class PdfExportService {
         if (paziente != null) {
             // --- Parametri Vitali (Riga per Riga) ---
             // Controlla lo spazio prima di disegnare il sottotitolo
-            checkForNewPage(LEADING * 3); // Spazio stimato per drawSubsection
-            drawSubsection("Parametri Vitali");
+            if (param) {
+                checkForNewPage(LEADING * 3); // Spazio stimato per drawSubsection
+                drawSubsection("Parametri Vitali");
 
-            // Stampa PA
-            checkForNewPage(LEADING * 2); // Spazio per una riga
-            drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("PA: %s mmHg", paziente.getPA()));
-
-            // Stampa FC
-            checkForNewPage(LEADING * 2); // Spazio per una riga
-            drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("FC: %d bpm", paziente.getFC()));
-
-            // Stampa RR
-            checkForNewPage(LEADING * 2); // Spazio per una riga
-            drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("RR: %d atti/min", paziente.getRR()));
-
-            // Stampa Temperatura
-            checkForNewPage(LEADING * 2); // Spazio per una riga
-            drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("Temperatura: %.1f °C", paziente.getT()));
-
-            // Stampa SpO2
-            checkForNewPage(LEADING * 2); // Spazio per una riga
-            drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("SpO2: %d%%", paziente.getSpO2()));
-
-            // Stampa FiO2 (condizionale)
-            // Assumendo che getFiO2() ritorni un valore numerico (es. Float/double/int)
-            if (paziente.getFiO2() > 0) {
+                // Stampa PA
                 checkForNewPage(LEADING * 2); // Spazio per una riga
-                // Formattare come percentuale se è una frazione, o direttamente se è già percentuale
-                drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("FiO2: %d%%", paziente.getFiO2())); // Esempio: formatta come intero %
-            }
+                drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("PA: %s mmHg", paziente.getPA()));
 
-            // Stampa LitriO2 (condizionale)
-            // Assumendo che getLitriO2() ritorni un valore numerico (es. Float/double/int)
-            if (paziente.getLitriO2() > 0) {
+                // Stampa FC
                 checkForNewPage(LEADING * 2); // Spazio per una riga
-                drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("Litri O2: %.1f L/min", paziente.getLitriO2())); // Esempio: formatta con un decimale L/min
-            }
+                drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("FC: %d bpm", paziente.getFC()));
 
-            // Stampa EtCO2
-            checkForNewPage(LEADING * 2); // Spazio per una riga
-            drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("EtCO2: %d mmHg", paziente.getEtCO2()));
-
-            // Stampa Monitor
-            if (paziente.getMonitor() != null && !paziente.getMonitor().isEmpty()) {
+                // Stampa RR
                 checkForNewPage(LEADING * 2); // Spazio per una riga
-                drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("Monitor: %s", paziente.getMonitor()));
-            }
-            currentYPosition -= LEADING; // Aggiungi un piccolo spazio dopo il blocco dei parametri vitali
+                drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("RR: %d atti/min", paziente.getRR()));
 
+                // Stampa Temperatura
+                checkForNewPage(LEADING * 2); // Spazio per una riga
+                drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("Temperatura: %.1f °C", paziente.getT()));
+
+                // Stampa SpO2
+                checkForNewPage(LEADING * 2); // Spazio per una riga
+                drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("SpO2: %d%%", paziente.getSpO2()));
+
+                // Stampa FiO2 (condizionale)
+                // Assumendo che getFiO2() ritorni un valore numerico (es. Float/double/int)
+                if (paziente.getFiO2() > 0) {
+                    checkForNewPage(LEADING * 2); // Spazio per una riga
+                    // Formattare come percentuale se è una frazione, o direttamente se è già percentuale
+                    drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("FiO2: %d%%", paziente.getFiO2())); // Esempio: formatta come intero %
+                }
+
+                // Stampa LitriO2 (condizionale)
+                // Assumendo che getLitriO2() ritorni un valore numerico (es. Float/double/int)
+                if (paziente.getLitriO2() > 0) {
+                    checkForNewPage(LEADING * 2); // Spazio per una riga
+                    drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("Litri O2: %.1f L/min", paziente.getLitriO2())); // Esempio: formatta con un decimale L/min
+                }
+
+                // Stampa EtCO2
+                checkForNewPage(LEADING * 2); // Spazio per una riga
+                drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("EtCO2: %d mmHg", paziente.getEtCO2()));
+
+                // Stampa Monitor
+                if (paziente.getMonitor() != null && !paziente.getMonitor().isEmpty()) {
+                    checkForNewPage(LEADING * 2); // Spazio per una riga
+                    drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 20, String.format("Monitor: %s", paziente.getMonitor()));
+                }
+                currentYPosition -= LEADING; // Aggiungi un piccolo spazio dopo il blocco dei parametri vitali
+            }
             // --- Accessi Venosi ---
             List<Accesso> accessiVenosi = paziente.getAccessiVenosi();
-            if (accessiVenosi != null && !accessiVenosi.isEmpty()) {
+            if (accessiVenosi != null && !accessiVenosi.isEmpty() && acces) {
                 // Controlla lo spazio prima di disegnare il sottotitolo
                 checkForNewPage(LEADING * 3); // Spazio stimato per drawSubsection
                 drawSubsection("Accessi Venosi");
@@ -537,7 +579,7 @@ public class PdfExportService {
 
             // --- Accessi Arteriosi ---
             List<Accesso> accessiArteriosi = paziente.getAccessiArteriosi();
-            if (accessiArteriosi != null && !accessiArteriosi.isEmpty()) {
+            if (accessiArteriosi != null && !accessiArteriosi.isEmpty() && acces) {
                 // Controlla lo spazio prima di disegnare il sottotitolo
                 checkForNewPage(LEADING * 3); // Spazio stimato per drawSubsection
                 drawSubsection("Accessi Arteriosi");
@@ -554,7 +596,7 @@ public class PdfExportService {
 
         // --- Esame Fisico ---
         EsameFisico esame = scenarioService.getEsameFisicoById(scenarioId);
-        if (esame != null && esame.getSections() != null && !esame.getSections().isEmpty()) {
+        if (esame != null && esame.getSections() != null && !esame.getSections().isEmpty() && fisic) {
             // Controlla lo spazio prima di disegnare il sottotitolo
             checkForNewPage(LEADING * 3); // Spazio stimato per drawSubsection
             drawSubsection("Esame Fisico");
@@ -589,9 +631,10 @@ public class PdfExportService {
      * @param scenarioId l'ID dello scenario
      * @throws IOException se si verifica un errore durante la creazione della sezione
      */
-    private void createExamsSection(Integer scenarioId) throws IOException {
+    private void createExamsSection(Integer scenarioId,
+                                    boolean esam) throws IOException {
         List<EsameReferto> esami = scenarioService.getEsamiRefertiByScenarioId(scenarioId);
-        if (esami == null || esami.isEmpty()) {
+        if (esami == null || esami.isEmpty() || !esam) {
             return;
         }
 
@@ -642,7 +685,7 @@ public class PdfExportService {
      */
     private void createTimelineSection(Scenario scenario) throws IOException {
         // Recupera i tempi associati allo scenario
-        List<Tempo> tempi = ScenarioService.getTempiByScenarioId(scenario.getId());
+        List<Tempo> tempi = scenarioService.getTempiByScenarioId(scenario.getId());
         if (tempi.isEmpty()) {
             // Se non ci sono tempi, non fare nulla
             return;
@@ -786,9 +829,9 @@ public class PdfExportService {
      * @param scenario lo scenario
      * @throws IOException se si verifica un errore durante la creazione della sezione
      */
-    private void createSceneggiaturaSection(Scenario scenario) throws IOException {
+    private void createSceneggiaturaSection(Scenario scenario, boolean scen) throws IOException {
         String sceneggiatura = ScenarioService.getSceneggiatura(scenario.getId());
-        if (sceneggiatura == null || sceneggiatura.isEmpty()) {
+        if (sceneggiatura == null || sceneggiatura.isEmpty() || !scen) {
             return;
         }
 
@@ -829,7 +872,7 @@ public class PdfExportService {
                     || title.equals("Liquidi e dosi farmaci")
             ) {
                 // Analizziamo l'HTML per mantenere grassetto e corsivo
-                renderHtmlWithFormatting(content, MARGIN+ 20);
+                renderHtmlWithFormatting(content, MARGIN + 20);
                 currentYPosition -= LEADING / 2;
             } else {
                 drawWrappedText(fontRegular, BODY_FONT_SIZE, MARGIN + 10, content);

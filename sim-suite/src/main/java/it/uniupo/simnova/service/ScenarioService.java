@@ -226,7 +226,7 @@ public class ScenarioService {
      */
     public int startAdvancedScenario(String titolo, String nomePaziente, String patologia, String autori, float timerGenerale, String tipologia) {
         // Prima crea lo scenario base
-        int scenarioId = startQuickScenario(-1,titolo, nomePaziente, patologia, autori, timerGenerale, tipologia);
+        int scenarioId = startQuickScenario(-1, titolo, nomePaziente, patologia, autori, timerGenerale, tipologia);
 
         if (scenarioId > 0) {
             final String sql = "INSERT INTO AdvancedScenario (id_advanced_scenario) VALUES (?)";
@@ -772,7 +772,7 @@ public class ScenarioService {
         if (litrio2 < 0) {
             logger.warn("LitriO2 non valido: {}", litrio2);
             throw new IllegalArgumentException("LitriO2 non valido");
-            }
+        }
         if (etco2 < 0) {
             logger.warn("EtCO2 non valido: {}", etco2);
             throw new IllegalArgumentException("EtCO2 non valido");
@@ -797,7 +797,7 @@ public class ScenarioService {
             } else {
                 // Ordine per INSERT
                 stmt.setInt(paramIndex++, scenarioId);
-                paramIndex = getParamIndex(pa, fc, rr, temp, spo2,fio2, litrio2, etco2, stmt, paramIndex);
+                paramIndex = getParamIndex(pa, fc, rr, temp, spo2, fio2, litrio2, etco2, stmt, paramIndex);
                 stmt.setString(paramIndex, monitor);
                 stmt.setString(paramIndex + 1, presidi);
             }
@@ -1274,7 +1274,7 @@ public class ScenarioService {
                         logger.warn("Saturazione di ossigeno non valida: {}", spo2);
                         throw new IllegalArgumentException("Saturazione di ossigeno non valida, deve essere tra 0 e 100");
                     }
-                    if( fio2 != null && (fio2 < 0 || fio2 > 100)) {
+                    if (fio2 != null && (fio2 < 0 || fio2 > 100)) {
                         logger.warn("FiO2 non valido: {}", fio2);
                         throw new IllegalArgumentException("FiO2 non valido, deve essere tra 0 e 100");
                     }
@@ -1594,7 +1594,7 @@ public class ScenarioService {
      * @param scenarioId l'ID dello scenario
      * @return una lista di oggetti Tempo
      */
-    public static List<Tempo> getTempiByScenarioId(int scenarioId) {
+    public List<Tempo> getTempiByScenarioId(int scenarioId) {
         final String sql = "SELECT * FROM Tempo WHERE id_advanced_scenario = ? ORDER BY id_tempo";
         List<Tempo> tempi = new ArrayList<>();
 
@@ -1846,7 +1846,7 @@ public class ScenarioService {
         double timerGenerale = (Double) scenarioData.get("timer_generale");
         String tipologia = (String) scenarioData.get("tipologia_paziente");
 
-        int newId = startQuickScenario(-1,titolo, nomePaziente, patologia, autori, (float) timerGenerale, tipologia);
+        int newId = startQuickScenario(-1, titolo, nomePaziente, patologia, autori, (float) timerGenerale, tipologia);
         if (newId <= 0) return false;
 
         // Aggiorna i campi aggiuntivi
@@ -2073,7 +2073,7 @@ public class ScenarioService {
                 .collect(Collectors.toList());
     }
 
-    public boolean isPediatric (int scenarioId) {
+    public boolean isPediatric(int scenarioId) {
         final String sql = "SELECT tipologia_paziente FROM Scenario WHERE id_scenario = ?";
         try (Connection conn = DBConnect.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -2134,7 +2134,7 @@ public class ScenarioService {
         }
     }
 
-   public void updateScenario(Integer idScenario, Map<String, String> updatedFields, Map<String, String> updatedSections, EsameFisico esameFisico, Map<String, String> pazienteT0, List<Accesso> accessiVenosi, List<Accesso> accessiArteriosi) {
+    public void updateScenario(Integer idScenario, Map<String, String> updatedFields, Map<String, String> updatedSections, EsameFisico esameFisico, Map<String, String> pazienteT0, List<Accesso> accessiVenosi, List<Accesso> accessiArteriosi) {
         // Recupera lo scenario esistente per ottenere gli autori attuali
         Scenario esistente = getScenarioById(idScenario);
         String autoriEsistenti = esistente != null ? esistente.getAutori() : "";
@@ -2165,7 +2165,7 @@ public class ScenarioService {
         updateScenarioDescription(idScenario, updatedSections.get("Descrizione"));
         updateScenarioBriefing(idScenario, updatedSections.get("Briefing"));
         updateScenarioPattoAula(idScenario, updatedSections.get("PattoAula"));
-        if(isPediatric(idScenario)) {
+        if (isPediatric(idScenario)) {
             updateScenarioGenitoriInfo(idScenario, updatedSections.get("InfoGenitore"));
         }
         updateScenarioLiquidi(idScenario, updatedSections.get("Liquidi"));
@@ -2175,7 +2175,7 @@ public class ScenarioService {
 
         addEsameFisico(idScenario, esameFisico.getSections());
 
-       savePazienteT0(idScenario,
+        savePazienteT0(idScenario,
                 pazienteT0.get("PA"),
                 Integer.parseInt(pazienteT0.get("FC")),
                 Integer.parseInt(pazienteT0.get("RR")),
