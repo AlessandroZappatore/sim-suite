@@ -77,7 +77,7 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
                 "Moulage",
                 "Inserisci la descrizione del trucco da applicare al manichino/paziente simulato",
                 VaadinIcon.EYE,
-                "#4285F4"
+                "var(--lumo-primary-color)"
         );
 
         // 2. CONTENUTO PRINCIPALE con area di testo per il moulage

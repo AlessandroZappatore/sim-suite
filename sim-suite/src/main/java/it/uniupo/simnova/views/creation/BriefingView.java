@@ -72,7 +72,7 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
                 "BRIEFING",
                 "Definisci il briefing che verrà mostrato ai discenti prima della simulazione",
                 VaadinIcon.INFO_CIRCLE,
-                "#4285F4"
+                "var(--lumo-primary-color)"
         );
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);

@@ -18,6 +18,7 @@ import it.uniupo.simnova.api.model.Scenario;
 import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
+import it.uniupo.simnova.views.home.FieldGenerator;
 import it.uniupo.simnova.views.home.StyleApp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,7 +93,7 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
                 "AZIONI CHIAVE",
                 "Definisci le azioni chiave che saranno valutate durante il debriefing",
                 VaadinIcon.KEY,
-                "#4285F4"
+                "var(--lumo-primary-color)"
         );
 
         // Container per le azioni chiave
@@ -102,8 +103,9 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
         actionFieldsContainer.setSpacing(true);
 
         // Pulsante per aggiungere nuove azioni chiave
-        Button addButton = new Button("Aggiungi azione chiave", new Icon(VaadinIcon.PLUS));
+        Button addButton = new Button("Aggiungi azione chiave", new Icon(VaadinIcon.PLUS_CIRCLE));
         addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        addButton.getStyle().set("margin-top", "var(--lumo-space-m)");
         addButton.addClickListener(e -> addNewActionField());
 
         contentLayout.add(headerSection, actionFieldsContainer, addButton);
@@ -132,9 +134,7 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
         fieldLayout.setSpacing(true);
         fieldLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        TextField actionField = new TextField();
-        actionField.setWidthFull();
-        actionField.setPlaceholder("Inserisci un'azione chiave...");
+        TextField actionField = FieldGenerator.createTextField("Azione Chiave", "Inserisci un'azione chiave", false);
         actionFields.add(actionField);
 
         Button removeButton = new Button(new Icon(VaadinIcon.TRASH));

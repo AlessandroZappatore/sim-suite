@@ -91,7 +91,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                 "Materiale necessario",
                 "Seleziona i materiali necessari per l'allestimento della sala o aggiungine di nuovi",
                 VaadinIcon.BED,
-                "#4285F4"
+                "var(--lumo-primary-color)"
         );
 
         // Grid per i materiali disponibili

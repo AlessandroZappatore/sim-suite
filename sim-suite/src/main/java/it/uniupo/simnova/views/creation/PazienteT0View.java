@@ -136,7 +136,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                 "PARAMETRI VITALI PRINCIPALI IN T0",
                 "Definisci i parametri vitali principali del paziente T0",
                 VaadinIcon.HEART,
-                "#4285F4"
+                "var(--lumo-primary-color)"
 
         );
 

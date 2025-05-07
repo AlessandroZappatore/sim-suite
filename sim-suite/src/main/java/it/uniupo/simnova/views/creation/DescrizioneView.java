@@ -74,7 +74,7 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
                 "DESCRIZIONE DELLO SCENARIO",
                 "Inserisci una descrizione dettagliata dello scenario di simulazione. Questa descrizione fornirà il contesto generale e le informazioni di background ai partecipanti.",
                 VaadinIcon.PENCIL,
-                "#4285F4"
+                "var(--lumo-primary-color)"
         );
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);

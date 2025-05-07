@@ -1,9 +1,6 @@
 package it.uniupo.simnova.views.creation;
 
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Composite;
-import com.vaadin.flow.component.Text;
-import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -67,8 +64,13 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
      * ID dello scenario corrente.
      */
     private Integer scenarioId;
+    /**
+     * Pulsante per navigare alla vista successiva.
+     */
     Button nextButton = StyleApp.getNextButton();
-
+    /**
+     * Modalità corrente (creazione o modifica).
+     */
     private String mode;
     /**
      * Layout principale per la visualizzazione delle righe degli esami.
@@ -91,6 +93,15 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
      */
     private static final Logger logger = LoggerFactory.getLogger(EsamiRefertiView.class);
 
+    private static final String[] BORDER_COLORS = {
+            "var(--lumo-primary-color)",          // Primario
+            "var(--lumo-error-color)",            // Rosso
+            "var(--lumo-success-color)",          // Verde
+            "#FFB74D",                            // Arancione
+            "#9575CD",                            // Viola
+            "#4DD0E1",                            // Azzurro
+            "#F06292"                             // Rosa
+    };
     /**
      * Costruttore che inizializza l'interfaccia utente.
      *
@@ -115,15 +126,15 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "Esami e Referti",
                 "Aggiungi gli esami e referti per il tuo scenario",
-                VaadinIcon.FILE,
-                "#4285F4"
+                VaadinIcon.FILE_TEXT_O,
+                "var(--lumo-primary-color)"
         );
 
         rowsContainer = new VerticalLayout();
         rowsContainer.setWidthFull();
         rowsContainer.setSpacing(true);
 
-        Button addButton = new Button("Aggiungi Esame/Referto", new Icon(VaadinIcon.PLUS));
+        Button addButton = new Button("Aggiungi Esame/Referto", new Icon(VaadinIcon.PLUS_CIRCLE));
         addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addButton.addClassName(LumoUtility.Margin.Top.MEDIUM);
         addButton.addClickListener(event -> addNewRow());
@@ -248,6 +259,12 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         rowContainer.addClassName(LumoUtility.BorderRadius.MEDIUM);
         rowContainer.setPadding(true);
         rowContainer.setSpacing(false);
+        rowContainer.getStyle()
+                .set("background", "var(--lumo-base-color)")
+                .set("border-radius", "var(--lumo-border-radius-l)")
+                .set("margin-bottom", "var(--lumo-space-l)")
+                .set("border-left", "6px solid " + getBorderColor(rowCount))  // Colore dinamico
+                .set("box-shadow", "var(--lumo-box-shadow-s)");
 
         // Header della riga con titolo e pulsante elimina
         HorizontalLayout rowHeader = new HorizontalLayout();
@@ -269,6 +286,11 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         rowContainer.add(rowHeader, newRow.getRowLayout());
         rowsContainer.add(rowContainer);
     }
+
+    private String getBorderColor(int rowCount) {
+        return BORDER_COLORS[(rowCount) % BORDER_COLORS.length];
+    }
+
 
     /**
      * Popola una riga con i dati esistenti di un esame/referto.
@@ -1054,6 +1076,8 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
             return button;
         }
+
+
 
         /**
          * Restituisce il nome dell'esame selezionato.

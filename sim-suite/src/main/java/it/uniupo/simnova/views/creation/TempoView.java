@@ -30,11 +30,11 @@ import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
+import it.uniupo.simnova.views.home.FieldGenerator;
 import it.uniupo.simnova.views.home.StyleApp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -192,7 +192,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                         "eventuali parametri aggiuntivi, l'azione richiesta per procedere e le transizioni possibili (Tempo SI / Tempo NO). " +
                         "T0 rappresenta lo stato iniziale del paziente.",
                 VaadinIcon.CLOCK,
-                "#4285F4"
+                "var(--lumo-primary-color)"
         );
 
         // Container per le sezioni dei tempi (T0, T1, T2...)
@@ -201,7 +201,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         timeSectionsContainer.setSpacing(true); // Spazio tra le sezioni T0, T1...
 
         // Pulsante per aggiungere nuovi tempi (T1, T2, T3...)
-        Button addTimeButton = new Button("Aggiungi Tempo (Tn)", new Icon(VaadinIcon.PLUS));
+        Button addTimeButton = new Button("Aggiungi Tempo (Tn)", new Icon(VaadinIcon.PLUS_CIRCLE));
         addTimeButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addTimeButton.addClassName(LumoUtility.Margin.Top.XLARGE); // Aumentato margine
         addTimeButton.addClickListener(event -> addTimeSection(timeCount++));
@@ -961,12 +961,10 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             sectionTitle.addClassNames(LumoUtility.FontWeight.BOLD, LumoUtility.FontSize.LARGE, LumoUtility.Margin.Bottom.MEDIUM);
 
             // Selettore Timer
-            timerPicker = new TimePicker("Timer associato a T" + timeNumber + " (opzionale)");
-            timerPicker.setStep(Duration.ofSeconds(1)); // Precisione al secondo
-            // timerPicker.setValue(LocalTime.MIDNIGHT); // Valore iniziale nullo o mezzanotte
-            timerPicker.setPlaceholder("hh:mm:ss");
-            timerPicker.setWidth("200px"); // Larghezza fissa
-            timerPicker.setClearButtonVisible(true);
+            HorizontalLayout timerLayout = FieldGenerator.createTimerPickerWithPresets(
+                    "Timer associato a T" + timeNumber + " (opzionale)"
+            );
+            timerPicker = (TimePicker) timerLayout.getComponentAt(0); // Prendi il TimePicker
 
             // Form Layout per i parametri vitali base
             medicalParamsForm = new FormLayout();
@@ -996,7 +994,6 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             customParamsContainer.setWidthFull();
             customParamsContainer.setPadding(false);
             customParamsContainer.setSpacing(false); // Spazio tra i parametri aggiuntivi
-            // Il pulsante "Aggiungi Parametri" viene aggiunto esternamente a questo container nel FormLayout
 
             // Divisore orizzontale
             Hr divider = new Hr();
@@ -1007,13 +1004,11 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                     "DETTAGLI INIZIALI T0" : "AZIONE E TRANSIZIONI PER T" + timeNumber);
             actionTitle.addClassNames(LumoUtility.FontWeight.SEMIBOLD, LumoUtility.FontSize.MEDIUM, LumoUtility.Margin.Bottom.MEDIUM);
 
-            // Area di testo per l'azione
-            actionDetailsArea = new TextArea("Azione richiesta / Evento scatenante per procedere da T" + timeNumber);
-            actionDetailsArea.setWidthFull();
-            actionDetailsArea.setMinHeight("80px"); // Altezza minima
-            actionDetailsArea.setPlaceholder("Es. Somministrare farmaco X, Rilevare parametro Y, Domanda al paziente...");
-            actionDetailsArea.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
-
+            actionDetailsArea = FieldGenerator.createTextArea(
+                    "Azione richiesta / Evento scatenante per procedere da T" + timeNumber,
+                    "Es. Somministrare farmaco X, Rilevare parametro Y, Domanda al paziente...",
+                     false
+            );
             // Container per i campi TSi / TNo
             HorizontalLayout timeSelectionContainer = new HorizontalLayout();
             timeSelectionContainer.setWidthFull();
@@ -1040,12 +1035,11 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             timeSelectionContainer.add(timeSelectionForm);
             timeSelectionContainer.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
 
-            // Area di testo per dettagli aggiuntivi
-            additionalDetailsArea = new TextArea("Altri dettagli / Note per T" + timeNumber + " (opzionale)");
-            additionalDetailsArea.setWidthFull();
-            additionalDetailsArea.setMinHeight("100px");
-            additionalDetailsArea.setPlaceholder("Es. Note per il docente, trigger specifici, stato emotivo del paziente...");
-            additionalDetailsArea.addClassName(LumoUtility.Margin.Bottom.LARGE);
+            additionalDetailsArea = FieldGenerator.createTextArea(
+                    "Altri dettagli / Note per T" + timeNumber + " (opzionale)",
+                    "Es. Note per il docente, trigger specifici, stato emotivo del paziente...",
+                    false
+            );
 
             // Pulsante per rimuovere la sezione (visibile per T1, T2...)
             Button removeButton = new Button("Rimuovi T" + timeNumber, new Icon(VaadinIcon.TRASH));
@@ -1058,15 +1052,14 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                 Notification.show("Tempo T" + timeNumber + " rimosso.", 2000, Notification.Position.BOTTOM_START).addThemeVariants(NotificationVariant.LUMO_CONTRAST);
             });
 
-            ruoloGenitoreArea = new TextArea("Ruolo Genitore (opzionale)");
-            ruoloGenitoreArea.setWidthFull();
-            ruoloGenitoreArea.setMinHeight("100px");
-            ruoloGenitoreArea.setPlaceholder("Es. Genitore riferisce delle informazioni sul paziente...");
-            ruoloGenitoreArea.addClassName(LumoUtility.Margin.Bottom.LARGE);
-
+            ruoloGenitoreArea = FieldGenerator.createTextArea(
+                    "Ruolo Genitore (opzionale)",
+                    "Es. Genitore riferisce delle informazioni sul paziente...",
+                    false
+            );
 
             // Aggiunta di tutti i componenti al layout principale della sezione
-            layout.add(sectionTitle, timerPicker, medicalParamsForm, customParamsContainer, divider,
+            layout.add(sectionTitle, timerLayout, medicalParamsForm, customParamsContainer, divider,
                     actionTitle, actionDetailsArea, timeSelectionContainer,
                     additionalDetailsArea);
             if (scenarioService.isPediatric(scenarioId)) {
@@ -1142,13 +1135,12 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         public void addCustomParameter(String key, String label, String unit) {
             // Controlla se un parametro con questa chiave esiste già per evitare duplicati
             if (!customParameters.containsKey(key)) {
-                // Crea il campo NumberField usando l'etichetta completa fornita
-                NumberField field = new NumberField(label);
-                field.setWidthFull();
-                // field.addClassName(LumoUtility.Margin.Bottom.XSMALL); // Aggiungi un po' di spazio sotto
+                // Usa FieldGenerator per creare un campo numerico con unità di misura
+                NumberField field = FieldGenerator.createMedicalField(label, "", false, unit);
 
                 // Memorizza il campo nella mappa dei parametri
                 customParameters.put(key, field);
+
                 // Memorizza l'unità di misura nella mappa delle unità
                 if (unit != null) {
                     customParameterUnits.put(key, unit);
@@ -1156,33 +1148,32 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
 
                 // Pulsante per rimuovere questo specifico parametro aggiuntivo
                 Button removeParamButton = new Button(new Icon(VaadinIcon.TRASH));
-                removeParamButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON); // Icona errore piccola
-                removeParamButton.getElement().setAttribute("aria-label", "Rimuovi " + label); // Accessibilità
-                removeParamButton.setTooltipText("Rimuovi " + label); // Testo al passaggio del mouse
-                removeParamButton.addClassName(LumoUtility.Margin.Left.SMALL); // Spazio a sinistra del pulsante
+                removeParamButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
+                removeParamButton.getElement().setAttribute("aria-label", "Rimuovi " + label);
+                removeParamButton.setTooltipText("Rimuovi " + label);
+                removeParamButton.addClassName(LumoUtility.Margin.Left.SMALL);
 
                 // Layout orizzontale per contenere il campo e il pulsante di rimozione
                 HorizontalLayout paramLayout = new HorizontalLayout(field, removeParamButton);
-                paramLayout.setAlignItems(FlexComponent.Alignment.BASELINE); // Allinea campo e pulsante sulla base
+                paramLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
                 paramLayout.setWidthFull();
-                paramLayout.setFlexGrow(1, field); // Fa espandere il campo per riempire lo spazio
+                paramLayout.setFlexGrow(1, field);
 
                 // Azione del pulsante di rimozione
                 removeParamButton.addClickListener(e -> {
                     HorizontalLayout layoutToRemove = customParameterLayouts.get(key);
                     if (layoutToRemove != null) {
-                        customParamsContainer.remove(layoutToRemove); // Rimuove il layout dall'UI
-                        customParameters.remove(key); // Rimuove il campo dalla mappa
-                        customParameterLayouts.remove(key); // Rimuove il layout dalla mappa dei layout
-                        customParameterUnits.remove(key); // Rimuove l'unità dalla mappa delle unità
+                        customParamsContainer.remove(layoutToRemove);
+                        customParameters.remove(key);
+                        customParameterLayouts.remove(key);
+                        customParameterUnits.remove(key);
                     }
                 });
 
-                // Memorizza il layout orizzontale (per poterlo rimuovere)
+                // Memorizza il layout orizzontale
                 customParameterLayouts.put(key, paramLayout);
-                // Aggiunge il layout del parametro al container dei parametri aggiuntivi
+                // Aggiunge il layout del parametro al container
                 customParamsContainer.add(paramLayout);
-
             } else {
                 logger.warn("Tentativo di aggiungere un parametro con chiave duplicata: {}", key);
             }

@@ -137,11 +137,13 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
                 "TARGET E LEARNING GROUPS",
                 "Seleziona il destinatario per cui è progettato lo scenario di simulazione. Per alcune categorie, saranno richieste informazioni addizionali.",
                 VaadinIcon.USER_CARD,
-                "#4285F4"
+                "var(--lumo-primary-color)"
         );
 
         VerticalLayout contentLayout = StyleApp.getContentLayout();
         // Configurazione Contenuto
+        contentLayout.add(headerSection);
+
         configureContent(contentLayout);
         // Configurazione Footer
         Button nextButton = StyleApp.getNextButton();
@@ -150,7 +152,6 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
 
         mainLayout.add(
                 customHeader,
-                headerSection,
                 contentLayout,
                 footerLayout
         );

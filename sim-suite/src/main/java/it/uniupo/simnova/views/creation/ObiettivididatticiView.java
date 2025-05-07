@@ -78,7 +78,7 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> implements
                 "Obiettivi Didattici",
                 "Definisci gli obiettivi di apprendimento per la simulazione",
                 VaadinIcon.BOOK,
-                "#4285F4"
+                "var(--lumo-primary-color)"
         );
 
         // 2. CONTENUTO PRINCIPALE

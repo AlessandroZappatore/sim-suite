@@ -78,7 +78,7 @@ public class PattoaulaView extends Composite<VerticalLayout> implements HasUrlPa
                 "PATTO D'AULA / FAMILIARIZZAZIONE",
                 "Inserisci il testo del patto d'aula che definisce le regole di interazione durante la simulazione e fornisce indicazioni per la familiarizzazione con l'ambiente virtuale.",
                 VaadinIcon.HANDSHAKE,
-                "#4285F4"
+                "var(--lumo-primary-color)"
         );
 
         // 2. CONTENUTO PRINCIPALE

@@ -39,7 +39,7 @@ public class StyleApp extends HorizontalLayout {
      * @param title     Titolo da mostrare nell'header
      * @param subtitle  Sottotitolo da mostrare nell'header
      * @param icon      Icona Vaadin da utilizzare
-     * @param iconColor Colore dell'icona (formato hex, es. "#4285F4")
+     * @param iconColor Colore dell'icona (formato hex, es. "#4285F4", o CSS variable es. "var(--lumo-primary-color)")
      * @return Layout completo dell'header
      */
     public static VerticalLayout getTitleSubtitle(String title, String subtitle, VaadinIcon icon, String iconColor) {
@@ -53,69 +53,59 @@ public class StyleApp extends HorizontalLayout {
         headerSection.setWidthFull();
         headerSection.setAlignItems(FlexComponent.Alignment.CENTER); // Allineamento centrale per tutti gli elementi
         headerSection.getStyle()
-                .set("background", "var(--lumo-base-color)")
+                .set("background", "var(--lumo-base-color)") // Already good: uses Lumo variable
                 .set("border-radius", "8px")
                 .set("margin-top", "1rem")
                 .set("margin-bottom", "1rem")
                 .set("box-shadow", "0 2px 10px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0,0,0,0.1)");
 
-        // Crea un layout dedicato per icona e titolo
+
         HorizontalLayout titleWithIconLayout = new HorizontalLayout();
         titleWithIconLayout.setSpacing(true);
         titleWithIconLayout.setPadding(false);
         titleWithIconLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         titleWithIconLayout.getStyle().set("margin-bottom", "0.5rem");
 
-        // Stile dell'icona migliorato
         Icon iconComponent = new Icon(icon);
-        iconComponent.setSize("2em");
+        iconComponent.setSize("3em");
         iconComponent.getStyle()
-                .set("margin-right", "0.75em")
+                .set("margin-right", "0.25em")
                 .set("color", iconColor)
-                .set("background", iconColor + "1A") // 10% opacità
+                .set("background", iconColor + "1A")
                 .set("padding", "10px")
                 .set("border-radius", "50%");
 
-        // Titolo con colore personalizzato
         headerTitle.getStyle()
-                .set("color", iconColor)
+                .set("color", iconColor) // Depends on iconColor parameter
                 .set("font-weight", "600")
                 .set("letter-spacing", "0.5px")
                 .set("text-align", "center");
 
-        // Aggiungi titolo e icona al layout dedicato
         titleWithIconLayout.add(iconComponent, headerTitle);
 
-        // Layout principale con centratura
         HorizontalLayout headerLayout = new HorizontalLayout();
         headerLayout.setWidthFull();
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         headerLayout.add(titleWithIconLayout);
 
-        // Contenitore per il sottotitolo per garantire il centramento
         HorizontalLayout subtitleContainer = new HorizontalLayout();
         subtitleContainer.setWidthFull();
         subtitleContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         subtitleContainer.setPadding(false);
         subtitleContainer.setSpacing(false);
 
-        // Sottotitolo
         Paragraph subtitleParagraph = new Paragraph(subtitle);
         subtitleParagraph.addClassName(LumoUtility.Margin.Top.XSMALL);
         subtitleParagraph.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
         subtitleParagraph.getStyle()
-                .set("color", "var(--lumo-secondary-text-color)")
+                .set("color", "var(--lumo-secondary-text-color)") // Good: uses Lumo variable
                 .set("max-width", "750px")
                 .set("text-align", "center")
                 .set("font-weight", "400")
                 .set("line-height", "1.6");
 
-        // Aggiungi il sottotitolo al suo contenitore
         subtitleContainer.add(subtitleParagraph);
-
-        // Aggiunta componenti nell'ordine corretto
         headerSection.add(headerLayout, subtitleContainer);
-
         return headerSection;
     }
 
@@ -126,37 +116,38 @@ public class StyleApp extends HorizontalLayout {
         customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
         customHeader.add(backButton, header);
         customHeader.getStyle().set("box-shadow", "0 2px 10px rgba(0, 0, 0, 0.05)");
-
         return customHeader;
     }
 
-    public static HorizontalLayout getFooterLayout(Button nextButton){
+    public static HorizontalLayout getFooterLayout(Button nextButton) {
         HorizontalLayout footerLayout = new HorizontalLayout();
         footerLayout.setWidthFull();
         footerLayout.setPadding(true);
         footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        footerLayout.addClassName(LumoUtility.Border.TOP);
+        footerLayout.addClassName(LumoUtility.Border.TOP); // Lumo utility for top border
         footerLayout.getStyle()
                 .set("border-color", "var(--lumo-contrast-10pct)")
-                .set("background", "var(--lumo-base-color)")
+                .set("background", "var(--lumo-contrast-5pct)")
                 .set("box-shadow", "0 -2px 10px rgba(0, 0, 0, 0.03)");
 
-        // Aggiungere effetto hover tramite classe CSS globale
+        // Injecting global styles like this can lead to duplications if called multiple times.
+        // Consider adding these to a global stylesheet or ensuring the script only adds the style tag once.
         UI.getCurrent().getPage().executeJs(
-                "document.head.innerHTML += '<style>" +
+                "if (!document.getElementById('custom-hover-active-styles')) {" +
+                        "  const styleElement = document.createElement('style');" +
+                        "  styleElement.id = 'custom-hover-active-styles';" +
+                        "  styleElement.innerHTML = '" +
                         ".hover-effect:hover { transform: translateY(-2px); }" +
                         "button:active { transform: scale(0.98); }" +
-                        "</style>';"
+                        "  ';" +
+                        "  document.head.appendChild(styleElement);" +
+                        "}"
         );
 
         nextButton.addClassName("hover-effect");
-
         CreditsComponent creditsLayout = new CreditsComponent();
-
-        // Aggiunta dei crediti e del bottone al layout del footer
         footerLayout.add(creditsLayout, nextButton);
-
         return footerLayout;
     }
 
@@ -168,21 +159,20 @@ public class StyleApp extends HorizontalLayout {
                 .set("border-radius", "30px")
                 .set("font-weight", "600")
                 .set("transition", "transform 0.2s ease");
-
         return nextButton;
     }
 
-    public static VerticalLayout getMainLayout(VerticalLayout content){
-        content.setSizeFull();
+    public static VerticalLayout getMainLayout(VerticalLayout content) {
+        content.setSizeUndefined();
         content.setPadding(false);
         content.setSpacing(false);
-        content.getStyle().set("min-height", "100vh");
-        content.getStyle().set("background-color", "var(--lumo-base-color)");
-
+        content.getStyle()
+                .set("min-height", "100vh")
+                .set("background", "var(--lumo-contrast-5pct)");
         return content;
     }
 
-    public static VerticalLayout getContentLayout(){
+    public static VerticalLayout getContentLayout() {
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.setWidth("100%");
         contentLayout.setMaxWidth("850px");
@@ -192,7 +182,6 @@ public class StyleApp extends HorizontalLayout {
         contentLayout.getStyle()
                 .set("margin", "0 auto")
                 .set("flex-grow", "1");
-
         return contentLayout;
     }
 }

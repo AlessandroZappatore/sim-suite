@@ -78,7 +78,7 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
                 "Liquidi e presidi",
                 "Inserisci i liquidi e presidi disponibili all'inizio della simulazione (T0)",
                 VaadinIcon.DROP,
-                "#4285F4"
+                "var(--lumo-primary-color)"
         );
 
         // 2. CONTENUTO PRINCIPALE

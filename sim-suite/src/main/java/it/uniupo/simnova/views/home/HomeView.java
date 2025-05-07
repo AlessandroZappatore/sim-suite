@@ -102,6 +102,7 @@ public class HomeView extends Composite<VerticalLayout> {
         credits.getStyle().set("border-color", "var(--lumo-contrast-10pct)");
         // Aggiunta dei componenti al layout
         getContent().add(header, title, subtitle, buttonContainer, credits);
+        getContent().getStyle().set("background-color", "var(--lumo-contrast-5pct)");
     }
 
     /**

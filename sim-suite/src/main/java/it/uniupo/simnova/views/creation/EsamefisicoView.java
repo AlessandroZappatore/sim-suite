@@ -44,6 +44,9 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
      * Servizio per la gestione degli scenari.
      */
     private final ScenarioService scenarioService;
+    /**
+     * Servizio per la gestione del caricamento dei file.
+     */
     private final FileStorageService fileStorageService;
     /**
      * ID dello scenario corrente.
@@ -83,7 +86,7 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
                 "ESAME FISICO",
                 "Definisci il briefing che verrà mostrato ai discenti prima della simulazione",
                 VaadinIcon.INFO_CIRCLE,
-                "#4285F4"
+                "var(--lumo-primary-color)"
         );
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);

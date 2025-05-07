@@ -78,7 +78,7 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
                 "Sceneggiatura",
                 "Inserisci la sceneggiatura dettagliata dello scenario corrente, includendo azioni, dialoghi ed eventi chiave",
                 VaadinIcon.FILE_TEXT,
-                "#4285F4"
+                "var(--lumo-primary-color)"
         );
 
 

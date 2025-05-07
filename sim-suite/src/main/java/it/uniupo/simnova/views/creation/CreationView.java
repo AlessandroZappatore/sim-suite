@@ -4,11 +4,11 @@ import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -16,6 +16,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
+import it.uniupo.simnova.views.home.StyleApp;
 
 /**
  * Vista principale per la creazione di nuovi scenari di simulazione.
@@ -40,18 +41,18 @@ public class CreationView extends Composite<VerticalLayout> {
     public CreationView(FileStorageService fileStorageService) {
         // Header dell'applicazione
         AppHeader header = new AppHeader(fileStorageService);
+        Button backButton = StyleApp.getBackButton();
 
-        // Titolo della pagina
-        H2 pageTitle = new H2("Creazione Scenario");
-        pageTitle.addClassNames(
-                LumoUtility.TextAlignment.CENTER,
-                LumoUtility.FontSize.XXXLARGE,
-                LumoUtility.FontWeight.BOLD,
-                LumoUtility.Margin.Bottom.XLARGE
+        VerticalLayout headerSection = StyleApp.getTitleSubtitle(
+                "Creazione Scenario",
+                "Seleziona il tipo di scenario da creare o visualizza gli scenari salvati",
+                VaadinIcon.HAMMER,
+                "var(--lumo-primary-text-color)"
         );
-        pageTitle.getStyle()
-                .set("color", "var(--lumo-primary-text-color)")
-                .set("text-shadow", "1px 1px 2px rgba(0,0,0,0.1)");
+
+        HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
+
+        VerticalLayout contentLayout = StyleApp.getContentLayout();
 
         // Creazione dei pulsanti per i diversi tipi di scenario
         Button quickScenarioButton = createScenarioButton(
@@ -83,13 +84,7 @@ public class CreationView extends Composite<VerticalLayout> {
         );
 
         // Configurazione pulsante indietro
-        Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
-        backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         backButton.addClickListener(e -> backButton.getUI().ifPresent(ui -> ui.navigate("")));
-        backButton.addClassNames(
-                LumoUtility.Margin.SMALL,
-                LumoUtility.Margin.Left.AUTO
-        );
 
         // Gestori degli eventi per i pulsanti
         quickScenarioButton.addClickListener(e ->
@@ -118,6 +113,8 @@ public class CreationView extends Composite<VerticalLayout> {
                 visualizzaScenari
         );
 
+        contentLayout.add(headerSection, contentContainer);
+
         // Configurazione layout principale
         VerticalLayout layout = getContent();
         layout.addClassName("creation-view");
@@ -129,12 +126,12 @@ public class CreationView extends Composite<VerticalLayout> {
         layout.getStyle().set("position", "relative"); // Necessario per posizionamento assoluto dei figli
 
         // Aggiunta componenti al layout
-        layout.add(header, backButton, pageTitle, contentContainer);
+        layout.add(customHeader,contentLayout);
 
         // Stili CSS personalizzati per la gestione responsive
         layout.getElement().getStyle().set("--short-desc-display", "none");
         layout.getElement().getStyle().set("--long-desc-display", "block");
-
+        layout.getElement().getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         // Media queries per la visualizzazione responsive
         layout.getElement().executeJs("""
             const style = document.createElement('style');
@@ -162,6 +159,7 @@ public class CreationView extends Composite<VerticalLayout> {
 
         CreditsComponent credits = new CreditsComponent();
         footerLayout.add(credits);
+        footerLayout.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
 
         layout.add(footerLayout);
     }
