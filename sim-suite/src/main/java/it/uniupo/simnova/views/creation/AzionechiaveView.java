@@ -4,8 +4,6 @@ import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -16,12 +14,11 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.*;
-import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
 import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
-import it.uniupo.simnova.views.home.CreditsComponent;
+import it.uniupo.simnova.views.home.StyleApp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,44 +76,24 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
         this.scenarioService = scenarioService;
 
         // Configurazione layout principale
-        VerticalLayout mainLayout = getContent();
-        mainLayout.setSizeFull();
-        mainLayout.setPadding(false);
-        mainLayout.setSpacing(false);
-        mainLayout.getStyle().set("min-height", "100vh");
+        VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
         // 1. HEADER con pulsante indietro e titolo
         AppHeader header = new AppHeader(fileStorageService);
-        Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
-        backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        backButton.getStyle().set("margin-right", "auto");
 
-        HorizontalLayout customHeader = new HorizontalLayout();
-        customHeader.setWidthFull();
-        customHeader.setPadding(true);
-        customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
-        customHeader.add(backButton, header);
+        Button backButton = StyleApp.getBackButton();
+
+        HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
         // 2. CONTENUTO PRINCIPALE con azioni chiave dinamiche
-        VerticalLayout contentLayout = new VerticalLayout();
-        contentLayout.setWidth("100%");
-        contentLayout.setMaxWidth("800px");
-        contentLayout.setPadding(true);
-        contentLayout.setSpacing(false);
-        contentLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        contentLayout.getStyle()
-                .set("margin", "0 auto")
-                .set("flex-grow", "1");
+        VerticalLayout contentLayout = StyleApp.getContentLayout();
 
-        H2 title = new H2("AZIONI CHIAVE E STRUMENTI VALUTATIVI");
-        title.addClassName(LumoUtility.Margin.Bottom.NONE);
-        title.getStyle().set("text-align", "center");
-        title.setWidthFull();
-
-        Paragraph subtitle = new Paragraph("Queste azioni saranno valutate e discusse durante il debriefing");
-        subtitle.addClassName(LumoUtility.Margin.Top.XSMALL);
-        subtitle.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
-        subtitle.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        VerticalLayout headerSection = StyleApp.getTitleSubtitle(
+                "AZIONI CHIAVE",
+                "Definisci le azioni chiave che saranno valutate durante il debriefing",
+                VaadinIcon.KEY,
+                "#4285F4"
+        );
 
         // Container per le azioni chiave
         actionFieldsContainer = new VerticalLayout();
@@ -129,26 +106,14 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
         addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addButton.addClickListener(e -> addNewActionField());
 
-        contentLayout.add(title, subtitle, actionFieldsContainer, addButton);
+        contentLayout.add(headerSection, actionFieldsContainer, addButton);
 
         // 3. FOOTER con pulsanti e crediti
-        HorizontalLayout footerLayout = new HorizontalLayout();
-        footerLayout.setWidthFull();
-        footerLayout.setPadding(true);
-        footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        footerLayout.addClassName(LumoUtility.Border.TOP);
-        footerLayout.getStyle().set("border-color", "var(--lumo-contrast-10pct)");
 
-        Button nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
-        nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        nextButton.setWidth("150px");
+        Button nextButton = StyleApp.getNextButton();
 
-        CreditsComponent credits = new CreditsComponent();
+        HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
-        footerLayout.add(credits, nextButton);
-
-        // Aggiunta componenti al layout principale
         mainLayout.add(customHeader, contentLayout, footerLayout);
 
         // Gestione eventi

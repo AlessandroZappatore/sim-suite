@@ -5,7 +5,6 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox; // Import Checkbox
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -18,12 +17,12 @@ import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.*;
-import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
 import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
+import it.uniupo.simnova.views.home.StyleApp;
 import it.uniupo.simnova.views.home.ValidationError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +37,6 @@ import java.util.stream.Stream;
 @Menu(order = 2)
 public class TargetView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     private final ScenarioService scenarioService;
-    private final FileStorageService fileStorageService; // Aggiunto per AppHeader
     private Integer scenarioId;
     private static final Logger logger = LoggerFactory.getLogger(TargetView.class);
     private String mode;
@@ -119,22 +117,49 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
     private final TextField altroField = new TextField();
 
     // Pulsanti Navigazione
-    private final Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
-    private final Button nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
+    private final Button nextButton = StyleApp.getNextButton();
 
 
     public TargetView(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
-        this.fileStorageService = fileStorageService;
+        // Aggiunto per AppHeader
 
         // Configurazione layout principale
-        configureMainLayout();
-        // Configurazione Header
-        configureHeader();
+        VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
+
+        AppHeader header = new AppHeader(fileStorageService);
+
+        Button backButton = StyleApp.getBackButton();
+
+        HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
+
+        VerticalLayout headerSection = StyleApp.getTitleSubtitle(
+                "TARGET E LEARNING GROUPS",
+                "Seleziona il destinatario per cui è progettato lo scenario di simulazione. Per alcune categorie, saranno richieste informazioni addizionali.",
+                VaadinIcon.USER_CARD,
+                "#4285F4"
+        );
+
+        VerticalLayout contentLayout = StyleApp.getContentLayout();
         // Configurazione Contenuto
-        configureContent();
+        configureContent(contentLayout);
         // Configurazione Footer
-        configureFooter();
+        Button nextButton = StyleApp.getNextButton();
+
+        HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
+
+        mainLayout.add(
+                customHeader,
+                headerSection,
+                contentLayout,
+                footerLayout
+        );
+
+        backButton.addClickListener(e ->
+                backButton.getUI().ifPresent(ui -> ui.navigate("startCreation/" + scenarioId)));
+
+        // Navigazione Avanti (con salvataggio)
+        nextButton.addClickListener(e -> saveTargetAndNavigate(e.getSource().getUI()));
         // Aggiunta Listener
         addListeners();
 
@@ -142,107 +167,8 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
         // hideAllConditionalLayouts(); // Opzionale ridondanza
     }
 
-    // --- Metodi Helper per UI ---
 
-    private void configureMainLayout() {
-        VerticalLayout mainLayout = getContent();
-        mainLayout.setSizeFull();
-        mainLayout.setPadding(false);
-        mainLayout.setSpacing(false);
-        mainLayout.getStyle().set("min-height", "100vh");
-        mainLayout.addClassName("target-view");
-    }
-
-    private void configureHeader() {
-        AppHeader header = new AppHeader(fileStorageService);
-        backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        backButton.getStyle()
-                .set("margin-right", "auto")
-                .set("transition", "all 0.2s ease")
-                .set("font-weight", "500");
-        backButton.addClassName("hover-effect");
-
-        HorizontalLayout customHeader = new HorizontalLayout(backButton, header);
-        customHeader.setWidthFull();
-        customHeader.setPadding(true);
-        customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
-        customHeader.getStyle().set("box-shadow", "0 2px 10px rgba(0, 0, 0, 0.05)");
-
-        getContent().add(customHeader);
-    }
-
-    private void configureContent() {
-        VerticalLayout contentLayout = new VerticalLayout();
-        contentLayout.setWidth("100%");
-        contentLayout.setMaxWidth("800px");
-        contentLayout.setPadding(true);
-        contentLayout.setSpacing(true);
-        contentLayout.setAlignItems(FlexComponent.Alignment.STRETCH);
-        contentLayout.getStyle()
-                .set("margin", "0 auto")
-                .set("flex-grow", "1");
-
-        VerticalLayout headerSection = new VerticalLayout();
-        headerSection.setPadding(true);
-        headerSection.setSpacing(false);
-        headerSection.setWidthFull();
-        headerSection.getStyle()
-                .set("background", "var(--lumo-base-color)")
-                .set("border-radius", "8px")
-                .set("margin-top", "1rem")
-                .set("margin-bottom", "1rem")
-                .set("box-shadow", "0 1px 3px rgba(0,0,0,0.1)");
-
-        // Crea un layout dedicato per icona e titolo
-        HorizontalLayout titleWithIconLayout = new HorizontalLayout();
-        titleWithIconLayout.setSpacing(true);
-        titleWithIconLayout.setPadding(false);
-        titleWithIconLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        titleWithIconLayout.getStyle().set("margin-bottom", "0.5rem");
-
-        // Stile dell'icona migliorato
-        Icon icon = new Icon(VaadinIcon.USER_CARD);
-        icon.setSize("2em");
-        icon.getStyle()
-                .set("margin-right", "0.75em")
-                .set("color", "#4285F4") // Colore blu Google-style
-                .set("background", "rgba(66, 133, 244, 0.1)")
-                .set("padding", "10px")
-                .set("border-radius", "50%");
-
-        // Intestazione Sezione
-        H2 title = new H2("TARGET E LEARNING GROUPS");
-        title.addClassName(LumoUtility.Margin.Bottom.NONE);
-        title.addClassName(LumoUtility.Margin.Top.NONE);
-        title.getStyle()
-                .set("text-align", "center")
-                .set("color", "#4285F4") // Colore blu Google-style
-                .set("font-weight", "600")
-                .set("letter-spacing", "0.5px");
-
-        titleWithIconLayout.add(icon, title);
-
-        HorizontalLayout headerLayout = new HorizontalLayout();
-        headerLayout.setWidthFull();
-        headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
-
-        headerLayout.add(titleWithIconLayout);
-
-        Paragraph subtitle = new Paragraph("Seleziona il destinatario per cui è progettato lo scenario di simulazione. " +
-                "Per alcune categorie, saranno richieste informazioni addizionali.");
-        subtitle.addClassName(LumoUtility.Margin.Top.XSMALL);
-        subtitle.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
-        subtitle.getStyle()
-                .set("color", "var(--lumo-secondary-text-color)")
-                .set("max-width", "750px")
-                .set("text-align", "center")  // Imposta l'allineamento del testo al centro
-                .set("font-weight", "400")
-                .set("line-height", "1.6")
-                .set("margin", "0 auto");
-        // Aggiunge margini automatici per centrare l'elemento stesso
-        headerSection.add(headerLayout, subtitle);
-        headerSection.setAlignItems(FlexComponent.Alignment.CENTER);
-
+    private void configureContent(VerticalLayout contentLayout) {
         // Setup RadioGroup principale
         setupTargetRadioGroup();
 
@@ -257,7 +183,6 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
 
         // Aggiunta componenti al layout contenuto
         contentLayout.add(
-                headerSection,
                 targetRadioGroup,
                 mediciAssistentiOptionsLayout,
                 mediciSpecialistiOptionsLayout,
@@ -269,39 +194,6 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
         );
 
         getContent().add(contentLayout);
-    }
-
-    private void configureFooter() {
-        HorizontalLayout footerLayout = new HorizontalLayout();
-        footerLayout.setWidthFull();
-        footerLayout.setPadding(true);
-        footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        footerLayout.addClassName(LumoUtility.Border.TOP);
-        footerLayout.getStyle()
-                .set("border-color", "var(--lumo-contrast-10pct)")
-                .set("background", "var(--lumo-base-color)")
-                .set("box-shadow", "0 -2px 10px rgba(0, 0, 0, 0.03)");
-
-        nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        nextButton.setWidth("150px");
-        nextButton.getStyle()
-                .set("border-radius", "30px")
-                .set("font-weight", "600")
-                .set("transition", "transform 0.2s ease");
-        nextButton.addClassName("hover-effect");
-
-        UI.getCurrent().getPage().executeJs(
-                "document.head.innerHTML += '<style>" +
-                        ".hover-effect:hover { transform: translateY(-2px); }" +
-                        "button:active { transform: scale(0.98); }" +
-                        "</style>';"
-        );
-
-        CreditsComponent credits = new CreditsComponent();
-
-        footerLayout.add(credits, nextButton);
-        getContent().add(footerLayout);
     }
 
     // Helper per creare i layout condizionali con stile comune
@@ -465,11 +357,7 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
 
     private void addListeners() {
         // Navigazione Indietro
-        backButton.addClickListener(e ->
-                backButton.getUI().ifPresent(ui -> ui.navigate("startCreation/" + scenarioId)));
 
-        // Navigazione Avanti (con salvataggio)
-        nextButton.addClickListener(e -> saveTargetAndNavigate(e.getSource().getUI()));
 
         // Listener per mostrare/nascondere opzioni aggiuntive
         targetRadioGroup.addValueChangeListener(event -> {

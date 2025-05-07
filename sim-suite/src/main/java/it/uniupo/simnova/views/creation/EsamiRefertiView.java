@@ -10,7 +10,6 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.formlayout.FormLayout.ResponsiveStep;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
@@ -35,6 +34,7 @@ import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
+import it.uniupo.simnova.views.home.StyleApp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +67,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
      * ID dello scenario corrente.
      */
     private Integer scenarioId;
-    Button nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
+    Button nextButton = StyleApp.getNextButton();
 
     private String mode;
     /**
@@ -101,43 +101,23 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         this.scenarioService = scenarioService;
         this.fileStorageService = fileStorageService;
 
-        VerticalLayout mainLayout = getContent();
-        mainLayout.setSizeFull();
-        mainLayout.setPadding(false);
-        mainLayout.setSpacing(false);
-        mainLayout.getStyle().set("min-height", "100vh");
+        VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
         // 1. HEADER con pulsante indietro
         AppHeader header = new AppHeader(fileStorageService);
-        Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
-        backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        backButton.getStyle().set("margin-right", "auto");
+        Button backButton = StyleApp.getBackButton();
 
-        HorizontalLayout customHeader = new HorizontalLayout(backButton, header);
-        customHeader.setWidthFull();
-        customHeader.setPadding(true);
-        customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
+        HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
         // 2. CONTENUTO PRINCIPALE con righe degli esami
-        VerticalLayout contentLayout = new VerticalLayout();
-        contentLayout.setWidth("100%");
-        contentLayout.setMaxWidth("1200px");
-        contentLayout.setPadding(true);
-        contentLayout.setSpacing(false);
-        contentLayout.getStyle()
-                .set("margin", "0 auto")
-                .set("flex-grow", "1");
+        VerticalLayout contentLayout = StyleApp.getContentLayout();
 
-        H2 title = new H2("ESAMI E REFERTI");
-        title.addClassName(LumoUtility.Margin.Bottom.NONE);
-        title.getStyle().set("text-align", "center");
-        title.setWidthFull();
-
-        Paragraph subtitle = new Paragraph("Aggiungi gli esami e i referti clinici per il tuo scenario di simulazione. Puoi caricare file multimediali e inserire referti testuali.");
-        subtitle.addClassName(LumoUtility.Margin.Top.XSMALL);
-        subtitle.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
-        subtitle.addClassName(LumoUtility.TextAlignment.CENTER);
-        subtitle.getStyle().set("color", "var(--lumo-secondary-text-color)");
+        VerticalLayout headerSection = StyleApp.getTitleSubtitle(
+                "Esami e Referti",
+                "Aggiungi gli esami e referti per il tuo scenario",
+                VaadinIcon.FILE,
+                "#4285F4"
+        );
 
         rowsContainer = new VerticalLayout();
         rowsContainer.setWidthFull();
@@ -148,23 +128,10 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         addButton.addClassName(LumoUtility.Margin.Top.MEDIUM);
         addButton.addClickListener(event -> addNewRow());
 
-        contentLayout.add(title, subtitle, rowsContainer, addButton);
+        contentLayout.add(headerSection, rowsContainer, addButton);
 
         // 3. FOOTER con pulsante avanti
-        HorizontalLayout footerLayout = new HorizontalLayout();
-        footerLayout.setWidthFull();
-        footerLayout.setPadding(true);
-        footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        footerLayout.addClassName(LumoUtility.Border.TOP);
-        footerLayout.getStyle().set("border-color", "var(--lumo-contrast-10pct)");
-
-        nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        nextButton.setWidth("150px");
-
-        CreditsComponent credits = new CreditsComponent();
-
-        footerLayout.add(credits, nextButton);
+        HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
         mainLayout.add(customHeader, contentLayout, footerLayout);
 

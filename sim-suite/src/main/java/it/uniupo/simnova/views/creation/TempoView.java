@@ -7,7 +7,6 @@ import com.vaadin.flow.component.checkbox.CheckboxGroup;
 import com.vaadin.flow.component.checkbox.CheckboxGroupVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
@@ -31,6 +30,7 @@ import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
+import it.uniupo.simnova.views.home.StyleApp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -162,18 +162,14 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         this.scenarioService = scenarioService;
 
         // Configurazione layout principale
-        VerticalLayout mainLayout = getContent();
-        mainLayout.setSizeFull();
-        mainLayout.setPadding(false);
-        mainLayout.setSpacing(false);
-        mainLayout.getStyle().set("min-height", "100vh"); // Assicura altezza minima
+        VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
         // 1. HEADER con pulsante indietro e titolo dell'applicazione
         AppHeader header = new AppHeader(fileStorageService);
 
         // Pulsante indietro con RouterLink per tornare alla vista precedente specifica
-        Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
-        backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        Button backButton = StyleApp.getBackButton();
+
         backButton.addClickListener(e -> {
             // Naviga indietro a seconda dello stato (es. a esameFisico se scenarioId è valido)
             if (scenarioId > 0) {
@@ -185,45 +181,19 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         });
 
         // Layout per l'header personalizzato (pulsante indietro + header app)
-        HorizontalLayout customHeader = new HorizontalLayout();
-        customHeader.setWidthFull();
-        customHeader.setPadding(true);
-        customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
-        customHeader.add(backButton, header);
-        customHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
         // 2. CONTENUTO PRINCIPALE
-        VerticalLayout contentLayout = new VerticalLayout();
-        contentLayout.setWidth("100%");
-        contentLayout.setMaxWidth("1200px"); // Larghezza massima per leggibilità
-        contentLayout.setPadding(true);
-        contentLayout.setSpacing(false); // Spaziatura gestita dai margini dei componenti
-        contentLayout.setAlignItems(FlexComponent.Alignment.CENTER); // Centra il contenuto
-        contentLayout.getStyle()
-                .set("margin", "0 auto") // Centra orizzontalmente il layout
-                .set("flex-grow", "1"); // Fa espandere il contenuto per riempire lo spazio
-
+        VerticalLayout contentLayout = StyleApp.getContentLayout();
         // Titolo della pagina
-        H2 pageTitle = new H2("DEFINIZIONE TEMPI SCENARIO");
-        pageTitle.addClassNames(
-                LumoUtility.TextAlignment.CENTER,
-                LumoUtility.Margin.Bottom.LARGE,
-                LumoUtility.Margin.Top.MEDIUM, // Aggiunto margine superiore
-                LumoUtility.Margin.Horizontal.AUTO
-        );
-        pageTitle.getStyle()
-                .set("font-size", "var(--lumo-font-size-xxl)")
-                .set("color", "var(--lumo-primary-text-color)")
-                .set("width", "100%");
-
-        // Testo di istruzioni per l'utente
-        Paragraph instructionText = new Paragraph(
+        VerticalLayout headerSection = StyleApp.getTitleSubtitle(
+                "DEFINIZIONE TEMPI SCENARIO",
                 "Definisci i tempi dello scenario (T0, T1, T2...). Per ogni tempo, specifica i parametri vitali, " +
                         "eventuali parametri aggiuntivi, l'azione richiesta per procedere e le transizioni possibili (Tempo SI / Tempo NO). " +
-                        "T0 rappresenta lo stato iniziale del paziente.");
-        instructionText.setWidth("100%");
-        instructionText.getStyle().set("font-size", "var(--lumo-font-size-m)");
-        instructionText.addClassNames(LumoUtility.TextAlignment.CENTER, LumoUtility.Margin.Bottom.LARGE);
+                        "T0 rappresenta lo stato iniziale del paziente.",
+                VaadinIcon.CLOCK,
+                "#4285F4"
+        );
 
         // Container per le sezioni dei tempi (T0, T1, T2...)
         timeSectionsContainer = new VerticalLayout();
@@ -237,38 +207,17 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         addTimeButton.addClickListener(event -> addTimeSection(timeCount++));
 
         // Aggiunta dei componenti al layout del contenuto
-        contentLayout.add(pageTitle, instructionText, timeSectionsContainer, addTimeButton);
+        contentLayout.add(headerSection, timeSectionsContainer, addTimeButton);
 
         // 3. FOOTER con crediti e pulsante Avanti
-        HorizontalLayout footerLayout = getHorizontalLayout();
-        footerLayout.getStyle().set("border-color", "var(--lumo-contrast-10pct)");
-
         // Pulsante per salvare e andare avanti
-        nextButton = new Button("Salva e Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
-        nextButton.setIconAfterText(true); // Icona a destra
-        nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        nextButton.setWidth("auto"); // Larghezza automatica
+        nextButton = StyleApp.getNextButton();
         nextButton.addClickListener(e -> saveAllTimeSections());
 
-        // Testo crediti
-        CreditsComponent credits = new CreditsComponent();
-
-        footerLayout.add(credits, nextButton);
+        HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
         // Assemblaggio finale: aggiunta header, contenuto e footer al layout principale
         mainLayout.add(customHeader, contentLayout, footerLayout);
-    }
-
-    private static HorizontalLayout getHorizontalLayout() {
-        HorizontalLayout footerLayout = new HorizontalLayout();
-        footerLayout.setWidthFull();
-        footerLayout.setPadding(true);
-        footerLayout.setSpacing(true); // Aggiunto spacing
-        footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        footerLayout.addClassName(LumoUtility.Margin.Top.LARGE); // Aggiunto margine sopra il footer
-        footerLayout.addClassName(LumoUtility.Border.TOP);
-        return footerLayout;
     }
 
     /**
@@ -988,6 +937,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
          * Area di testo per il ruolo del genitore.
          */
         private final TextArea ruoloGenitoreArea;
+
         /**
          * Costruttore per una sezione temporale.
          * Inizializza l'interfaccia utente (campi e layout) per questa sezione.
@@ -1119,7 +1069,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             layout.add(sectionTitle, timerPicker, medicalParamsForm, customParamsContainer, divider,
                     actionTitle, actionDetailsArea, timeSelectionContainer,
                     additionalDetailsArea);
-            if(scenarioService.isPediatric(scenarioId)) {
+            if (scenarioService.isPediatric(scenarioId)) {
                 layout.add(ruoloGenitoreArea);
             }
             // Aggiunge il pulsante Rimuovi solo se non è T0 (verrà nascosto se necessario)
@@ -1397,6 +1347,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             litriO2Field.setReadOnly(true);
             litriO2Field.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
+
         /**
          * Imposta il valore EtCO2 per T0 e rende il campo non modificabile.
          *

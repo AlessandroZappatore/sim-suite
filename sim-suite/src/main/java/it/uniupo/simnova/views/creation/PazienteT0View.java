@@ -7,12 +7,10 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
@@ -26,7 +24,8 @@ import it.uniupo.simnova.api.model.Accesso;
 import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
-import it.uniupo.simnova.views.home.CreditsComponent;
+import it.uniupo.simnova.views.home.FieldGenerator;
+import it.uniupo.simnova.views.home.StyleApp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,57 +120,68 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         this.scenarioService = scenarioService;
 
         // Configurazione layout principale
-        VerticalLayout mainLayout = getContent();
-        mainLayout.setSizeFull();
-        mainLayout.setPadding(false);
-        mainLayout.setSpacing(false);
-        mainLayout.getStyle().set("min-height", "100vh");
+        VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
         // 1. HEADER con pulsante indietro
         AppHeader header = new AppHeader(fileStorageService);
 
-        Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
-        backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        backButton.getStyle().set("margin-right", "auto");
+        Button backButton = StyleApp.getBackButton();
 
-        HorizontalLayout customHeader = new HorizontalLayout();
-        customHeader.setWidthFull();
-        customHeader.setPadding(true);
-        customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
-        customHeader.add(backButton, header);
+        HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
         // 2. CONTENUTO PRINCIPALE
-        VerticalLayout contentLayout = new VerticalLayout();
-        contentLayout.setWidth("100%");
-        contentLayout.setMaxWidth("800px");
-        contentLayout.setPadding(true);
-        contentLayout.setSpacing(false);
-        contentLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        contentLayout.getStyle()
-                .set("margin", "0 auto")
-                .set("flex-grow", "1");
+        VerticalLayout contentLayout = StyleApp.getContentLayout();
 
-        // Titolo sezione
-        H2 title = new H2("PARAMETRI VITALI PRINCIPALI IN T0");
-        title.addClassName(LumoUtility.Margin.Bottom.LARGE);
+        VerticalLayout headerSection = StyleApp.getTitleSubtitle(
+                "PARAMETRI VITALI PRINCIPALI IN T0",
+                "Definisci i parametri vitali principali del paziente T0",
+                VaadinIcon.HEART,
+                "#4285F4"
+
+        );
+
 
         // Campi parametri vitali
-        paField = createTextField();
-        paField.setRequired(true);
-        fcField = createNumberField("FC (bpm)", "(es. 72)");
-        fcField.setRequired(true);
-        rrField = createNumberField("RR (atti/min)", "(es. 16)");
-        rrField.setRequired(true);
-        tempField = createNumberField("Temperatura (°C)", "(es. 36.5)");
-        tempField.setRequired(true);
-        spo2Field = createNumberField("SpO₂ (%)", "(es. 98)");
-        spo2Field.setRequired(true);
-        fio2Field = createNumberField("FiO₂ (%)", "(es. 21)");
-        fio2Field.setRequired(false);
-        litrio2Field = createNumberField("L/min O₂", "(es. 5)");
-        litrio2Field.setRequired(false);
-        etco2Field = createNumberField("EtCO₂ (mmHg)", "(es. 35)");
-        etco2Field.setRequired(true);
+        paField = FieldGenerator.createTextField(
+                "PA (mmHg)",
+                "(es. 120/80)",
+                true
+        );
+        fcField = FieldGenerator.createNumberField(
+                "FC (battiti/min)",
+                "(es. 80)",
+                true
+        );
+        rrField = FieldGenerator.createNumberField(
+                "RR (att/min)",
+                "(es. 16)",
+                true
+        );
+        tempField = FieldGenerator.createNumberField(
+                "Temp. (°C)",
+                "(es. 36.5)",
+                true
+        );
+        spo2Field = FieldGenerator.createNumberField(
+                "SpO₂ (%)",
+                "(es. 98)",
+                true
+        );
+        fio2Field = FieldGenerator.createNumberField(
+                "FiO₂ (%)",
+                "(es. 21)",
+                false
+        );
+        litrio2Field = FieldGenerator.createNumberField(
+                "L/min O₂",
+                "(es. 5)",
+                false
+        );
+        etco2Field = FieldGenerator.createNumberField(
+                "EtCO₂ (mmHg)",
+                "(es. 35)",
+                true
+        );
 
         // Container per accessi venosi
         venosiContainer = new VerticalLayout();
@@ -232,38 +242,32 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         monitorArea.addClassName(LumoUtility.Margin.Top.LARGE);
 
         // Presidi
-        presidiSelect = new ComboBox<>("Presidi");
-        presidiSelect.setItems("Nessuno", "Catetere vescicale", "Sonda nasogastrica", "Altro");
-        presidiSelect.setPlaceholder("Seleziona un presidio");
-        presidiSelect.setWidthFull();
-
+        List<String> presidiList = List.of(
+                "Nessuno",
+                "Catetere vescicale",
+                "Sonda nasogastrica",
+                "Altro"
+        );
+        presidiSelect = FieldGenerator.createComboBox(
+                "Presidi",
+                presidiList,
+                null,
+                false
+        );
 
         // Aggiunta componenti al layout
         contentLayout.add(
-                title,
-                paField, fcField, rrField, tempField, spo2Field, fio2Field, litrio2Field,  etco2Field,
+                headerSection,
+                paField, fcField, rrField, tempField, spo2Field, fio2Field, litrio2Field, etco2Field,
                 venosiCheckbox, venosiContainer, addVenosiButton,
                 arteriosiCheckbox, arteriosiContainer, addArteriosiButton,
                 monitorArea, presidiSelect
         );
 
         // 3. FOOTER con pulsanti e crediti
-        HorizontalLayout footerLayout = new HorizontalLayout();
-        footerLayout.setWidthFull();
-        footerLayout.setPadding(true);
-        footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        footerLayout.addClassName(LumoUtility.Border.TOP);
-        footerLayout.getStyle().set("border-color", "var(--lumo-contrast-10pct)");
+        Button nextButton = StyleApp.getNextButton();
 
-        Button nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
-        nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        nextButton.setWidth("150px");
-
-        CreditsComponent credits = new CreditsComponent();
-
-        footerLayout.add(credits, nextButton);
-
+        HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
         // Aggiunta di tutti i componenti al layout principale
         mainLayout.add(
                 customHeader,
@@ -308,34 +312,6 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
     }
 
     /**
-     * Crea un campo di input numerico con etichetta e segnaposto.
-     *
-     * @param label      l'etichetta del campo
-     * @param placeholder il testo segnaposto
-     * @return il campo di input numerico creato
-     */
-    private NumberField createNumberField(String label, String placeholder) {
-        NumberField field = new NumberField(label);
-        field.setPlaceholder(placeholder);
-        field.setWidthFull();
-        field.setMin(0);
-        field.setStep(0.1);
-        field.addClassName(LumoUtility.Margin.Bottom.SMALL);
-        return field;
-    }
-    /**
-     * Crea un campo di input di testo con etichetta e segnaposto.
-     *
-     * @return il campo di input di testo creato
-     */
-    private TextField createTextField() {
-        TextField field = new TextField("PA (mmHg)");
-        field.setPlaceholder("(es. 120/80)");
-        field.setWidthFull();
-        field.addClassName(LumoUtility.Margin.Bottom.SMALL);
-        return field;
-    }
-    /**
      * Aggiunge un accesso venoso al layout e alla lista degli accessi.
      */
     private void addAccessoVenoso() {
@@ -363,6 +339,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         return !paField.isEmpty() && !fcField.isEmpty() && !rrField.isEmpty() &&
                 !tempField.isEmpty() && !spo2Field.isEmpty() && !etco2Field.isEmpty();
     }
+
     /**
      * Salva i dati del paziente e naviga alla vista successiva.
      *
@@ -448,7 +425,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         /**
          * Costruttore del componente di accesso.
          *
-         * @param tipo   il tipo di accesso (venoso o arterioso)
+         * @param tipo il tipo di accesso (venoso o arterioso)
          */
         public AccessoComponent(String tipo) {
             setWidthFull();

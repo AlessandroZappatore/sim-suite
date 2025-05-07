@@ -42,8 +42,7 @@ public class StyleApp extends HorizontalLayout {
      * @param iconColor Colore dell'icona (formato hex, es. "#4285F4")
      * @return Layout completo dell'header
      */
-    public static VerticalLayout createCustomHeader(String title, String subtitle, VaadinIcon icon, String iconColor) {
-
+    public static VerticalLayout getTitleSubtitle(String title, String subtitle, VaadinIcon icon, String iconColor) {
         H2 headerTitle = new H2(title.toUpperCase());
         headerTitle.addClassName(LumoUtility.Margin.Bottom.NONE);
         headerTitle.addClassName(LumoUtility.Margin.Top.NONE);
@@ -52,6 +51,7 @@ public class StyleApp extends HorizontalLayout {
         headerSection.setPadding(true);
         headerSection.setSpacing(false);
         headerSection.setWidthFull();
+        headerSection.setAlignItems(FlexComponent.Alignment.CENTER); // Allineamento centrale per tutti gli elementi
         headerSection.getStyle()
                 .set("background", "var(--lumo-base-color)")
                 .set("border-radius", "8px")
@@ -78,10 +78,10 @@ public class StyleApp extends HorizontalLayout {
 
         // Titolo con colore personalizzato
         headerTitle.getStyle()
-                .set("text-align", "center")
                 .set("color", iconColor)
                 .set("font-weight", "600")
-                .set("letter-spacing", "0.5px");
+                .set("letter-spacing", "0.5px")
+                .set("text-align", "center");
 
         // Aggiungi titolo e icona al layout dedicato
         titleWithIconLayout.add(iconComponent, headerTitle);
@@ -91,6 +91,13 @@ public class StyleApp extends HorizontalLayout {
         headerLayout.setWidthFull();
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         headerLayout.add(titleWithIconLayout);
+
+        // Contenitore per il sottotitolo per garantire il centramento
+        HorizontalLayout subtitleContainer = new HorizontalLayout();
+        subtitleContainer.setWidthFull();
+        subtitleContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        subtitleContainer.setPadding(false);
+        subtitleContainer.setSpacing(false);
 
         // Sottotitolo
         Paragraph subtitleParagraph = new Paragraph(subtitle);
@@ -103,8 +110,11 @@ public class StyleApp extends HorizontalLayout {
                 .set("font-weight", "400")
                 .set("line-height", "1.6");
 
+        // Aggiungi il sottotitolo al suo contenitore
+        subtitleContainer.add(subtitleParagraph);
+
         // Aggiunta componenti nell'ordine corretto
-        headerSection.add(headerLayout, subtitleParagraph);
+        headerSection.add(headerLayout, subtitleContainer);
 
         return headerSection;
     }

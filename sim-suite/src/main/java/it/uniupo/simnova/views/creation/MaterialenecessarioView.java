@@ -28,6 +28,7 @@ import it.uniupo.simnova.service.MaterialeService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.home.AppHeader;
 import it.uniupo.simnova.views.home.CreditsComponent;
+import it.uniupo.simnova.views.home.StyleApp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +60,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
     private List<Materiale> tuttiMateriali = new ArrayList<>();
     private TextField searchField;
     private String mode;
-    Button nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
+    Button nextButton = StyleApp.getNextButton();
 
 
     /**
@@ -74,51 +75,29 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         this.materialeService = materialeService;
 
         // ... (Configurazione layout principale, header, ecc. come prima) ...
-        VerticalLayout mainLayout = getContent();
-        mainLayout.setSizeFull();
-        mainLayout.setPadding(false);
-        mainLayout.setSpacing(false);
-        mainLayout.getStyle().set("min-height", "100vh");
+        VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
         // 1. HEADER
         AppHeader header = new AppHeader(fileStorageService);
-        Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
-        backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        backButton.getStyle().set("margin-right", "auto");
-        HorizontalLayout customHeader = new HorizontalLayout();
-        customHeader.setWidthFull();
-        customHeader.setPadding(true);
-        customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
-        customHeader.add(backButton, header);
+
+        Button backButton = StyleApp.getBackButton();
+
+        HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
         // 2. CONTENUTO PRINCIPALE
-        VerticalLayout contentLayout = new VerticalLayout();
-        contentLayout.setWidth("100%");
-        contentLayout.setMaxWidth("1000px"); // Manteniamo un max-width ragionevole
-        contentLayout.setPadding(true);
-        contentLayout.setSpacing(false); // Riduciamo lo spacing se necessario
-        contentLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        contentLayout.getStyle()
-                .set("margin", "0 auto")
-                .set("flex-grow", "1");
+        VerticalLayout contentLayout = StyleApp.getContentLayout();
 
-        H2 title = new H2("MATERIALE NECESSARIO");
-        title.addClassName(LumoUtility.Margin.Bottom.NONE);
-        title.getStyle().set("text-align", "center");
-        title.setWidthFull();
-
-        Paragraph instructions = new Paragraph("Seleziona i materiali necessari per l'allestimento della sala o aggiungine di nuovi");
-        instructions.addClassName(LumoUtility.TextColor.SECONDARY);
-        instructions.addClassName(LumoUtility.FontSize.MEDIUM);
-        instructions.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
+        VerticalLayout headerSection = StyleApp.getTitleSubtitle(
+                "Materiale necessario",
+                "Seleziona i materiali necessari per l'allestimento della sala o aggiungine di nuovi",
+                VaadinIcon.BED,
+                "#4285F4"
+        );
 
         // Grid per i materiali disponibili
         materialiDisponibiliGrid = new Grid<>();
         materialiDisponibiliGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
-        // --- RIMUOVI ALTEZZA FISSA ---
-        // materialiDisponibiliGrid.setHeight("250px");
-        materialiDisponibiliGrid.setAllRowsVisible(true); // Mostra tutte le righe adattando l'altezza
-        // --- FINE RIMOZIONE ---
+        materialiDisponibiliGrid.setAllRowsVisible(true);
         materialiDisponibiliGrid.addColumn(Materiale::getNome).setHeader("Materiale disponibile").setFlexGrow(1); // Lascia flexGrow qui
         materialiDisponibiliGrid.addColumn(Materiale::getDescrizione).setHeader("Descrizione").setFlexGrow(2); // Lascia flexGrow qui
         materialiDisponibiliGrid.addColumn(
@@ -157,10 +136,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         // Grid per i materiali selezionati
         materialiSelezionatiGrid = new Grid<>();
         materialiSelezionatiGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
-        // --- RIMUOVI ALTEZZA FISSA ---
-        // materialiSelezionatiGrid.setHeight("250px");
-        materialiSelezionatiGrid.setAllRowsVisible(true); // Mostra tutte le righe adattando l'altezza
-        // --- FINE RIMOZIONE ---
+        materialiSelezionatiGrid.setAllRowsVisible(true);
         materialiSelezionatiGrid.addColumn(Materiale::getNome).setHeader("Materiale selezionato").setFlexGrow(1); // Lascia flexGrow qui
         materialiSelezionatiGrid.addColumn(Materiale::getDescrizione).setHeader("Descrizione").setFlexGrow(2); // Lascia flexGrow qui
         materialiSelezionatiGrid.addColumn(
@@ -212,26 +188,12 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                 materialiSelezionatiGrid
         );
         gridsLayout.add(disponibiliLayout, selezionatiLayout);
-        // Optional: Fai in modo che i layout interni si espandano correttamente
-        // gridsLayout.expand(disponibiliLayout, selezionatiLayout); // In alternativa a setWidth("50%")
+        gridsLayout.expand(disponibiliLayout, selezionatiLayout);
 
-        contentLayout.add(title, instructions, gridsLayout); // Aggiungi gridsLayout qui
+        contentLayout.add(headerSection, gridsLayout);
 
         // 3. FOOTER (come prima)
-        HorizontalLayout footerLayout = new HorizontalLayout();
-        footerLayout.setWidthFull();
-        footerLayout.setPadding(true);
-        footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        footerLayout.addClassName(LumoUtility.Border.TOP);
-        footerLayout.getStyle().set("border-color", "var(--lumo-contrast-10pct)");
-
-        nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        nextButton.setWidth("150px");
-
-        CreditsComponent credits = new CreditsComponent();
-
-        footerLayout.add(credits, nextButton);
+        HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
         mainLayout.add(
                 customHeader,

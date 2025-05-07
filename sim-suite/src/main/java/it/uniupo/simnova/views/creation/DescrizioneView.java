@@ -70,7 +70,7 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
         // Modernizzare il pulsante indietro
         Button backButton = StyleApp.getBackButton();
 
-        VerticalLayout headerSection = StyleApp.createCustomHeader(
+        VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "DESCRIZIONE DELLO SCENARIO",
                 "Inserisci una descrizione dettagliata dello scenario di simulazione. Questa descrizione fornirà il contesto generale e le informazioni di background ai partecipanti.",
                 VaadinIcon.PENCIL,
