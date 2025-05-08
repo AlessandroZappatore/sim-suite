@@ -23,9 +23,10 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Accesso;
 import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
-import it.uniupo.simnova.views.home.AppHeader;
-import it.uniupo.simnova.views.home.FieldGenerator;
-import it.uniupo.simnova.views.home.StyleApp;
+import it.uniupo.simnova.views.support.AppHeader;
+import it.uniupo.simnova.views.support.FieldGenerator;
+import it.uniupo.simnova.views.support.StyleApp;
+import it.uniupo.simnova.views.support.ValidationError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -212,8 +213,9 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         addArteriosiButton.setVisible(false); // Inizialmente nascosto
         addArteriosiButton.addClickListener(e -> addAccessoArterioso());
 
-        Checkbox venosiCheckbox = new Checkbox("Accessi venosi");
-        venosiCheckbox.addClassName(LumoUtility.Margin.Top.MEDIUM);
+        Checkbox venosiCheckbox = FieldGenerator.createCheckbox(
+                "Accessi venosi"
+        );
         venosiCheckbox.addValueChangeListener(e -> {
             venosiContainer.setVisible(e.getValue());
             addVenosiButton.setVisible(e.getValue()); // Mostra/nascondi il pulsante
@@ -223,8 +225,9 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
             }
         });
 
-        Checkbox arteriosiCheckbox = new Checkbox("Accessi arteriosi");
-        arteriosiCheckbox.addClassName(LumoUtility.Margin.Top.MEDIUM);
+        Checkbox arteriosiCheckbox = FieldGenerator.createCheckbox(
+                "Accessi arteriosi"
+        );
         arteriosiCheckbox.addValueChangeListener(e -> {
             arteriosiContainer.setVisible(e.getValue());
             addArteriosiButton.setVisible(e.getValue()); // Mostra/nascondi il pulsante
@@ -235,11 +238,11 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         });
 
         // Area testo per monitor
-        monitorArea = new TextArea("Monitoraggio");
-        monitorArea.setPlaceholder("Specificare dettagli ECG o altri parametri...");
-        monitorArea.setWidthFull();
-        monitorArea.setMinHeight("150px");
-        monitorArea.addClassName(LumoUtility.Margin.Top.LARGE);
+        monitorArea = FieldGenerator.createTextArea(
+                "Monitoraggio",
+                "Specificare dettagli ECG o altri parametri...",
+                false
+        );
 
         // Presidi
         List<String> presidiList = List.of(
@@ -281,7 +284,6 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
 
         nextButton.addClickListener(e -> {
             if (!validateInput()) {
-                Notification.show("Compila tutti i campi obbligatori", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
                 return;
             }
             saveDataAndNavigate(nextButton.getUI());
@@ -335,9 +337,21 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
      * @return true se tutti i campi sono validi, false altrimenti
      */
     private boolean validateInput() {
-        // Validazione dei campi obbligatori
-        return !paField.isEmpty() && !fcField.isEmpty() && !rrField.isEmpty() &&
-                !tempField.isEmpty() && !spo2Field.isEmpty() && !etco2Field.isEmpty();
+        boolean isValid = true;
+        if (paField.isEmpty())
+            isValid = ValidationError.showErrorAndReturnFalse(paField, "PA non valido");
+        if (fcField.isEmpty())
+            isValid = ValidationError.showErrorAndReturnFalse(fcField, "FC non valido");
+        if (rrField.isEmpty())
+            isValid = ValidationError.showErrorAndReturnFalse(rrField, "RR non valido");
+        if (tempField.isEmpty())
+            isValid = ValidationError.showErrorAndReturnFalse(tempField, "Temperatura non valida");
+        if (spo2Field.isEmpty())
+            isValid = ValidationError.showErrorAndReturnFalse(spo2Field, "SpO₂ non valido");
+        if (etco2Field.isEmpty())
+            isValid = ValidationError.showErrorAndReturnFalse(etco2Field, "EtCO₂ non valido");
+
+        return isValid;
     }
 
     /**
@@ -435,37 +449,46 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
             // Inizializza l'oggetto Accesso con valori di default
             this.accesso = new Accesso(0, "", "", "", 0);
 
-            tipoSelect = new Select<>();
-            tipoSelect.setLabel("Tipo accesso " + tipo);
-            if (tipo.equals("Venoso")) {
-                tipoSelect.setItems(
-                        "Periferico", "Centrale", "CVC a breve termine", "CVC tunnellizzato",
-                        "PICC", "Midline", "Intraosseo", "PORT", "Dialysis catheter", "Altro"
-                );
-            } else {
+            tipoSelect = FieldGenerator.createSelect(
+                    "Tipo accesso " + tipo,
+                    List.of("Periferico", "Centrale", "CVC a breve termine", "CVC tunnellizzato",
+                            "PICC", "Midline", "Intraosseo", "PORT", "Dialysis catheter", "Altro"),
+                    null,
+                    true
+            );
+            if (tipo.equals("Arterioso")) {
                 tipoSelect.setItems(
                         "Radiale", "Femorale", "Omerale", "Brachiale", "Ascellare", "Pedidia", "Altro"
                 );
             }
-            tipoSelect.setWidth("200px");
+
             tipoSelect.addValueChangeListener(e -> {
                 if (e.getValue() != null) {
                     accesso.setTipologia(e.getValue());
                 }
             });
 
-            posizioneField = new TextField("Posizione");
-            posizioneField.setWidthFull();
+            posizioneField = FieldGenerator.createTextField(
+                    "Posizione",
+                    "(es. avambraccio, collo, torace)",
+                    true
+            );
             posizioneField.addValueChangeListener(e -> accesso.setPosizione(e.getValue()));
 
-            latoSelect = new ComboBox<>("Lato");
-            latoSelect.setItems("DX", "SX");
-            latoSelect.setWidth("100px");
+            latoSelect = FieldGenerator.createComboBox(
+                    "Lato",
+                    List.of("DX", "SX"),
+                    null,
+                    true
+            );
             latoSelect.addValueChangeListener(e -> accesso.setLato(e.getValue()));
 
-            misuraSelect = new ComboBox<>("Misura (Gauge)");
-            misuraSelect.setItems(14, 16, 18, 20, 22, 24, 26);
-            misuraSelect.setWidth("100px");
+            misuraSelect = FieldGenerator.createComboBox(
+                    "Misura (Gauge)",
+                    List.of(14, 16, 18, 20, 22, 24, 26),
+                    null,
+                    true
+            );
             misuraSelect.addValueChangeListener(e -> accesso.setMisura(e.getValue()));
 
             Button removeButton = new Button(new Icon(VaadinIcon.TRASH));

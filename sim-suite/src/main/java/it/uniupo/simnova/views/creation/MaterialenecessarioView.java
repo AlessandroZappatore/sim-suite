@@ -26,9 +26,9 @@ import it.uniupo.simnova.api.model.Materiale;
 import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.MaterialeService;
 import it.uniupo.simnova.service.ScenarioService;
-import it.uniupo.simnova.views.home.AppHeader;
-import it.uniupo.simnova.views.home.CreditsComponent;
-import it.uniupo.simnova.views.home.StyleApp;
+import it.uniupo.simnova.views.support.AppHeader;
+import it.uniupo.simnova.views.support.CreditsComponent;
+import it.uniupo.simnova.views.support.StyleApp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

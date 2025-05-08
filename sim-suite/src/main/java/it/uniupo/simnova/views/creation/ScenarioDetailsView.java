@@ -21,7 +21,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.*;
 import it.uniupo.simnova.service.MaterialeService;
 import it.uniupo.simnova.service.ScenarioService;
-import it.uniupo.simnova.views.home.CreditsComponent;
+import it.uniupo.simnova.views.support.CreditsComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

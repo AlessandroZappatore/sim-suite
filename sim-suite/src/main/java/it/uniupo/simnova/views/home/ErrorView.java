@@ -11,6 +11,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.service.FileStorageService;
+import it.uniupo.simnova.views.support.AppHeader;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**

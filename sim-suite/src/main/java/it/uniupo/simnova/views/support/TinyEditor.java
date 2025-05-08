@@ -1,4 +1,4 @@
-package it.uniupo.simnova.views.home;
+package it.uniupo.simnova.views.support;
 
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import org.vaadin.tinymce.TinyMce;

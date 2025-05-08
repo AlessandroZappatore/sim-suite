@@ -28,10 +28,10 @@ import it.uniupo.simnova.api.model.PazienteT0;
 import it.uniupo.simnova.api.model.Tempo;
 import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
-import it.uniupo.simnova.views.home.AppHeader;
-import it.uniupo.simnova.views.home.CreditsComponent;
-import it.uniupo.simnova.views.home.FieldGenerator;
-import it.uniupo.simnova.views.home.StyleApp;
+import it.uniupo.simnova.views.support.AppHeader;
+import it.uniupo.simnova.views.support.CreditsComponent;
+import it.uniupo.simnova.views.support.FieldGenerator;
+import it.uniupo.simnova.views.support.StyleApp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,6 +97,15 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
      */
     private static final Logger logger = LoggerFactory.getLogger(TempoView.class);
 
+    private static final String[] BORDER_COLORS = {
+            "var(--lumo-primary-color)",          // Primario
+            "var(--lumo-error-color)",            // Rosso
+            "var(--lumo-success-color)",          // Verde
+            "#FFB74D",                            // Arancione
+            "#9575CD",                            // Viola
+            "#4DD0E1",                            // Azzurro
+            "#F06292"                             // Rosa
+    };
     static {
         // Popolamento della mappa dei parametri aggiuntivi predefiniti
         // (Cardiologia / Monitor Multiparametrico)
@@ -595,39 +604,6 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
     }
 
     /**
-     * Crea un campo numerico ({@link NumberField}) per parametri medici con etichetta e unità.
-     *
-     * @param label etichetta del campo (es. "FC (bpm)")
-     * @param unit  unità di misura da mostrare come suffisso (es. "battiti/min")
-     * @return il campo {@link NumberField} configurato
-     */
-    private NumberField createMedicalField(String label, String unit) {
-        NumberField field = new NumberField(label);
-        if (unit != null && !unit.isEmpty()) {
-            field.setSuffixComponent(new Paragraph(unit)); // Mostra l'unità alla fine
-        }
-        field.setWidthFull(); // Occupa tutta la larghezza disponibile nel layout
-        // field.addClassName(LumoUtility.Margin.Bottom.SMALL); // Margine inferiore (gestito dal FormLayout)
-        return field;
-    }
-
-    /**
-     * Crea un campo di testo ({@link TextField}) specifico per la Pressione Arteriosa (PA).
-     * Include l'unità "mmHg" come suffisso.
-     *
-     * @return il campo {@link TextField} configurato per la PA
-     */
-    private TextField createTextFieldPA() { // Rinominato per chiarezza
-        TextField field = new TextField("PA (Sist/Diast)"); // Etichetta più descrittiva
-        field.setSuffixComponent(new Paragraph("mmHg"));
-        field.setWidthFull();
-        // field.addClassName(LumoUtility.Margin.Bottom.SMALL); // Margine inferiore (gestito dal FormLayout)
-        // Potrebbe avere un pattern per validazione: es. field.setPattern("\\d{1,3}/\\d{1,3}");
-        field.setPlaceholder("es. 120/80");
-        return field;
-    }
-
-    /**
      * Carica i dati iniziali per la sezione T0 (stato iniziale del paziente).
      * Recupera i parametri da {@link PazienteT0} associato allo scenario.
      * Se i dati sono presenti, li precompila nei campi della sezione T0 rendendoli non modificabili.
@@ -955,6 +931,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             layout.addClassName(LumoUtility.BorderRadius.MEDIUM); // Angoli arrotondati
             layout.setPadding(true);
             layout.setSpacing(false); // Spaziatura gestita dai margini interni
+            layout.getStyle().set("border-left", "4px solid " + getBorderColor(timeNumber));
 
             // Titolo della sezione (es. "Tempo T1")
             Paragraph sectionTitle = new Paragraph("Tempo T" + timeNumber);
@@ -970,24 +947,27 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             medicalParamsForm = new FormLayout();
             medicalParamsForm.setResponsiveSteps(
                     new FormLayout.ResponsiveStep("0", 1), // 1 colonna su schermi piccoli
-                    new FormLayout.ResponsiveStep("500px", 2), // 2 colonne da 500px in su
-                    new FormLayout.ResponsiveStep("800px", 3) // 3 colonne da 800px in su
+                    new FormLayout.ResponsiveStep("500px", 2)  // 2 colonne da 500px in su
             );
             medicalParamsForm.setWidthFull();
 
-            // Creazione campi parametri base
-            paField = createTextFieldPA(); // Usa il metodo helper specifico per PA
-            fcField = createMedicalField("FC", "bpm");
-            rrField = createMedicalField("FR", "atti/min");
-            tField = createMedicalField("Temp.", "°C");
-            spo2Field = createMedicalField("SpO₂", "%");
-            fio2Field = createMedicalField("FiO₂", "%");
-            litriO2Field = createMedicalField("Litri O₂", "L/min");
-            etco2Field = createMedicalField("EtCO₂", "mmHg");
+            // Creazione campi parametri base usando FieldGenerator
+            paField = FieldGenerator.createTextField("PA (Sist/Diast)", "es. 120/80", true);
+            paField.setSuffixComponent(new Paragraph("mmHg"));
+            paField.getStyle().set("max-width", "320px");
+
+            fcField = FieldGenerator.createMedicalField("FC", "(es. 80)", true, "bpm");
+            rrField = FieldGenerator.createMedicalField("FR", "(es. 16)", true, "atti/min");
+            tField = FieldGenerator.createMedicalField("Temp.", "(es. 36.5)", true, "°C");
+            spo2Field = FieldGenerator.createMedicalField("SpO₂", "(es. 98)", true, "%");
+            fio2Field = FieldGenerator.createMedicalField("FiO₂", "(es. 21)", false, "%");
+            litriO2Field = FieldGenerator.createMedicalField("Litri O₂", "(es. 5)", false, "L/min");
+            etco2Field = FieldGenerator.createMedicalField("EtCO₂", "(es. 35)", true, "mmHg");
 
             // Aggiunta campi al FormLayout
             medicalParamsForm.add(paField, fcField, rrField, tField, spo2Field, fio2Field, litriO2Field, etco2Field);
-            medicalParamsForm.addClassName(LumoUtility.Margin.Bottom.MEDIUM); // Spazio sotto i parametri base
+            medicalParamsForm.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
+
 
             // Container per i parametri aggiuntivi (verrà popolato dinamicamente)
             customParamsContainer = new VerticalLayout();
@@ -1007,7 +987,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             actionDetailsArea = FieldGenerator.createTextArea(
                     "Azione richiesta / Evento scatenante per procedere da T" + timeNumber,
                     "Es. Somministrare farmaco X, Rilevare parametro Y, Domanda al paziente...",
-                     false
+                    false
             );
             // Container per i campi TSi / TNo
             HorizontalLayout timeSelectionContainer = new HorizontalLayout();
@@ -1015,24 +995,27 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             timeSelectionContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER); // Centra il FormLayout interno
 
             // FormLayout per TSi / TNo
-            FormLayout timeSelectionForm = new FormLayout();
-            timeSelectionForm.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 2)); // Sempre 2 colonne
-            timeSelectionForm.setWidth("auto"); // Larghezza basata sul contenuto
+            HorizontalLayout timeSelectionLayout = new HorizontalLayout();
+            timeSelectionLayout.setWidthFull();
+            timeSelectionLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+            timeSelectionLayout.setAlignItems(FlexComponent.Alignment.BASELINE); // Allinea i componenti sulla stessa linea di base
+            timeSelectionLayout.setSpacing(true);
 
-            timeIfYesField = new IntegerField("Se SI, vai a T:");
-            timeIfYesField.setMin(0); // Può puntare a T0
-            timeIfYesField.setStepButtonsVisible(true); // Pulsanti +/-
-            timeIfYesField.setWidth("150px"); // Larghezza fissa
-            timeIfYesField.setPlaceholder("ID Tempo");
+            timeIfYesField = FieldGenerator.createTimeNavigationField(
+                    "Se SI, vai a T:",
+                    "ID Tempo",
+                    true
+            );
 
-            timeIfNoField = new IntegerField("Se NO, vai a T:");
-            timeIfNoField.setMin(0); // Può puntare a T0
-            timeIfNoField.setStepButtonsVisible(true);
-            timeIfNoField.setWidth("150px");
-            timeIfNoField.setPlaceholder("ID Tempo");
+            timeIfNoField = FieldGenerator.createTimeNavigationField(
+                    "Se NO, vai a T:",
+                    "ID Tempo",
+                    true
+            );
 
-            timeSelectionForm.add(timeIfYesField, timeIfNoField);
-            timeSelectionContainer.add(timeSelectionForm);
+            // Aggiungi i campi direttamente al layout orizzontale
+            timeSelectionLayout.add(timeIfYesField, timeIfNoField);
+            timeSelectionContainer.add(timeSelectionLayout);
             timeSelectionContainer.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
 
             additionalDetailsArea = FieldGenerator.createTextArea(
@@ -1349,5 +1332,9 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             etco2Field.setReadOnly(true);
             etco2Field.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         }
+    }
+
+    private String getBorderColor(int timeNumber) {
+        return BORDER_COLORS[(timeNumber) % BORDER_COLORS.length];
     }
 }

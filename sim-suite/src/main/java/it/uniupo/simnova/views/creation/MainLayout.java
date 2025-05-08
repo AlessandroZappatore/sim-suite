@@ -3,7 +3,7 @@ package it.uniupo.simnova.views.creation;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.RouterLayout;
 import it.uniupo.simnova.service.FileStorageService;
-import it.uniupo.simnova.views.home.AppHeader;
+import it.uniupo.simnova.views.support.AppHeader;
 
 /**
  * Layout principale per le viste di creazione degli scenari.

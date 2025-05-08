@@ -13,7 +13,10 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.*;
 import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
-import it.uniupo.simnova.views.home.*;
+import it.uniupo.simnova.views.support.AppHeader;
+import it.uniupo.simnova.views.support.FieldGenerator;
+import it.uniupo.simnova.views.support.StyleApp;
+import it.uniupo.simnova.views.support.ValidationError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

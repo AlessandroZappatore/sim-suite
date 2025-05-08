@@ -1,11 +1,14 @@
-package it.uniupo.simnova.views.home;
+package it.uniupo.simnova.views.support;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
@@ -146,6 +149,52 @@ public class FieldGenerator extends HorizontalLayout {
         return comboBox;
     }
 
+    /**
+     * Crea e configura un Select generico con stile avanzato.
+     *
+     * @param <T>          tipo di dati contenuti nel Select (String, Integer, ecc.)
+     * @param label        Etichetta del campo
+     * @param items        Collezione di valori disponibili
+     * @param defaultValue Valore predefinito
+     * @param required     Indica se il campo è obbligatorio
+     * @return Select configurato con stile migliorato
+     */
+    public static <T> Select<T> createSelect(String label, Collection<T> items, T defaultValue, boolean required) {
+        Select<T> select = new Select<>();
+        select.setLabel(label);
+        select.setItems(items);
+
+        if (defaultValue != null) {
+            select.setValue(defaultValue);
+        }
+
+        select.setWidthFull();
+        select.getStyle()
+                .set("max-width", "500px")
+                .set("border-radius", "var(--lumo-border-radius-m)")
+                .set("box-shadow", "var(--lumo-box-shadow-xs)")
+                .set("transition", "box-shadow 0.3s ease-in-out");
+
+        // Aggiunge un effetto hover e focus
+        select.getElement().getStyle()
+                .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
+        select.getElement().executeJs(
+                "this.addEventListener('mouseover', function() { this.style.boxShadow = 'var(--lumo-box-shadow-s)'; });" +
+                        "this.addEventListener('mouseout', function() { this.style.boxShadow = 'var(--lumo-box-shadow-xs)'; });"
+        );
+
+        select.addClassName(LumoUtility.Margin.Top.LARGE);
+        select.addClassName(LumoUtility.Padding.SMALL);
+
+        if (required) {
+            select.getStyle().set("border-left", "3px solid var(--lumo-primary-color)");
+        } else {
+            select.getStyle().set("border-left", "3px solid var(--lumo-success-color-50pct)");
+        }
+
+        return select;
+    }
+
     public static NumberField createMedicalField(String label, String placeholder, boolean required, String unit) {
         NumberField field = createNumberField(label, placeholder, required);
 
@@ -153,6 +202,8 @@ public class FieldGenerator extends HorizontalLayout {
             Paragraph unitLabel = new Paragraph(unit);
             field.setSuffixComponent(unitLabel);
         }
+
+        field.getStyle().set("max-width", "320px");
         return field;
     }
 
@@ -163,7 +214,8 @@ public class FieldGenerator extends HorizontalLayout {
         textArea.getStyle()
                 .set("border-radius", "var(--lumo-border-radius-m)")
                 .set("box-shadow", "var(--lumo-box-shadow-xs)")
-                .set("transition", "box-shadow 0.3s ease-in-out");
+                .set("transition", "box-shadow 0.3s ease-in-out")
+                .set("min-height", "100px");
         textArea.getElement().getStyle()
                 .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
         textArea.getElement().executeJs(
@@ -185,11 +237,29 @@ public class FieldGenerator extends HorizontalLayout {
     }
 
     public static HorizontalLayout createTimerPickerWithPresets(String label) {
-        // Creo il TimePicker base
+        // Creo il TimePicker base con lo stesso stile degli altri componenti
         TimePicker timerPicker = new TimePicker(label);
         timerPicker.setStep(Duration.ofSeconds(1));
         timerPicker.setPlaceholder("hh:mm:ss");
         timerPicker.setClearButtonVisible(true);
+
+        // Applico lo stile consistente con gli altri componenti
+        timerPicker.getStyle()
+                .set("border-radius", "var(--lumo-border-radius-m)")
+                .set("box-shadow", "var(--lumo-box-shadow-xs)")
+                .set("transition", "box-shadow 0.3s ease-in-out")
+                .set("border-left", "3px solid var(--lumo-success-color-50pct)"); // Bordo verde (non obbligatorio)
+
+        // Aggiungo effetto hover e focus
+        timerPicker.getElement().getStyle()
+                .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
+        timerPicker.getElement().executeJs(
+                "this.addEventListener('mouseover', function() { this.style.boxShadow = 'var(--lumo-box-shadow-s)'; });" +
+                        "this.addEventListener('mouseout', function() { this.style.boxShadow = 'var(--lumo-box-shadow-xs)'; });"
+        );
+
+        timerPicker.addClassName(LumoUtility.Margin.Top.LARGE);
+        timerPicker.addClassName(LumoUtility.Padding.SMALL);
 
         // Layout che conterrà TimePicker e pulsanti
         HorizontalLayout timerLayout = new HorizontalLayout();
@@ -217,4 +287,71 @@ public class FieldGenerator extends HorizontalLayout {
 
         return timerLayout;
     }
+
+    /**
+     * Crea e configura una checkbox con stile avanzato.
+     *
+     * @param label Etichetta della checkbox
+     * @return Checkbox configurata con stile migliorato
+     */
+    public static Checkbox createCheckbox(String label) {
+        Checkbox checkbox = new Checkbox(label);
+
+        checkbox.getStyle()
+                .set("margin-top", "var(--lumo-space-m)")
+                .set("padding", "var(--lumo-space-s)")
+                .set("transition", "opacity 0.3s ease-in-out");
+
+        // Aggiunge un effetto hover
+        checkbox.getElement().executeJs(
+                "this.addEventListener('mouseover', function() { this.style.opacity = '0.85'; });" +
+                        "this.addEventListener('mouseout', function() { this.style.opacity = '1'; });"
+        );
+
+        checkbox.addClassName(LumoUtility.Margin.Top.MEDIUM);
+
+        return checkbox;
+    }
+
+    /**
+     * Crea un campo IntegerField per la navigazione condizionale tra tempi.
+     *
+     * @param label       Etichetta del campo (es. "Se SI, vai a T:")
+     * @param placeholder Placeholder del campo (default: "ID Tempo")
+     * @param required    Indica se il campo è obbligatorio
+     * @return IntegerField configurato per la navigazione tra tempi
+     */
+    public static IntegerField createTimeNavigationField(String label, String placeholder, boolean required) {
+        IntegerField field = new IntegerField(label);
+        field.setMin(0);                      // Può puntare a T0
+        field.setStepButtonsVisible(true);    // Pulsanti +/-
+        field.setWidth("150px");              // Larghezza fissa
+        field.setPlaceholder(placeholder != null ? placeholder : "ID Tempo");
+
+        field.getStyle()
+                .set("border-radius", "var(--lumo-border-radius-m)")
+                .set("box-shadow", "var(--lumo-box-shadow-xs)")
+                .set("transition", "box-shadow 0.3s ease-in-out");
+
+        // Aggiunge un effetto hover e focus
+        field.getElement().getStyle()
+                .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
+        field.getElement().executeJs(
+                "this.addEventListener('mouseover', function() { this.style.boxShadow = 'var(--lumo-box-shadow-s)'; });" +
+                        "this.addEventListener('mouseout', function() { this.style.boxShadow = 'var(--lumo-box-shadow-xs)'; });"
+        );
+
+        field.addClassName(LumoUtility.Margin.Top.LARGE);
+        field.addClassName(LumoUtility.Padding.SMALL);
+
+        if (required) {
+            field.setRequired(true);
+            field.getStyle().set("border-left", "3px solid var(--lumo-primary-color)");
+        } else {
+            field.getStyle().set("border-left", "3px solid var(--lumo-success-color-50pct)");
+        }
+
+        return field;
+    }
+
 }

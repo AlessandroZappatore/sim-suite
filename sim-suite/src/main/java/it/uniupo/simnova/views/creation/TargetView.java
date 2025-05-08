@@ -20,10 +20,10 @@ import com.vaadin.flow.router.*;
 import it.uniupo.simnova.api.model.Scenario;
 import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
-import it.uniupo.simnova.views.home.AppHeader;
-import it.uniupo.simnova.views.home.CreditsComponent;
-import it.uniupo.simnova.views.home.StyleApp;
-import it.uniupo.simnova.views.home.ValidationError;
+import it.uniupo.simnova.views.support.AppHeader;
+import it.uniupo.simnova.views.support.CreditsComponent;
+import it.uniupo.simnova.views.support.StyleApp;
+import it.uniupo.simnova.views.support.ValidationError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

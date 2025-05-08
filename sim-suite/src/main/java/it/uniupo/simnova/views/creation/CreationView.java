@@ -14,9 +14,9 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.service.FileStorageService;
-import it.uniupo.simnova.views.home.AppHeader;
-import it.uniupo.simnova.views.home.CreditsComponent;
-import it.uniupo.simnova.views.home.StyleApp;
+import it.uniupo.simnova.views.support.AppHeader;
+import it.uniupo.simnova.views.support.CreditsComponent;
+import it.uniupo.simnova.views.support.StyleApp;
 
 /**
  * Vista principale per la creazione di nuovi scenari di simulazione.

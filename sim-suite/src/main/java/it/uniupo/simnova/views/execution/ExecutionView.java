@@ -6,7 +6,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import it.uniupo.simnova.service.FileStorageService;
-import it.uniupo.simnova.views.home.AppHeader;
+import it.uniupo.simnova.views.support.AppHeader;
 
 /**
  * Classe che rappresenta la vista di esecuzione dell'applicazione.
