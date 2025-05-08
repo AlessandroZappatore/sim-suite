@@ -1180,10 +1180,8 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
 
         TinyMce editor = new TinyMce();
         editor.setValue(Objects.requireNonNullElse(valore, "")); // Gestione null per valore iniziale
-        editor.setHeight("250px"); // Altezza ridotta per compattezza
-        editor.setWidthFull(); // Assicura larghezza piena
-        // Configurazione minima TinyMCE (opzionale, per rimuovere/aggiungere funzionalità)
-        // editor.setConfig("...");
+        editor.setHeight("250px");
+        editor.setWidthFull();
 
         VerticalLayout panelLayout = new VerticalLayout(titleElement, subtitleElement, editor);
         panelLayout.setPadding(false); // Rimuovi padding per compattezza

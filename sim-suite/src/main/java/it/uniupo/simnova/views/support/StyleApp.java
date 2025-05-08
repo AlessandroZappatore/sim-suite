@@ -125,7 +125,7 @@ public class StyleApp extends HorizontalLayout {
         footerLayout.setPadding(true);
         footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        footerLayout.addClassName(LumoUtility.Border.TOP); // Lumo utility for top border
+        footerLayout.addClassName(LumoUtility.Border.TOP);
         footerLayout.getStyle()
                 .set("border-color", "var(--lumo-contrast-10pct)")
                 .set("background", "var(--lumo-contrast-5pct)")
@@ -145,9 +145,16 @@ public class StyleApp extends HorizontalLayout {
                         "}"
         );
 
-        nextButton.addClassName("hover-effect");
         CreditsComponent creditsLayout = new CreditsComponent();
-        footerLayout.add(creditsLayout, nextButton);
+
+        if (nextButton != null) {
+            nextButton.addClassName("hover-effect");
+            footerLayout.add(creditsLayout, nextButton);
+        } else {
+            footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+            footerLayout.add(creditsLayout);
+        }
+
         return footerLayout;
     }
 
@@ -178,13 +185,13 @@ public class StyleApp extends HorizontalLayout {
         // Aggiungo effetto hover
         editButton.getElement().executeJs(
                 "this.addEventListener('mouseover', function() { " +
-                "  this.style.backgroundColor = 'var(--lumo-success-color-20pct)'; " +
-                "  this.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)'; " +
-                "});" +
-                "this.addEventListener('mouseout', function() { " +
-                "  this.style.backgroundColor = 'var(--lumo-success-color-10pct)'; " +
-                "  this.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)'; " +
-                "});"
+                        "  this.style.backgroundColor = 'var(--lumo-success-color-20pct)'; " +
+                        "  this.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)'; " +
+                        "});" +
+                        "this.addEventListener('mouseout', function() { " +
+                        "  this.style.backgroundColor = 'var(--lumo-success-color-10pct)'; " +
+                        "  this.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)'; " +
+                        "});"
         );
 
         editButton.addClassName("hover-effect");
