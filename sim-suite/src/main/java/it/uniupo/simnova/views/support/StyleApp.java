@@ -162,6 +162,35 @@ public class StyleApp extends HorizontalLayout {
         return nextButton;
     }
 
+    public static Button getEditButton() {
+        Button editButton = new Button("Modifica", new Icon(VaadinIcon.EDIT));
+        editButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        editButton.setWidth("150px");
+        editButton.getStyle()
+                .set("border-radius", "30px")
+                .set("font-weight", "600")
+                .set("transition", "all 0.2s ease")
+                .set("background-color", "var(--lumo-success-color-10pct)")
+                .set("color", "var(--lumo-success-text-color)")
+                .set("border", "1px solid var(--lumo-success-color-50pct)")
+                .set("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.05)");
+
+        // Aggiungo effetto hover
+        editButton.getElement().executeJs(
+                "this.addEventListener('mouseover', function() { " +
+                "  this.style.backgroundColor = 'var(--lumo-success-color-20pct)'; " +
+                "  this.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)'; " +
+                "});" +
+                "this.addEventListener('mouseout', function() { " +
+                "  this.style.backgroundColor = 'var(--lumo-success-color-10pct)'; " +
+                "  this.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)'; " +
+                "});"
+        );
+
+        editButton.addClassName("hover-effect");
+        return editButton;
+    }
+
     public static VerticalLayout getMainLayout(VerticalLayout content) {
         content.setSizeUndefined();
         content.setPadding(false);
@@ -175,7 +204,7 @@ public class StyleApp extends HorizontalLayout {
     public static VerticalLayout getContentLayout() {
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.setWidth("100%");
-        contentLayout.setMaxWidth("850px");
+        contentLayout.setMaxWidth("1200px");
         contentLayout.setPadding(true);
         contentLayout.setSpacing(false);
         contentLayout.setAlignItems(FlexComponent.Alignment.CENTER);

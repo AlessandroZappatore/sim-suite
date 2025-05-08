@@ -103,7 +103,7 @@ public class MediaFullscreenView extends VerticalLayout implements HasUrlParamet
                     pdfFrame.getStyle().set("border", "none");
                     return pdfFrame;
 
-                case "mp4":
+                case "mp4", "webm", "mov":
                     NativeVideo video = new NativeVideo();
                     video.setSrc(mediaPath);
                     video.setControls(true);
@@ -111,7 +111,7 @@ public class MediaFullscreenView extends VerticalLayout implements HasUrlParamet
                     video.getElement().setAttribute("autoplay", true); // Considera se l'autoplay è desiderato
                     return video;
 
-                case "mp3":
+                case "mp3", "wav", "ogg":
                     NativeAudio audio = new NativeAudio();
                     audio.setSrc(mediaPath);
                     audio.setControls(true);
