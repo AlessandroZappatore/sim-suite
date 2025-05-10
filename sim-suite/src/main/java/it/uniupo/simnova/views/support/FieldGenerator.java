@@ -4,6 +4,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -18,6 +19,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.Collection;
+import java.util.List;
 
 @SuppressWarnings("ThisExpressionReferencesGlobalObjectJS")
 public class FieldGenerator extends HorizontalLayout {
@@ -359,4 +361,35 @@ public class FieldGenerator extends HorizontalLayout {
         return field;
     }
 
+    public static MultiSelectComboBox<String> createMultiSelectComboBox(String presidi, List<String> presidiList, boolean b) {
+        MultiSelectComboBox<String> multiSelectComboBox = new MultiSelectComboBox<>(presidi);
+        multiSelectComboBox.setItems(presidiList);
+        multiSelectComboBox.setPlaceholder("Seleziona uno o più presidi");
+        multiSelectComboBox.setWidthFull();
+        multiSelectComboBox.getStyle()
+                .set("max-width", "500px")
+                .set("border-radius", "var(--lumo-border-radius-m)")
+                .set("box-shadow", "var(--lumo-box-shadow-xs)")
+                .set("transition", "box-shadow 0.3s ease-in-out");
+
+        // Aggiunge un effetto hover e focus
+        multiSelectComboBox.getElement().getStyle()
+                .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
+        multiSelectComboBox.getElement().executeJs(
+                "this.addEventListener('mouseover', function() { this.style.boxShadow = 'var(--lumo-box-shadow-s)'; });" +
+                        "this.addEventListener('mouseout', function() { this.style.boxShadow = 'var(--lumo-box-shadow-xs)'; });"
+        );
+
+        multiSelectComboBox.addClassName(LumoUtility.Margin.Top.LARGE);
+        multiSelectComboBox.addClassName(LumoUtility.Padding.SMALL);
+
+        if (b) {
+            multiSelectComboBox.setRequired(true);
+            multiSelectComboBox.getStyle().set("border-left", "3px solid var(--lumo-primary-color)");
+        } else {
+            multiSelectComboBox.getStyle().set("border-left", "3px solid var(--lumo-success-color-50pct)");
+        }
+
+        return multiSelectComboBox;
+    }
 }

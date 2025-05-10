@@ -7,6 +7,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -22,6 +23,7 @@ import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Accesso;
 import it.uniupo.simnova.service.FileStorageService;
+import it.uniupo.simnova.service.PresidiService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.support.AppHeader;
 import it.uniupo.simnova.views.support.FieldGenerator;
@@ -56,6 +58,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
      * Servizio per la gestione degli scenari.
      */
     private final ScenarioService scenarioService;
+    private final PresidiService presidiService;
     /**
      * ID dello scenario corrente.
      */
@@ -94,7 +97,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
      */
     private final TextArea monitorArea;
 
-    private final ComboBox<String> presidiSelect;
+    private final MultiSelectComboBox<String> presidiField;
     /**
      * Container per gli accessi venosi.
      */
@@ -117,9 +120,9 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
      *
      * @param scenarioService servizio per la gestione degli scenari
      */
-    public PazienteT0View(ScenarioService scenarioService, FileStorageService fileStorageService) {
+    public PazienteT0View(ScenarioService scenarioService, FileStorageService fileStorageService, PresidiService presidiService) {
         this.scenarioService = scenarioService;
-
+        this.presidiService = presidiService;
         // Configurazione layout principale
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
@@ -244,17 +247,11 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                 false
         );
 
-        // Presidi
-        List<String> presidiList = List.of(
-                "Nessuno",
-                "Catetere vescicale",
-                "Sonda nasogastrica",
-                "Altro"
-        );
-        presidiSelect = FieldGenerator.createComboBox(
+
+        List<String> longPresidiList = PresidiService.getAllPresidi();
+        presidiField = FieldGenerator.createMultiSelectComboBox(
                 "Presidi",
-                presidiList,
-                null,
+                longPresidiList,
                 false
         );
 
@@ -264,7 +261,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                 paField, fcField, rrField, tempField, spo2Field, fio2Field, litrio2Field, etco2Field,
                 venosiCheckbox, venosiContainer, addVenosiButton,
                 arteriosiCheckbox, arteriosiContainer, addArteriosiButton,
-                monitorArea, presidiSelect
+                monitorArea, presidiField
         );
 
         // 3. FOOTER con pulsanti e crediti
@@ -393,9 +390,11 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                         arteriosi
                 );
 
+                boolean successPresidi = presidiService.savePresidi(scenarioId, presidiField.getValue());
+
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
-                    if (success) {
+                    if (success && successPresidi) {
                         ui.navigate("esameFisico/" + scenarioId);
                     } else {
                         Notification.show("Errore durante il salvataggio dei dati",

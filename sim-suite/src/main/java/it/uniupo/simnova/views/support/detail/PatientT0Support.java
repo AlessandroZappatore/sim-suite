@@ -74,7 +74,7 @@ public class PatientT0Support {
         }
     }
 
-    public static VerticalLayout createPatientContent(PazienteT0 paziente, EsameFisico esame) {
+    public static VerticalLayout createPatientContent(PazienteT0 paziente, EsameFisico esame, Integer scenarioId) {
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(false);
         layout.setSpacing(true);
@@ -101,7 +101,7 @@ public class PatientT0Support {
 
             // Usa il nuovo MonitorSupport con l'adattatore
             VitalSignsDataProvider t0DataProvider = new PazienteT0VitalSignsAdapter(paziente);
-            Component vitalSignsMonitor = MonitorSupport.createVitalSignsMonitor(t0DataProvider);
+            Component vitalSignsMonitor = MonitorSupport.createVitalSignsMonitor(t0DataProvider, scenarioId);
             patientCard.add(vitalSignsMonitor);
 
             // Accessi venosi e arteriosi

@@ -135,7 +135,7 @@ public class TimesSupport {
                     ScenarioService.getParametriAggiuntiviByTempoId(tempo.getIdTempo(), scenarioId);
 
             VitalSignsDataProvider tempoDataProvider = new TempoVitalSignsAdapter(tempo, parametriAggiuntivi);
-            Component vitalSignsMonitorComponent = MonitorSupport.createVitalSignsMonitor(tempoDataProvider);
+            Component vitalSignsMonitorComponent = MonitorSupport.createVitalSignsMonitor(tempoDataProvider, scenarioId);
             Div monitorWrapper = new Div(vitalSignsMonitorComponent);
             monitorWrapper.getStyle().set("display", "flex").set("justify-content", "center").set("margin-bottom", "var(--lumo-space-m)");
 

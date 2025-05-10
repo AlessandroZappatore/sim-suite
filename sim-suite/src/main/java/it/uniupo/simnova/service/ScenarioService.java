@@ -2303,7 +2303,4 @@ public class ScenarioService {
                 accessiArteriosi
         );
     }
-
-
-
 }

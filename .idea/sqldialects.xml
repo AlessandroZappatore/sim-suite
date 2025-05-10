@@ -2,6 +2,7 @@
 <project version="4">
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/sim-suite/src/main/java/it/uniupo/simnova/service/MaterialeService.java" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/sim-suite/src/main/java/it/uniupo/simnova/service/PresidiService.java" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/sim-suite/src/main/java/it/uniupo/simnova/service/ScenarioService.java" dialect="GenericSQL" />
   </component>
 </project>

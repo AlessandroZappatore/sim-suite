@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * </p>
  *
  * @author Alessandro Zappatore
- * @version 1.2 // Version incremented due to refactoring initView logic
+ * @version 1.3 // Version incremented due to extensive logging addition
  */
 @SuppressWarnings({"ThisExpressionReferencesGlobalObjectJS", "deprecation"})
 @PageTitle("Dettagli Scenario")
@@ -91,6 +91,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         this.scenarioService = scenarioService;
         this.fileStorageService = fileStorageService;
         this.materialeNecessario = materialeNecessario;
+        // logger.info("[SDV_LOG_000] ScenarioDetailsView constructor called."); // Usually not needed for bean
     }
 
     /**
@@ -101,17 +102,23 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      */
     @Override
     public void setParameter(BeforeEvent event, String parameter) {
+        logger.info("[SDV_LOG_001] setParameter - Received parameter: '{}'. Thread: {}", parameter, Thread.currentThread().getName());
         try {
             if (parameter == null || parameter.trim().isEmpty()) {
+                logger.warn("[SDV_LOG_002] setParameter - Parameter is null or empty. Thread: {}", Thread.currentThread().getName());
                 throw new NumberFormatException("Parameter is null or empty");
             }
 
             this.scenarioId = Integer.parseInt(parameter);
+            logger.info("[SDV_LOG_003] setParameter - Parsed scenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
+
             if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
+                logger.warn("[SDV_LOG_004] setParameter - Scenario ID {} is invalid or does not exist. Thread: {}", scenarioId, Thread.currentThread().getName());
                 throw new NumberFormatException("Scenario ID " + scenarioId + " is invalid or does not exist");
             }
+            logger.info("[SDV_LOG_005] setParameter - Scenario ID {} is valid. Thread: {}", scenarioId, Thread.currentThread().getName());
         } catch (NumberFormatException e) {
-            logger.error("ID scenario non valido: {}", parameter, e);
+            logger.error("[SDV_LOG_006] setParameter - Invalid scenario ID: '{}'. Thread: {}. Error: {}", parameter, Thread.currentThread().getName(), e.getMessage());
             event.rerouteToError(NotFoundException.class, "ID scenario " + (parameter != null ? parameter : "null") + " non valido");
         }
     }
@@ -124,7 +131,9 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      */
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
+        logger.info("[SDV_LOG_007] beforeEnter - Entered for scenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
         if (scenarioId == null) {
+            logger.warn("[SDV_LOG_008] beforeEnter - scenarioId is null. Navigating away. Thread: {}", Thread.currentThread().getName());
             Notification.show("ID scenario non specificato o non valido.", 3000, Position.MIDDLE).addThemeVariants(
                     NotificationVariant.LUMO_ERROR);
             if (UI.getCurrent() != null) {
@@ -135,6 +144,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         // Apply base styling to the root layout of this Composite
         getContent().addClassName("scenario-details-view");
         getContent().setPadding(false);
+        logger.info("[SDV_LOG_009] beforeEnter - Calling loadScenarioData for scenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
         loadScenarioData();
     }
 
@@ -148,16 +158,22 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
         detached.set(true);
+        logger.info("[SDV_LOG_010] onDetach - View detached for scenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
         if (!executorService.isShutdown()) {
+            logger.info("[SDV_LOG_011] onDetach - Shutting down ExecutorService for scenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
             executorService.shutdownNow();
             try {
                 if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
-                    logger.warn("ExecutorService did not terminate in time for scenarioId: {}", scenarioId);
+                    logger.warn("[SDV_LOG_012] onDetach - ExecutorService did not terminate in time for scenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
+                } else {
+                    logger.info("[SDV_LOG_013] onDetach - ExecutorService terminated successfully for scenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
                 }
             } catch (InterruptedException e) {
-                logger.warn("Interrupted while waiting for ExecutorService to terminate for scenarioId: {}", scenarioId, e);
+                logger.warn("[SDV_LOG_014] onDetach - Interrupted while waiting for ExecutorService to terminate for scenarioId: {}. Thread: {}. Error: {}", scenarioId, Thread.currentThread().getName(), e.getMessage());
                 Thread.currentThread().interrupt();
             }
+        } else {
+            logger.info("[SDV_LOG_015] onDetach - ExecutorService already shutdown for scenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
         }
     }
 
@@ -166,105 +182,119 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * Mostra una barra di progresso durante il caricamento e costruisce la UI.
      */
     private void loadScenarioData() {
+        logger.info("[SDV_LOG_016] loadScenarioData - START for scenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
         if (detached.get()) {
-            logger.info("loadScenarioData called on a detached view for scenarioId: {}. Aborting.", scenarioId);
+            logger.info("[SDV_LOG_017] loadScenarioData - View is detached for scenarioId: {}. Aborting. Thread: {}", scenarioId, Thread.currentThread().getName());
             return;
         }
 
         getContent().removeAll(); // Clear previous content
-        final ProgressBar progressBar = new ProgressBar(); // final to be accessible in lambda
+        final ProgressBar progressBar = new ProgressBar();
         progressBar.setIndeterminate(true);
         getContent().add(progressBar);
+        logger.info("[SDV_LOG_018] loadScenarioData - ProgressBar added for scenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
 
-        final UI ui = UI.getCurrent(); // Capture UI instance for async task
+        final UI ui = UI.getCurrent();
         if (ui == null) {
-            logger.error("UI instance is null in loadScenarioData for scenarioId: {}. Cannot proceed.", scenarioId);
+            logger.error("[SDV_LOG_019] loadScenarioData - UI instance is null for scenarioId: {}. Cannot proceed. Thread: {}", scenarioId, Thread.currentThread().getName());
             progressBar.setVisible(false);
             getContent().add(new Span("Errore: Impossibile caricare l'interfaccia utente."));
             return;
         }
 
         final AtomicBoolean loadingCompleted = new AtomicBoolean(false);
+        logger.info("[SDV_LOG_020] loadScenarioData - Submitting main scenario loading task to ExecutorService for scenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
 
         executorService.submit(() -> {
+            final String mainLoadThreadName = Thread.currentThread().getName();
+            logger.info("[SDV_LOG_021] [MAIN_LOAD_TASK] Task started for scenarioId: {}. Thread: {}", scenarioId, mainLoadThreadName);
             try {
+                logger.info("[SDV_LOG_022] [MAIN_LOAD_TASK] Submitting CompletableFuture for scenarioService.getScenarioById for scenarioId: {}. Thread: {}", scenarioId, mainLoadThreadName);
                 CompletableFuture<Scenario> future = CompletableFuture.supplyAsync(
-                        () -> scenarioService.getScenarioById(scenarioId),
-                        executorService
+                        () -> {
+                            logger.info("[SDV_LOG_023] [MAIN_LOAD_TASK_CF] Calling scenarioService.getScenarioById for scenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
+                            Scenario result = scenarioService.getScenarioById(scenarioId);
+                            logger.info("[SDV_LOG_024] [MAIN_LOAD_TASK_CF] scenarioService.getScenarioById returned (null? {}) for scenarioId: {}. Thread: {}", (result == null), scenarioId, Thread.currentThread().getName());
+                            return result;
+                        },
+                        executorService // Using the same executor, virtual threads are fine with this
                 );
 
                 Scenario loadedScenario;
                 try {
+                    logger.info("[SDV_LOG_025] [MAIN_LOAD_TASK] Waiting for future.get(15s) for scenarioId: {}. Thread: {}", scenarioId, mainLoadThreadName);
                     loadedScenario = future.get(15, TimeUnit.SECONDS);
+                    logger.info("[SDV_LOG_026] [MAIN_LOAD_TASK] future.get() completed for scenarioId: {}. Loaded scenario is null? {}. Thread: {}", scenarioId, (loadedScenario == null), mainLoadThreadName);
                 } catch (TimeoutException e) {
-                    logger.error("Timeout durante il caricamento dello scenario {}", scenarioId, e);
+                    logger.error("[SDV_LOG_027] [MAIN_LOAD_TASK] Timeout during scenario loading for scenarioId: {}. Thread: {}. Error: {}", scenarioId, mainLoadThreadName, e.getMessage());
                     throw new RuntimeException("Timeout durante il caricamento dello scenario.");
                 } catch (InterruptedException e) {
-                    logger.warn("Caricamento scenario {} interrotto.", scenarioId, e);
+                    logger.warn("[SDV_LOG_028] [MAIN_LOAD_TASK] Scenario loading interrupted for scenarioId: {}. Thread: {}. Error: {}", scenarioId, mainLoadThreadName, e.getMessage());
                     Thread.currentThread().interrupt();
                     return;
                 } catch (ExecutionException e) {
-                    logger.error("Errore durante l'esecuzione del caricamento scenario {}", scenarioId, e.getCause());
-                    throw new RuntimeException("Errore nell'esecuzione del caricamento: " + e.getCause().getMessage(), e.getCause());
+                    logger.error("[SDV_LOG_029] [MAIN_LOAD_TASK] ExecutionException during scenario loading for scenarioId: {}. Thread: {}. Cause: {}", scenarioId, mainLoadThreadName, e.getCause() != null ? e.getCause().getMessage() : "null", e.getCause());
+                    throw new RuntimeException("Errore nell'esecuzione del caricamento: " + (e.getCause() != null ? e.getCause().getMessage() : "Unknown error"), e.getCause());
                 }
 
                 if (detached.get() || ui.isClosing()) {
-                    logger.info("View detached or UI closing during scenario data load for ID: {}", scenarioId);
+                    logger.info("[SDV_LOG_030] [MAIN_LOAD_TASK] View detached or UI closing during scenario data load for scenarioId: {}. Aborting UI update. Thread: {}", scenarioId, mainLoadThreadName);
                     return;
                 }
 
-                // UI Update Task
+                logger.info("[SDV_LOG_031] [MAIN_LOAD_TASK] Attempting ui.access for main UI update for scenarioId: {}. Thread: {}", scenarioId, mainLoadThreadName);
                 ui.access(() -> {
+                    final String uiAccessThreadName = Thread.currentThread().getName();
+                    logger.info("[SDV_LOG_032] [MAIN_UI_ACCESS] Entered for scenarioId: {}. Thread: {}", scenarioId, uiAccessThreadName);
                     try {
                         if (loadedScenario == null) {
+                            logger.warn("[SDV_LOG_033] [MAIN_UI_ACCESS] loadedScenario is null for scenarioId: {}. Navigating away. Thread: {}", scenarioId, uiAccessThreadName);
                             Notification.show("Scenario non trovato (ID: " + scenarioId + ")", 3000, Position.MIDDLE)
                                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
-                            if (!ui.isClosing()) { // Check ui before navigating
+                            if (!ui.isClosing()) {
                                 ui.navigate("scenari");
                             }
-                            return; // Exit if scenario is null
-                        }
-
-                        this.scenario = loadedScenario; // Assign the loaded scenario
-
-                        // Ensure UI is still valid before proceeding with complex UI construction
-                        final UI currentUI = UI.getCurrent();
-                        if (currentUI == null || currentUI.isClosing() || detached.get()) {
-                            logger.warn("UI access: UI no longer available or view detached for scenarioId: {}. Aborting UI construction.", scenarioId);
                             return;
                         }
 
-                        VerticalLayout mainLayout = StyleApp.getMainLayout(getContent()); // This is getContent()
-                        mainLayout.removeAll(); // Clear the progress bar
+                        this.scenario = loadedScenario;
+                        logger.info("[SDV_LOG_034] [MAIN_UI_ACCESS] this.scenario assigned for scenarioId: {}. Thread: {}", scenarioId, uiAccessThreadName);
 
-                        // 1. Create and add Header
+                        final UI currentUI = UI.getCurrent();
+                        if (currentUI == null || currentUI.isClosing() || detached.get()) {
+                            logger.warn("[SDV_LOG_035] [MAIN_UI_ACCESS] UI no longer available or view detached for scenarioId: {}. Aborting UI construction. Thread: {}", scenarioId, uiAccessThreadName);
+                            return;
+                        }
+
+                        VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
+                        mainLayout.removeAll();
+                        logger.info("[SDV_LOG_036] [MAIN_UI_ACCESS] ProgressBar cleared for scenarioId: {}. Thread: {}", scenarioId, uiAccessThreadName);
+
+                        logger.info("[SDV_LOG_037] [MAIN_UI_ACCESS] Creating header for scenarioId: {}. Thread: {}", scenarioId, uiAccessThreadName);
                         Component headerComponent = createHeaderComponent(currentUI);
                         mainLayout.add(headerComponent);
 
-                        // 2. Create Main Content Layout
-                        VerticalLayout contentLayout = StyleApp.getContentLayout(); // This is a new VerticalLayout for the main content area
+                        VerticalLayout contentLayout = StyleApp.getContentLayout();
 
-                        // 2a. Add Scenario Page Header (Title, Edit button) to contentLayout
+                        logger.info("[SDV_LOG_038] [MAIN_UI_ACCESS] Adding scenario page header for scenarioId: {}. Thread: {}", scenarioId, uiAccessThreadName);
                         addScenarioPageHeader(contentLayout, currentUI);
 
-                        // 2b. Add Scenario Metadata (Title, Authors, Pathology etc.) to contentLayout
-                        addScenarioMetadata(contentLayout); // Uses this.scenario
+                        logger.info("[SDV_LOG_039] [MAIN_UI_ACCESS] Adding scenario metadata for scenarioId: {}. Thread: {}", scenarioId, uiAccessThreadName);
+                        addScenarioMetadata(contentLayout);
 
-                        // 2c. Add Accordion with dynamic sections to contentLayout
-                        addAccordionToContent(contentLayout, currentUI); // This will trigger async loading for accordion panels
+                        logger.info("[SDV_LOG_040] [MAIN_UI_ACCESS] Adding accordion to content for scenarioId: {}. Thread: {}", scenarioId, uiAccessThreadName);
+                        addAccordionToContent(contentLayout, currentUI);
 
-                        // Add the fully constructed contentLayout to the mainLayout
                         mainLayout.add(contentLayout);
 
-                        // 3. Create and add Footer
+                        logger.info("[SDV_LOG_041] [MAIN_UI_ACCESS] Creating footer for scenarioId: {}. Thread: {}", scenarioId, uiAccessThreadName);
                         Component footerComponent = createFooterComponent();
                         mainLayout.add(footerComponent);
 
-                        // The base class "scenario-details-view" and padding(false) are already set on getContent() (mainLayout)
-                        // in beforeEnter(), so no need to re-apply here.
+                        logger.info("[SDV_LOG_042] [MAIN_UI_ACCESS] Main UI construction complete for scenarioId: {}. Thread: {}", scenarioId, uiAccessThreadName);
 
                     } catch (Exception e) {
-                        logger.error("Errore critico durante l'aggiornamento UI per scenarioId {}: {}", scenarioId, e.getMessage(), e);
+                        logger.error("[SDV_LOG_043] [MAIN_UI_ACCESS] Critical error during UI update for scenarioId: {}. Thread: {}. Error: {}", scenarioId, uiAccessThreadName, e.getMessage(), e);
                         if (!ui.isClosing()) {
                             Notification.show("Errore nell'aggiornamento della vista. Si prega di riprovare.", 5000, Position.MIDDLE)
                                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -272,14 +302,17 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                         }
                     } finally {
                         loadingCompleted.set(true);
-                        progressBar.setVisible(false); // Ensure progress bar is hidden
+                        progressBar.setVisible(false);
+                        logger.info("[SDV_LOG_044] [MAIN_UI_ACCESS] loadingCompleted set to true, ProgressBar hidden for scenarioId: {}. Thread: {}", scenarioId, uiAccessThreadName);
                     }
                 }); // End of ui.access
+                logger.info("[SDV_LOG_045] [MAIN_LOAD_TASK] ui.access call submitted/completed for scenarioId: {}. Thread: {}", scenarioId, mainLoadThreadName);
             } catch (Exception e) {
-                logger.error("Errore grave durante il task di caricamento dello scenario {}: {}", scenarioId, e.getMessage(), e);
+                logger.error("[SDV_LOG_046] [MAIN_LOAD_TASK] Severe error during scenario loading task for scenarioId: {}. Thread: {}. Error: {}", scenarioId, mainLoadThreadName, e.getMessage(), e);
                 if (!detached.get() && !ui.isClosing()) {
                     ui.access(() -> {
-                        loadingCompleted.set(true); // Ensure flag is set
+                        logger.error("[SDV_LOG_047] [MAIN_LOAD_TASK_ERROR_UI_ACCESS] Handling severe error in UI for scenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
+                        loadingCompleted.set(true);
                         Notification.show("Errore grave nel caricamento dello scenario: " + e.getMessage(),
                                         5000, Position.MIDDLE)
                                 .addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -288,29 +321,40 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                     });
                 }
             }
+            logger.info("[SDV_LOG_048] [MAIN_LOAD_TASK] Task finished for scenarioId: {}. Thread: {}", scenarioId, mainLoadThreadName);
         }); // End of executorService.submit (main loading task)
 
-        // Backup timeout task
+        logger.info("[SDV_LOG_049] loadScenarioData - Submitting backup timeout task for scenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
         executorService.submit(() -> {
+            final String backupThreadName = Thread.currentThread().getName();
+            logger.info("[SDV_LOG_050] [BACKUP_TIMEOUT_TASK] Task started for scenarioId: {}. Thread: {}", scenarioId, backupThreadName);
             try {
                 Thread.sleep(20000); // Check after 20 seconds
+                logger.info("[SDV_LOG_051] [BACKUP_TIMEOUT_TASK] 20s elapsed for scenarioId: {}. loadingCompleted: {}, detached: {}, ui.isClosing: {}. Thread: {}", scenarioId, loadingCompleted.get(), detached.get(), ui.isClosing(), backupThreadName);
                 if (!loadingCompleted.get() && !detached.get() && !ui.isClosing()) {
+                    logger.warn("[SDV_LOG_052] [BACKUP_TIMEOUT_TASK] Timeout condition met for scenarioId: {}. Attempting ui.access. Thread: {}", scenarioId, backupThreadName);
                     ui.access(() -> {
+                        final String backupUIAccessThreadName = Thread.currentThread().getName();
+                        logger.info("[SDV_LOG_053] [BACKUP_TIMEOUT_UI_ACCESS] Entered for scenarioId: {}. Thread: {}", scenarioId, backupUIAccessThreadName);
                         if (!loadingCompleted.get()) { // Double check inside UI access
-                            logger.error("Forzato timeout per caricamento bloccato (dopo 20s), scenario {}", scenarioId);
+                            logger.error("[SDV_LOG_054] [BACKUP_TIMEOUT_UI_ACCESS] Forced timeout for stuck loading (after 20s) for scenarioId: {}. Navigating away. Thread: {}", scenarioId, backupUIAccessThreadName);
                             Notification.show("Il caricamento sta impiegando troppo tempo. Riprova più tardi.",
                                             5000, Position.MIDDLE)
                                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
                             progressBar.setVisible(false);
                             ui.navigate("scenari");
+                        } else {
+                            logger.info("[SDV_LOG_055] [BACKUP_TIMEOUT_UI_ACCESS] Loading was completed in time for scenarioId: {}. No action needed. Thread: {}", scenarioId, backupUIAccessThreadName);
                         }
                     });
                 }
             } catch (InterruptedException e) {
-                logger.trace("Backup timeout thread interrotto per scenario {}, probabile shutdown.", scenarioId);
+                logger.trace("[SDV_LOG_056] [BACKUP_TIMEOUT_TASK] Backup timeout thread interrupted for scenarioId: {}. Probable shutdown. Thread: {}. Error: {}", scenarioId, backupThreadName, e.getMessage());
                 Thread.currentThread().interrupt();
             }
+            logger.info("[SDV_LOG_057] [BACKUP_TIMEOUT_TASK] Task finished for scenarioId: {}. Thread: {}", scenarioId, backupThreadName);
         }); // End of executorService.submit (backup timeout task)
+        logger.info("[SDV_LOG_058] loadScenarioData - END for scenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
     }
 
 
@@ -320,6 +364,8 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * @return Il componente HorizontalLayout dell'header.
      */
     private Component createHeaderComponent(UI ui) {
+        // Minor logging here, focus is on async
+        // logger.trace("[SDV_LOG_059] createHeaderComponent called for scenarioId: {}", scenarioId);
         AppHeader appHeader = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
         backButton.addClickListener(e -> {
@@ -335,6 +381,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * @return Il componente HorizontalLayout del footer.
      */
     private Component createFooterComponent() {
+        // logger.trace("[SDV_LOG_060] createFooterComponent called for scenarioId: {}", scenarioId);
         return StyleApp.getFooterLayout(null);
     }
 
@@ -344,6 +391,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * @param ui L'istanza UI corrente.
      */
     private void addScenarioPageHeader(VerticalLayout layout, UI ui) {
+        // logger.trace("[SDV_LOG_061] addScenarioPageHeader called for scenarioId: {}", scenarioId);
         Button editButton = StyleApp.getButton("Modifica", VaadinIcon.PENCIL, ButtonVariant.LUMO_TERTIARY, "--lumo-success-color");
         editButton.addClickListener(e -> {
             if (ui != null && !ui.isClosing() && scenario != null) {
@@ -369,13 +417,14 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * @param layout Il layout a cui aggiungere i metadati.
      */
     private void addScenarioMetadata(VerticalLayout layout) {
-        // This check is crucial as 'scenario' is set asynchronously.
+        // logger.trace("[SDV_LOG_062] addScenarioMetadata called for scenarioId: {}", scenarioId);
         if (scenario == null) {
-            logger.warn("addScenarioMetadata called but scenario is null. ScenarioId: {}", scenarioId);
+            // Existing warn log is good
+            logger.warn("[SDV_LOG_063] addScenarioMetadata called but scenario is null. ScenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
             layout.add(new Span("Dati scenario non ancora disponibili."));
             return;
         }
-
+        // ... rest of the method
         Div titleContainer = new Div();
         titleContainer.setWidthFull();
         titleContainer.getStyle()
@@ -426,25 +475,32 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * @param ui L'istanza UI corrente.
      */
     private void addAccordionToContent(VerticalLayout layout, UI ui) {
-        // This check is crucial as 'scenario' is set asynchronously.
+        logger.info("[SDV_LOG_064] addAccordionToContent - START for scenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
         if (scenario == null) {
-            logger.warn("addAccordionToContent called but scenario is null. ScenarioId: {}", scenarioId);
+            // Existing warn log is good
+            logger.warn("[SDV_LOG_065] addAccordionToContent called but scenario is null. ScenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
             layout.add(new Span("Contenuto dettagliato non ancora disponibile."));
             return;
         }
         Accordion accordion = new Accordion();
         accordion.setWidthFull();
 
+        logger.info("[SDV_LOG_066] addAccordionToContent - Creating GeneralInfoPanel for scenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
         createAndAddGeneralInfoPanel(accordion, ui);
+        logger.info("[SDV_LOG_067] addAccordionToContent - Creating PatientStatePanel for scenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
         createAndAddPatientStatePanel(accordion, ui);
+        logger.info("[SDV_LOG_068] addAccordionToContent - Creating ExamsAndReportsPanel for scenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
         createAndAddExamsAndReportsPanel(accordion, ui);
+        logger.info("[SDV_LOG_069] addAccordionToContent - Creating TimelinePanel for scenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
         createAndAddTimelinePanel(accordion, ui);
+        logger.info("[SDV_LOG_070] addAccordionToContent - Creating ScreenplayPanel for scenarioId: {}. Thread: {}", scenarioId, Thread.currentThread().getName());
         createAndAddScreenplayPanel(accordion, ui);
 
         if (accordion.getChildren().findFirst().isPresent()) {
             accordion.open(0);
         }
         layout.add(accordion);
+        logger.info("[SDV_LOG_071] addAccordionToContent - END for scenarioId: {}. Accordion added. Thread: {}", scenarioId, Thread.currentThread().getName());
     }
 
     /**
@@ -453,9 +509,11 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * @param ui L'istanza UI corrente.
      */
     private void createAndAddGeneralInfoPanel(Accordion accordion, UI ui) {
-        AccordionPanel panel = accordion.add("Informazioni Generali", createLoadingPlaceholder("Caricamento Informazioni Generali..."));
+        String panelName = "Informazioni Generali";
+        logger.info("[SDV_LOG_072] createAndAddPanel - START for Panel: '{}', scenarioId: {}. Thread: {}", panelName, scenarioId, Thread.currentThread().getName());
+        AccordionPanel panel = accordion.add(panelName, createLoadingPlaceholder("Caricamento " + panelName + "..."));
         styleAccordionPanelSummary(panel);
-        // scenario object should be available here as addAccordionToContent checks for it
+        logger.info("[SDV_LOG_073] createAndAddPanel - Calling loadGeneralSupportDataAsync for Panel: '{}', scenarioId: {}. Thread: {}", panelName, scenarioId, Thread.currentThread().getName());
         loadGeneralSupportDataAsync(ui, panel, scenario, scenarioService, materialeNecessario);
     }
 
@@ -465,8 +523,11 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * @param ui L'istanza UI corrente.
      */
     private void createAndAddPatientStatePanel(Accordion accordion, UI ui) {
-        AccordionPanel panel = accordion.add("Stato Paziente", createLoadingPlaceholder("Caricamento Stato Paziente..."));
+        String panelName = "Stato Paziente";
+        logger.info("[SDV_LOG_074] createAndAddPanel - START for Panel: '{}', scenarioId: {}. Thread: {}", panelName, scenarioId, Thread.currentThread().getName());
+        AccordionPanel panel = accordion.add(panelName, createLoadingPlaceholder("Caricamento " + panelName + "..."));
         styleAccordionPanelSummary(panel);
+        logger.info("[SDV_LOG_075] createAndAddPanel - Calling loadPatientStateDataAsync for Panel: '{}', scenarioId: {}. Thread: {}", panelName, scenarioId, Thread.currentThread().getName());
         loadPatientStateDataAsync(ui, panel, scenario.getId());
     }
 
@@ -476,8 +537,11 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * @param ui L'istanza UI corrente.
      */
     private void createAndAddExamsAndReportsPanel(Accordion accordion, UI ui) {
-        AccordionPanel panel = accordion.add("Esami e Referti", createLoadingPlaceholder("Caricamento Esami e Referti..."));
+        String panelName = "Esami e Referti";
+        logger.info("[SDV_LOG_076] createAndAddPanel - START for Panel: '{}', scenarioId: {}. Thread: {}", panelName, scenarioId, Thread.currentThread().getName());
+        AccordionPanel panel = accordion.add(panelName, createLoadingPlaceholder("Caricamento " + panelName + "..."));
         styleAccordionPanelSummary(panel);
+        logger.info("[SDV_LOG_077] createAndAddPanel - Calling loadExamsDataAsync for Panel: '{}', scenarioId: {}. Thread: {}", panelName, scenarioId, Thread.currentThread().getName());
         loadExamsDataAsync(ui, panel, scenario.getId());
     }
 
@@ -487,8 +551,11 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * @param ui L'istanza UI corrente.
      */
     private void createAndAddTimelinePanel(Accordion accordion, UI ui) {
-        AccordionPanel panel = accordion.add("Timeline", createLoadingPlaceholder("Caricamento Timeline..."));
+        String panelName = "Timeline";
+        logger.info("[SDV_LOG_078] createAndAddPanel - START for Panel: '{}', scenarioId: {}. Thread: {}", panelName, scenarioId, Thread.currentThread().getName());
+        AccordionPanel panel = accordion.add(panelName, createLoadingPlaceholder("Caricamento " + panelName + "..."));
         styleAccordionPanelSummary(panel);
+        logger.info("[SDV_LOG_079] createAndAddPanel - Calling loadTimelineDataAsync for Panel: '{}', scenarioId: {}. Thread: {}", panelName, scenarioId, Thread.currentThread().getName());
         loadTimelineDataAsync(ui, panel, scenario.getId());
     }
 
@@ -498,16 +565,20 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * @param ui L'istanza UI corrente.
      */
     private void createAndAddScreenplayPanel(Accordion accordion, UI ui) {
-        AccordionPanel panel = accordion.add("Sceneggiatura", createLoadingPlaceholder("Caricamento Sceneggiatura..."));
+        String panelName = "Sceneggiatura";
+        logger.info("[SDV_LOG_080] createAndAddPanel - START for Panel: '{}', scenarioId: {}. Thread: {}", panelName, scenarioId, Thread.currentThread().getName());
+        AccordionPanel panel = accordion.add(panelName, createLoadingPlaceholder("Caricamento " + panelName + "..."));
         styleAccordionPanelSummary(panel);
+        logger.info("[SDV_LOG_081] createAndAddPanel - Calling loadSceneggiaturaDataAsync for Panel: '{}', scenarioId: {}. Thread: {}", panelName, scenarioId, Thread.currentThread().getName());
         loadSceneggiaturaDataAsync(ui, panel, scenario.getId());
     }
 
 
     private VerticalLayout createLoadingPlaceholder(String message) {
+        // logger.trace("[SDV_LOG_082] createLoadingPlaceholder called with message: '{}', for scenarioId: {}", message, scenarioId);
         Span loadingText = new Span(message);
         loadingText.getStyle().set("margin-bottom", "var(--lumo-space-s)");
-        ProgressBar progressBarPlaceholder = new ProgressBar(); // Different name from the main one
+        ProgressBar progressBarPlaceholder = new ProgressBar();
         progressBarPlaceholder.setIndeterminate(true);
         VerticalLayout placeholder = new VerticalLayout(loadingText, progressBarPlaceholder);
         placeholder.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.CENTER);
@@ -517,6 +588,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
     }
 
     private void styleAccordionPanelSummary(AccordionPanel panel) {
+        // logger.trace("[SDV_LOG_083] styleAccordionPanelSummary called for panel: '{}', scenarioId: {}", panel.getSummaryText(), scenarioId);
         if (panel != null && panel.getSummary() != null) {
             panel.getSummary().getStyle()
                     .set("font-size", "var(--lumo-font-size-l)")
@@ -539,122 +611,147 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         }
     }
 
-    // ASYNCHRONOUS DATA LOADING METHODS FOR ACCORDION PANELS (Unchanged)
+    // ASYNCHRONOUS DATA LOADING METHODS FOR ACCORDION PANELS
 
     private void loadGeneralSupportDataAsync(UI ui,
                                              AccordionPanel panelToUpdate,
-                                             Scenario currentScenario, // Now passed directly
+                                             Scenario currentScenario,
                                              ScenarioService scService,
                                              MaterialeService matService) {
         String panelName = "Informazioni Generali";
+        logger.info("[SDV_LOG_084] [PANEL_LOAD_ASYNC] Method START for Panel: '{}', scenarioId: {}. Submitting task. Thread: {}", panelName, (currentScenario != null ? currentScenario.getId() : "NULL_SCENARIO"), Thread.currentThread().getName());
         executorService.submit(() -> {
+            final String panelLoadThreadName = Thread.currentThread().getName();
+            final Integer currentId = (currentScenario != null ? currentScenario.getId() : null);
+            logger.info("[SDV_LOG_085] [PANEL_LOAD_TASK:{}] Task started for scenarioId: {}. Thread: {}", panelName, currentId, panelLoadThreadName);
             try {
-                // Ensure currentScenario is not null before proceeding
                 if (currentScenario == null) {
-                    logger.warn("ASYNC-{}: currentScenario is null. Cannot load data.", panelName);
+                    logger.warn("[SDV_LOG_086] [PANEL_LOAD_TASK:{}] currentScenario is null. Cannot load data for scenarioId: {}. Thread: {}", panelName, currentId, panelLoadThreadName);
                     if (!detached.get() && ui != null && !ui.isClosing()) {
                         ui.access(() -> panelToUpdate.setContent(new Span("Errore: Dati scenario non disponibili (" + panelName + ").")));
                     }
                     return;
                 }
-                logger.info("ASYNC-{}: Inizio caricamento dati per scenarioId: {}", panelName, currentScenario.getId());
-                boolean isPediatric = scService.isPediatric(currentScenario.getId());
+                logger.info("[SDV_LOG_087] [PANEL_LOAD_TASK:{}] Fetching data... isPediatric, infoGenitore, materiali, azioniChiave for scenarioId: {}. Thread: {}", panelName, currentId, panelLoadThreadName);
+                boolean isPediatric = scService.isPediatric(currentId);
                 String infoGenitore = isPediatric ? currentScenario.getInfoGenitore() : null;
-                String materiali = matService.toStringAllMaterialsByScenarioId(currentScenario.getId());
-                List<String> azioniChiave = scService.getNomiAzioniChiaveByScenarioId(currentScenario.getId());
-                logger.info("ASYNC-{}: Dati caricati. Pronto per UI. ScenarioId: {}", panelName, currentScenario.getId());
+                String materiali = matService.toStringAllMaterialsByScenarioId(currentId);
+                List<String> azioniChiave = scService.getNomiAzioniChiaveByScenarioId(currentId);
+                logger.info("[SDV_LOG_088] [PANEL_LOAD_TASK:{}] Data fetched for scenarioId: {}. isPediatric: {}, azioniChiave count: {}. Ready for UI. Thread: {}", panelName, currentId, isPediatric, azioniChiave.size(), panelLoadThreadName);
 
                 if (detached.get() || ui.isClosing()) {
-                    logger.warn("ASYNC-{}: View staccata o UI in chiusura per scenarioId: {}. Aggiornamento UI annullato.", panelName, currentScenario.getId());
+                    logger.warn("[SDV_LOG_089] [PANEL_LOAD_TASK:{}] View detached or UI closing for scenarioId: {}. UI update cancelled. Thread: {}", panelName, currentId, panelLoadThreadName);
                     return;
                 }
-
+                logger.info("[SDV_LOG_090] [PANEL_LOAD_TASK:{}] Attempting ui.access for scenarioId: {}. Thread: {}", panelName, currentId, panelLoadThreadName);
                 ui.access(() -> {
+                    final String panelUIAccessThreadName = Thread.currentThread().getName();
+                    logger.info("[SDV_LOG_091] [PANEL_UI_ACCESS:{}] Entered for scenarioId: {}. Thread: {}", panelName, currentId, panelUIAccessThreadName);
                     try {
-                        logger.info("ASYNC-{}: Aggiornamento UI con dati per scenarioId: {}", panelName, currentScenario.getId());
                         Component content = GeneralSupport.createOverviewContentWithData(
                                 currentScenario, isPediatric, infoGenitore, materiali, azioniChiave
                         );
-                        logger.error("Azioni chiave: {}", azioniChiave.toString());
+                        // logger.error("Azioni chiave: {}", azioniChiave.toString()); // Already present, changed to debug
+                        logger.debug("[SDV_LOG_092] [PANEL_UI_ACCESS:{}] Azioni chiave: {} for scenarioId: {}. Thread: {}", panelName, azioniChiave.toString(), currentId, panelUIAccessThreadName);
                         panelToUpdate.setContent(content);
-                        logger.info("ASYNC-{}: UI aggiornata con successo per scenarioId: {}", panelName, currentScenario.getId());
+                        logger.info("[SDV_LOG_093] [PANEL_UI_ACCESS:{}] UI updated successfully for scenarioId: {}. Thread: {}", panelName, currentId, panelUIAccessThreadName);
                     } catch (Exception e_ui) {
-                        logger.error("ASYNC-{}: Errore durante l'aggiornamento UI per scenarioId: {}", panelName, currentScenario.getId(), e_ui);
+                        logger.error("[SDV_LOG_094] [PANEL_UI_ACCESS:{}] Error during UI update for scenarioId: {}. Thread: {}. Error: {}", panelName, currentId, panelUIAccessThreadName, e_ui.getMessage(), e_ui);
                         panelToUpdate.setContent(new Span("Errore nella visualizzazione (" + panelName + "). Dettagli nel log."));
                     }
                 });
             } catch (Exception e_task) {
-                logger.error("ASYNC-{}: Errore nel task in background per scenarioId: {} (currentScenario might be null if error is early)", panelName, (currentScenario != null ? currentScenario.getId() : "N/A"), e_task);
-                if (detached.get() || ui.isClosing()) return;
+                logger.error("[SDV_LOG_095] [PANEL_LOAD_TASK:{}] Error in background task for scenarioId: {}. Thread: {}. Error: {}", panelName, currentId, panelLoadThreadName, e_task.getMessage(), e_task);
+                if (detached.get() || ui.isClosing()) {
+                    logger.warn("[SDV_LOG_096] [PANEL_LOAD_TASK:{}] View detached or UI closing after error for scenarioId: {}. No UI error update. Thread: {}", panelName, currentId, panelLoadThreadName);
+                    return;
+                }
                 ui.access(() -> panelToUpdate.setContent(new Span("Errore nel caricamento (" + panelName + "). Dettagli nel log.")));
             }
+            logger.info("[SDV_LOG_097] [PANEL_LOAD_TASK:{}] Task finished for scenarioId: {}. Thread: {}", panelName, currentId, panelLoadThreadName);
         });
     }
 
     private void loadPatientStateDataAsync(UI ui, AccordionPanel panelToUpdate, int currentScenarioId) {
         String panelName = "Stato Paziente";
+        logger.info("[SDV_LOG_098] [PANEL_LOAD_ASYNC] Method START for Panel: '{}', scenarioId: {}. Submitting task. Thread: {}", panelName, currentScenarioId, Thread.currentThread().getName());
         executorService.submit(() -> {
+            final String panelLoadThreadName = Thread.currentThread().getName();
+            logger.info("[SDV_LOG_099] [PANEL_LOAD_TASK:{}] Task started for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
             try {
-                logger.info("ASYNC-{}: Inizio caricamento dati per scenarioId: {}", panelName, currentScenarioId);
+                logger.info("[SDV_LOG_100] [PANEL_LOAD_TASK:{}] Fetching PazienteT0 and EsameFisico for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
                 PazienteT0 pazienteT0 = scenarioService.getPazienteT0ById(currentScenarioId);
                 EsameFisico esameFisico = scenarioService.getEsameFisicoById(currentScenarioId);
-                logger.info("ASYNC-{}: Dati caricati (PazienteT0: {}, EsameFisico: {}). Pronto per UI. ScenarioId: {}",
-                        panelName, (pazienteT0 != null), (esameFisico != null), currentScenarioId);
+                logger.info("[SDV_LOG_101] [PANEL_LOAD_TASK:{}] Data fetched for scenarioId: {}. PazienteT0 null? {}, EsameFisico null? {}. Ready for UI. Thread: {}",
+                        panelName, currentScenarioId, (pazienteT0 == null), (esameFisico == null), panelLoadThreadName);
 
                 if (detached.get() || ui.isClosing()) {
-                    logger.warn("ASYNC-{}: View staccata o UI in chiusura. Aggiornamento UI annullato. ScenarioId: {}", panelName, currentScenarioId);
+                    logger.warn("[SDV_LOG_102] [PANEL_LOAD_TASK:{}] View detached or UI closing for scenarioId: {}. UI update cancelled. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
                     return;
                 }
-
+                logger.info("[SDV_LOG_103] [PANEL_LOAD_TASK:{}] Attempting ui.access for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
                 ui.access(() -> {
+                    final String panelUIAccessThreadName = Thread.currentThread().getName();
+                    logger.info("[SDV_LOG_104] [PANEL_UI_ACCESS:{}] Entered for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelUIAccessThreadName);
                     try {
-                        logger.info("ASYNC-{}: Aggiornamento UI con dati per scenarioId: {}", panelName, currentScenarioId);
-                        Component content = PatientT0Support.createPatientContent(pazienteT0, esameFisico);
+                        Component content = PatientT0Support.createPatientContent(pazienteT0, esameFisico, scenarioId); // scenarioId here is the member variable, consistent
                         panelToUpdate.setContent(content);
-                        logger.info("ASYNC-{}: UI aggiornata con successo per scenarioId: {}", panelName, currentScenarioId);
+                        logger.info("[SDV_LOG_105] [PANEL_UI_ACCESS:{}] UI updated successfully for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelUIAccessThreadName);
                     } catch (Exception e_ui) {
-                        logger.error("ASYNC-{}: Errore durante l'aggiornamento UI per scenarioId: {}", panelName, currentScenarioId, e_ui);
+                        logger.error("[SDV_LOG_106] [PANEL_UI_ACCESS:{}] Error during UI update for scenarioId: {}. Thread: {}. Error: {}", panelName, currentScenarioId, panelUIAccessThreadName, e_ui.getMessage(), e_ui);
                         panelToUpdate.setContent(new Span("Errore nella visualizzazione (" + panelName + "). Dettagli nel log."));
                     }
                 });
             } catch (Exception e_task) {
-                logger.error("ASYNC-{}: Errore nel task in background per scenarioId: {}", panelName, currentScenarioId, e_task);
-                if (detached.get() || ui.isClosing()) return;
+                logger.error("[SDV_LOG_107] [PANEL_LOAD_TASK:{}] Error in background task for scenarioId: {}. Thread: {}. Error: {}", panelName, currentScenarioId, panelLoadThreadName, e_task.getMessage(), e_task);
+                if (detached.get() || ui.isClosing()) {
+                    logger.warn("[SDV_LOG_108] [PANEL_LOAD_TASK:{}] View detached or UI closing after error for scenarioId: {}. No UI error update. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
+                    return;
+                }
                 ui.access(() -> panelToUpdate.setContent(new Span("Errore nel caricamento (" + panelName + "). Dettagli nel log.")));
             }
+            logger.info("[SDV_LOG_109] [PANEL_LOAD_TASK:{}] Task finished for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
         });
     }
 
     private void loadExamsDataAsync(UI ui, AccordionPanel panelToUpdate, int currentScenarioId) {
         String panelName = "Esami e Referti";
+        logger.info("[SDV_LOG_110] [PANEL_LOAD_ASYNC] Method START for Panel: '{}', scenarioId: {}. Submitting task. Thread: {}", panelName, currentScenarioId, Thread.currentThread().getName());
         executorService.submit(() -> {
+            final String panelLoadThreadName = Thread.currentThread().getName();
+            logger.info("[SDV_LOG_111] [PANEL_LOAD_TASK:{}] Task started for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
             try {
-                logger.info("ASYNC-{}: Inizio caricamento dati per scenarioId: {}", panelName, currentScenarioId);
+                logger.info("[SDV_LOG_112] [PANEL_LOAD_TASK:{}] Fetching EsamiReferti for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
                 List<EsameReferto> esamiReferti = scenarioService.getEsamiRefertiByScenarioId(currentScenarioId);
-                logger.info("ASYNC-{}: Dati caricati (Numero esami/referti: {}). Pronto per UI. ScenarioId: {}",
-                        panelName, (esamiReferti != null ? esamiReferti.size() : "null"), currentScenarioId);
+                logger.info("[SDV_LOG_113] [PANEL_LOAD_TASK:{}] Data fetched for scenarioId: {}. EsamiReferti count: {}. Ready for UI. Thread: {}",
+                        panelName, currentScenarioId, (esamiReferti != null ? esamiReferti.size() : "null list"), panelLoadThreadName);
 
                 if (detached.get() || ui.isClosing()) {
-                    logger.warn("ASYNC-{}: View staccata o UI in chiusura. Aggiornamento UI annullato. ScenarioId: {}", panelName, currentScenarioId);
+                    logger.warn("[SDV_LOG_114] [PANEL_LOAD_TASK:{}] View detached or UI closing for scenarioId: {}. UI update cancelled. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
                     return;
                 }
-
+                logger.info("[SDV_LOG_115] [PANEL_LOAD_TASK:{}] Attempting ui.access for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
                 ui.access(() -> {
+                    final String panelUIAccessThreadName = Thread.currentThread().getName();
+                    logger.info("[SDV_LOG_116] [PANEL_UI_ACCESS:{}] Entered for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelUIAccessThreadName);
                     try {
-                        logger.info("ASYNC-{}: Aggiornamento UI con dati per scenarioId: {}", panelName, currentScenarioId);
                         Component content = ExamSupport.createExamsContent(esamiReferti);
                         panelToUpdate.setContent(content);
-                        logger.info("ASYNC-{}: UI aggiornata con successo per scenarioId: {}", panelName, currentScenarioId);
+                        logger.info("[SDV_LOG_117] [PANEL_UI_ACCESS:{}] UI updated successfully for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelUIAccessThreadName);
                     } catch (Exception e_ui) {
-                        logger.error("ASYNC-{}: Errore durante l'aggiornamento UI per scenarioId: {}", panelName, currentScenarioId, e_ui);
+                        logger.error("[SDV_LOG_118] [PANEL_UI_ACCESS:{}] Error during UI update for scenarioId: {}. Thread: {}. Error: {}", panelName, currentScenarioId, panelUIAccessThreadName, e_ui.getMessage(), e_ui);
                         panelToUpdate.setContent(new Span("Errore nella visualizzazione (" + panelName + "). Dettagli nel log."));
                     }
                 });
             } catch (Exception e_task) {
-                logger.error("ASYNC-{}: Errore nel task in background per scenarioId: {}", panelName, currentScenarioId, e_task);
-                if (detached.get() || ui.isClosing()) return;
+                logger.error("[SDV_LOG_119] [PANEL_LOAD_TASK:{}] Error in background task for scenarioId: {}. Thread: {}. Error: {}", panelName, currentScenarioId, panelLoadThreadName, e_task.getMessage(), e_task);
+                if (detached.get() || ui.isClosing()) {
+                    logger.warn("[SDV_LOG_120] [PANEL_LOAD_TASK:{}] View detached or UI closing after error for scenarioId: {}. No UI error update. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
+                    return;
+                }
                 ui.access(() -> panelToUpdate.setContent(new Span("Errore nel caricamento (" + panelName + "). Dettagli nel log.")));
             }
+            logger.info("[SDV_LOG_121] [PANEL_LOAD_TASK:{}] Task finished for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
         });
     }
 
@@ -662,38 +759,47 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                                        AccordionPanel panelToUpdate,
                                        int currentScenarioId) {
         String panelName = "Timeline";
+        logger.info("[SDV_LOG_122] [PANEL_LOAD_ASYNC] Method START for Panel: '{}', scenarioId: {}. Submitting task. Thread: {}", panelName, currentScenarioId, Thread.currentThread().getName());
         executorService.submit(() -> {
+            final String panelLoadThreadName = Thread.currentThread().getName();
+            logger.info("[SDV_LOG_123] [PANEL_LOAD_TASK:{}] Task started for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
             try {
-                logger.info("ASYNC-{}: Inizio caricamento dati per scenarioId: {}", panelName, currentScenarioId);
+                logger.info("[SDV_LOG_124] [PANEL_LOAD_TASK:{}] Fetching Tempi for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
                 List<Tempo> tempi = scenarioService.getTempiByScenarioId(currentScenarioId);
-                logger.info("ASYNC-{}: Dati caricati (numero tempi: {}). Pronto per UI. ScenarioId: {}",
-                        panelName, (tempi != null ? tempi.size() : "null"), currentScenarioId);
+                logger.info("[SDV_LOG_125] [PANEL_LOAD_TASK:{}] Data fetched for scenarioId: {}. Tempi count: {}. Ready for UI. Thread: {}",
+                        panelName, currentScenarioId, (tempi != null ? tempi.size() : "null list"), panelLoadThreadName);
 
                 if (detached.get() || ui.isClosing()) {
-                    logger.warn("ASYNC-{}: View staccata o UI in chiusura. Aggiornamento UI annullato. ScenarioId: {}", panelName, currentScenarioId);
+                    logger.warn("[SDV_LOG_126] [PANEL_LOAD_TASK:{}] View detached or UI closing for scenarioId: {}. UI update cancelled. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
                     return;
                 }
-
+                logger.info("[SDV_LOG_127] [PANEL_LOAD_TASK:{}] Attempting ui.access for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
                 ui.access(() -> {
+                    final String panelUIAccessThreadName = Thread.currentThread().getName();
+                    logger.info("[SDV_LOG_128] [PANEL_UI_ACCESS:{}] Entered for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelUIAccessThreadName);
                     try {
                         if (tempi != null && !tempi.isEmpty()) {
-                            logger.info("ASYNC-{}: Aggiornamento UI con dati per scenarioId: {}", panelName, currentScenarioId);
-                            panelToUpdate.setContent(TimesSupport.createTimelineContent(tempi, scenarioId));
+                            logger.info("[SDV_LOG_129] [PANEL_UI_ACCESS:{}] Creating timeline content with {} tempi for scenarioId: {}. Thread: {}", panelName, tempi.size(), currentScenarioId, panelUIAccessThreadName);
+                            panelToUpdate.setContent(TimesSupport.createTimelineContent(tempi, scenarioId)); // scenarioId here is member var
                         } else {
-                            logger.info("ASYNC-{}: Nessun dato per scenarioId: {}. Mostro messaggio 'Nessuna timeline'.", panelName, currentScenarioId);
+                            logger.info("[SDV_LOG_130] [PANEL_UI_ACCESS:{}] No timeline data for scenarioId: {}. Displaying 'Nessuna timeline'. Thread: {}", panelName, currentScenarioId, panelUIAccessThreadName);
                             panelToUpdate.setContent(new Span("Nessuna timeline disponibile per questo scenario."));
                         }
-                        logger.info("ASYNC-{}: UI aggiornata con successo per scenarioId: {}", panelName, currentScenarioId);
+                        logger.info("[SDV_LOG_131] [PANEL_UI_ACCESS:{}] UI updated successfully for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelUIAccessThreadName);
                     } catch (Exception e_ui) {
-                        logger.error("ASYNC-{}: Errore durante l'aggiornamento UI per scenarioId: {}", panelName, currentScenarioId, e_ui);
+                        logger.error("[SDV_LOG_132] [PANEL_UI_ACCESS:{}] Error during UI update for scenarioId: {}. Thread: {}. Error: {}", panelName, currentScenarioId, panelUIAccessThreadName, e_ui.getMessage(), e_ui);
                         panelToUpdate.setContent(new Span("Errore nella visualizzazione (" + panelName + "). Dettagli nel log."));
                     }
                 });
             } catch (Exception e_task) {
-                logger.error("ASYNC-{}: Errore nel task in background per scenarioId: {}", panelName, currentScenarioId, e_task);
-                if (detached.get() || ui.isClosing()) return;
+                logger.error("[SDV_LOG_133] [PANEL_LOAD_TASK:{}] Error in background task for scenarioId: {}. Thread: {}. Error: {}", panelName, currentScenarioId, panelLoadThreadName, e_task.getMessage(), e_task);
+                if (detached.get() || ui.isClosing()) {
+                    logger.warn("[SDV_LOG_134] [PANEL_LOAD_TASK:{}] View detached or UI closing after error for scenarioId: {}. No UI error update. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
+                    return;
+                }
                 ui.access(() -> panelToUpdate.setContent(new Span("Errore nel caricamento (" + panelName + "). Dettagli nel log.")));
             }
+            logger.info("[SDV_LOG_135] [PANEL_LOAD_TASK:{}] Task finished for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
         });
     }
 
@@ -701,47 +807,56 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                                             AccordionPanel panelToUpdate,
                                             int currentScenarioId) {
         String panelName = "Sceneggiatura";
+        logger.info("[SDV_LOG_136] [PANEL_LOAD_ASYNC] Method START for Panel: '{}', scenarioId: {}. Submitting task. Thread: {}", panelName, currentScenarioId, Thread.currentThread().getName());
         executorService.submit(() -> {
+            final String panelLoadThreadName = Thread.currentThread().getName();
+            logger.info("[SDV_LOG_137] [PANEL_LOAD_TASK:{}] Task started for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
             try {
-                logger.info("ASYNC-{}: Inizio caricamento tipo scenario per scenarioId: {}", panelName, currentScenarioId);
+                logger.info("[SDV_LOG_138] [PANEL_LOAD_TASK:{}] Fetching scenario type for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
                 String scenarioType = scenarioService.getScenarioType(currentScenarioId);
-                logger.info("ASYNC-{}: Tipo scenario caricato: '{}'. ScenarioId: {}", panelName, scenarioType, currentScenarioId);
+                logger.info("[SDV_LOG_139] [PANEL_LOAD_TASK:{}] Scenario type loaded: '{}' for scenarioId: {}. Thread: {}", panelName, scenarioType, currentScenarioId, panelLoadThreadName);
 
                 String sceneggiatura = null;
                 if ("Patient Simulated Scenario".equalsIgnoreCase(scenarioType)) {
-                    logger.info("ASYNC-{}: Recupero sceneggiatura per scenarioId: {}", panelName, currentScenarioId);
-                    sceneggiatura = ScenarioService.getSceneggiatura(currentScenarioId);
-                    logger.info("ASYNC-{}: Sceneggiatura recuperata (null? {}). ScenarioId: {}", panelName, (sceneggiatura == null), currentScenarioId);
+                    logger.info("[SDV_LOG_140] [PANEL_LOAD_TASK:{}] Fetching sceneggiatura for 'Patient Simulated Scenario' for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
+                    sceneggiatura = ScenarioService.getSceneggiatura(currentScenarioId); // Assuming this is a static call as per original code
+                    logger.info("[SDV_LOG_141] [PANEL_LOAD_TASK:{}] Sceneggiatura fetched (null? {}) for scenarioId: {}. Thread: {}", panelName, (sceneggiatura == null), currentScenarioId, panelLoadThreadName);
                 }
 
                 if (detached.get() || ui.isClosing()) {
-                    logger.warn("ASYNC-{}: View staccata o UI in chiusura. Aggiornamento UI annullato. ScenarioId: {}", panelName, currentScenarioId);
+                    logger.warn("[SDV_LOG_142] [PANEL_LOAD_TASK:{}] View detached or UI closing for scenarioId: {}. UI update cancelled. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
                     return;
                 }
 
                 final String finalSceneggiatura = sceneggiatura;
                 final String finalScenarioType = scenarioType;
-
+                logger.info("[SDV_LOG_143] [PANEL_LOAD_TASK:{}] Attempting ui.access for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
                 ui.access(() -> {
+                    final String panelUIAccessThreadName = Thread.currentThread().getName();
+                    logger.info("[SDV_LOG_144] [PANEL_UI_ACCESS:{}] Entered for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelUIAccessThreadName);
                     try {
                         if ("Patient Simulated Scenario".equalsIgnoreCase(finalScenarioType) && finalSceneggiatura != null && !finalSceneggiatura.isBlank()) {
-                            logger.info("ASYNC-{}: Aggiornamento UI con dati per scenarioId: {}", panelName, currentScenarioId);
+                            logger.info("[SDV_LOG_145] [PANEL_UI_ACCESS:{}] Creating sceneggiatura content for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelUIAccessThreadName);
                             panelToUpdate.setContent(SceneggiaturaSupport.createSceneggiaturaContent(finalSceneggiatura));
                         } else {
-                            logger.info("ASYNC-{}: Nessuna sceneggiatura applicabile/trovata per scenarioId: {}. Tipo: {}", panelName, currentScenarioId, finalScenarioType);
+                            logger.info("[SDV_LOG_146] [PANEL_UI_ACCESS:{}] No applicable sceneggiatura for scenarioId: {}. Type: '{}'. Displaying message. Thread: {}", panelName, currentScenarioId, finalScenarioType, panelUIAccessThreadName);
                             panelToUpdate.setContent(new Span("Nessuna sceneggiatura disponibile per questo tipo di scenario o per questo scenario specifico."));
                         }
-                        logger.info("ASYNC-{}: UI aggiornata con successo per scenarioId: {}", panelName, currentScenarioId);
+                        logger.info("[SDV_LOG_147] [PANEL_UI_ACCESS:{}] UI updated successfully for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelUIAccessThreadName);
                     } catch (Exception e_ui) {
-                        logger.error("ASYNC-{}: Errore durante l'aggiornamento UI per scenarioId: {}", panelName, currentScenarioId, e_ui);
+                        logger.error("[SDV_LOG_148] [PANEL_UI_ACCESS:{}] Error during UI update for scenarioId: {}. Thread: {}. Error: {}", panelName, currentScenarioId, panelUIAccessThreadName, e_ui.getMessage(), e_ui);
                         panelToUpdate.setContent(new Span("Errore nella visualizzazione (" + panelName + "). Dettagli nel log."));
                     }
                 });
             } catch (Exception e_task) {
-                logger.error("ASYNC-{}: Errore nel task in background per scenarioId: {}", panelName, currentScenarioId, e_task);
-                if (detached.get() || ui.isClosing()) return;
+                logger.error("[SDV_LOG_149] [PANEL_LOAD_TASK:{}] Error in background task for scenarioId: {}. Thread: {}. Error: {}", panelName, currentScenarioId, panelLoadThreadName, e_task.getMessage(), e_task);
+                if (detached.get() || ui.isClosing()) {
+                    logger.warn("[SDV_LOG_150] [PANEL_LOAD_TASK:{}] View detached or UI closing after error for scenarioId: {}. No UI error update. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
+                    return;
+                }
                 ui.access(() -> panelToUpdate.setContent(new Span("Errore nel caricamento (" + panelName + "). Dettagli nel log.")));
             }
+            logger.info("[SDV_LOG_151] [PANEL_LOAD_TASK:{}] Task finished for scenarioId: {}. Thread: {}", panelName, currentScenarioId, panelLoadThreadName);
         });
     }
 }
