@@ -35,7 +35,6 @@ public class AdvancedScenario extends Scenario {
      * @param descrizione          descrizione dettagliata dello scenario
      * @param briefing             testo introduttivo per i discenti
      * @param patto_aula           accordi iniziali con la classe
-     * @param azione_chiave        azioni principali da valutare
      * @param obiettivo            obiettivi didattici dello scenario
      * @param moulage              trucco/effetti speciali per il paziente
      * @param liquidi              liquidi e presidi disponibili
@@ -45,11 +44,11 @@ public class AdvancedScenario extends Scenario {
      */
     public AdvancedScenario(int id, String titolo, String nome_paziente, String patologia,
                             String descrizione, String briefing, String patto_aula,
-                            String azione_chiave, String obiettivo ,
+                            String obiettivo ,
                             String moulage, String liquidi, float timer_generale,
                             int id_advanced_scenario, ArrayList<Tempo> tempi, String autori, String tipologia, String infoGenitore, String target) {
         super(id, titolo, nome_paziente, patologia, descrizione, briefing,
-                patto_aula, azione_chiave, obiettivo, moulage,
+                patto_aula, obiettivo, moulage,
                 liquidi, timer_generale, autori, tipologia, infoGenitore, target);
         this.id_advanced_scenario = id_advanced_scenario;
         this.tempi = tempi;

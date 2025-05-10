@@ -169,27 +169,28 @@ public class StyleApp extends HorizontalLayout {
         return nextButton;
     }
 
-    public static Button getEditButton() {
-        Button editButton = new Button("Modifica", new Icon(VaadinIcon.EDIT));
-        editButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        editButton.setWidth("150px");
+    public static Button getButton(String label, VaadinIcon icon, ButtonVariant variant, String iconColor) {
+        Button editButton = new Button(label, new Icon(icon));
+        editButton.addThemeVariants(variant);
+        editButton.setMinWidth("150px");
+        editButton.setMaxWidth("250px");
         editButton.getStyle()
                 .set("border-radius", "30px")
                 .set("font-weight", "600")
                 .set("transition", "all 0.2s ease")
-                .set("background-color", "var(--lumo-success-color-10pct)")
-                .set("color", "var(--lumo-success-text-color)")
-                .set("border", "1px solid var(--lumo-success-color-50pct)")
+                .set("background-color", "var(" + iconColor + "-10pct)")
+                .set("color", "var(" + iconColor + ")")
+                .set("border", "1px solid var(" + iconColor + "-50pct)")
                 .set("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.05)");
 
-        // Aggiungo effetto hover
+        // Aggiungo effetto hover utilizzando il colore passato come parametro
         editButton.getElement().executeJs(
                 "this.addEventListener('mouseover', function() { " +
-                        "  this.style.backgroundColor = 'var(--lumo-success-color-20pct)'; " +
+                        "  this.style.backgroundColor = 'var(" + iconColor + "-20pct)'; " +
                         "  this.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)'; " +
                         "});" +
                         "this.addEventListener('mouseout', function() { " +
-                        "  this.style.backgroundColor = 'var(--lumo-success-color-10pct)'; " +
+                        "  this.style.backgroundColor = 'var(" + iconColor + "-10pct)'; " +
                         "  this.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)'; " +
                         "});"
         );
@@ -219,5 +220,34 @@ public class StyleApp extends HorizontalLayout {
                 .set("margin", "0 auto")
                 .set("flex-grow", "1");
         return contentLayout;
+    }
+
+    public static Button getSaveEditButton() {
+        Button saveButton = new Button("Salva Modifiche", new Icon(VaadinIcon.CHECK));
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        saveButton.setWidth("200px");  // Larghezza adeguata al testo più lungo
+        saveButton.getStyle()
+                .set("border-radius", "30px")
+                .set("font-weight", "600")
+                .set("transition", "transform 0.2s ease")
+                .set("background-color", "var(--lumo-success-color)")
+                .set("color", "var(--lumo-base-color)")
+                .set("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.05)")
+        ;
+
+        // Aggiungo effetto hover
+        saveButton.getElement().executeJs(
+                "this.addEventListener('mouseover', function() { " +
+                        "  this.style.backgroundColor = 'var(--lumo-success-text-color)'; " +
+                        "  this.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)'; " +
+                        "});" +
+                        "this.addEventListener('mouseout', function() { " +
+                        "  this.style.backgroundColor = 'var(--lumo-success-color)'; " +
+                        "  this.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)'; " +
+                        "});"
+        );
+
+        saveButton.addClassName("hover-effect");
+        return saveButton;
     }
 }

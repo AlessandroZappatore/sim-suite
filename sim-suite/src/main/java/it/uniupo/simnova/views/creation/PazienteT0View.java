@@ -390,8 +390,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                         etco2Field.getValue().intValue(),
                         monitorArea.getValue(),
                         venosi,
-                        arteriosi,
-                        presidiSelect.getValue()
+                        arteriosi
                 );
 
                 ui.accessSynchronously(() -> {

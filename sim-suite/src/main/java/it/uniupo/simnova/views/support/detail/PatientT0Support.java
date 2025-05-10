@@ -14,7 +14,6 @@ import it.uniupo.simnova.api.model.Accesso;
 import it.uniupo.simnova.api.model.EsameFisico;
 import it.uniupo.simnova.api.model.ParametroAggiuntivo;
 import it.uniupo.simnova.api.model.PazienteT0;
-import it.uniupo.simnova.service.ScenarioService;
 
 import java.util.List;
 import java.util.Map;
@@ -75,14 +74,13 @@ public class PatientT0Support {
         }
     }
 
-    public static VerticalLayout createPatientContent(ScenarioService scenarioService, int scenarioId) {
+    public static VerticalLayout createPatientContent(PazienteT0 paziente, EsameFisico esame) {
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(false);
         layout.setSpacing(true);
         layout.setWidthFull();
         layout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        PazienteT0 paziente = scenarioService.getPazienteT0ById(scenarioId);
         if (paziente != null) {
             Div patientCard = new Div();
             patientCard.addClassName("info-card");
@@ -190,7 +188,6 @@ public class PatientT0Support {
         }
 
         // Sezione Esame Fisico
-        EsameFisico esame = scenarioService.getEsameFisicoById(scenarioId);
         if (esame != null && !esame.getSections().isEmpty()) {
             Div examCard = new Div();
             examCard.addClassName("info-card");

@@ -39,10 +39,6 @@ public class Scenario {
      */
     private String patto_aula;
     /**
-     * Azione chiave dello scenario.
-     */
-    private String azione_chiave;
-    /**
      * Obiettivo dello scenario.
      */
     private String obiettivo;
@@ -76,7 +72,7 @@ public class Scenario {
     private String target;
 
 
-    public Scenario(int id, String titolo, String nome_paziente, String patologia, String descrizione, String briefing, String patto_aula, String azione_chiave, String obiettivo, String moulage, String liquidi, float timer_generale, String autori, String tipologia, String infoGenitore, String target) {
+    public Scenario(int id, String titolo, String nome_paziente, String patologia, String descrizione, String briefing, String patto_aula, String obiettivo, String moulage, String liquidi, float timer_generale, String autori, String tipologia, String infoGenitore, String target) {
         this.id = id;
         this.titolo = titolo;
         this.nome_paziente = nome_paziente;
@@ -84,7 +80,6 @@ public class Scenario {
         this.descrizione = descrizione;
         this.briefing = briefing;
         this.patto_aula = patto_aula;
-        this.azione_chiave = azione_chiave;
         this.obiettivo = obiettivo;
         this.moulage = moulage;
         this.liquidi = liquidi;
@@ -245,42 +240,6 @@ public class Scenario {
     }
 
     /**
-     * Restituisce l'azione chiave dello scenario.
-     *
-     * @return l'azione chiave dello scenario
-     */
-    public String getAzioneChiave() {
-        if (azione_chiave == null) {
-            return null;
-        }
-
-        StringBuilder sb = new StringBuilder();
-        String[] azioni = azione_chiave.split(";");
-
-        for (int i = 0; i < azioni.length; i++) {
-            sb.append(azioni[i].trim());
-            if (i < azioni.length - 1) {
-                sb.append("\n");
-            }
-        }
-
-        return sb.toString();
-    }
-
-    public String getAzione_chiave_raw() {
-        return azione_chiave;
-    }
-
-    /**
-     * Imposta l'azione chiave dello scenario.
-     *
-     * @param azione_chiave la nuova azione chiave
-     */
-    public void setAzioneChiave(String azione_chiave) {
-        this.azione_chiave = azione_chiave;
-    }
-
-    /**
      * Restituisce l'obiettivo dello scenario.
      *
      * @return l'obiettivo dello scenario
@@ -401,7 +360,6 @@ public class Scenario {
                 ", descrizione='" + descrizione + '\'' +
                 ", briefing='" + briefing + '\'' +
                 ", patto_aula='" + patto_aula + '\'' +
-                ", azione_chiave='" + azione_chiave + '\'' +
                 ", obiettivo='" + obiettivo + '\'' +
                 ", moulage='" + moulage + '\'' +
                 ", liquidi='" + liquidi + '\'' +

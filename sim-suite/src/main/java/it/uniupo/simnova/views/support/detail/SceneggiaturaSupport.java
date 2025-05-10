@@ -9,7 +9,8 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout; // Importato
 import com.vaadin.flow.theme.lumo.LumoUtility; // Importato
-import it.uniupo.simnova.service.ScenarioService; // Assumendo che sia accessibile staticamente o iniettato
+// Assumendo che sia accessibile staticamente o iniettato
+
 
 public class SceneggiaturaSupport extends HorizontalLayout { // L'estensione potrebbe non essere necessaria se si usano solo metodi statici
 
@@ -17,7 +18,7 @@ public class SceneggiaturaSupport extends HorizontalLayout { // L'estensione pot
         // Costruttore vuoto, la classe è usata per metodi statici
     }
 
-    public static Component createSceneggiaturaContent(int scenarioId) {
+    public static Component createSceneggiaturaContent(String sceneggiaturaText) {
         VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setPadding(true);
         mainLayout.setSpacing(false);
@@ -78,8 +79,6 @@ public class SceneggiaturaSupport extends HorizontalLayout { // L'estensione pot
         // Contenuto della sceneggiatura
         Div contentDisplayWrapper = new Div(); // Wrapper per il contenuto testuale
         contentDisplayWrapper.setWidthFull();
-
-        String sceneggiaturaText = ScenarioService.getSceneggiatura(scenarioId); // Assumendo metodo statico
 
         if (sceneggiaturaText == null || sceneggiaturaText.trim().isEmpty()) {
             Div emptyMessage = EmptySupport.createErrorContent("Nessuna sceneggiatura disponibile");

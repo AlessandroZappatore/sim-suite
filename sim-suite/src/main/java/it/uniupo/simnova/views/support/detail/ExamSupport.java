@@ -13,23 +13,21 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.dom.Element;
 import it.uniupo.simnova.api.model.EsameReferto;
 import it.uniupo.simnova.service.ScenarioService;
-import it.uniupo.simnova.views.creation.ScenarioDetailsView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class ExamSupport {
-    private static final Logger logger = LoggerFactory.getLogger(ScenarioDetailsView.class);
+    private static final Logger logger = LoggerFactory.getLogger(ExamSupport.class);
 
-    public static VerticalLayout createExamsContent(ScenarioService scenarioService, int scenarioId) {
+    public static VerticalLayout createExamsContent(List<EsameReferto> esami) {
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(false);
         layout.setSpacing(true);
         layout.setWidthFull();
 
         // Ottieni gli esami/referti dal servizio
-        List<EsameReferto> esami = scenarioService.getEsamiRefertiByScenarioId(scenarioId);
         if (esami != null && !esami.isEmpty()) {
             for (EsameReferto esame : esami) {
                 Div examCard = new Div();
@@ -198,13 +196,22 @@ public class ExamSupport {
         Icon typeIcon = getIconForFileType(fileExtension);
 
         // Pulsante per aprire il file a schermo intero
-        Button fullscreenButton = new Button("Visualizza", new Icon(VaadinIcon.EXTERNAL_LINK));
+        Button fullscreenButton = new Button("Apri in una nuova pagina", new Icon(VaadinIcon.EXPAND_FULL));
         fullscreenButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         fullscreenButton.getStyle()
                 .set("border-radius", "30px")
                 .set("margin-top", "var(--lumo-space-m)")
                 .set("transition", "transform 0.2s ease")
                 .set("cursor", "pointer");
+
+        fullscreenButton.getElement().executeJs(
+                "this.addEventListener('mouseover', function() { " +
+                        "  this.style.transform = 'scale(1.1)'; " +
+                        "});" +
+                        "this.addEventListener('mouseout', function() { " +
+                        "  this.style.transform = 'scale(1)'; " +
+                        "});"
+        );
 
         fullscreenButton.addClassName("hover-effect");
         fullscreenButton.addClickListener(e -> openFullMedia(fileName));
@@ -370,7 +377,7 @@ public class ExamSupport {
             }
             case "mp3", "wav", "ogg" -> {
                 Icon icon = new Icon(VaadinIcon.MUSIC);
-                icon.getStyle().set("color", "var(--lumo-tertiary-color)");
+                icon.getStyle().set("color", "var(--lumo-warning-color)");
                 yield icon;
             }
             default -> {
@@ -386,7 +393,7 @@ public class ExamSupport {
             case "jpg", "jpeg", "png", "gif", "webp" -> "var(--lumo-primary-color)";
             case "pdf" -> "var(--lumo-error-color)";
             case "mp4", "webm", "mov" -> "var(--lumo-success-color)";
-            case "mp3", "wav", "ogg" -> "var(--lumo-tertiary-color)";
+            case "mp3", "wav", "ogg" -> "var(--lumo-warning-color)";
             default -> "var(--lumo-contrast-50pct)";
         };
     }

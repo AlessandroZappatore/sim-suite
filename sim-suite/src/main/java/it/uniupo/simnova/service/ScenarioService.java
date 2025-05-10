@@ -98,7 +98,6 @@ public class ScenarioService {
                         rs.getString("descrizione"),
                         rs.getString("briefing"),
                         rs.getString("patto_aula"),
-                        rs.getString("azione_chiave"),
                         rs.getString("obiettivo"),
                         rs.getString("moulage"),
                         rs.getString("liquidi"),
@@ -413,8 +412,7 @@ public class ScenarioService {
                         rsPaziente.getInt("EtCO2"),
                         rsPaziente.getString("Monitor"),
                         accessiVenosi,
-                        accessiArteriosi,
-                        rsPaziente.getString("presidi")
+                        accessiArteriosi
                 );
                 logger.info("Paziente T0 con ID {} recuperato con successo", scenarioId);
             } else {
@@ -489,17 +487,6 @@ public class ScenarioService {
      */
     public boolean updateScenarioPattoAula(int scenarioId, String patto_aula) {
         return updateScenarioField(scenarioId, "patto_aula", patto_aula);
-    }
-
-    /**
-     * Aggiorna l'azione chiave dello scenario.
-     *
-     * @param scenarioId    l'ID dello scenario da aggiornare
-     * @param azione_chiave il nuovo azione chiave
-     * @return true se l'operazione ha avuto successo, false altrimenti
-     */
-    public boolean updateScenarioAzioneChiave(int scenarioId, String azione_chiave) {
-        return updateScenarioField(scenarioId, "azione_chiave", azione_chiave);
     }
 
     /**
@@ -652,7 +639,7 @@ public class ScenarioService {
                                   String pa, int fc, int rr, double temp,
                                   int spo2, int fio2, float litrio2, int etco2, String monitor,
                                   List<Accesso> venosiData,
-                                  List<Accesso> arteriosiData, String presidi) {
+                                  List<Accesso> arteriosiData) {
         Connection conn = null;
         logger.debug("PA: {}", pa);
         if (fc < 0) {
@@ -688,7 +675,7 @@ public class ScenarioService {
             conn.setAutoCommit(false);
 
             // 1. Salva i parametri vitali del paziente
-            if (!savePazienteParams(conn, scenarioId, pa, fc, rr, temp, spo2, fio2, litrio2, etco2, monitor, presidi)) {
+            if (!savePazienteParams(conn, scenarioId, pa, fc, rr, temp, spo2, fio2, litrio2, etco2, monitor)) {
                 conn.rollback();
                 logger.warn("Rollback: impossibile salvare i parametri vitali per lo scenario con ID {}", scenarioId);
                 return false;
@@ -749,7 +736,7 @@ public class ScenarioService {
      */
     private boolean savePazienteParams(Connection conn, int scenarioId,
                                        String pa, int fc, int rr, double temp,
-                                       int spo2, int fio2, float litrio2, int etco2, String monitor, String presidi) throws SQLException {
+                                       int spo2, int fio2, float litrio2, int etco2, String monitor) throws SQLException {
         // Verifica se esiste già
         boolean exists = getPazienteT0ById(scenarioId) != null;
 
@@ -782,8 +769,8 @@ public class ScenarioService {
             throw new IllegalArgumentException("Formato PA non valido, atteso 'sistolica/diastolica' (es. '120/80')");
         }
         final String sql = exists ?
-                "UPDATE PazienteT0 SET PA=?, FC=?, RR=?, T=?, SpO2=?, FiO2=?, LitriOssigeno=?, EtCO2=?, Monitor=?, Presidi=? WHERE id_paziente=?" :
-                "INSERT INTO PazienteT0 (id_paziente, PA, FC, RR, T, SpO2, FiO2, LitriOssigeno, EtCO2, Monitor, Presidi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "UPDATE PazienteT0 SET PA=?, FC=?, RR=?, T=?, SpO2=?, FiO2=?, LitriOssigeno=?, EtCO2=?, Monitor=? WHERE id_paziente=?" :
+                "INSERT INTO PazienteT0 (id_paziente, PA, FC, RR, T, SpO2, FiO2, LitriOssigeno, EtCO2, Monitor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             int paramIndex = 1;
@@ -792,14 +779,12 @@ public class ScenarioService {
                 // Ordine per UPDATE
                 paramIndex = getParamIndex(pa, fc, rr, temp, spo2, fio2, litrio2, etco2, stmt, paramIndex);
                 stmt.setString(paramIndex++, monitor);
-                stmt.setString(paramIndex++, presidi);
                 stmt.setInt(paramIndex, scenarioId); // WHERE condition
             } else {
                 // Ordine per INSERT
                 stmt.setInt(paramIndex++, scenarioId);
                 paramIndex = getParamIndex(pa, fc, rr, temp, spo2, fio2, litrio2, etco2, stmt, paramIndex);
                 stmt.setString(paramIndex, monitor);
-                stmt.setString(paramIndex + 1, presidi);
             }
 
             boolean result = stmt.executeUpdate() > 0;
@@ -1536,7 +1521,6 @@ public class ScenarioService {
                         rs.getString("descrizione"),
                         rs.getString("briefing"),
                         rs.getString("patto_aula"),
-                        rs.getString("azione_chiave"),
                         rs.getString("obiettivo"),
                         rs.getString("moulage"),
                         rs.getString("liquidi"),
@@ -1731,6 +1715,140 @@ public class ScenarioService {
         return "";
     }
 
+    public List<String> getNomiAzioniChiaveByScenarioId(Integer scenarioId) {
+        List<String> nomiAzioni = new ArrayList<>();
+
+        final String sql = "SELECT ac.nome " +
+                "FROM AzioniChiave ac " +
+                "JOIN AzioneScenario a ON ac.id_azione = a.id_azione " +
+                "WHERE a.id_scenario = ?";
+
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, scenarioId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                nomiAzioni.add(rs.getString("nome"));
+            }
+
+            if (!nomiAzioni.isEmpty()) {
+                logger.info("Recuperate {} azioni chiave per lo scenario con ID {}", nomiAzioni.size(), scenarioId);
+            } else {
+                logger.info("Nessuna azione chiave trovata per lo scenario con ID {}", scenarioId);
+            }
+
+        } catch (SQLException e) {
+            logger.error("Errore durante il recupero delle azioni chiave per lo scenario con ID {}", scenarioId, e);
+            return new ArrayList<>();
+        }
+        return nomiAzioni;
+    }
+
+    public boolean updateAzioniChiaveForScenario(Integer scenarioId, List<String> nomiAzioniDaSalvare) {
+        Connection conn = null;
+        boolean success = false;
+
+        try {
+            conn = DBConnect.getInstance().getConnection();
+            conn.setAutoCommit(false); // Inizia la transazione
+
+            List<Integer> idAzioniFinali = new ArrayList<>();
+            if (nomiAzioniDaSalvare != null) {
+                for (String nomeAzione : nomiAzioniDaSalvare) {
+                    if (nomeAzione == null || nomeAzione.trim().isEmpty()) {
+                        continue; // Salta nomi di azione vuoti o null
+                    }
+                    // Ottiene l'ID dell'azione chiave, creandola se non esiste
+                    Integer idAzione = getOrCreateAzioneChiaveId(conn, nomeAzione.trim());
+                    idAzioniFinali.add(idAzione);
+                }
+            }
+
+            // 2. Cancella le associazioni esistenti per questo scenario dalla tabella AzioneScenario
+            final String deleteSql = "DELETE FROM AzioneScenario WHERE id_scenario = ?";
+            try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSql)) {
+                deleteStmt.setInt(1, scenarioId);
+                int deletedRows = deleteStmt.executeUpdate();
+                logger.info("Rimosse {} associazioni azione-scenario esistenti per scenario ID: {}", deletedRows, scenarioId);
+            }
+
+            // 3. Inserisci le nuove associazioni nella tabella AzioneScenario
+            if (!idAzioniFinali.isEmpty()) {
+                final String insertSql = "INSERT INTO AzioneScenario (id_scenario, id_azione) VALUES (?, ?)";
+                try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                    for (Integer idAzione : idAzioniFinali) {
+                        insertStmt.setInt(1, scenarioId);
+                        insertStmt.setInt(2, idAzione);
+                        insertStmt.addBatch(); // Aggiunge l'operazione al batch
+                    }
+                    int[] batchResult = insertStmt.executeBatch(); // Esegue tutte le operazioni nel batch
+                    logger.info("Inserite {} nuove associazioni azione-scenario per scenario ID: {}", batchResult.length, scenarioId);
+                }
+            } else {
+                logger.info("Nessuna nuova azione chiave da associare per lo scenario ID: {}. Tutte le associazioni precedenti sono state rimosse.", scenarioId);
+            }
+
+            conn.commit(); // Conferma la transazione
+            success = true;
+            logger.info("Azioni chiave per lo scenario ID {} aggiornate con successo.", scenarioId);
+
+        } catch (SQLException e) {
+            logger.error("Errore SQL durante l'aggiornamento delle azioni chiave per lo scenario ID {}: {}", scenarioId, e.getMessage(), e);
+            if (conn != null) {
+                try {
+                    conn.rollback(); // Annulla la transazione in caso di errore
+                    logger.warn("Rollback della transazione eseguito per lo scenario ID {}", scenarioId);
+                } catch (SQLException ex) {
+                    logger.error("Errore durante il rollback della transazione per lo scenario ID {}: {}", scenarioId, ex.getMessage(), ex);
+                }
+            }
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true); // Ripristina la modalità auto-commit
+                    conn.close(); // Chiudi la connessione
+                } catch (SQLException e) {
+                    logger.error("Errore durante la chiusura della connessione per lo scenario ID {}: {}", scenarioId, e.getMessage(), e);
+                }
+            }
+        }
+        return success;
+    }
+
+    private Integer getOrCreateAzioneChiaveId(Connection conn, String nomeAzione) throws SQLException {
+        // Primo, verifica se l'azione chiave esiste già
+        final String selectSql = "SELECT id_azione FROM AzioniChiave WHERE nome = ?";
+        try (PreparedStatement selectStmt = conn.prepareStatement(selectSql)) {
+            selectStmt.setString(1, nomeAzione);
+            ResultSet rs = selectStmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("id_azione"); // Restituisce l'ID esistente
+            }
+        }
+
+        // Se non esiste, inseriscila nella tabella AzioniChiave
+        final String insertSql = "INSERT INTO AzioniChiave (nome) VALUES (?)";
+        try (PreparedStatement insertStmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
+            insertStmt.setString(1, nomeAzione);
+            int affectedRows = insertStmt.executeUpdate();
+
+            if (affectedRows > 0) {
+                try (ResultSet generatedKeys = insertStmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        logger.info("Creata nuova AzioneChiave '{}' con ID: {}", nomeAzione, generatedKeys.getInt(1));
+                        return generatedKeys.getInt(1); // Restituisce il nuovo ID generato
+                    } else {
+                        throw new SQLException("Creazione AzioneChiave fallita per '" + nomeAzione + "', nessun ID ottenuto.");
+                    }
+                }
+            } else {
+                throw new SQLException("Creazione AzioneChiave fallita per '" + nomeAzione + "', nessuna riga modificata.");
+            }
+        }
+    }
+
     /**
      * Aggiorna uno scenario esistente nel database.
      *
@@ -1751,12 +1869,11 @@ public class ScenarioService {
             stmt.setString(4, scenario.getDescrizione());
             stmt.setString(5, scenario.getBriefing());
             stmt.setString(6, scenario.getPattoAula());
-            stmt.setString(7, scenario.getAzioneChiave());
-            stmt.setString(8, scenario.getObiettivo());
-            stmt.setString(10, scenario.getMoulage());
-            stmt.setString(11, scenario.getLiquidi());
-            stmt.setFloat(12, scenario.getTimerGenerale());
-            stmt.setInt(13, scenario.getId());
+            stmt.setString(7, scenario.getObiettivo());
+            stmt.setString(8, scenario.getMoulage());
+            stmt.setString(9, scenario.getLiquidi());
+            stmt.setFloat(10, scenario.getTimerGenerale());
+            stmt.setInt(11, scenario.getId());
 
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected > 0) {
@@ -1858,7 +1975,6 @@ public class ScenarioService {
                 (String) scenarioData.get("descrizione"),
                 (String) scenarioData.get("briefing"),
                 (String) scenarioData.get("patto_aula"),
-                (String) scenarioData.get("azione_chiave"),
                 (String) scenarioData.get("obiettivo"),
                 (String) scenarioData.get("moulage"),
                 (String) scenarioData.get("liquidi"),
@@ -1978,8 +2094,7 @@ public class ScenarioService {
                     ((Double) pazienteT0Data.get("EtCO2")).intValue(),
                     (String) pazienteT0Data.get("Monitor"),
                     venosi,
-                    arteriosi,
-                    (String) pazienteT0Data.get("presidi")
+                    arteriosi
             )) {
                 logger.warn("Errore durante il salvataggio del paziente T0");
             }
@@ -2171,7 +2286,6 @@ public class ScenarioService {
         updateScenarioLiquidi(idScenario, updatedSections.get("Liquidi"));
         updateScenarioMoulage(idScenario, updatedSections.get("Moulage"));
         updateScenarioObiettiviDidattici(idScenario, updatedSections.get("Obiettivi"));
-        updateScenarioAzioneChiave(idScenario, updatedSections.get("AzioniChiave"));
 
         addEsameFisico(idScenario, esameFisico.getSections());
 
@@ -2186,8 +2300,10 @@ public class ScenarioService {
                 Integer.parseInt(pazienteT0.get("EtCO2")),
                 pazienteT0.get("Monitoraggio"),
                 accessiVenosi,
-                accessiArteriosi,
-                pazienteT0.get("Presidi")
+                accessiArteriosi
         );
     }
+
+
+
 }

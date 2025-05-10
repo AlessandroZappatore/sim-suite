@@ -33,7 +33,7 @@ public class FieldGenerator extends HorizontalLayout {
      * @param required    Indica se il campo è obbligatorio
      * @return Campo di testo configurato con stile migliorato
      */
-    public static TextField createTextField(String label, String placeholder, boolean required) {
+    public static TextField createTextField(String label, String placeholder, Boolean required) {
         TextField field = new TextField(label);
         field.setPlaceholder(placeholder);
         field.setWidthFull();
@@ -55,10 +55,15 @@ public class FieldGenerator extends HorizontalLayout {
         field.addClassName(LumoUtility.Margin.Top.LARGE);
         field.addClassName(LumoUtility.Padding.SMALL);
 
-        if (required) {
+        if (required == null) {
+            // Se required è null, usa il grigio
+            field.getStyle().set("border-left", "3px solid var(--lumo-contrast-30pct)");
+        } else if (required) {
+            // Se required è true, usa il blu
             field.setRequired(true);
             field.getStyle().set("border-left", "3px solid var(--lumo-primary-color)");
         } else {
+            // Se required è false, usa il verde
             field.getStyle().set("border-left", "3px solid var(--lumo-success-color-50pct)");
         }
 

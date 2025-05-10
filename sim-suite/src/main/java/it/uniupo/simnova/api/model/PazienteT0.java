@@ -60,14 +60,10 @@ public class PazienteT0 {
      * Lista degli accessi arteriosi del paziente.
      */
     private List<Accesso> accessiArteriosi;
-    /**
-     * Presidi al T0.
-     */
-    private String presidi;
 
 
     public PazienteT0(int idPaziente, String PA, Integer FC, Integer RR, double t, Integer spO2, Integer fiO2, Float litriO2, Integer etCO2,
-                      String monitor, List<Accesso> accessiVenosi, List<Accesso> accessiArteriosi, String presidi) {
+                      String monitor, List<Accesso> accessiVenosi, List<Accesso> accessiArteriosi) {
         this.idPaziente = idPaziente;
 
         if (PA != null) {
@@ -109,7 +105,6 @@ public class PazienteT0 {
         Monitor = monitor;
         this.accessiVenosi = accessiVenosi;
         this.accessiArteriosi = accessiArteriosi;
-        this.presidi = presidi;
     }
 
     /**
@@ -308,14 +303,6 @@ public class PazienteT0 {
         this.accessiArteriosi = accessiArteriosi;
     }
 
-    public String getPresidi() {
-        return presidi;
-    }
-
-    public void setPresidi(String presidi) {
-        this.presidi = presidi;
-    }
-
     public Integer getFiO2() {
         return FiO2;
     }
@@ -356,7 +343,6 @@ public class PazienteT0 {
                 ", Monitor='" + Monitor + '\'' +
                 ", accessiVenosi=" + accessiVenosi +
                 ", accessiArteriosi=" + accessiArteriosi +
-                ", presidi='" + presidi + '\'' +
                 '}';
     }
 }

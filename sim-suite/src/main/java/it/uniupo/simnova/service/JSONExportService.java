@@ -75,7 +75,7 @@ public class JSONExportService implements Serializable {
             var tempi = scenarioService.getTempiByScenarioId(scenarioId);
             exportData.put("tempi", tempi);
         } else if (scenarioType.equals("Patient Simulated Scenario")) {
-            var sceneggiatura = ScenarioService.getSceneggiatura(scenarioId);
+            var sceneggiatura = scenarioService.getSceneggiatura(scenarioId);
             exportData.put("sceneggiatura", sceneggiatura);
         }
 

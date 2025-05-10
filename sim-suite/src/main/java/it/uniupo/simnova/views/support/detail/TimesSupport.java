@@ -58,7 +58,8 @@ public class TimesSupport {
                 .set("border-left", "3px solid " + borderColor) // Bordo colorato a sinistra
                 .set("border-radius", "var(--lumo-border-radius-l)")
                 .set("background-color", "var(--lumo-base-color)")
-                .set("box-shadow", "var(--lumo-box-shadow-s)");
+                .set("box-shadow", "var(--lumo-box-shadow-s)")
+                .set("box-sizing", "border-box");
         return sectionContainer;
     }
 
@@ -93,13 +94,12 @@ public class TimesSupport {
     }
 
 
-    public static VerticalLayout createTimelineContent(ScenarioService scenarioService, int scenarioId) {
+    public static VerticalLayout createTimelineContent(List<Tempo> tempi, int scenarioId) {
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(false);
         layout.setSpacing(true);
         layout.setWidthFull();
 
-        List<Tempo> tempi = scenarioService.getTempiByScenarioId(scenarioId);
         if (tempi.isEmpty()) {
             layout.add(new Paragraph("Nessun tempo definito per questo scenario"));
             return layout;

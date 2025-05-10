@@ -461,8 +461,8 @@ public class PdfExportService {
         }
 
         // Azioni chiave
-        if (scenario.getAzioneChiave() != null && !scenario.getAzioneChiave().isEmpty() && azioni) {
-            drawSection("Azioni Chiave", scenario.getAzioneChiave());
+        if (scenarioService.getNomiAzioniChiaveByScenarioId(scenario.getId()) != null && !scenarioService.getNomiAzioniChiaveByScenarioId(scenario.getId()).isEmpty() && azioni) {
+            drawSection("Azioni Chiave", scenarioService.getNomiAzioniChiaveByScenarioId(scenario.getId()).toString());
         }
 
         // Obiettivi didattici
@@ -830,7 +830,7 @@ public class PdfExportService {
      * @throws IOException se si verifica un errore durante la creazione della sezione
      */
     private void createSceneggiaturaSection(Scenario scenario, boolean scen) throws IOException {
-        String sceneggiatura = ScenarioService.getSceneggiatura(scenario.getId());
+        String sceneggiatura = scenarioService.getSceneggiatura(scenario.getId());
         if (sceneggiatura == null || sceneggiatura.isEmpty() || !scen) {
             return;
         }

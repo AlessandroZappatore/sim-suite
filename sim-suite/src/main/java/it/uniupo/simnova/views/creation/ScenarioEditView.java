@@ -26,7 +26,12 @@ import it.uniupo.simnova.api.model.Accesso;
 import it.uniupo.simnova.api.model.EsameFisico;
 import it.uniupo.simnova.api.model.PazienteT0;
 import it.uniupo.simnova.api.model.Scenario;
+import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.service.ScenarioService;
+import it.uniupo.simnova.views.support.AppHeader;
+import it.uniupo.simnova.views.support.FieldGenerator;
+import it.uniupo.simnova.views.support.StyleApp;
+import it.uniupo.simnova.views.support.TinyEditor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vaadin.tinymce.TinyMce;
@@ -44,12 +49,13 @@ import java.util.*;
  * @version 1.1 // Versione incrementata
  */
 @PageTitle("Modifica Scenario")
-@Route(value = "modificaScenario", layout = MainLayout.class)
+@Route(value = "modificaScenario")
 public class ScenarioEditView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     /**
      * Servizio per la gestione degli scenari.
      */
     private final ScenarioService scenarioService;
+    private final FileStorageService fileStorageService;
     /**
      * ID dello scenario da modificare.
      */
@@ -114,8 +120,9 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
      *
      * @param scenarioService servizio per la gestione degli scenari
      */
-    public ScenarioEditView(ScenarioService scenarioService) {
+    public ScenarioEditView(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
+        this.fileStorageService = fileStorageService;
     }
 
     /**
@@ -154,74 +161,80 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
      * Costruisce la vista per la modifica dello scenario.
      */
     private void buildView() {
-        VerticalLayout mainLayout = getContent();
-        mainLayout.removeAll();
-        mainLayout.setSizeFull();
-        mainLayout.setPadding(false);
-        mainLayout.setSpacing(false);
+        VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
-
-        Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
-        backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        backButton.getStyle().set("margin-right", "auto");
+        AppHeader header = new AppHeader(fileStorageService);
+        Button backButton = StyleApp.getBackButton();
         backButton.addClickListener(e -> UI.getCurrent().navigate("scenari/" + scenarioId));
 
-        H2 pageTitle = new H2("Modifica Scenario");
-        pageTitle.getStyle().set("margin", "0 auto").set("padding", "0 1rem");
-        HorizontalLayout customHeader = new HorizontalLayout(backButton, pageTitle);
-        customHeader.setWidthFull();
-        customHeader.setPadding(true);
-        customHeader.setAlignItems(FlexComponent.Alignment.CENTER);
-        customHeader.expand(pageTitle);
+        VerticalLayout headerSection = StyleApp.getTitleSubtitle(
+                "Modifica Scenario",
+                "Modifica i dettagli dello scenario selezionato",
+                VaadinIcon.EDIT,
+                "var(--lumo-primary-color)"
+        );
+        HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
+
 
         // Layout principale per il contenuto
-        VerticalLayout contentLayout = new VerticalLayout();
-        contentLayout.setWidth("100%");
-        contentLayout.setMaxWidth("800px");
-        contentLayout.setPadding(true);
-        contentLayout.setSpacing(false);
-        contentLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        contentLayout.getStyle()
-                .set("margin", "0 auto")
-                .set("flex-grow", "1");
+        VerticalLayout contentLayout = StyleApp.getContentLayout();
 
         // Recupera il tipo di scenario
         String scenarioType = scenarioService.getScenarioType(scenarioId);
-        TextField scenarioTypeField = createTextField("TIPO SCENARIO", "Inserisci il tipo di scenario");
+        TextField scenarioTypeField = FieldGenerator.createTextField(
+                "TIPO SCENARIO",
+                "Inserisci il tipo di scenario",
+                null
+        );
         scenarioTypeField.setValue(scenarioType);
         scenarioTypeField.setReadOnly(true);
 
-        editAuthorField = createTextField("AUTORE", "Inserisci il tuo nome");
-        // editAuthorField.setValue(scenario.getAutore()); // Assumendo ci sia un getter
-        editAuthorField.setRequired(true); // Mantenuto required, ma potrebbe essere pre-popolato
+        editAuthorField = FieldGenerator.createTextField(
+                "AUTORE",
+                "Inserisci il tuo nome",
+                true
+        );
 
         // Titolo scenario
-        scenarioTitle = createTextField("TITOLO SCENARIO", "Inserisci il titolo dello scenario");
+        scenarioTitle = FieldGenerator.createTextField(
+                "TITOLO SCENARIO",
+                "Inserisci il titolo dello scenario",
+                false
+        );
         scenarioTitle.setValue(scenario.getTitolo());
 
         // Nome paziente
-        patientName = createTextField("NOME PAZIENTE", "Inserisci il nome del paziente");
+        patientName = FieldGenerator.createTextField(
+                "NOME PAZIENTE",
+                "Inserisci il nome del paziente",
+                false
+        );
         patientName.setValue(scenario.getNomePaziente());
 
         // Patologia
-        pathology = createTextField("PATOLOGIA/MALATTIA", "Inserisci la patologia");
+        pathology = FieldGenerator.createTextField(
+                "PATOLOGIA",
+                "Inserisci la patologia del paziente",
+                false
+        );
         pathology.setValue(scenario.getPatologia());
 
         // Campo durata timer
-        durationField = new ComboBox<>("DURATA SIMULAZIONE (minuti)");
-        durationField.setItems(5, 10, 15, 20, 25, 30);
-        // Imposta il valore esistente, con fallback a 10 se non valido o zero
-        durationField.setValue(scenario.getTimerGenerale() > 0 ? (int) scenario.getTimerGenerale() : 10);
-        durationField.setWidthFull();
-        durationField.addClassName(LumoUtility.Margin.Top.LARGE);
-        durationField.getStyle().set("max-width", "500px");
+        List<Integer> timerOptions = Arrays.asList(5, 10, 15, 20, 25, 30);
+        durationField = FieldGenerator.createComboBox(
+                "DURATA SIMULAZIONE (minuti)",
+                timerOptions,
+                scenario.getTimerGenerale() > 0 ? (int) scenario.getTimerGenerale() : 10,
+                false
+        );
 
-        scenarioTypeSelect = new ComboBox<>("TIPO SCENARIO");
-        scenarioTypeSelect.setItems("Adulto", "Pediatrico", "Neonatale", "Prematuro");
-        scenarioTypeSelect.setValue(scenario.getTipologia());
-        scenarioTypeSelect.setWidthFull();
-        scenarioTypeSelect.addClassName(LumoUtility.Margin.Top.LARGE);
-        scenarioTypeSelect.getStyle().set("max-width", "500px");
+        List<String> scenarioTypes = Arrays.asList("Adulto", "Pediatrico", "Neonatale", "Prematuro");
+        scenarioTypeSelect = FieldGenerator.createComboBox(
+                "TIPO SCENARIO",
+                scenarioTypes,
+                scenario.getTipologia() != null ? scenario.getTipologia() : "Adulto",
+                false
+        );
 
         // Layout per le informazioni generali
         VerticalLayout informazioniGeneraliLayout = new VerticalLayout();
@@ -265,7 +278,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
 
         // Azioni chiave scenario
         azioniChiaveArea = createAzioniChiavePanel(
-                scenario.getAzione_chiave_raw()
+                scenarioService.getNomiAzioniChiaveByScenarioId(scenarioId)
         );
 
         // Obiettivi didattici scenario
@@ -317,44 +330,69 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         PazienteT0 parametriT0 = scenarioService.getPazienteT0ById(scenarioId);
 
         // Crea i componenti per visualizzare i dati
-        paField = new TextField("PA (mmHg)");
+        paField = FieldGenerator.createTextField(
+                "PA (mmHg)",
+                "Inserisci la pressione arteriosa",
+                false
+        );
         paField.setValue(parametriT0 != null ? Objects.requireNonNullElse(parametriT0.getPA(), "") : "");
-        paField.setWidthFull();
 
-        fcField = new TextField("FC (bpm)"); // TextField perché i NumberField di PazienteT0View non sono qui
+        fcField = FieldGenerator.createTextField(
+                "FC (bpm)",
+                "Inserisci la frequenza cardiaca",
+                false
+        );
         fcField.setValue(parametriT0 != null && parametriT0.getFC() != 0 ? String.valueOf(parametriT0.getFC()) : "");
-        fcField.setWidthFull();
 
-        rrField = new TextField("RR (atti/min)");
+        rrField = FieldGenerator.createTextField(
+                "RR (atti/min)",
+                "Inserisci la frequenza respiratoria",
+                false
+        );
         rrField.setValue(parametriT0 != null && parametriT0.getRR() != 0 ? String.valueOf(parametriT0.getRR()) : "");
-        rrField.setWidthFull();
 
-        tempField = new TextField("Temperatura (°C)");
-        tempField.setValue(parametriT0 != null ? String.valueOf(parametriT0.getT()) : ""); // Controllo Null per Double
-        tempField.setWidthFull();
+        tempField = FieldGenerator.createTextField(
+                "Temperatura (°C)",
+                "Inserisci la temperatura corporea",
+                false
+        );
+        tempField.setValue(parametriT0 != null  ? String.format("%.1f", parametriT0.getT()) : "");
 
-        spo2Field = new TextField("SpO₂ (%)");
+        spo2Field = FieldGenerator.createTextField(
+                "SpO₂ (%)",
+                "Inserisci la saturazione di ossigeno",
+                false
+        );
         spo2Field.setValue(parametriT0 != null && parametriT0.getSpO2() != 0 ? String.valueOf(parametriT0.getSpO2()) : "");
-        spo2Field.setWidthFull();
 
-        fio2Field = new TextField("FiO₂ (%)");
+        fio2Field = FieldGenerator.createTextField(
+                "FiO₂ (%)",
+                "Inserisci la frazione inspiratoria di ossigeno",
+                false
+        );
         fio2Field.setValue(parametriT0 != null && parametriT0.getFiO2() != 0 ? String.valueOf(parametriT0.getFiO2()) : "");
-        fio2Field.setWidthFull();
 
-        litriO2Field = new TextField("Litri O₂");
+        litriO2Field = FieldGenerator.createTextField(
+                "Litri O₂",
+                "Inserisci i litri di ossigeno",
+                false
+        );
         litriO2Field.setValue(parametriT0 != null && parametriT0.getLitriO2() != 0 ? String.valueOf(parametriT0.getLitriO2()) : "");
-        litriO2Field.setWidthFull();
 
-        etco2Field = new TextField("EtCO₂ (mmHg)");
+        etco2Field = FieldGenerator.createTextField(
+                "EtCO₂ (mmHg)",
+                "Inserisci la pressione parziale di CO₂",
+                false
+        );
         etco2Field.setValue(parametriT0 != null && parametriT0.getEtCO2() != 0 ? String.valueOf(parametriT0.getEtCO2()) : "");
-        etco2Field.setWidthFull();
 
         // Area di testo per il monitoraggio
-        monitorArea = new TextArea("Monitoraggio");
+        monitorArea = FieldGenerator.createTextArea(
+                "MONITORAGGIO",
+                "Inserisci i dettagli del monitoraggio...",
+                false
+        );
         monitorArea.setValue(parametriT0 != null ? Objects.requireNonNullElse(parametriT0.getMonitor(), "") : "");
-        monitorArea.setWidthFull();
-        monitorArea.setMinHeight("100px");
-        monitorArea.addClassName(LumoUtility.Margin.Top.LARGE); // Aggiunto margine
 
         // === INIZIO GESTIONE ACCESSI NUOVA ===
 
@@ -465,68 +503,68 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         generaleArea = createTinyMcePanel(
                 "GENERALE",
                 "Inserisci i dettagli dell'esame generale...",
-                esamiFisici.getSection("Generale")
+                esamiFisici != null ? esamiFisici.getSection("Generale") : ""
         );
 
         // ... (altri pannelli esame fisico come prima) ...
         pupilleArea = createTinyMcePanel(
                 "PUPILLE",
                 "Dimensione, reattività, simmetria",
-                esamiFisici.getSection("Pupille")
+                esamiFisici != null ? esamiFisici.getSection("Pupille") : ""
         );
 
         colloArea = createTinyMcePanel(
                 "COLLO",
                 "Esame del collo, tiroide, linfonodi",
-                esamiFisici.getSection("Collo")
+                esamiFisici != null ? esamiFisici.getSection("Collo") : ""
         );
 
         toraceArea = createTinyMcePanel(
                 "TORACE",
                 "Ispezione, palpazione, percussione, auscultazione",
-                esamiFisici.getSection("Torace")
+                esamiFisici != null ? esamiFisici.getSection("Torace") : ""
         );
 
         cuoreArea = createTinyMcePanel(
                 "CUORE",
                 "Frequenza, ritmo, soffi",
-                esamiFisici.getSection("Cuore")
+                esamiFisici != null ? esamiFisici.getSection("Cuore") : ""
         );
 
         addomeArea = createTinyMcePanel(
                 "ADDOME",
                 "Ispezione, palpazione, dolorabilità, organomegalie",
-                esamiFisici.getSection("Addome")
+                esamiFisici != null ? esamiFisici.getSection("Addome") : ""
         );
 
         rettoArea = createTinyMcePanel(
                 "RETTO",
                 "Esame rettale se indicato",
-                esamiFisici.getSection("Retto")
+                esamiFisici != null ? esamiFisici.getSection("Retto") : ""
         );
 
         cuteArea = createTinyMcePanel(
                 "CUTE",
                 "Colorito, turgore, lesioni",
-                esamiFisici.getSection("Cute")
+                esamiFisici != null ? esamiFisici.getSection("Cute") : ""
         );
 
         estremitaArea = createTinyMcePanel(
                 "ESTREMITÀ",
                 "Edemi, pulsazioni periferiche",
-                esamiFisici.getSection("Estremità")
+                esamiFisici != null ? esamiFisici.getSection("Estremità") : ""
         );
 
         neurologicoArea = createTinyMcePanel(
                 "NEUROLOGICO",
                 "Stato mentale, nervi cranici, forza, sensibilità",
-                esamiFisici.getSection("Neurologico")
+                esamiFisici != null ? esamiFisici.getSection("Neurologico") : ""
         );
 
         FASTArea = createTinyMcePanel(
                 "FAST ECOGRAFIA",
                 "Focused Assessment with Sonography for Trauma",
-                esamiFisici.getSection("FAST")
+                esamiFisici != null ? esamiFisici.getSection("FAST") : ""
         );
 
         // Aggiunta dei campi all'area dell'esame fisico
@@ -536,38 +574,23 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         );
         //Fine Esame Fisico
 
-        Details targetDetails = new Details("TARGET E LEARNING GROUPS", createTargetComponent());
-        targetDetails.setWidthFull();
-        targetDetails.addClassName(LumoUtility.Margin.Top.LARGE);
-        targetDetails.setOpened(false);
+        Details targetDetails = createDetails("TARGET E LEARNING GROUPS", createTargetComponent());
 
         // Creazione tendina per l'esame fisico
-        Details esameFisicoDetails = new Details("ESAME FISICO", esameFisicoLayout);
-        esameFisicoDetails.setWidthFull();
-        esameFisicoDetails.addClassName(LumoUtility.Margin.Top.LARGE);
-        esameFisicoDetails.setOpened(false);
+        Details esameFisicoDetails = createDetails("ESAME FISICO", esameFisicoLayout);
 
         // Creazione tendina per le informazioni generali
-        Details informazioniGeneraliDetails = new Details("INFORMAZIONI GENERALI", informazioniGeneraliLayout);
-        informazioniGeneraliDetails.setWidthFull();
-        informazioniGeneraliDetails.addClassName(LumoUtility.Margin.Top.LARGE);
-        informazioniGeneraliDetails.setOpened(false);
+        Details informazioniGeneraliDetails = createDetails("INFORMAZIONI GENERALI", informazioniGeneraliLayout);
 
         // Creazione tendina per i parametri del paziente T0
-        Details parametriT0Details = new Details("PARAMETRI PAZIENTE T0", parametriT0Layout);
-        parametriT0Details.setWidthFull();
-        parametriT0Details.addClassName(LumoUtility.Margin.Top.LARGE);
-        parametriT0Details.setOpened(false);
+        Details parametriT0Details = createDetails("PARAMETRI T0", parametriT0Layout);
 
         // Creazione tendina per gli esami e i referti
-        Details esamiRefertiDetails = new Details("ESAMI E REFERTI", createEsamiRefertiComponent());
-        esamiRefertiDetails.setWidthFull();
-        esamiRefertiDetails.addClassName(LumoUtility.Margin.Top.LARGE);
-        esamiRefertiDetails.setOpened(false);
-
+        Details esamiRefertiDetails = createDetails("ESAMI E REFERTI", createEsamiRefertiComponent());
 
         // Aggiunta dei componenti al layout principale
         contentLayout.add(
+                headerSection,
                 editAuthorField,
                 scenarioTypeField,
                 scenarioTitle,
@@ -578,16 +601,13 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
                 targetDetails,
                 informazioniGeneraliDetails,
                 esamiRefertiDetails,
-                parametriT0Details, // Contiene già la nuova gestione accessi
+                parametriT0Details,
                 esameFisicoDetails
         );
 
         // Gestione Quick Scenario (nessuna timeline)
         if (!scenarioType.equals("Quick Scenario")) {
-            Details tempiDetails = new Details("TIMELINE SIMULAZIONE", createTempiComponent());
-            tempiDetails.setWidthFull();
-            tempiDetails.addClassName(LumoUtility.Margin.Top.LARGE);
-            tempiDetails.setOpened(false);
+            Details tempiDetails = createDetails("TIMELINE", createTempiComponent());
             contentLayout.add(tempiDetails);
         }
 
@@ -604,17 +624,29 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
             sceneggiaturaLayout.setSpacing(false); // Rimosso spacing extra
             sceneggiaturaLayout.setWidthFull();
 
-            Details sceneggiaturaDetails = new Details("SCENEGGIATURA", sceneggiaturaLayout);
-            sceneggiaturaDetails.setWidthFull();
-            sceneggiaturaDetails.addClassName(LumoUtility.Margin.Top.LARGE);
-            sceneggiaturaDetails.setOpened(false);
+            Details sceneggiaturaDetails = createDetails("SCENEGGIATURA", sceneggiaturaLayout);
             contentLayout.add(sceneggiaturaDetails);
         }
 
-        // Aggiungi un pulsante Salva (DA IMPLEMENTARE LA LOGICA)
-        Button saveButton = new Button("Salva Modifiche", new Icon(VaadinIcon.CHECK));
-        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        saveButton.getStyle().set("margin-top", LumoUtility.Margin.Top.XLARGE);
+        Button saveButton = getSaveButton();
+
+        contentLayout.add(saveButton);
+
+        HorizontalLayout footerLayout = StyleApp.getFooterLayout(null);
+        mainLayout.add(customHeader, contentLayout, footerLayout);
+    }
+
+    private Details createDetails(String title, Component content) {
+        Details details = new Details(title, content);
+        details.setWidthFull();
+        details.addClassName(LumoUtility.Margin.Top.LARGE);
+        details.setOpened(false);
+        return details;
+    }
+
+    private Button getSaveButton(){
+        Button saveButton = StyleApp.getSaveEditButton();
+
         saveButton.addClickListener(e -> {
             // Creazione di una finestra di dialogo per confermare il salvataggio
             Dialog confirmDialog = new Dialog();
@@ -666,11 +698,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
 
             confirmDialog.open();
         });
-
-
-        contentLayout.add(saveButton); // Aggiungi il pulsante Salva alla fine del contentLayout
-
-        mainLayout.add(customHeader, contentLayout);
+        return saveButton;
     }
 
     private void salvaScenario() {
@@ -754,7 +782,11 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         updatedSectionsT0.put("PA", paField != null ? paField.getValue() : "");
         updatedSectionsT0.put("FC", fcField != null ? fcField.getValue() : "");
         updatedSectionsT0.put("RR", rrField != null ? rrField.getValue() : "");
-        updatedSectionsT0.put("Temperatura", tempField != null ? tempField.getValue() : "");
+
+        // Gestione speciale per la temperatura: sostituisci la virgola con il punto
+        String tempValue = tempField != null ? tempField.getValue() : "";
+        updatedSectionsT0.put("Temperatura", tempValue.replace(',', '.'));
+
         updatedSectionsT0.put("SpO2", spo2Field != null ? spo2Field.getValue() : "");
         updatedSectionsT0.put("FiO2", fio2Field != null ? fio2Field.getValue() : "");
         updatedSectionsT0.put("LitriO2", litriO2Field != null ? litriO2Field.getValue() : "");
@@ -762,22 +794,6 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         updatedSectionsT0.put("Monitoraggio", monitorArea != null ? monitorArea.getValue() : "");
         updatedSectionsT0.put("Presidi", presidiSelect != null ? presidiSelect.getValue() : "");
         return updatedSectionsT0;
-    }
-
-    /**
-     * Crea un campo di testo con etichetta e segnaposto.
-     *
-     * @param label       etichetta del campo
-     * @param placeholder segnaposto del campo
-     * @return campo di testo creato
-     */
-    private TextField createTextField(String label, String placeholder) {
-        TextField field = new TextField(label);
-        field.setPlaceholder(placeholder);
-        field.setWidthFull();
-        field.getStyle().set("max-width", "500px");
-        field.addClassName(LumoUtility.Margin.Top.LARGE);
-        return field;
     }
 
     /**
@@ -804,55 +820,92 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         return accessoComp;
     }
 
+    private VerticalLayout createAzioniChiavePanel(List<String> azioniChiavePreesistenti) {
+        // List to keep track of the TextFields for the actions within this panel instance
+        List<TextField> actionFieldsLocal = new ArrayList<>();
 
-    /**
-     * Crea un pannello per la gestione delle azioni chiave con funzionalità di aggiunta/rimozione dinamica.
-     *
-     * @param valore valore iniziale delle azioni chiave (stringa separata da punto e virgola)
-     * @return layout verticale contenente il pannello completo
-     */
-    private VerticalLayout createAzioniChiavePanel(String valore) {
-        // Lista per tenere traccia dei campi delle azioni chiave
-        List<TextField> actionFields = new ArrayList<>();
-
-        // Layout principale del pannello
+        // Main layout for the panel
         VerticalLayout panelLayout = new VerticalLayout();
         panelLayout.setWidthFull();
         panelLayout.setPadding(false);
-        panelLayout.setSpacing(true);
+        panelLayout.setSpacing(true); // Spacing between title, subtitle, container, and add button
 
-        // Titolo e sottotitolo
+        // Title and subtitle
         H3 titleElement = new H3("AZIONI CHIAVE");
-        Paragraph subtitleElement = new Paragraph("Inserisci le azioni da valutare durante il debriefing...");
+        Paragraph subtitleElement = new Paragraph("Inserisci le azioni da valutare durante il debriefing.");
+        titleElement.getStyle().set("margin-bottom", "0"); // Adjust spacing if needed
+        subtitleElement.getStyle().set("margin-top", "0");
 
-        // Container per i campi delle azioni chiave
+        // Container for the dynamic action TextFields
         VerticalLayout actionFieldsContainer = new VerticalLayout();
         actionFieldsContainer.setWidthFull();
         actionFieldsContainer.setPadding(false);
-        actionFieldsContainer.setSpacing(true);
+        actionFieldsContainer.setSpacing(true); // Spacing between individual action fields
 
-        // Funzione per aggiungere un nuovo campo azione
-        Button addButton = new Button("Aggiungi azione chiave", new Icon(VaadinIcon.PLUS));
+        // Button to add a new action field
+        Button addButton = new Button("Aggiungi azione chiave", new Icon(VaadinIcon.PLUS_CIRCLE));
         addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        addButton.addClickListener(e -> addActionField(actionFieldsContainer, actionFields)); // Estratta logica
+        addButton.getStyle().set("align-self", "start"); // Align button to the start if container is centered
+        addButton.addClickListener(e -> {
+            // Call the helper method to add a new, empty action field
+            addActionFieldUI(actionFieldsContainer, actionFieldsLocal, "");
+        });
 
-        // Carica le azioni esistenti se presenti
-        if (valore != null && !valore.isEmpty()) {
-            String[] actions = valore.split(";");
-            for (String action : actions) {
-                if (action != null && !action.trim().isEmpty()) { // Aggiunto controllo null
-                    addActionField(actionFieldsContainer, actionFields, action.trim()); // Usa metodo helper
+        // Load existing actions if the provided list is not null or empty
+        if (azioniChiavePreesistenti != null && !azioniChiavePreesistenti.isEmpty()) {
+            for (String actionName : azioniChiavePreesistenti) {
+                if (actionName != null && !actionName.trim().isEmpty()) {
+                    // Call the helper method to add a field pre-filled with the existing action name
+                    addActionFieldUI(actionFieldsContainer, actionFieldsLocal, actionName.trim());
                 }
             }
         }
 
-        // Se non ci sono azioni DOPO il caricamento, aggiungiamo un campo vuoto
-        if (actionFields.isEmpty()) {
-            addActionField(actionFieldsContainer, actionFields);
+        // If, after attempting to load, there are still no action fields, add one empty field to start with
+        if (actionFieldsLocal.isEmpty()) {
+            addActionFieldUI(actionFieldsContainer, actionFieldsLocal, "");
         }
 
         panelLayout.add(titleElement, subtitleElement, actionFieldsContainer, addButton);
         return panelLayout;
+    }
+
+    /**
+     * Helper method to create and add a new action field (TextField and Remove Button) to the UI.
+     * This method would typically be part of the same class or a utility class.
+     *
+     * @param container The VerticalLayout container where the action field will be added.
+     * @param fieldList The list tracking all action TextFields.
+     * @param initialValue The initial value for the TextField (can be empty).
+     */
+    private void addActionFieldUI(VerticalLayout container, List<TextField> fieldList, String initialValue) {
+        HorizontalLayout fieldRowLayout = new HorizontalLayout();
+        fieldRowLayout.setWidthFull();
+        fieldRowLayout.setSpacing(true);
+        fieldRowLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
+
+        TextField actionField = new TextField();
+        actionField.setPlaceholder("Descrivi azione chiave");
+        actionField.setValue(initialValue != null ? initialValue : "");
+        // actionField.setWidthFull(); // TextField will expand due to fieldRowLayout.addAndExpand
+
+        Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
+        removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_ICON);
+        removeButton.getElement().setAttribute("aria-label", "Rimuovi azione");
+        removeButton.addClickListener(e -> {
+            container.remove(fieldRowLayout); // Remove the whole row from the container
+            fieldList.remove(actionField);    // Remove the TextField from the tracking list
+            // Optional: if fieldList becomes empty, add a new blank field
+            // if (fieldList.isEmpty()) {
+            //     addActionFieldUI(container, fieldList, "");
+            // }
+        });
+
+        fieldRowLayout.addAndExpand(actionField); // TextField takes up available space
+        fieldRowLayout.add(removeButton);
+
+        container.add(fieldRowLayout);
+        fieldList.add(actionField); // Add the new TextField to the tracking list
     }
 
     /**
@@ -883,41 +936,6 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         // Unisci le azioni con il punto e virgola
         return String.join(";", azioni);
     }
-
-
-    /**
-     * Metodo helper per aggiungere un campo azione (con o senza valore iniziale).
-     *
-     * @param container    Il layout dove aggiungere il campo.
-     * @param fieldsList   La lista dove tracciare il TextField.
-     * @param initialValue Il valore iniziale (può essere null o vuoto).
-     */
-    private void addActionField(VerticalLayout container, List<TextField> fieldsList, String... initialValue) {
-        HorizontalLayout fieldLayout = new HorizontalLayout();
-        fieldLayout.setWidthFull();
-        fieldLayout.setSpacing(true);
-        fieldLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-
-        TextField actionField = new TextField();
-        actionField.setWidthFull();
-        actionField.setPlaceholder("Inserisci un'azione chiave...");
-        if (initialValue.length > 0 && initialValue[0] != null) {
-            actionField.setValue(initialValue[0]);
-        }
-        fieldsList.add(actionField); // Aggiungi alla lista per tracciamento
-
-        Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
-        removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_ICON);
-        removeButton.addClickListener(event -> {
-            fieldsList.remove(actionField); // Rimuovi dalla lista
-            container.remove(fieldLayout); // Rimuovi dal layout
-        });
-
-        fieldLayout.add(actionField, removeButton);
-        fieldLayout.expand(actionField); // Assicura che il textfield prenda lo spazio
-        container.add(fieldLayout);
-    }
-
 
     // --- NUOVA CLASSE AccessoComponent (basata su PazienteT0View ma adattata) ---
 
@@ -1178,10 +1196,8 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         Paragraph subtitleElement = new Paragraph(sottotitolo);
         subtitleElement.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.SMALL, LumoUtility.Margin.Top.XSMALL); // Stile sottotitolo
 
-        TinyMce editor = new TinyMce();
-        editor.setValue(Objects.requireNonNullElse(valore, "")); // Gestione null per valore iniziale
-        editor.setHeight("250px");
-        editor.setWidthFull();
+        TinyMce editor = TinyEditor.getEditor();
+        editor.setValue(valore);
 
         VerticalLayout panelLayout = new VerticalLayout(titleElement, subtitleElement, editor);
         panelLayout.setPadding(false); // Rimuovi padding per compattezza

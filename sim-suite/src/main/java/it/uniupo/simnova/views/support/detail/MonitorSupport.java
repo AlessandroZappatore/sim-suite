@@ -10,7 +10,6 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import it.uniupo.simnova.api.model.ParametroAggiuntivo; // Import necessario
-import it.uniupo.simnova.views.support.detail.VitalSignsDataProvider;
 
 import java.util.List; // Import necessario
 import java.util.concurrent.atomic.AtomicInteger; // Per ciclare i colori
@@ -36,7 +35,8 @@ public class MonitorSupport {
                 .set("box-shadow", "0 4px 8px rgba(0, 0, 0, 0.1)")
                 .set("padding", "var(--lumo-space-m)")
                 .set("max-width", "700px")
-                .set("margin", "0 auto");
+                .set("margin", "0 auto")
+                .set("box-sizing", "border-box");
 
         HorizontalLayout monitorHeader = new HorizontalLayout();
         monitorHeader.setWidthFull();
@@ -57,7 +57,8 @@ public class MonitorSupport {
                 .set("height", "12px")
                 .set("background-color", "var(--lumo-success-color)")
                 .set("border-radius", "50%")
-                .set("box-shadow", "0 0 5px var(--lumo-success-color)");
+                .set("box-shadow", "0 0 5px var(--lumo-success-color)")
+                .set("box-sizing", "border-box");
         statusLed.getElement().executeJs(
                 "this.style.animation = 'pulse 2s infinite';" +
                         "if (!document.getElementById('led-style')) {" +

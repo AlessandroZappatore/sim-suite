@@ -1,75 +1,90 @@
 package it.uniupo.simnova.views.support.detail;
 
+// Aggiunto se InfoItemSupport.createInfoItem restituisce Component
+
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Hr; // Importato per i divisori
+import com.vaadin.flow.component.html.Hr;
+// Aggiunto se createInfoItem è implementato qui
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.FlexComponent; // Per Alignment
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.theme.lumo.LumoUtility; // Per utility di stile
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
-import it.uniupo.simnova.service.MaterialeService;
-import it.uniupo.simnova.service.ScenarioService;
+
+import java.util.List;
+// Rimuovi: import it.uniupo.simnova.service.MaterialeService;
+// Rimuovi: import it.uniupo.simnova.service.ScenarioService;
 
 
-public class GeneralSupport extends HorizontalLayout { // Estensione di HorizontalLayout non usata attivamente
+public class GeneralSupport extends HorizontalLayout { // L'estensione di HorizontalLayout non è attivamente usata se si usa solo il metodo statico
 
     public GeneralSupport() {
-        // Il costruttore è vuoto, la classe è usata principalmente per il metodo statico
+        // Costruttore vuoto, la classe è usata principalmente per il metodo statico
     }
 
-    public static VerticalLayout createOverviewContent(Scenario scenario, ScenarioService scenarioService, MaterialeService materialeService) {
-        VerticalLayout mainLayout = new VerticalLayout();
-        mainLayout.setPadding(true); // Aggiunge padding attorno alla card
-        mainLayout.setSpacing(false); // La spaziatura è gestita dai margini della card
-        mainLayout.setWidthFull();
-        mainLayout.setAlignItems(FlexComponent.Alignment.CENTER); // Centra la card orizzontalmente
-        // mainLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER); // Opzionale per centratura verticale
-        // mainLayout.setMinHeight("100vh"); // Opzionale per occupare tutta l'altezza
+    /**
+     * Crea il contenuto della panoramica generale dello scenario utilizzando dati pre-caricati.
+     *
+     * @param scenario L'oggetto Scenario principale, già caricato.
+     * @param isPediatricScenario true se lo scenario è pediatrico (risultato di scenarioService.isPediatric).
+     * @param infoGenitore Stringa con le informazioni dai genitori, se applicabile e disponibile (può essere null).
+     * @param materialiNecessari Stringa con l'elenco dei materiali necessari (risultato di materialeService.toStringAllMaterialsByScenarioId).
+     * @return Un VerticalLayout contenente la panoramica generale.
+     */
+    public static VerticalLayout createOverviewContentWithData(
+            Scenario scenario,
+            boolean isPediatricScenario,
+            String infoGenitore,
+            String materialiNecessari,
+            List<String> azioniChiave) {
 
-        // Card per informazioni base con stile migliorato
+        VerticalLayout mainLayout = new VerticalLayout();
+        mainLayout.setPadding(true);
+        mainLayout.setSpacing(false);
+        mainLayout.setWidthFull();
+        mainLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+
         Div card = new Div();
         card.addClassName("info-card");
         card.getStyle()
                 .set("border-radius", "var(--lumo-border-radius-l)")
-                .set("box-shadow", "var(--lumo-box-shadow-m)") // Ombra leggermente più pronunciata
-                .set("padding", "var(--lumo-space-l)") // Più padding interno
+                .set("box-shadow", "var(--lumo-box-shadow-m)")
+                .set("padding", "var(--lumo-space-l)")
                 .set("background-color", "var(--lumo-base-color)")
                 .set("transition", "box-shadow 0.3s ease-in-out")
-                .set("width", "100%") // Occupa la larghezza del contenitore centrato
-                .set("max-width", "800px") // Larghezza massima per la leggibilità
-                .set("margin", "var(--lumo-space-l) 0"); // Margine verticale
+                .set("width", "100%")
+                .set("max-width", "800px")
+                .set("margin", "var(--lumo-space-l) 0");
 
-        // Effetto hover sulla card
         card.getElement().executeJs(
-                "this.addEventListener('mouseover', function() { this.style.boxShadow = 'var(--lumo-box-shadow-l)'; });" + // Ombra più grande su hover
+                "this.addEventListener('mouseover', function() { this.style.boxShadow = 'var(--lumo-box-shadow-l)'; });" +
                         "this.addEventListener('mouseout', function() { this.style.boxShadow = 'var(--lumo-box-shadow-m)'; });"
         );
 
-        // Aggiungi elementi con controlli null-safety
-        // Utilizziamo un VerticalLayout interno alla card per gestire meglio i divisori
         VerticalLayout cardContentLayout = new VerticalLayout();
         cardContentLayout.setPadding(false);
-        cardContentLayout.setSpacing(false); // La spaziatura sarà data dai divisori e margini degli item
+        cardContentLayout.setSpacing(false);
         cardContentLayout.setWidthFull();
 
+        // Utilizza i dati passati direttamente e le proprietà dell'oggetto 'scenario'
         addInfoItemIfNotEmpty(cardContentLayout, "Descrizione", scenario.getDescrizione(), VaadinIcon.PENCIL, true);
         addInfoItemIfNotEmpty(cardContentLayout, "Briefing", scenario.getBriefing(), VaadinIcon.GROUP);
 
-        if (scenarioService.isPediatric(scenario.getId())) {
-            addInfoItemIfNotEmpty(cardContentLayout, "Informazioni dai genitori", scenario.getInfoGenitore(), VaadinIcon.FAMILY);
+        if (isPediatricScenario) {
+            // 'infoGenitore' è già stato recuperato (o è null) e passato come parametro
+            addInfoItemIfNotEmpty(cardContentLayout, "Informazioni dai genitori", infoGenitore, VaadinIcon.FAMILY);
         }
 
         addInfoItemIfNotEmpty(cardContentLayout, "Patto Aula", scenario.getPattoAula(), VaadinIcon.HANDSHAKE);
-        addInfoItemIfNotEmpty(cardContentLayout, "Azioni Chiave", scenario.getAzioneChiave(), VaadinIcon.KEY);
+        addInfoItemIfNotEmpty(cardContentLayout, "Azioni Chiave", azioniChiave.toString(), VaadinIcon.KEY);
         addInfoItemIfNotEmpty(cardContentLayout, "Obiettivi Didattici", scenario.getObiettivo(), VaadinIcon.BOOK);
         addInfoItemIfNotEmpty(cardContentLayout, "Moulage", scenario.getMoulage(), VaadinIcon.EYE);
         addInfoItemIfNotEmpty(cardContentLayout, "Liquidi e dosi farmaci", scenario.getLiquidi(), VaadinIcon.DROP);
 
-        // Materiale necessario
-        String materiali = materialeService.toStringAllMaterialsByScenarioId(scenario.getId());
-        addInfoItemIfNotEmpty(cardContentLayout, "Materiale necessario", materiali, VaadinIcon.TOOLS); // Icona cambiata per "materiali/tools"
+        // Utilizza la stringa 'materialiNecessari' pre-caricata
+        addInfoItemIfNotEmpty(cardContentLayout, "Materiale necessario", materialiNecessari, VaadinIcon.TOOLS);
 
         card.add(cardContentLayout);
         mainLayout.add(card);
@@ -98,17 +113,13 @@ public class GeneralSupport extends HorizontalLayout { // Estensione di Horizont
             }
 
             Icon icon = new Icon(iconType);
-            icon.addClassName(LumoUtility.TextColor.PRIMARY); // Usa utility per colore primario
+            icon.addClassName(LumoUtility.TextColor.PRIMARY);
             icon.getStyle()
                     .set("background-color", "var(--lumo-primary-color-10pct)")
-                    .set("padding", "var(--lumo-space-s)") // Padding leggermente aumentato
-                    .set("border-radius", "var(--lumo-border-radius-l)") // Più arrotondato
-                    .set("font-size", "var(--lumo-icon-size-m)"); // Dimensione icona media
+                    .set("padding", "var(--lumo-space-s)")
+                    .set("border-radius", "var(--lumo-border-radius-l)")
+                    .set("font-size", "var(--lumo-icon-size-l)");
 
-            // InfoItemSupport.createInfoItem dovrebbe restituire un Component
-            // Assumiamo che crei un layout con titolo e contenuto.
-            // Per un migliore controllo dello stile, potremmo ricrearlo qui o modificarlo in InfoItemSupport.
-            // Per ora, lo aggiungiamo direttamente.
             container.add(InfoItemSupport.createInfoItem(title, content, icon));
         }
     }
