@@ -1,8 +1,8 @@
 package it.uniupo.simnova.views.creation;
 
 import com.vaadin.flow.component.*;
-import com.vaadin.flow.component.accordion.Accordion;
-import com.vaadin.flow.component.accordion.AccordionPanel;
+import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.details.DetailsVariant;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.*;
@@ -13,7 +13,6 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.*;
@@ -126,7 +125,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
             UI.getCurrent().navigate("scenari");
             return;
         }
-        loadScenarioData();
+        initView();
     }
 
     /**
@@ -143,98 +142,6 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
     }
 
     /**
-     * Carica i dati dello scenario in un thread separato.
-     * Mostra una barra di progresso durante il caricamento.
-     */
-    private void loadScenarioData() {
-        if (detached.get()) {
-            return;
-        }
-
-        getContent().removeAll();
-        ProgressBar progressBar = new ProgressBar();
-        progressBar.setIndeterminate(true);
-        getContent().add(progressBar);
-
-        UI ui = UI.getCurrent();
-        if (ui == null) return;
-
-        // Utilizziamo una variabile per tracciare se il caricamento è completato
-        final AtomicBoolean loadingCompleted = new AtomicBoolean(false);
-
-        // Task principale di caricamento
-        executorService.submit(() -> {
-            try {
-                // Implementazione di timeout con CompletableFuture
-                CompletableFuture<Scenario> future = CompletableFuture.supplyAsync(
-                        () -> scenarioService.getScenarioById(scenarioId),
-                        executorService
-                );
-
-                Scenario loadedScenario;
-                try {
-                    loadedScenario = future.get(15, TimeUnit.SECONDS);
-                } catch (TimeoutException e) {
-                    logger.error("Timeout durante il caricamento dello scenario {}", scenarioId);
-                    throw new RuntimeException("Timeout durante il caricamento");
-                }
-
-                if (detached.get() || ui.isClosing()) {
-                    return;
-                }
-
-                ui.access(() -> {
-                    try {
-                        if (loadedScenario == null) {
-                            Notification.show("Scenario non trovato", 3000, Position.MIDDLE)
-                                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
-                            ui.navigate("scenari");
-                            return;
-                        }
-                        this.scenario = loadedScenario;
-                        initView();
-                    } finally {
-                        loadingCompleted.set(true);
-                        progressBar.setVisible(false);
-                    }
-                });
-            } catch (Exception e) {
-                logger.error("Errore durante il caricamento dello scenario {}: {}", scenarioId, e.getMessage(), e);
-                if (!detached.get() && !ui.isClosing()) {
-                    ui.access(() -> {
-                        loadingCompleted.set(true);
-                        Notification.show("Errore nel caricamento: " + e.getMessage(),
-                                        3000, Position.MIDDLE)
-                                .addThemeVariants(NotificationVariant.LUMO_ERROR);
-                        progressBar.setVisible(false);
-                        ui.navigate("scenari");
-                    });
-                }
-            }
-        });
-
-        // Task di backup che controlla se il caricamento è bloccato
-        executorService.submit(() -> {
-            try {
-                // Aspetta 20 secondi e poi verifica se il caricamento è completato
-                Thread.sleep(20000);
-                if (!loadingCompleted.get() && !detached.get() && !ui.isClosing()) {
-                    ui.access(() -> {
-                        logger.error("Forzato timeout per caricamento bloccato, scenario {}", scenarioId);
-                        Notification.show("Caricamento bloccato, riprova più tardi",
-                                        3000, Position.MIDDLE)
-                                .addThemeVariants(NotificationVariant.LUMO_ERROR);
-                        progressBar.setVisible(false);
-                        ui.navigate("scenari");
-                    });
-                }
-            } catch (InterruptedException e) {
-                // Ignora l'interruzione, è normale durante lo shutdown
-            }
-        });
-    }
-
-    /**
      * Inizializza la vista con i dati dello scenario.
      * Crea e aggiunge i componenti alla vista.
      */
@@ -243,6 +150,8 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
             return;
         }
 
+        scenario = scenarioService.getScenarioById(scenarioId);
+        
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
         AppHeader header = new AppHeader(fileStorageService);
@@ -270,7 +179,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
-        // 2. CONTENUTO PRINCIPALE (con accordion)
+        // 2. CONTENUTO PRINCIPALE (con details)
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
         // Titolo e sottotitolo
@@ -321,36 +230,41 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
 
         Component subtitle = InfoSupport.getInfo(scenario);
 
-        // Accordion principale
-        Accordion accordion = new Accordion();
-        accordion.setWidthFull();
+        // Sezioni Details
+        Details detailsInfoGenerali = new Details("Informazioni Generali", GeneralSupport.createOverviewContentWithData(scenario, scenarioService.isPediatric(scenarioId),scenario.getInfoGenitore(), materialeNecessario.toStringAllMaterialsByScenarioId(scenarioId),scenarioService.getNomiAzioniChiaveByScenarioId(scenarioId)));
+        detailsInfoGenerali.setOpened(true); // Espandi il primo pannello di default
+        detailsInfoGenerali.addThemeVariants(DetailsVariant.FILLED);
+        styleDetailsSummary(detailsInfoGenerali);
 
-        // Aggiungi i pannelli
-        AccordionPanel panelInfoGenerali = accordion.add("Informazioni Generali", GeneralSupport.createOverviewContentWithData(scenario, scenarioService.isPediatric(scenarioId),scenario.getInfoGenitore(), materialeNecessario.toStringAllMaterialsByScenarioId(scenarioId),scenarioService.getNomiAzioniChiaveByScenarioId(scenarioId)));
-        AccordionPanel panelStatoPaziente = accordion.add("Stato Paziente", PatientT0Support.createPatientContent(scenarioService.getPazienteT0ById(scenarioId), scenarioService.getEsameFisicoById(scenarioId), scenarioId));
-        AccordionPanel panelEsamiReferti = accordion.add("Esami e Referti", ExamSupport.createExamsContent(scenarioService.getEsamiRefertiByScenarioId(scenarioId)));
 
-        styleAccordionPanelSummary(panelInfoGenerali);
-        styleAccordionPanelSummary(panelStatoPaziente);
-        styleAccordionPanelSummary(panelEsamiReferti);
+        Details detailsStatoPaziente = new Details("Stato Paziente", PatientT0Support.createPatientContent(scenarioService.getPazienteT0ById(scenarioId), scenarioService.getEsameFisicoById(scenarioId), scenarioId));
+        detailsStatoPaziente.addThemeVariants(DetailsVariant.FILLED);
+        styleDetailsSummary(detailsStatoPaziente);
+
+        Details detailsEsamiReferti = new Details("Esami e Referti", ExamSupport.createExamsContent(scenarioService.getEsamiRefertiByScenarioId(scenarioId)));
+        detailsEsamiReferti.addThemeVariants(DetailsVariant.FILLED);
+        styleDetailsSummary(detailsEsamiReferti);
+
+        contentLayout.add(editButtonContainer, headerSection, titleContainer, subtitle, detailsInfoGenerali, detailsStatoPaziente, detailsEsamiReferti);
+
 
         List<Tempo> tempi = scenarioService.getTempiByScenarioId(scenarioId);
         if (!tempi.isEmpty()) {
-            AccordionPanel timelinePanel = accordion.add("Timeline", TimesSupport.createTimelineContent(scenarioService.getTempiByScenarioId(scenarioId), scenarioId));
-            styleAccordionPanelSummary(timelinePanel);
+            Details timelineDetails = new Details("Timeline", TimesSupport.createTimelineContent(scenarioService.getTempiByScenarioId(scenarioId), scenarioId));
+            timelineDetails.addThemeVariants(DetailsVariant.FILLED);
+            styleDetailsSummary(timelineDetails);
+            contentLayout.add(timelineDetails);
         }
 
 
         String scenarioType = scenarioService.getScenarioType(scenarioId);
         if ("Patient Simulated Scenario".equalsIgnoreCase(scenarioType)) {
-            AccordionPanel sceneggiaturaPanel = accordion.add("Sceneggiatura", SceneggiaturaSupport.createSceneggiaturaContent(ScenarioService.getSceneggiatura(scenarioId)));
-            styleAccordionPanelSummary(sceneggiaturaPanel);
+            Details sceneggiaturaDetails = new Details("Sceneggiatura", SceneggiaturaSupport.createSceneggiaturaContent(ScenarioService.getSceneggiatura(scenarioId)));
+            sceneggiaturaDetails.addThemeVariants(DetailsVariant.FILLED);
+            styleDetailsSummary(sceneggiaturaDetails);
+            contentLayout.add(sceneggiaturaDetails);
         }
 
-        // Espandi il primo pannello di default
-        accordion.open(0);
-
-        contentLayout.add(editButtonContainer, headerSection, titleContainer, subtitle, accordion);
 
         // 3. FOOTER
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(null);
@@ -364,28 +278,13 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         backButton.addClickListener(e -> UI.getCurrent().navigate("scenari"));
     }
 
-    /**
-     * Applica stili personalizzati al summary di un AccordionPanel per migliorarne la leggibilità e cliccabilità.
-     *
-     * @param panel l'AccordionPanel da stilizzare
-     */
-    private void styleAccordionPanelSummary(AccordionPanel panel) {
-        if (panel != null) {
-            // Aumenta la dimensione del font, il padding e centra il testo per una migliore interazione
-            panel.getSummary().getStyle()
-                    .set("font-size", "var(--lumo-font-size-l)") // Aumenta la dimensione del testo
-                    .set("padding", "var(--lumo-space-m)")      // Aumenta il padding per un'area cliccabile più grande
-                    .set("text-align", "center");               // Centra il testo nel summary
-
-            // Puoi anche aggiungere un min-height se necessario
-            // .set("min-height", "48px");
-
-            // Opzionale: Effetto hover per migliorare il feedback visivo
-            panel.getSummary().getStyle().set("transition", "background-color 0.2s ease-in-out");
-            panel.getSummary().getElement().executeJs(
-                    "this.addEventListener('mouseover', function() { this.style.backgroundColor = 'var(--lumo-contrast-5pct)'; });" +
-                            "this.addEventListener('mouseout', function() { this.style.backgroundColor = 'transparent'; });"
-            );
+    private void styleDetailsSummary(Details details) {
+        if (details != null && details.getSummary() != null) {
+            details.getSummary().getStyle()
+                    .set("font-size", "var(--lumo-font-size-xl)")
+                    .set("font-weight", "600")
+                    .set("padding-top", "var(--lumo-space-s)")
+                    .set("padding-bottom", "var(--lumo-space-s)");
         }
     }
 }
