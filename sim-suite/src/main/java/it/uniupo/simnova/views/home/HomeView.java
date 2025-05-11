@@ -96,10 +96,10 @@ public class HomeView extends Composite<VerticalLayout> {
 
         CreditsComponent credits = new CreditsComponent();
         credits.getStyle()
-               .set("position", "absolute")
-               .set("bottom", "1rem")
-               .set("left", "1rem")
-               .set("z-index", "10");
+                .set("position", "absolute")
+                .set("bottom", "1rem")
+                .set("left", "1rem")
+                .set("z-index", "10");
         credits.addClassName(LumoUtility.Border.TOP);
         credits.getStyle().set("border-color", "var(--lumo-contrast-10pct)");
         // Aggiunta dei componenti al layout

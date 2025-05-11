@@ -245,7 +245,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
 
                     // Gestione del footer (l'ultimo HorizontalLayout con i credits)
                     if (layout.getComponentCount() > 1 &&
-                        layout.getComponentAt(0) instanceof CreditsComponent) {
+                            layout.getComponentAt(0) instanceof CreditsComponent) {
                         if ("edit".equals(mode)) {
                             logger.info("Modalità EDIT: caricamento dati esistenti per scenario {}", this.scenarioId);
                             nextButton.setText("Salva");

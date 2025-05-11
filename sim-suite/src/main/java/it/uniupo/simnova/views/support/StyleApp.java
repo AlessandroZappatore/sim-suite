@@ -3,6 +3,7 @@ package it.uniupo.simnova.views.support;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
@@ -131,8 +132,6 @@ public class StyleApp extends HorizontalLayout {
                 .set("background", "var(--lumo-contrast-5pct)")
                 .set("box-shadow", "0 -2px 10px rgba(0, 0, 0, 0.03)");
 
-        // Injecting global styles like this can lead to duplications if called multiple times.
-        // Consider adding these to a global stylesheet or ensuring the script only adds the style tag once.
         UI.getCurrent().getPage().executeJs(
                 "if (!document.getElementById('custom-hover-active-styles')) {" +
                         "  const styleElement = document.createElement('style');" +
@@ -249,5 +248,32 @@ public class StyleApp extends HorizontalLayout {
 
         saveButton.addClassName("hover-effect");
         return saveButton;
+    }
+
+    public static Button getScrollButton() {
+        Button scrollToTopButton = new Button(VaadinIcon.ARROW_UP.create());
+        scrollToTopButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ICON);
+        scrollToTopButton.setAriaLabel("Torna all'inizio della pagina");
+        scrollToTopButton.setTooltipText("Torna all'inizio della pagina");
+        scrollToTopButton.getStyle()
+                .set("position", "fixed")
+                .set("bottom", "20px")
+                .set("right", "20px")
+                .set("z-index", "1000");
+        scrollToTopButton.addClickListener(e ->
+                UI.getCurrent().getPage().executeJs("window.scrollTo(0, 0);")
+        );
+
+        return scrollToTopButton;
+    }
+
+    public static void styleDetailsSummary(Details details) {
+        if (details != null && details.getSummary() != null) {
+            details.getSummary().getStyle()
+                    .set("font-size", "var(--lumo-font-size-xl)")
+                    .set("font-weight", "600")
+                    .set("padding-top", "var(--lumo-space-s)")
+                    .set("padding-bottom", "var(--lumo-space-s)");
+        }
     }
 }

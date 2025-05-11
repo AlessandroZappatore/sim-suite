@@ -5,11 +5,10 @@ import org.vaadin.tinymce.TinyMce;
 
 public class TinyEditor extends HorizontalLayout {
 
-    public TinyEditor(){
-
+    public TinyEditor() {
     }
 
-    public static TinyMce getEditor(){
+    public static TinyMce getEditor() {
         TinyMce editor = new TinyMce();
         editor.setWidthFull();
         editor.setHeight("450px");

@@ -22,7 +22,7 @@ public class PresidiService {
         List<String> presidi = new ArrayList<>();
 
         try (Connection conn = DBConnect.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)){
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             ResultSet rs = stmt.executeQuery();
 
@@ -30,7 +30,7 @@ public class PresidiService {
                 presidi.add(rs.getString("nome"));
             }
 
-            if(!presidi.isEmpty()) {
+            if (!presidi.isEmpty()) {
                 logger.info("Presidi fetched successfully");
             } else {
                 logger.warn("No presidi found");
@@ -64,33 +64,41 @@ public class PresidiService {
 
 
     public boolean savePresidi(Integer scenarioId, Set<String> value) {
-        final String sql = "INSERT INTO PresidioScenario (id_presidio, id_scenario) VALUES (?, ?)";
         boolean success = true;
 
-        try (Connection conn = DBConnect.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            for (String presidio : value) {
-                Integer presidioId = getPresidiId(presidio);
-                if (presidioId != null) {
-                    stmt.setInt(1, presidioId);
-                    stmt.setInt(2, scenarioId);
-                    stmt.addBatch();
-                }
+        try (Connection conn = DBConnect.getInstance().getConnection()) {
+            // Prima elimina tutte le associazioni esistenti per questo scenario
+            final String deleteSQL = "DELETE FROM PresidioScenario WHERE id_scenario = ?";
+            try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSQL)) {
+                deleteStmt.setInt(1, scenarioId);
+                deleteStmt.executeUpdate();
             }
 
-            int[] result = stmt.executeBatch();
-            for (int r : result) {
-                if (r == Statement.EXECUTE_FAILED) {
-                    success = false;
-                    break;
+            // Poi inserisci le nuove associazioni
+            final String insertSQL = "INSERT INTO PresidioScenario (id_presidio, id_scenario) VALUES (?, ?)";
+            try (PreparedStatement insertStmt = conn.prepareStatement(insertSQL)) {
+                for (String presidio : value) {
+                    Integer presidioId = getPresidiId(presidio);
+                    if (presidioId != null) {
+                        insertStmt.setInt(1, presidioId);
+                        insertStmt.setInt(2, scenarioId);
+                        insertStmt.addBatch();
+                    }
+                }
+
+                int[] result = insertStmt.executeBatch();
+                for (int r : result) {
+                    if (r == Statement.EXECUTE_FAILED) {
+                        success = false;
+                        break;
+                    }
                 }
             }
-
         } catch (Exception e) {
             logger.error("Error while saving presidi", e);
             success = false;
         }
+
         return success;
     }
 

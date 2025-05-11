@@ -8,6 +8,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox; // Import Checkbox
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.*;
@@ -16,7 +17,6 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.*;
@@ -27,6 +27,7 @@ import it.uniupo.simnova.api.model.EsameFisico;
 import it.uniupo.simnova.api.model.PazienteT0;
 import it.uniupo.simnova.api.model.Scenario;
 import it.uniupo.simnova.service.FileStorageService;
+import it.uniupo.simnova.service.PresidiService;
 import it.uniupo.simnova.service.ScenarioService;
 import it.uniupo.simnova.views.support.AppHeader;
 import it.uniupo.simnova.views.support.FieldGenerator;
@@ -56,6 +57,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
      */
     private final ScenarioService scenarioService;
     private final FileStorageService fileStorageService;
+    private final PresidiService presidiService;
     /**
      * ID dello scenario da modificare.
      */
@@ -112,7 +114,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
     TextField fio2Field;
     TextField litriO2Field;
     TextField etco2Field;
-    TextField presidiSelect;
+    MultiSelectComboBox<String> presidiField;
 
 
     /**
@@ -120,9 +122,10 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
      *
      * @param scenarioService servizio per la gestione degli scenari
      */
-    public ScenarioEditView(ScenarioService scenarioService, FileStorageService fileStorageService) {
+    public ScenarioEditView(ScenarioService scenarioService, FileStorageService fileStorageService, PresidiService presidiService) {
         this.scenarioService = scenarioService;
         this.fileStorageService = fileStorageService;
+        this.presidiService = presidiService;
     }
 
     /**
@@ -315,7 +318,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
                 pattoAulaArea,
                 azioniChiaveArea,
                 obiettiviArea,
-                createMaterialeNecessarioComponent(),
+                createIFrame("Modifica Materiale Necessario in pagina dedicata", "materialeNecessario/"),
                 moulageArea,
                 liquidiArea
         );
@@ -356,7 +359,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
                 "Inserisci la temperatura corporea",
                 false
         );
-        tempField.setValue(parametriT0 != null  ? String.format("%.1f", parametriT0.getT()) : "");
+        tempField.setValue(parametriT0 != null ? String.format("%.1f", parametriT0.getT()) : "");
 
         spo2Field = FieldGenerator.createTextField(
                 "SpO₂ (%)",
@@ -442,12 +445,14 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
             // Non rimuoviamo gli elementi quando si deseleziona in modifica
         });
 
-        // Presidi
-        ComboBox<String> presidiSelect;
-        presidiSelect = new ComboBox<>("Presidi");
-        presidiSelect.setItems("Nessuno", "Catetere vescicale", "Sonda nasogastrica", "Altro");
-        presidiSelect.setPlaceholder("Seleziona un presidio");
-        presidiSelect.setWidthFull();
+        List<String> presidiList = PresidiService.getAllPresidi();
+        presidiField = FieldGenerator.createMultiSelectComboBox(
+                "Presidi",
+                presidiList,
+                false
+        );
+        List<String> selectedPresidi = PresidiService.getPresidiByScenarioId(scenarioId);
+        presidiField.setValue(selectedPresidi);
 
 
         // Aggiunta dei campi e della nuova gestione accessi al layout parametriT0Layout
@@ -455,7 +460,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
                 paField, fcField, rrField, tempField, spo2Field, fio2Field, litriO2Field, etco2Field, monitorArea, // Campi esistenti + Fio2/Litri
                 venosiCheckbox, venosiContainer, addVenosiButton,        // Nuova gestione venosi
                 arteriosiCheckbox, arteriosiContainer, addArteriosiButton,
-                presidiSelect// Nuova gestione arteriosi
+                presidiField
         );
 
         // Carica accessi esistenti usando la nuova logica
@@ -485,9 +490,6 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         arteriosiCheckbox.setValue(arteriosiPresenti);
         arteriosiContainer.setVisible(arteriosiPresenti);
         addArteriosiButton.setVisible(arteriosiPresenti);
-
-
-        // === FINE GESTIONE ACCESSI NUOVA ===
 
 
         //Inizio Esame Fisico
@@ -574,7 +576,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         );
         //Fine Esame Fisico
 
-        Details targetDetails = createDetails("TARGET E LEARNING GROUPS", createTargetComponent());
+        Details targetDetails = createDetails("TARGET E LEARNING GROUPS", createIFrame("Modifica Target in pagina dedicata", "target/"));
 
         // Creazione tendina per l'esame fisico
         Details esameFisicoDetails = createDetails("ESAME FISICO", esameFisicoLayout);
@@ -586,7 +588,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         Details parametriT0Details = createDetails("PARAMETRI T0", parametriT0Layout);
 
         // Creazione tendina per gli esami e i referti
-        Details esamiRefertiDetails = createDetails("ESAMI E REFERTI", createEsamiRefertiComponent());
+        Details esamiRefertiDetails = createDetails("ESAMI E REFERTI", createIFrame("Modifica Esami e Referti in pagina dedicata", "esamiReferti/"));
 
         // Aggiunta dei componenti al layout principale
         contentLayout.add(
@@ -607,7 +609,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
 
         // Gestione Quick Scenario (nessuna timeline)
         if (!scenarioType.equals("Quick Scenario")) {
-            Details tempiDetails = createDetails("TIMELINE", createTempiComponent());
+            Details tempiDetails = createDetails("TIMELINE", createIFrame("Modifica Timeline in pagina dedicata", "tempi/"));
             contentLayout.add(tempiDetails);
         }
 
@@ -632,6 +634,9 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
 
         contentLayout.add(saveButton);
 
+        Button scrollToTopButton = StyleApp.getScrollButton();
+        mainLayout.add(scrollToTopButton);
+
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(null);
         mainLayout.add(customHeader, contentLayout, footerLayout);
     }
@@ -641,10 +646,11 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         details.setWidthFull();
         details.addClassName(LumoUtility.Margin.Top.LARGE);
         details.setOpened(false);
+        StyleApp.styleDetailsSummary(details); // Applica lo stile al summary
         return details;
     }
 
-    private Button getSaveButton(){
+    private Button getSaveButton() {
         Button saveButton = StyleApp.getSaveEditButton();
 
         saveButton.addClickListener(e -> {
@@ -741,9 +747,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         updatedSections.put("Obiettivi", obiettivi);
         updatedSections.put("Moulage", moulage);
         updatedSections.put("Liquidi", liquidi);
-        updatedSections.put("AzioniChiave", getAzioniChiaveValue(azioniChiaveArea));
 
-        System.out.println("DEBUG" + getTinyMceValue(generaleArea));
         EsameFisico esameFisico = new EsameFisico(scenarioId,
                 generaleArea != null ? getTinyMceValue(generaleArea) : "",
                 pupilleArea != null ? getTinyMceValue(pupilleArea) : "",
@@ -772,6 +776,8 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
             arteriosiDaSalvare.add(comp.getAccesso());
         }
 
+        presidiService.savePresidi(scenarioId, presidiField.getValue());
+
         // Salva le modifiche
         scenarioService.updateScenario(scenarioId, updatedFields, updatedSections,
                 esameFisico, updatedSectionsT0, venosiDaSalvare, arteriosiDaSalvare);
@@ -792,7 +798,6 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         updatedSectionsT0.put("LitriO2", litriO2Field != null ? litriO2Field.getValue() : "");
         updatedSectionsT0.put("EtCO2", etco2Field != null ? etco2Field.getValue() : "");
         updatedSectionsT0.put("Monitoraggio", monitorArea != null ? monitorArea.getValue() : "");
-        updatedSectionsT0.put("Presidi", presidiSelect != null ? presidiSelect.getValue() : "");
         return updatedSectionsT0;
     }
 
@@ -808,12 +813,12 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         AccessoComponent accessoComp;
         if ("Venoso".equals(tipo)) {
             // Passa il container e la lista d'istanza corretti
-            accessoComp = new AccessoComponent(tipo, venosiContainer, venosiAccessi);
+            accessoComp = new AccessoComponent(tipo);
             venosiAccessi.add(accessoComp);
             venosiContainer.add(accessoComp);
         } else { // Arterioso
             // Passa il container e la lista d'istanza corretti
-            accessoComp = new AccessoComponent(tipo, arteriosiContainer, arteriosiAccessi);
+            accessoComp = new AccessoComponent(tipo);
             arteriosiAccessi.add(accessoComp);
             arteriosiContainer.add(accessoComp);
         }
@@ -874,8 +879,8 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
      * Helper method to create and add a new action field (TextField and Remove Button) to the UI.
      * This method would typically be part of the same class or a utility class.
      *
-     * @param container The VerticalLayout container where the action field will be added.
-     * @param fieldList The list tracking all action TextFields.
+     * @param container    The VerticalLayout container where the action field will be added.
+     * @param fieldList    The list tracking all action TextFields.
      * @param initialValue The initial value for the TextField (can be empty).
      */
     private void addActionFieldUI(VerticalLayout container, List<TextField> fieldList, String initialValue) {
@@ -884,21 +889,22 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         fieldRowLayout.setSpacing(true);
         fieldRowLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
 
-        TextField actionField = new TextField();
-        actionField.setPlaceholder("Descrivi azione chiave");
+        TextField actionField = FieldGenerator.createTextField(
+                "Azione chiave",
+                "Inserisci l'azione chiave da valutare",
+                false
+        );
         actionField.setValue(initialValue != null ? initialValue : "");
-        // actionField.setWidthFull(); // TextField will expand due to fieldRowLayout.addAndExpand
 
-        Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
-        removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_ICON);
-        removeButton.getElement().setAttribute("aria-label", "Rimuovi azione");
+        Button removeButton = StyleApp.getButton(
+                "Rimuovi",
+                VaadinIcon.TRASH,
+                ButtonVariant.LUMO_ERROR,
+                "var(--lumo-error-color)"
+        );
         removeButton.addClickListener(e -> {
             container.remove(fieldRowLayout); // Remove the whole row from the container
             fieldList.remove(actionField);    // Remove the TextField from the tracking list
-            // Optional: if fieldList becomes empty, add a new blank field
-            // if (fieldList.isEmpty()) {
-            //     addActionFieldUI(container, fieldList, "");
-            // }
         });
 
         fieldRowLayout.addAndExpand(actionField); // TextField takes up available space
@@ -908,278 +914,23 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         fieldList.add(actionField); // Add the new TextField to the tracking list
     }
 
-    /**
-     * Ottiene tutte le azioni chiave dai campi di input, separate da punto e virgola.
-     *
-     * @param panel Il layout verticale contenente i campi delle azioni chiave
-     * @return Una stringa con tutte le azioni separate da punto e virgola
-     */
-    private String getAzioniChiaveValue(VerticalLayout panel) {
-        if (panel == null) {
-            return "";
-        }
+    private Component createIFrame(String label, String url) {
+        VerticalLayout iframeLayout = new VerticalLayout();
+        iframeLayout.setPadding(false);
+        iframeLayout.setSpacing(true);
+        iframeLayout.setWidthFull();
 
-        List<String> azioni = new ArrayList<>();
-
-        // Prendi il VerticalLayout che contiene i campi azioni
-        // (dovrebbe essere il terzo elemento nel panel, dopo titleElement e subtitleElement)
-        panel.getChildren().skip(2).findFirst()
-                .filter(child -> child instanceof VerticalLayout)
-                .ifPresent(container -> container.getChildren()
-                        .filter(child -> child instanceof HorizontalLayout)
-                        .forEach(horizontalLayout -> horizontalLayout.getChildren()
-                                .filter(field -> field instanceof TextField)
-                                .map(field -> ((TextField) field).getValue())
-                                .filter(value -> value != null && !value.trim().isEmpty())
-                                .forEach(value -> azioni.add(value.trim()))));
-
-        // Unisci le azioni con il punto e virgola
-        return String.join(";", azioni);
-    }
-
-    // --- NUOVA CLASSE AccessoComponent (basata su PazienteT0View ma adattata) ---
-
-    /**
-     * Componente per la gestione degli accessi venosi e arteriosi.
-     * Contiene campi per tipo, posizione, lato e misura.
-     */
-    private static class AccessoComponent extends HorizontalLayout {
-        private final Select<String> tipoSelect;
-        private final TextField posizioneField;
-        private final ComboBox<String> latoSelect;
-        private final ComboBox<Integer> misuraSelect;
-        private final Accesso accesso; // Oggetto dati
-        private final VerticalLayout container; // Contenitore parent (passato)
-        private final List<AccessoComponent> listaAccessi; // Lista parent (passata)
-
-        /**
-         * Costruttore del componente di accesso.
-         *
-         * @param tipo         Il tipo di accesso ("Venoso" o "Arterioso").
-         * @param container    Il layout VerticalLayout che conterrà questo componente.
-         * @param listaAccessi La lista List<AccessoComponent> a cui aggiungere/rimuovere questo componente.
-         */
-        public AccessoComponent(String tipo, VerticalLayout container, List<AccessoComponent> listaAccessi) {
-            // "Venoso" o "Arterioso"
-            this.container = container;
-            this.listaAccessi = listaAccessi;
-            this.accesso = new Accesso(0, "", "", "", 0); // Inizializza oggetto dati vuoto
-
-            setWidthFull();
-            setAlignItems(Alignment.BASELINE); // Allinea alla base per estetica migliore
-            setSpacing(true);
-
-
-            tipoSelect = new Select<>();
-            tipoSelect.setLabel("Tipo accesso " + tipo);
-            if ("Venoso".equals(tipo)) {
-                tipoSelect.setItems(
-                        "Periferico", "Centrale", "CVC a breve termine", "CVC tunnellizzato",
-                        "PICC", "Midline", "Intraosseo", "PORT", "Dialysis catheter", "Altro"
-                );
-            } else { // Arterioso
-                tipoSelect.setItems(
-                        "Radiale", "Femorale", "Omerale", "Brachiale", "Ascellare", "Pedidia", "Altro"
-                );
-            }
-            tipoSelect.setWidth("200px"); // Larghezza fissa per coerenza
-            tipoSelect.addValueChangeListener(e -> accesso.setTipologia(e.getValue()));
-
-
-            posizioneField = new TextField("Posizione");
-            //posizioneField.setWidthFull(); // Lasciamo che si adatti? O diamo larghezza?
-            posizioneField.addValueChangeListener(e -> accesso.setPosizione(e.getValue()));
-
-            latoSelect = new ComboBox<>("Lato");
-            latoSelect.setItems("DX", "SX");
-            latoSelect.setWidth("100px");
-            latoSelect.addValueChangeListener(e -> accesso.setLato(e.getValue()));
-
-            misuraSelect = new ComboBox<>("Misura (G)"); // Abbreviato Gauge
-            misuraSelect.setItems(14, 16, 18, 20, 22, 24, 26); // Gauge comuni
-            misuraSelect.setAllowCustomValue(true); // Permette altri numeri
-            misuraSelect.setWidth("100px");
-            misuraSelect.addValueChangeListener(e -> accesso.setMisura(e.getValue()));
-            misuraSelect.addCustomValueSetListener(e -> {
-                try {
-                    int customValue = Integer.parseInt(e.getDetail());
-                    List<Integer> items = new ArrayList<>(misuraSelect.getListDataView().getItems().toList());
-                    if (!items.contains(customValue)) {
-                        items.add(customValue);
-                        items.sort(Integer::compareTo); // Mantieni ordinato
-                        misuraSelect.setItems(items);
-                    }
-                    misuraSelect.setValue(customValue); // Imposta il valore custom
-                } catch (NumberFormatException ex) {
-                    // Ignora se non è un numero valido
-                }
-            });
-
-
-            Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
-            removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
-            removeButton.getStyle().set("margin-top", "auto"); // Allinea verticalmente il bottone
-            removeButton.addClickListener(e -> removeSelf());
-
-            // Aggiungi i componenti al layout orizzontale
-            add(tipoSelect, posizioneField, latoSelect, misuraSelect, removeButton);
-            expand(posizioneField); // Fai espandere il campo posizione
-        }
-
-        /**
-         * Rimuove questo componente dal suo contenitore e dalla lista di tracciamento.
-         */
-        private void removeSelf() {
-            if (container != null) {
-                container.remove(this);
-            }
-            if (listaAccessi != null) {
-                listaAccessi.remove(this);
-            }
-        }
-
-        /**
-         * Restituisce l'oggetto Accesso con i dati correnti del componente.
-         *
-         * @return l'oggetto Accesso.
-         */
-        public Accesso getAccesso() {
-            // Assicurati che l'oggetto accesso sia aggiornato (anche se i listener dovrebbero averlo fatto)
-            accesso.setTipologia(tipoSelect.getValue());
-            accesso.setPosizione(posizioneField.getValue());
-            accesso.setLato(latoSelect.getValue());
-            accesso.setMisura(misuraSelect.getValue() != null ? misuraSelect.getValue() : 0); // Gestisci null per misura
-            return accesso;
-        }
-
-        /**
-         * Imposta i valori dei campi del componente basandosi su un oggetto Accesso esistente.
-         *
-         * @param accesso L'oggetto Accesso da cui caricare i dati.
-         */
-        public void setAccessoData(Accesso accesso) {
-            if (accesso == null) return;
-
-            // Imposta i valori nei componenti UI
-            tipoSelect.setValue(accesso.getTipologia());
-            posizioneField.setValue(accesso.getPosizione());
-            latoSelect.setValue(accesso.getLato());
-
-            // Gestione misura: assicurati che il valore esista nella ComboBox
-            Integer misura = accesso.getMisura();
-            if (misura != null && misura != 0) {
-                List<Integer> items = new ArrayList<>(misuraSelect.getListDataView().getItems().toList());
-                if (!items.contains(misura)) {
-                    items.add(misura);
-                    items.sort(Integer::compareTo);
-                    misuraSelect.setItems(items); // Aggiungi se non presente
-                }
-                misuraSelect.setValue(misura);
-            } else {
-                misuraSelect.clear(); // Pulisci se misura è 0 o null
-            }
-
-
-            // Aggiorna anche l'oggetto interno 'accesso' di questo componente
-            this.accesso.setId(accesso.getId()); // Mantieni l'ID se presente
-            this.accesso.setTipologia(accesso.getTipologia());
-            this.accesso.setPosizione(accesso.getPosizione());
-            this.accesso.setLato(accesso.getLato());
-            this.accesso.setMisura(accesso.getMisura());
-        }
-    }
-    // --- FINE NUOVA CLASSE AccessoComponent ---
-
-
-    private Component createTargetComponent() {
-        VerticalLayout targetLayout = new VerticalLayout();
-        targetLayout.setPadding(false);
-        targetLayout.setSpacing(true);
-        targetLayout.setWidthFull();
-
-        Button openFullPageButton = new Button("Modifica Target in pagina dedicata", new Icon(VaadinIcon.EXTERNAL_LINK));
+        Button openFullPageButton = new Button(label, new Icon(VaadinIcon.EXTERNAL_LINK));
         openFullPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        openFullPageButton.addClickListener(e -> UI.getCurrent().navigate("target/" + scenarioId + "/edit"));
+        openFullPageButton.addClickListener(e -> UI.getCurrent().navigate(url + scenarioId + "/edit"));
+        IFrame iframe = new IFrame(url + scenarioId + "/edit");
 
-        IFrame targetFrame = new IFrame("target/" + scenarioId + "/edit");
-        targetFrame.setHeight("600px");
-        targetFrame.setWidthFull();
-        targetFrame.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
+        iframe.setHeight("600px");
+        iframe.setWidthFull();
+        iframe.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)"); // Bordo per chiarezza
 
-        targetLayout.add(openFullPageButton, targetFrame);
-        return targetLayout;
-    }
-
-    /**
-     * Crea un componente per visualizzare i tempi della simulazione (tramite IFrame).
-     *
-     * @return il componente creato
-     */
-    private Component createTempiComponent() {
-        VerticalLayout tempiLayout = new VerticalLayout();
-        tempiLayout.setPadding(false);
-        tempiLayout.setSpacing(true);
-        tempiLayout.setWidthFull();
-
-        Button openFullPageButton = new Button("Modifica Timeline in pagina dedicata", new Icon(VaadinIcon.EXTERNAL_LINK));
-        openFullPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        openFullPageButton.addClickListener(e -> UI.getCurrent().navigate("tempi/" + scenarioId + "/edit"));
-
-        IFrame tempiFrame = new IFrame("tempi/" + scenarioId + "/edit");
-        tempiFrame.setHeight("600px"); // Altezza fissa potrebbe essere un problema
-        tempiFrame.setWidthFull();
-        tempiFrame.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)"); // Bordo per chiarezza
-
-        tempiLayout.add(openFullPageButton, tempiFrame);
-        return tempiLayout;
-    }
-
-    /**
-     * Crea un componente per visualizzare il materiale necessario (tramite IFrame).
-     *
-     * @return il componente creato
-     */
-    private Component createMaterialeNecessarioComponent() {
-        VerticalLayout materialeLayout = new VerticalLayout();
-        materialeLayout.setPadding(false);
-        materialeLayout.setSpacing(true);
-        materialeLayout.setWidthFull();
-
-        Button openFullPageButton = new Button("Modifica Materiale in pagina dedicata", new Icon(VaadinIcon.EXTERNAL_LINK));
-        openFullPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        openFullPageButton.addClickListener(e -> UI.getCurrent().navigate("materialeNecessario/" + scenarioId + "/edit"));
-
-        IFrame materialeFrame = new IFrame("materialeNecessario/" + scenarioId + "/edit");
-        materialeFrame.setHeight("600px");
-        materialeFrame.setWidthFull();
-        materialeFrame.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
-
-        materialeLayout.add(openFullPageButton, materialeFrame);
-        return materialeLayout;
-    }
-
-    /**
-     * Crea un componente per visualizzare gli esami e i referti (tramite IFrame).
-     *
-     * @return il componente creato
-     */
-    private Component createEsamiRefertiComponent() {
-        VerticalLayout esamiLayout = new VerticalLayout();
-        esamiLayout.setPadding(false);
-        esamiLayout.setSpacing(true);
-        esamiLayout.setWidthFull();
-
-        Button openFullPageButton = new Button("Modifica Esami/Referti in pagina dedicata", new Icon(VaadinIcon.EXTERNAL_LINK));
-        openFullPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        openFullPageButton.addClickListener(e -> UI.getCurrent().navigate("esamiReferti/" + scenarioId + "/edit"));
-
-        IFrame esamiFrame = new IFrame("esamiReferti/" + scenarioId + "/edit");
-        esamiFrame.setHeight("600px");
-        esamiFrame.setWidthFull();
-        esamiFrame.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
-
-        esamiLayout.add(openFullPageButton, esamiFrame);
-        return esamiLayout;
+        iframeLayout.add(openFullPageButton, iframe);
+        return iframeLayout;
     }
 
     /**
@@ -1207,7 +958,6 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         return panelLayout;
     }
 
-    // Ottieni il valore dall'editor TinyMce nel layout
     // Ottieni il valore dall'editor TinyMce nel layout
     private String getTinyMceValue(VerticalLayout panel) {
         // Verifica che il panel non sia nullo

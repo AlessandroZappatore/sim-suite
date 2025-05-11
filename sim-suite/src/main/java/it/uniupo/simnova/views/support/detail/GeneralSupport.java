@@ -14,9 +14,6 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.api.model.Scenario;
 
 import java.util.List;
-// Rimuovi: import it.uniupo.simnova.service.MaterialeService;
-// Rimuovi: import it.uniupo.simnova.service.ScenarioService;
-
 
 public class GeneralSupport extends HorizontalLayout { // L'estensione di HorizontalLayout non è attivamente usata se si usa solo il metodo statico
 
@@ -27,10 +24,10 @@ public class GeneralSupport extends HorizontalLayout { // L'estensione di Horizo
     /**
      * Crea il contenuto della panoramica generale dello scenario utilizzando dati pre-caricati.
      *
-     * @param scenario L'oggetto Scenario principale, già caricato.
+     * @param scenario            L'oggetto Scenario principale, già caricato.
      * @param isPediatricScenario true se lo scenario è pediatrico (risultato di scenarioService.isPediatric).
-     * @param infoGenitore Stringa con le informazioni dai genitori, se applicabile e disponibile (può essere null).
-     * @param materialiNecessari Stringa con l'elenco dei materiali necessari (risultato di materialeService.toStringAllMaterialsByScenarioId).
+     * @param infoGenitore        Stringa con le informazioni dai genitori, se applicabile e disponibile (può essere null).
+     * @param materialiNecessari  Stringa con l'elenco dei materiali necessari (risultato di materialeService.toStringAllMaterialsByScenarioId).
      * @return Un VerticalLayout contenente la panoramica generale.
      */
     public static VerticalLayout createOverviewContentWithData(
@@ -78,7 +75,7 @@ public class GeneralSupport extends HorizontalLayout { // L'estensione di Horizo
         }
 
         addInfoItemIfNotEmpty(cardContentLayout, "Patto Aula", scenario.getPattoAula(), VaadinIcon.HANDSHAKE);
-        addInfoItemIfNotEmpty(cardContentLayout, "Azioni Chiave", azioniChiave.toString(), VaadinIcon.KEY);
+        addAzioniChiaveItem(cardContentLayout, azioniChiave);
         addInfoItemIfNotEmpty(cardContentLayout, "Obiettivi Didattici", scenario.getObiettivo(), VaadinIcon.BOOK);
         addInfoItemIfNotEmpty(cardContentLayout, "Moulage", scenario.getMoulage(), VaadinIcon.EYE);
         addInfoItemIfNotEmpty(cardContentLayout, "Liquidi e dosi farmaci", scenario.getLiquidi(), VaadinIcon.DROP);
@@ -121,6 +118,16 @@ public class GeneralSupport extends HorizontalLayout { // L'estensione di Horizo
                     .set("font-size", "var(--lumo-icon-size-l)");
 
             container.add(InfoItemSupport.createInfoItem(title, content, icon));
+        }
+    }
+
+    private static void addAzioniChiaveItem(VerticalLayout container, List<String> azioniChiave) {
+        if (azioniChiave != null && !azioniChiave.isEmpty()) {
+            StringBuilder content = new StringBuilder();
+            for (String azione : azioniChiave) {
+                content.append("• ").append(azione).append("\n");
+            }
+            addInfoItemIfNotEmpty(container, "Azioni Chiave", content.toString(), VaadinIcon.KEY);
         }
     }
 

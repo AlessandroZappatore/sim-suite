@@ -499,10 +499,10 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
                 logger.info("Target aggiornato con successo per scenario {}", scenarioId);
                 // Verifica la modalità: se è "edit" mostra solo la notifica, altrimenti naviga
                 boolean isEditMode = "edit".equals(mode);
-                
+
                 Notification.show("Target salvato con successo", 3000, Notification.Position.TOP_CENTER)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                
+
                 if (!isEditMode) {
                     // Naviga alla prossima vista solo se NON è in modalità edit
                     ui.ifPresent(theUI -> theUI.navigate("descrizione/" + scenarioId));

@@ -126,7 +126,7 @@ public class CreationView extends Composite<VerticalLayout> {
         layout.getStyle().set("position", "relative"); // Necessario per posizionamento assoluto dei figli
 
         // Aggiunta componenti al layout
-        layout.add(customHeader,contentLayout);
+        layout.add(customHeader, contentLayout);
 
         // Stili CSS personalizzati per la gestione responsive
         layout.getElement().getStyle().set("--short-desc-display", "none");
@@ -134,19 +134,19 @@ public class CreationView extends Composite<VerticalLayout> {
         layout.getElement().getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         // Media queries per la visualizzazione responsive
         layout.getElement().executeJs("""
-            const style = document.createElement('style');
-            style.textContent = `
-                @media (max-width: 600px) {
-                    .short-desc { display: block !important; }
-                    .long-desc { display: none !important; }
-                }
-                @media (min-width: 601px) {
-                    .short-desc { display: none !important; }
-                    .long-desc { display: block !important; }
-                }
-            `;
-            document.head.appendChild(style);
-        """);
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        @media (max-width: 600px) {
+                            .short-desc { display: block !important; }
+                            .long-desc { display: none !important; }
+                        }
+                        @media (min-width: 601px) {
+                            .short-desc { display: none !important; }
+                            .long-desc { display: block !important; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                """);
 
         VerticalLayout footerLayout = new VerticalLayout();
         footerLayout.setPadding(true);

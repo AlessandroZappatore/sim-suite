@@ -106,6 +106,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             "#4DD0E1",                            // Azzurro
             "#F06292"                             // Rosa
     };
+
     static {
         // Popolamento della mappa dei parametri aggiuntivi predefiniti
         // (Cardiologia / Monitor Multiparametrico)

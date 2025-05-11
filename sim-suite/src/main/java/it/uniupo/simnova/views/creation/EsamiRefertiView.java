@@ -102,10 +102,11 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             "#4DD0E1",                            // Azzurro
             "#F06292"                             // Rosa
     };
+
     /**
      * Costruttore che inizializza l'interfaccia utente.
      *
-     * @param scenarioService servizio per la gestione degli scenari
+     * @param scenarioService    servizio per la gestione degli scenari
      * @param fileStorageService servizio per la gestione dei file
      */
     public EsamiRefertiView(ScenarioService scenarioService, FileStorageService fileStorageService) {
@@ -187,20 +188,20 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
             // Gestione dell'header (il primo HorizontalLayout)
             mainLayout.getChildren()
-                .filter(component -> component instanceof HorizontalLayout)
-                .findFirst()
-                .ifPresent(header -> header.setVisible(!"edit".equals(mode)));
+                    .filter(component -> component instanceof HorizontalLayout)
+                    .findFirst()
+                    .ifPresent(header -> header.setVisible(!"edit".equals(mode)));
 
             // Gestione del footer con i crediti (l'ultimo HorizontalLayout)
             mainLayout.getChildren()
-                .filter(component -> component instanceof HorizontalLayout)
-                .reduce((first, second) -> second) // Prendi l'ultimo elemento
-                .ifPresent(footer -> {
-                    HorizontalLayout footerLayout = (HorizontalLayout) footer;
-                    footerLayout.getChildren()
-                        .filter(component -> component instanceof CreditsComponent)
-                        .forEach(credits -> credits.setVisible(!"edit".equals(mode)));
-                });
+                    .filter(component -> component instanceof HorizontalLayout)
+                    .reduce((first, second) -> second) // Prendi l'ultimo elemento
+                    .ifPresent(footer -> {
+                        HorizontalLayout footerLayout = (HorizontalLayout) footer;
+                        footerLayout.getChildren()
+                                .filter(component -> component instanceof CreditsComponent)
+                                .forEach(credits -> credits.setVisible(!"edit".equals(mode)));
+                    });
 
             // Inizializza la vista in base alla modalità
             if ("edit".equals(mode)) {
@@ -393,7 +394,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
                     // Verifica se ci sono dati validi nell'esame o nel referto testuale
                     if ((selectedExam != null && !selectedExam.trim().isEmpty()) ||
-                        (reportText != null && !reportText.trim().isEmpty())) {
+                            (reportText != null && !reportText.trim().isEmpty())) {
                         hasValidData = true;
                     }
 
@@ -526,7 +527,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         /**
          * Costruttore per una riga del form.
          *
-         * @param rowNumber numero della riga
+         * @param rowNumber          numero della riga
          * @param fileStorageService servizio per la gestione dei file
          */
         public FormRow(int rowNumber, FileStorageService fileStorageService) {
@@ -836,7 +837,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         /**
          * Carica i media disponibili nel dialog di selezione con filtro di ricerca.
          *
-         * @param container contenitore per i media
+         * @param container  contenitore per i media
          * @param searchTerm termine di ricerca (opzionale)
          */
         private void loadAvailableMedia(Div container, String searchTerm) {
@@ -888,8 +889,8 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                 String mediaLower = media.toLowerCase();
 
                 if (mediaLower.endsWith(".jpg") || mediaLower.endsWith(".jpeg") ||
-                    mediaLower.endsWith(".png") || mediaLower.endsWith(".gif") ||
-                    mediaLower.endsWith(".webp")) {
+                        mediaLower.endsWith(".png") || mediaLower.endsWith(".gif") ||
+                        mediaLower.endsWith(".webp")) {
 
                     // Crea un'immagine per l'anteprima
                     Image image = getImage(media);
@@ -978,16 +979,16 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         private Icon getMediaIcon(String filename) {
             filename = filename.toLowerCase();
             if (filename.endsWith(".jpg") || filename.endsWith(".jpeg") ||
-                filename.endsWith(".png") || filename.endsWith(".gif") ||
-                filename.endsWith(".webp")) {
+                    filename.endsWith(".png") || filename.endsWith(".gif") ||
+                    filename.endsWith(".webp")) {
                 return new Icon(VaadinIcon.PICTURE);
             } else if (filename.endsWith(".pdf")) {
                 return new Icon(VaadinIcon.FILE);
             } else if (filename.endsWith(".mp4") || filename.endsWith(".webm") ||
-                      filename.endsWith(".mov")) {
+                    filename.endsWith(".mov")) {
                 return new Icon(VaadinIcon.FILM);
             } else if (filename.endsWith(".mp3") || filename.endsWith(".wav") ||
-                      filename.endsWith(".ogg")) {
+                    filename.endsWith(".ogg")) {
                 return new Icon(VaadinIcon.HEADPHONES);
             } else {
                 return new Icon(VaadinIcon.FILE);
@@ -1076,7 +1077,6 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
             return button;
         }
-
 
 
         /**

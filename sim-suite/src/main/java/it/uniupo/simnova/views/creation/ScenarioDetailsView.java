@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * </p>
  *
  * @author Alessandro Zappatore
- * @version 1.0
+ * @version 1.3
  */
 @SuppressWarnings("ThisExpressionReferencesGlobalObjectJS")
 @PageTitle("Dettagli Scenario")
@@ -151,7 +151,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         }
 
         scenario = scenarioService.getScenarioById(scenarioId);
-        
+
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
         AppHeader header = new AppHeader(fileStorageService);
@@ -159,7 +159,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         // 1. HEADER
         Button backButton = StyleApp.getBackButton();
 
-        Button editButton = StyleApp.getButton("Modifica Scenario",VaadinIcon.EDIT, ButtonVariant.LUMO_PRIMARY, "var(--lumo-primary-color)");
+        Button editButton = StyleApp.getButton("Modifica Scenario", VaadinIcon.EDIT, ButtonVariant.LUMO_PRIMARY, "var(--lumo-primary-color)");
         editButton.addClickListener(e ->
                 UI.getCurrent().navigate("modificaScenario/" + scenario.getId()));
 
@@ -231,19 +231,19 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         Component subtitle = InfoSupport.getInfo(scenario);
 
         // Sezioni Details
-        Details detailsInfoGenerali = new Details("Informazioni Generali", GeneralSupport.createOverviewContentWithData(scenario, scenarioService.isPediatric(scenarioId),scenario.getInfoGenitore(), materialeNecessario.toStringAllMaterialsByScenarioId(scenarioId),scenarioService.getNomiAzioniChiaveByScenarioId(scenarioId)));
+        Details detailsInfoGenerali = new Details("Informazioni Generali", GeneralSupport.createOverviewContentWithData(scenario, scenarioService.isPediatric(scenarioId), scenario.getInfoGenitore(), materialeNecessario.toStringAllMaterialsByScenarioId(scenarioId), scenarioService.getNomiAzioniChiaveByScenarioId(scenarioId)));
         detailsInfoGenerali.setOpened(true); // Espandi il primo pannello di default
         detailsInfoGenerali.addThemeVariants(DetailsVariant.FILLED);
-        styleDetailsSummary(detailsInfoGenerali);
+        StyleApp.styleDetailsSummary(detailsInfoGenerali);
 
 
         Details detailsStatoPaziente = new Details("Stato Paziente", PatientT0Support.createPatientContent(scenarioService.getPazienteT0ById(scenarioId), scenarioService.getEsameFisicoById(scenarioId), scenarioId));
         detailsStatoPaziente.addThemeVariants(DetailsVariant.FILLED);
-        styleDetailsSummary(detailsStatoPaziente);
+        StyleApp.styleDetailsSummary(detailsStatoPaziente);
 
         Details detailsEsamiReferti = new Details("Esami e Referti", ExamSupport.createExamsContent(scenarioService.getEsamiRefertiByScenarioId(scenarioId)));
         detailsEsamiReferti.addThemeVariants(DetailsVariant.FILLED);
-        styleDetailsSummary(detailsEsamiReferti);
+        StyleApp.styleDetailsSummary(detailsEsamiReferti);
 
         contentLayout.add(editButtonContainer, headerSection, titleContainer, subtitle, detailsInfoGenerali, detailsStatoPaziente, detailsEsamiReferti);
 
@@ -252,7 +252,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         if (!tempi.isEmpty()) {
             Details timelineDetails = new Details("Timeline", TimesSupport.createTimelineContent(scenarioService.getTempiByScenarioId(scenarioId), scenarioId));
             timelineDetails.addThemeVariants(DetailsVariant.FILLED);
-            styleDetailsSummary(timelineDetails);
+            StyleApp.styleDetailsSummary(timelineDetails);
             contentLayout.add(timelineDetails);
         }
 
@@ -261,7 +261,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         if ("Patient Simulated Scenario".equalsIgnoreCase(scenarioType)) {
             Details sceneggiaturaDetails = new Details("Sceneggiatura", SceneggiaturaSupport.createSceneggiaturaContent(ScenarioService.getSceneggiatura(scenarioId)));
             sceneggiaturaDetails.addThemeVariants(DetailsVariant.FILLED);
-            styleDetailsSummary(sceneggiaturaDetails);
+            StyleApp.styleDetailsSummary(sceneggiaturaDetails);
             contentLayout.add(sceneggiaturaDetails);
         }
 
@@ -275,16 +275,11 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                 footerLayout
         );
 
-        backButton.addClickListener(e -> UI.getCurrent().navigate("scenari"));
-    }
+        // Pulsante "Torna su"
+        Button scrollToTopButton = StyleApp.getScrollButton();
 
-    private void styleDetailsSummary(Details details) {
-        if (details != null && details.getSummary() != null) {
-            details.getSummary().getStyle()
-                    .set("font-size", "var(--lumo-font-size-xl)")
-                    .set("font-weight", "600")
-                    .set("padding-top", "var(--lumo-space-s)")
-                    .set("padding-bottom", "var(--lumo-space-s)");
-        }
+        mainLayout.add(scrollToTopButton); // Aggiunge il pulsante al layout principale
+
+        backButton.addClickListener(e -> UI.getCurrent().navigate("scenari"));
     }
 }

@@ -53,6 +53,7 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
      * Logger per la registrazione degli eventi.
      */
     private static final Logger logger = LoggerFactory.getLogger(MoulageView.class);
+
     /**
      * Costruttore della view.
      *

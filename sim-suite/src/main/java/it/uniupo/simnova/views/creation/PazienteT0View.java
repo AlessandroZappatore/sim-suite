@@ -1,12 +1,10 @@
 package it.uniupo.simnova.views.creation;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -15,7 +13,6 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
-import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
@@ -373,7 +370,6 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                 for (AccessoComponent comp : arteriosiAccessi) {
                     arteriosi.add(comp.getAccesso());
                 }
-
                 // Salva nel database
                 boolean success = scenarioService.savePazienteT0(
                         scenarioId,
@@ -412,125 +408,4 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         });
     }
 
-    /**
-     * Componente per la gestione degli accessi venosi e arteriosi.
-     * Contiene un campo di selezione per il tipo di accesso e un campo di testo per la posizione.
-     */
-    private static class AccessoComponent extends HorizontalLayout {
-        /**
-         * Campo di selezione per il tipo di accesso (venoso o arterioso).
-         */
-        private final Select<String> tipoSelect;
-        /**
-         * Campo di testo per la posizione dell'accesso.
-         */
-        private final TextField posizioneField;
-        /**
-         * Oggetto Accesso associato a questo componente.
-         */
-        private final ComboBox<String> latoSelect;
-
-        private final ComboBox<Integer> misuraSelect;
-
-        private final Accesso accesso;
-
-        /**
-         * Costruttore del componente di accesso.
-         *
-         * @param tipo il tipo di accesso (venoso o arterioso)
-         */
-        public AccessoComponent(String tipo) {
-            setWidthFull();
-            setAlignItems(Alignment.BASELINE);
-            setSpacing(true);
-
-            // Inizializza l'oggetto Accesso con valori di default
-            this.accesso = new Accesso(0, "", "", "", 0);
-
-            tipoSelect = FieldGenerator.createSelect(
-                    "Tipo accesso " + tipo,
-                    List.of("Periferico", "Centrale", "CVC a breve termine", "CVC tunnellizzato",
-                            "PICC", "Midline", "Intraosseo", "PORT", "Dialysis catheter", "Altro"),
-                    null,
-                    true
-            );
-            if (tipo.equals("Arterioso")) {
-                tipoSelect.setItems(
-                        "Radiale", "Femorale", "Omerale", "Brachiale", "Ascellare", "Pedidia", "Altro"
-                );
-            }
-
-            tipoSelect.addValueChangeListener(e -> {
-                if (e.getValue() != null) {
-                    accesso.setTipologia(e.getValue());
-                }
-            });
-
-            posizioneField = FieldGenerator.createTextField(
-                    "Posizione",
-                    "(es. avambraccio, collo, torace)",
-                    true
-            );
-            posizioneField.addValueChangeListener(e -> accesso.setPosizione(e.getValue()));
-
-            latoSelect = FieldGenerator.createComboBox(
-                    "Lato",
-                    List.of("DX", "SX"),
-                    null,
-                    true
-            );
-            latoSelect.addValueChangeListener(e -> accesso.setLato(e.getValue()));
-
-            misuraSelect = FieldGenerator.createComboBox(
-                    "Misura (Gauge)",
-                    List.of(14, 16, 18, 20, 22, 24, 26),
-                    null,
-                    true
-            );
-            misuraSelect.addValueChangeListener(e -> accesso.setMisura(e.getValue()));
-
-            Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
-            removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
-            removeButton.getStyle().set("margin-top", "auto");
-            removeButton.addClickListener(e -> removeSelf());
-
-            add(tipoSelect, posizioneField, latoSelect, misuraSelect, removeButton);
-        }
-
-        /**
-         * Rimuove il componente di accesso dalla vista e dalla lista appropriata.
-         */
-        private void removeSelf() {
-            // Ottieni il parent (che dovrebbe essere il venosiContainer o arteriosiContainer)
-            Optional<Component> parentOpt = getParent();
-
-            parentOpt.ifPresent(parent -> {
-                if (parent instanceof VerticalLayout container) {
-                    // Rimuovi questo componente dal container
-                    container.remove(this);
-
-                    // Rimuovi anche dalla lista appropriata
-                    if (container == venosiContainer) {
-                        venosiAccessi.remove(this);
-                    } else if (container == arteriosiContainer) {
-                        arteriosiAccessi.remove(this);
-                    }
-                }
-            });
-        }
-
-        /**
-         * Restituisce l'oggetto Accesso associato a questo componente.
-         *
-         * @return l'oggetto Accesso con i dati correnti
-         */
-        public Accesso getAccesso() {
-            // Assicurati che i valori siano aggiornati prima di restituire l'oggetto
-            accesso.setTipologia(tipoSelect.getValue());
-            accesso.setPosizione(posizioneField.getValue());
-            accesso.setLato(latoSelect.getValue());
-            accesso.setMisura(misuraSelect.getValue());
-            return accesso;
-        }
-    }
 }

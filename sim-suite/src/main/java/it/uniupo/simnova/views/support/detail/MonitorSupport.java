@@ -47,20 +47,21 @@ public class MonitorSupport {
     }
 
     // Metodo helper per formattare il display value, gestendo null
-    private static String formatDisplayValue(Number number, String format, String nullDisplay) {
-        if (number == null) return nullDisplay;
+    private static String formatDisplayValue(Number number, @SuppressWarnings("SameParameterValue") String format) {
+        if (number == null) return "-";
         if (number instanceof Double || number instanceof Float) {
             return String.format(format, number.doubleValue());
         }
         return String.valueOf(number);
     }
-    private static String formatDisplayValue(Number number, String nullDisplay) {
-        if (number == null) return nullDisplay;
+
+    private static String formatDisplayValue(Number number) {
+        if (number == null) return "-";
         return String.valueOf(number);
     }
 
 
-    public static Component createVitalSignsMonitor(VitalSignsDataProvider dataProvider, Integer scenarioId) {
+    public static Component createVitalSignsMonitor(VitalSignsDataProvider dataProvider, Integer scenarioId, boolean isT0) {
         UI currentUI = UI.getCurrent();
         if (currentUI != null && currentUI.getPage() != null) {
             currentUI.getPage().executeJs(
@@ -107,7 +108,7 @@ public class MonitorSupport {
                 .set("box-shadow", "0 0 5px var(--lumo-success-color)")
                 .set("box-sizing", "border-box");
 
-        if (currentUI != null && currentUI.getPage() != null){
+        if (currentUI != null && currentUI.getPage() != null) {
             statusLed.getElement().executeJs(
                     "this.style.animation = 'pulse 2s infinite';" +
                             "if (!document.getElementById('led-style')) {" +
@@ -138,18 +139,22 @@ public class MonitorSupport {
                     "var(--lumo-secondary-text-color)", null, null, null, null, null));
         }
         // FC
-        final Double FC_CRITICAL_LOW = 40.0; final Double FC_CRITICAL_HIGH = 130.0;
-        final Double FC_WARNING_LOW = 50.0; final Double FC_WARNING_HIGH = 110.0;
+        final Double FC_CRITICAL_LOW = 40.0;
+        final Double FC_CRITICAL_HIGH = 130.0;
+        final Double FC_WARNING_LOW = 50.0;
+        final Double FC_WARNING_HIGH = 110.0;
         vitalSignsLayout.add(createVitalSignBox("FC",
-                formatDisplayValue(dataProvider.getFC(), NULL_DISPLAY_VALUE), "bpm",
+                formatDisplayValue(dataProvider.getFC()), "bpm",
                 "var(--lumo-primary-color)", toDouble(dataProvider.getFC()),
                 FC_CRITICAL_LOW, FC_CRITICAL_HIGH, FC_WARNING_LOW, FC_WARNING_HIGH));
         // T
         if (dataProvider.getT() != null && dataProvider.getT() > -50) {
-            final double MIN_CRITICAL_TEMP = 35.0; final double MAX_CRITICAL_TEMP = 39.0;
-            final double MIN_WARNING_TEMP = 36.0; final double MAX_WARNING_TEMP = 37.5;
+            final double MIN_CRITICAL_TEMP = 35.0;
+            final double MAX_CRITICAL_TEMP = 39.0;
+            final double MIN_WARNING_TEMP = 36.0;
+            final double MAX_WARNING_TEMP = 37.5;
             vitalSignsLayout.add(createVitalSignBox("T",
-                    formatDisplayValue(dataProvider.getT(), "%.1f", NULL_DISPLAY_VALUE), "°C",
+                    formatDisplayValue(dataProvider.getT(), "%.1f"), "°C",
                     "var(--lumo-success-color)", toDouble(dataProvider.getT()),
                     MIN_CRITICAL_TEMP, MAX_CRITICAL_TEMP, MIN_WARNING_TEMP, MAX_WARNING_TEMP));
         } else {
@@ -158,38 +163,42 @@ public class MonitorSupport {
                     null, null, null, null));
         }
         // RR
-        final Double RR_CRITICAL_LOW = 10.0; final Double RR_CRITICAL_HIGH = 30.0;
-        final Double RR_WARNING_LOW = 12.0; final Double RR_WARNING_HIGH = 25.0;
+        final Double RR_CRITICAL_LOW = 10.0;
+        final Double RR_CRITICAL_HIGH = 30.0;
+        final Double RR_WARNING_LOW = 12.0;
+        final Double RR_WARNING_HIGH = 25.0;
         vitalSignsLayout.add(createVitalSignBox("RR",
-                formatDisplayValue(dataProvider.getRR(),NULL_DISPLAY_VALUE), "rpm",
+                formatDisplayValue(dataProvider.getRR()), "rpm",
                 "var(--lumo-tertiary-color)", toDouble(dataProvider.getRR()),
                 RR_CRITICAL_LOW, RR_CRITICAL_HIGH, RR_WARNING_LOW, RR_WARNING_HIGH));
         // SpO2
         final Double SPO2_CRITICAL_LOW = 90.0;
         final Double SPO2_WARNING_LOW = 94.0;
         vitalSignsLayout.add(createVitalSignBox("SpO₂",
-                formatDisplayValue(dataProvider.getSpO2(),NULL_DISPLAY_VALUE), "%",
+                formatDisplayValue(dataProvider.getSpO2()), "%",
                 "var(--lumo-contrast)", toDouble(dataProvider.getSpO2()),
                 SPO2_CRITICAL_LOW, null, SPO2_WARNING_LOW, null));
         // FiO2
         if (dataProvider.getFiO2() != null && dataProvider.getFiO2() != 0) {
             vitalSignsLayout.add(createVitalSignBox("FiO₂",
-                    formatDisplayValue(dataProvider.getFiO2(),NULL_DISPLAY_VALUE), "%",
+                    formatDisplayValue(dataProvider.getFiO2()), "%",
                     "var(--lumo-primary-color-50pct)", toDouble(dataProvider.getFiO2()),
                     null, null, null, null));
         }
         // Litri O2
         if (dataProvider.getLitriO2() != null && dataProvider.getLitriO2() != 0) {
             vitalSignsLayout.add(createVitalSignBox("Litri O₂",
-                    formatDisplayValue(dataProvider.getLitriO2(),NULL_DISPLAY_VALUE), "Litri/m",
+                    formatDisplayValue(dataProvider.getLitriO2()), "Litri/m",
                     "var(--lumo-contrast-70pct)", toDouble(dataProvider.getLitriO2()),
                     null, null, null, null));
         }
         // EtCO2
-        final Double ETCO2_CRITICAL_LOW = 25.0; final Double ETCO2_CRITICAL_HIGH = 60.0;
-        final Double ETCO2_WARNING_LOW = 35.0; final Double ETCO2_WARNING_HIGH = 45.0;
+        final Double ETCO2_CRITICAL_LOW = 25.0;
+        final Double ETCO2_CRITICAL_HIGH = 60.0;
+        final Double ETCO2_WARNING_LOW = 35.0;
+        final Double ETCO2_WARNING_HIGH = 45.0;
         vitalSignsLayout.add(createVitalSignBox("EtCO₂",
-                formatDisplayValue(dataProvider.getEtCO2(),NULL_DISPLAY_VALUE), "mmHg",
+                formatDisplayValue(dataProvider.getEtCO2()), "mmHg",
                 "var(--lumo-warning-color)", toDouble(dataProvider.getEtCO2()),
                 ETCO2_CRITICAL_LOW, ETCO2_CRITICAL_HIGH, ETCO2_WARNING_LOW, ETCO2_WARNING_HIGH));
         // Parametri aggiuntivi
@@ -256,9 +265,8 @@ public class MonitorSupport {
             monitorContainer.add(textWrapper);
         }
 
-        // --- NUOVA SEZIONE: PRESIDI UTILIZZATI ---
-        List<String> presidiList = PresidiService.getPresidiByScenarioId(scenarioId); // Ottieni i presidi dal data provider
-        if (presidiList != null && !presidiList.isEmpty()) {
+        List<String> presidiList = PresidiService.getPresidiByScenarioId(scenarioId);
+        if (!presidiList.isEmpty() && isT0) {
             Div presidiOuterContainer = new Div(); // Contenitore esterno per allineamento padding con "Monitoraggio"
             presidiOuterContainer.setWidthFull();
             presidiOuterContainer.getStyle()
@@ -301,14 +309,29 @@ public class MonitorSupport {
                     .set("padding-left", "var(--lumo-space-xs)"); // Leggero indent per gli item
 
             for (String presidio : presidiList) {
+                HorizontalLayout itemLayout = new HorizontalLayout();
+                itemLayout.setSpacing(false);
+                itemLayout.setPadding(false);
+                itemLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+                itemLayout.getStyle()
+                        .set("margin-bottom", "var(--lumo-space-xxs)");
+
+                Span bulletPoint = new Span("•");
+                bulletPoint.getStyle()
+                        .set("color", "var(--lumo-tertiary-color)")
+                        .set("font-size", "var(--lumo-font-size-m)")
+                        .set("line-height", "1")
+                        .set("margin-right", "var(--lumo-space-xs)");
+
                 Span presidioSpan = new Span(presidio);
                 presidioSpan.getStyle()
-                        .set("font-family", "var(--lumo-font-family)") // Usa il font di default Lumo
+                        .set("font-family", "var(--lumo-font-family)")
                         .set("color", "var(--lumo-body-text-color)")
                         .set("font-size", "var(--lumo-font-size-s)")
-                        .set("line-height", "1.5")
-                        .set("margin-bottom", "var(--lumo-space-xxs)"); // Piccola spaziatura tra gli item
-                presidiItemsDiv.add(presidioSpan);
+                        .set("line-height", "1.5");
+
+                itemLayout.add(bulletPoint, presidioSpan);
+                presidiItemsDiv.add(itemLayout);
             }
 
             presidiInnerContainer.add(presidiHeader, presidiItemsDiv);
@@ -364,8 +387,7 @@ public class MonitorSupport {
         String finalValueColor = defaultNormalColor;
 
         if (numericValue != null) {
-            boolean isCritical = false;
-            if (criticalLowThreshold != null && numericValue < criticalLowThreshold) isCritical = true;
+            boolean isCritical = criticalLowThreshold != null && numericValue < criticalLowThreshold;
             if (!isCritical && criticalHighThreshold != null && numericValue > criticalHighThreshold) isCritical = true;
 
             boolean isWarning = false;

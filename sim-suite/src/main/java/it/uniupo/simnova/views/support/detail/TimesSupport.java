@@ -24,21 +24,53 @@ public class TimesSupport {
     private static final String RUOLO_BORDER_COLOR = "var(--lumo-warning-color)"; // o var(--lumo-tertiary-color)
 
     // Adattatore da Tempo a VitalSignsDataProvider
-    private record TempoVitalSignsAdapter(Tempo tempo, List<ParametroAggiuntivo> additionalParameters) implements VitalSignsDataProvider {
-        @Override public String getPA() { return tempo.getPA(); }
-        @Override public Integer getFC() { return tempo.getFC(); }
+    private record TempoVitalSignsAdapter(Tempo tempo,
+                                          List<ParametroAggiuntivo> additionalParameters) implements VitalSignsDataProvider {
+        @Override
+        public String getPA() {
+            return tempo.getPA();
+        }
+
+        @Override
+        public Integer getFC() {
+            return tempo.getFC();
+        }
 
         // Assumendo che VitalSignsDataProvider.getT() sia Float e tempo.getT() sia double
-        @Override public Double getT() { return tempo.getT(); }
+        @Override
+        public Double getT() {
+            return tempo.getT();
+        }
 
-        @Override public Integer getRR() { return tempo.getRR(); }
-        @Override public Integer getSpO2() { return tempo.getSpO2(); }
-        @Override public Integer getFiO2() { return tempo.getFiO2(); }
+        @Override
+        public Integer getRR() {
+            return tempo.getRR();
+        }
 
-        @Override public Float getLitriO2() { return tempo.getLitriO2();}
+        @Override
+        public Integer getSpO2() {
+            return tempo.getSpO2();
+        }
 
-        @Override public Integer getEtCO2() { return tempo.getEtCO2(); }
-        @Override public String getAdditionalMonitorText() { return null; }
+        @Override
+        public Integer getFiO2() {
+            return tempo.getFiO2();
+        }
+
+        @Override
+        public Float getLitriO2() {
+            return tempo.getLitriO2();
+        }
+
+        @Override
+        public Integer getEtCO2() {
+            return tempo.getEtCO2();
+        }
+
+        @Override
+        public String getAdditionalMonitorText() {
+            return null;
+        }
 
         @Override
         public List<ParametroAggiuntivo> getAdditionalParameters() {
@@ -135,7 +167,7 @@ public class TimesSupport {
                     ScenarioService.getParametriAggiuntiviByTempoId(tempo.getIdTempo(), scenarioId);
 
             VitalSignsDataProvider tempoDataProvider = new TempoVitalSignsAdapter(tempo, parametriAggiuntivi);
-            Component vitalSignsMonitorComponent = MonitorSupport.createVitalSignsMonitor(tempoDataProvider, scenarioId);
+            Component vitalSignsMonitorComponent = MonitorSupport.createVitalSignsMonitor(tempoDataProvider, scenarioId, false);
             Div monitorWrapper = new Div(vitalSignsMonitorComponent);
             monitorWrapper.getStyle().set("display", "flex").set("justify-content", "center").set("margin-bottom", "var(--lumo-space-m)");
 

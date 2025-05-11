@@ -12,7 +12,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.dom.Element;
 import it.uniupo.simnova.api.model.EsameReferto;
-import it.uniupo.simnova.service.ScenarioService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

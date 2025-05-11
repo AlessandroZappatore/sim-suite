@@ -1,12 +1,15 @@
 package it.uniupo.simnova.views.execution;
 
 import com.vaadin.flow.component.Composite;
-import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import it.uniupo.simnova.service.FileStorageService;
 import it.uniupo.simnova.views.support.AppHeader;
+import it.uniupo.simnova.views.support.StyleApp;
 
 /**
  * Classe che rappresenta la vista di esecuzione dell'applicazione.
@@ -29,15 +32,26 @@ public class ExecutionView extends Composite<VerticalLayout> {
      * </p>
      */
     public ExecutionView(FileStorageService fileStorageService) {
+        VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
+
         AppHeader header = new AppHeader(fileStorageService);
-        getContent().setWidth("100%");
-        getContent().getStyle().set("flex-grow", "1");
 
-        // Aggiungi la scritta grande al centro
-        H1 message = new H1("Funzionalità ancora da implementare");
-        message.getStyle().set("text-align", "center");
+        Button backButton = StyleApp.getBackButton();
 
-        getContent().add(header, message);
+        HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
+
+        VerticalLayout contentLayout = StyleApp.getContentLayout();
+
+        VerticalLayout headerSection = StyleApp.getTitleSubtitle(
+                "SIM ECECUTION",
+                "Funzionalità non implementata",
+                VaadinIcon.BUILDING,
+                "var(--lumo-primary-color)"
+        );
+
+        HorizontalLayout footerSection = StyleApp.getFooterLayout(null);
+
+        mainLayout.add(headerSection, customHeader, contentLayout, footerSection);
     }
 
 }
