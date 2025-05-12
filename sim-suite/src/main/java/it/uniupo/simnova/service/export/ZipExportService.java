@@ -1,7 +1,7 @@
 package it.uniupo.simnova.service.export;
 
+import it.uniupo.simnova.service.scenario.helper.MediaHelper;
 import it.uniupo.simnova.service.storage.FileStorageService;
-import it.uniupo.simnova.service.scenario.ScenarioService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,10 +33,6 @@ public class ZipExportService {
      * Servizio per la gestione dei file.
      */
     private final FileStorageService fileStorageService;
-    /**
-     * Servizio per la gestione degli scenari.
-     */
-    private final ScenarioService scenarioService;
 
     private final PdfExportService pdfExportService;
 
@@ -44,12 +40,10 @@ public class ZipExportService {
      * Costruttore del servizio ZipExportService.
      *
      * @param fileStorageService servizio per la gestione dei file
-     * @param scenarioService    servizio per la gestione degli scenari
      */
     @Autowired
-    public ZipExportService(FileStorageService fileStorageService, ScenarioService scenarioService, PdfExportService pdfExportService) {
+    public ZipExportService(FileStorageService fileStorageService, PdfExportService pdfExportService) {
         this.fileStorageService = fileStorageService;
-        this.scenarioService = scenarioService;
         this.pdfExportService = pdfExportService;
     }
 
@@ -72,8 +66,8 @@ public class ZipExportService {
             zipOut.closeEntry();
 
             // Aggiunge gli allegati multimediali allo ZIP
-            List<String> mediaFiles = scenarioService.getScenarioMediaFiles(scenarioId);
-            if (mediaFiles != null && !mediaFiles.isEmpty()) {
+            List<String> mediaFiles = MediaHelper.getMediaFilesForScenario(scenarioId);
+            if (!mediaFiles.isEmpty()) {
                 // Crea una directory per gli allegati multimediali
                 zipOut.putNextEntry(new ZipEntry("esami/"));
                 zipOut.closeEntry();
@@ -126,8 +120,8 @@ public class ZipExportService {
             zipOut.write(pdfBytes);
             zipOut.closeEntry();
 
-            List<String> mediaFiles = scenarioService.getScenarioMediaFiles(scenarioId);
-            if (mediaFiles != null && !mediaFiles.isEmpty()) {
+            List<String> mediaFiles = MediaHelper.getMediaFilesForScenario(scenarioId);
+            if (!mediaFiles.isEmpty()) {
                 // Crea una directory per gli allegati multimediali
                 zipOut.putNextEntry(new ZipEntry("esami/"));
                 zipOut.closeEntry();

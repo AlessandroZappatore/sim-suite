@@ -10,15 +10,14 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 
+import static it.uniupo.simnova.views.constant.CreditConst.DATE;
+import static it.uniupo.simnova.views.constant.CreditConst.VERSION;
+
 /**
  * Componente riutilizzabile per visualizzare i crediti dell'applicazione.
  * Include informazioni sullo sviluppatore, l'università e i contatti.
  */
 public class CreditsComponent extends VerticalLayout {
-
-    final String VERSION = "1.0.0";
-    final String DATE = "11/05/2025";
-
     /**
      * Crea una nuova istanza del componente crediti.
      */

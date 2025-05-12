@@ -12,6 +12,7 @@ import it.uniupo.simnova.domain.paziente.EsameReferto;
 import it.uniupo.simnova.domain.paziente.PazienteT0;
 import it.uniupo.simnova.domain.scenario.PatientSimulatedScenario;
 import it.uniupo.simnova.domain.scenario.Scenario;
+import it.uniupo.simnova.service.scenario.helper.MediaHelper;
 import it.uniupo.simnova.service.storage.FileStorageService;
 import it.uniupo.simnova.utils.DBConnect;
 import org.slf4j.Logger;
@@ -47,7 +48,6 @@ public class ScenarioService {
      */
     private final FileStorageService fileStorageService;
 
-
     /**
      * Costruttore del servizio ScenarioService.
      *
@@ -55,29 +55,6 @@ public class ScenarioService {
      */
     public ScenarioService(FileStorageService fileStorageService) {
         this.fileStorageService = fileStorageService;
-    }
-
-    public static boolean isFileInUse(String filename) {
-        if (filename == null || filename.isBlank()) {
-            logger.warn("Nome file non valido per controllo utilizzo.");
-            return false;
-        }
-
-        final String sql = "SELECT COUNT(*) FROM EsameReferto WHERE media = ?";
-
-        try (Connection conn = DBConnect.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, filename);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
-            }
-        } catch (SQLException e) {
-            logger.error("Errore durante il controllo del file in uso: {}", filename, e);
-        }
-        return false;
     }
 
     /**
@@ -1004,36 +981,6 @@ public class ScenarioService {
     }
 
     /**
-     * Recupera i file media associati a uno scenario.
-     *
-     * @param scenarioId l'ID dello scenario
-     * @return una lista di nomi di file media
-     */
-    public List<String> getMediaFilesForScenario(int scenarioId) {
-        final String sql = "SELECT media FROM EsameReferto WHERE id_scenario = ? AND media IS NOT NULL";
-        List<String> files = new ArrayList<>();
-
-        try (Connection conn = DBConnect.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, scenarioId);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                String media = rs.getString("media");
-                if (media != null && !media.isEmpty()) {
-                    files.add(media);
-                }
-            }
-            logger.info("Recuperati {} file media per lo scenario con ID {}", files.size(), scenarioId);
-        } catch (SQLException e) {
-            logger.error("Errore durante il recupero dei file media per lo scenario con ID {}", scenarioId, e);
-        }
-
-        return files;
-    }
-
-    /**
      * Elimina uno scenario e i suoi file media associati.
      *
      * @param scenarioId l'ID dello scenario da eliminare
@@ -1046,7 +993,7 @@ public class ScenarioService {
             conn.setAutoCommit(false);
 
             // 1. Ottieni la lista dei file media da eliminare PRIMA di cancellare dal DB
-            List<String> mediaFiles = getMediaFilesForScenario(scenarioId);
+            List<String> mediaFiles = MediaHelper.getMediaFilesForScenario(scenarioId);
 
             // 2. Esegui tutte le operazioni di cancellazione dal DB
             deleteAccessi(conn, scenarioId, "AccessoVenoso");
@@ -1620,33 +1567,6 @@ public class ScenarioService {
             logger.error("Errore durante il recupero dello scenario simulato per pazienti con ID {}", id, e);
         }
         return scenario;
-    }
-
-    /**
-     * Recupera i file media associati a uno scenario.
-     *
-     * @param scenarioId l'ID dello scenario
-     * @return una lista di nomi di file media
-     */
-    public List<String> getScenarioMediaFiles(Integer scenarioId) {
-        List<String> mediaFiles = new ArrayList<>();
-        try (Connection conn = DBConnect.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement("SELECT media FROM EsameReferto WHERE id_scenario = ?")) {
-
-            stmt.setInt(1, scenarioId);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                String mediaFile = rs.getString("media");
-                if (mediaFile != null && !mediaFile.isEmpty()) {
-                    mediaFiles.add(mediaFile);
-                }
-            }
-        } catch (SQLException e) {
-            logger.error("Errore durante il recupero dei file media per lo scenario con ID {}", scenarioId, e);
-        }
-        return mediaFiles;
-
     }
 
     /**

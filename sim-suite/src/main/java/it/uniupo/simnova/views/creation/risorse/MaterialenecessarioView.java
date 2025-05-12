@@ -53,14 +53,14 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
     private static final Logger logger = LoggerFactory.getLogger(MaterialenecessarioView.class);
     private final ScenarioService scenarioService;
     private final MaterialeService materialeService;
-    private Integer scenarioId;
     private final Grid<Materiale> materialiDisponibiliGrid;
     private final Grid<Materiale> materialiSelezionatiGrid;
     private final List<Materiale> materialiSelezionati = new ArrayList<>();
+    Button nextButton = StyleApp.getNextButton();
+    private Integer scenarioId;
     private List<Materiale> tuttiMateriali = new ArrayList<>();
     private TextField searchField;
     private String mode;
-    Button nextButton = StyleApp.getNextButton();
 
 
     /**
@@ -74,17 +74,14 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         this.scenarioService = scenarioService;
         this.materialeService = materialeService;
 
-        // ... (Configurazione layout principale, header, ecc. come prima) ...
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
-        // 1. HEADER
         AppHeader header = new AppHeader(fileStorageService);
 
         Button backButton = StyleApp.getBackButton();
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
-        // 2. CONTENUTO PRINCIPALE
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
@@ -94,7 +91,6 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                 "var(--lumo-primary-color)"
         );
 
-        // Grid per i materiali disponibili
         materialiDisponibiliGrid = new Grid<>();
         materialiDisponibiliGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
         materialiDisponibiliGrid.setAllRowsVisible(true);
@@ -108,7 +104,6 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                                 Button addButton = new Button(new Icon(VaadinIcon.PLUS));
                                 addButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
                                 addButton.addClickListener(e -> {
-                                    // Riconferma prima di aggiungere per evitare race conditions
                                     if (materialiSelezionati.stream().noneMatch(m -> m.getId().equals(materiale.getId()))) {
                                         materialiSelezionati.add(materiale);
                                         aggiornaGrids();
@@ -133,7 +128,6 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                 .setWidth("90px") // Larghezza fissa
                 .setFlexGrow(0); // Non deve espandersi
 
-        // Grid per i materiali selezionati
         materialiSelezionatiGrid = new Grid<>();
         materialiSelezionatiGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
         materialiSelezionatiGrid.setAllRowsVisible(true);
@@ -160,16 +154,10 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         gridsLayout.setSpacing(true);
         gridsLayout.setAlignItems(FlexComponent.Alignment.START); // Allinea le griglie all'inizio verticalmente
 
-        VerticalLayout disponibiliLayout = new VerticalLayout();
-        disponibiliLayout.setWidth("50%"); // Diamo larghezze esplicite o usa setExpandRatio
-        disponibiliLayout.setSpacing(true); // Aggiungi un po' di spazio
-        disponibiliLayout.setPadding(false);
+        VerticalLayout disponibiliLayout = getLayout();
         setupMaterialiDisponibiliLayout(disponibiliLayout); // Setup con search etc.
 
-        VerticalLayout selezionatiLayout = new VerticalLayout();
-        selezionatiLayout.setWidth("50%"); // Diamo larghezze esplicite o usa setExpandRatio
-        selezionatiLayout.setSpacing(true); // Aggiungi un po' di spazio
-        selezionatiLayout.setPadding(false);
+        VerticalLayout selezionatiLayout = getLayout();
 
         HorizontalLayout titleSelezionatiLayout = new HorizontalLayout(new Paragraph("Materiali selezionati:"));
         titleSelezionatiLayout.setHeight("40px"); // Stessa altezza del titolo dei disponibili
@@ -177,7 +165,6 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         titleSelezionatiLayout.setPadding(false);
         titleSelezionatiLayout.setMargin(false);
 
-// Aggiunta di uno spacer che occupa lo stesso spazio del layout di ricerca/bottoni
         Div spacer = new Div();
         spacer.setHeight("52px"); // Stesso spazio che occupa actionsLayout
         spacer.getStyle().set("visibility", "hidden"); // Lo rendiamo invisibile
@@ -192,7 +179,6 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
 
         contentLayout.add(headerSection, gridsLayout);
 
-        // 3. FOOTER (come prima)
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
         mainLayout.add(
@@ -201,7 +187,6 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                 footerLayout
         );
 
-        // Listener (come prima)
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("obiettivididattici/" + scenarioId)));
         nextButton.addClickListener(e -> saveMaterialiAndNavigate(nextButton.getUI()));
@@ -215,7 +200,6 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                 throw new NumberFormatException("ID Scenario è richiesto");
             }
 
-            // Dividi il parametro usando '/' come separatore
             String[] parts = parameter.split("/");
             String scenarioIdStr = parts[0]; // Il primo elemento è l'ID dello scenario
 
@@ -277,7 +261,6 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
             logger.error("Errore durante il caricamento dei dati per lo scenario {}", scenarioId, e);
             Notification.show("Errore nel caricamento dei materiali", 3000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
-            // Potresti voler mostrare un messaggio di errore più persistente o reindirizzare
         }
     }
 
@@ -339,8 +322,6 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         disponibiliLayout.setFlexGrow(1.0, materialiDisponibiliGrid);
     }
 
-
-    // ... (showNuovoMaterialeDialog come prima) ...
     private void showNuovoMaterialeDialog() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Aggiungi nuovo materiale");
@@ -348,33 +329,28 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         VerticalLayout dialogLayout = new VerticalLayout();
         dialogLayout.setPadding(true);
         dialogLayout.setSpacing(true);
-        dialogLayout.setAlignItems(FlexComponent.Alignment.STRETCH); // Allarga i campi
+        dialogLayout.setAlignItems(FlexComponent.Alignment.STRETCH);
 
         TextField nomeField = new TextField("Nome");
-        // nomeField.setWidthFull(); // Non necessario con STRETCH sul layout
-        nomeField.setRequiredIndicatorVisible(true); // Indica che è richiesto
-        nomeField.setErrorMessage("Il nome è obbligatorio"); // Messaggio se invalido
+        nomeField.setRequiredIndicatorVisible(true);
+        nomeField.setErrorMessage("Il nome è obbligatorio");
 
         TextField descrizioneField = new TextField("Descrizione");
-        // descrizioneField.setWidthFull(); // Non necessario con STRETCH
 
         Button saveButton = new Button("Salva");
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.addClickListener(e -> {
-            // Validazione più robusta
             if (nomeField.getValue() == null || nomeField.getValue().trim().isEmpty()) {
-                nomeField.setInvalid(true); // Mostra l'errore sul campo
-                // Notification.show("Inserisci un nome per il materiale", 3000, Notification.Position.MIDDLE)
-                //         .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                nomeField.setInvalid(true);
                 return;
             }
-            nomeField.setInvalid(false); // Resetta stato errore
+            nomeField.setInvalid(false);
 
             try {
                 Materiale nuovoMateriale = new Materiale(
-                        -1, // ID nullo, sarà generato dal DB
-                        nomeField.getValue().trim(), // Pulisci spazi
-                        descrizioneField.getValue() != null ? descrizioneField.getValue().trim() : "" // Gestisci null e trim
+                        -1,
+                        nomeField.getValue().trim(),
+                        descrizioneField.getValue() != null ? descrizioneField.getValue().trim() : ""
                 );
 
                 Materiale savedMateriale = materialeService.saveMateriale(nuovoMateriale);
@@ -400,7 +376,6 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         cancelButton.addClickListener(e -> dialog.close());
 
         HorizontalLayout buttonLayout = new HorizontalLayout(cancelButton, saveButton);
-        //buttonLayout.setWidthFull(); // Non serve se il VLayout fa stretch
         buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END); // Allinea a destra
 
         dialogLayout.add(nomeField, descrizioneField, buttonLayout);
@@ -408,8 +383,6 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         dialog.open();
     }
 
-
-    // ... (saveMaterialiAndNavigate come prima, ma aggiorna il controllo dell'ID) ...
     private void saveMaterialiAndNavigate(Optional<UI> uiOptional) {
         if (scenarioId == null) {
             Notification.show("ID Scenario non disponibile. Impossibile salvare.", 3000, Notification.Position.MIDDLE)
@@ -418,7 +391,6 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         }
 
         uiOptional.ifPresent(ui -> {
-            // Mostra un indicatore di caricamento
             Dialog progressDialog = new Dialog();
             ProgressBar progressBar = new ProgressBar();
             progressBar.setIndeterminate(true);
@@ -427,17 +399,16 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
             progressDialog.setCloseOnOutsideClick(false);
             progressDialog.open();
 
-            // Esegui il salvataggio in background se possibile o usa access per aggiornare l'UI
             try {
                 List<Integer> idsMateriali = materialiSelezionati.stream()
                         .map(Materiale::getId)
-                        .filter(Objects::nonNull) // Assicurati che non ci siano ID nulli
+                        .filter(Objects::nonNull)
                         .collect(Collectors.toList());
 
                 boolean success = materialeService.associaMaterialiToScenario(scenarioId, idsMateriali);
 
-                ui.access(() -> { // Usa access per interagire con l'UI dal thread principale
-                    progressDialog.close(); // Chiudi il dialogo di progresso
+                ui.access(() -> {
+                    progressDialog.close();
                     if (success) {
                         Notification.show("Materiali salvati.", 2000, Notification.Position.BOTTOM_START)
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -463,8 +434,6 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         });
     }
 
-
-    // ... (showDeleteConfirmDialog e deleteMateriale come prima, ma aggiungi controllo ID in removeIf) ...
     private void showDeleteConfirmDialog(Materiale materiale) {
         if (materiale == null || materiale.getId() == null) {
             logger.warn("Tentativo di eliminare materiale nullo o senza ID.");
@@ -480,14 +449,13 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         dialogLayout.setAlignItems(FlexComponent.Alignment.STRETCH);
 
         Paragraph message = new Paragraph("Sei sicuro di voler eliminare definitivamente il materiale \"" + materiale.getNome() + "\"?");
-        // message.getStyle().set("margin-top", "0"); // Vaadin gestisce il padding
 
         Paragraph warning = new Paragraph("L'operazione non può essere annullata e rimuoverà il materiale da TUTTI gli scenari che lo utilizzano.");
         warning.addClassNames(LumoUtility.TextColor.ERROR, LumoUtility.FontSize.SMALL);
 
         Button deleteButton = new Button("Elimina");
-        deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR); // Solo errore è più chiaro qui
-        deleteButton.getStyle().set("margin-left", "auto"); // Spingi a destra nel layout bottoni
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        deleteButton.getStyle().set("margin-left", "auto");
         deleteButton.addClickListener(e -> {
             deleteMateriale(materiale);
             confirmDialog.close();
@@ -497,8 +465,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         cancelButton.addClickListener(e -> confirmDialog.close());
 
         HorizontalLayout buttonLayout = new HorizontalLayout(cancelButton, deleteButton);
-        buttonLayout.setWidthFull(); // Occupa tutta la larghezza per justify
-        // buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END); // Già fatto con margin-left auto
+        buttonLayout.setWidthFull();
 
         dialogLayout.add(message, warning, buttonLayout);
         confirmDialog.add(dialogLayout);
@@ -512,7 +479,6 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         try {
             boolean success = materialeService.deleteMateriale(materialeId);
             if (success) {
-                // Rimuovi dalle liste locali usando l'ID
                 tuttiMateriali.removeIf(m -> materialeId.equals(m.getId()));
                 materialiSelezionati.removeIf(m -> materialeId.equals(m.getId()));
 
@@ -522,7 +488,6 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                                 3000, Notification.Position.BOTTOM_START)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             } else {
-                // Potrebbe fallire per vincoli di integrità referenziale o altri motivi
                 String nomeMateriale = (materiale.getNome() != null) ? materiale.getNome() : "ID " + materialeId;
                 Notification.show("Impossibile eliminare il materiale \"" + nomeMateriale + "\". Potrebbe essere in uso.",
                                 4000, Notification.Position.MIDDLE)
@@ -535,5 +500,14 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                             5000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
+    }
+
+    VerticalLayout getLayout() {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setWidth("50%");
+        layout.setSpacing(true);
+        layout.setPadding(false);
+
+        return layout;
     }
 }

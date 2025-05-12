@@ -1,6 +1,6 @@
 package it.uniupo.simnova.service.storage;
 
-import it.uniupo.simnova.service.scenario.ScenarioService;
+import it.uniupo.simnova.service.scenario.helper.MediaHelper;
 import jakarta.annotation.PostConstruct; // Import corretto per @PostConstruct
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,7 +135,7 @@ public class FileStorageService {
         }
 
         // Verifica se il file è utilizzato in altri scenari
-        if (ScenarioService.isFileInUse(filename)) {
+        if (MediaHelper.isFileInUse(filename)) {
             logger.info("File {} non eliminato perché è utilizzato in altri scenari", filename);
             return;
         }

@@ -20,8 +20,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.TextField; // Added
-import com.vaadin.flow.component.upload.Upload;
-import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode; // Added
@@ -35,13 +33,13 @@ import it.uniupo.simnova.service.storage.FileStorageService;
 import it.uniupo.simnova.views.common.components.AppHeader;
 import it.uniupo.simnova.views.common.utils.FieldGenerator;
 import it.uniupo.simnova.views.common.utils.StyleApp;
+import it.uniupo.simnova.views.ui.helper.DialogSupport;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.olli.FileDownloadWrapper;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -49,6 +47,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors; // Added
+
+import static it.uniupo.simnova.views.ui.helper.support.SanitizedFileName.sanitizeFileName;
 
 /**
  * Vista per la visualizzazione della lista degli scenari.
@@ -64,33 +64,29 @@ import java.util.stream.Collectors; // Added
 @Route(value = "scenari")
 @Menu(order = 3)
 public class ScenariosListView extends Composite<VerticalLayout> {
-    private final ScenarioService scenarioService;
-    private final ZipExportService zipExportService;
-    private final Grid<Scenario> scenariosGrid = new Grid<>();
-    private final FileStorageService fileStorageService;
-
-    private ProgressBar progressBar;
-    private final AtomicBoolean detached = new AtomicBoolean(false);
-    private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
-    private HorizontalLayout paginationControls;
-    private int currentPage = 0;
+    public static final AtomicBoolean detached = new AtomicBoolean(false);
     private static final int PAGE_SIZE = 10;
-    private Span pageInfo;
     final int MAX_TITLE_LENGTH = 20;
     final int MAX_DESCRIPTION_LENGTH = 30;
     final int MAX_AUTHORS_NAME_LENGTH = 20;
     final int MAX_PATHOLOGY_LENGTH = 20;
-
-    // --- Search Fields ---
+    private final ScenarioService scenarioService;
+    private final ZipExportService zipExportService;
+    private final Grid<Scenario> scenariosGrid = new Grid<>();
+    private final FileStorageService fileStorageService;
+    private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
+    private ProgressBar progressBar;
+    private HorizontalLayout paginationControls;
+    private int currentPage = 0;
+    private Span pageInfo;
     private TextField searchTitolo;
     private TextField searchAutori;
     private ComboBox<String> searchTipo;
     private TextField searchPatologia;
     private Button resetButton;
 
-    // --- Data Storage ---
-    private List<Scenario> allScenarios = new ArrayList<>(); // Stores the full list from the service
-    private List<Scenario> filteredScenarios = new ArrayList<>(); // Stores the filtered list
+    private List<Scenario> allScenarios = new ArrayList<>();
+    private List<Scenario> filteredScenarios = new ArrayList<>();
 
 
     @Autowired
@@ -99,7 +95,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         this.zipExportService = zipExportService;
         this.fileStorageService = fileStorageService;
         initView();
-        loadData(); // Initial data load
+        loadData();
     }
 
     @Override
@@ -110,8 +106,8 @@ public class ScenariosListView extends Composite<VerticalLayout> {
     }
 
     private void initView() {
-        VerticalLayout mainLayout = StyleApp.getMainLayout(getContent()); // getContent() is the root of this Composite
-        mainLayout.setSizeFull(); // Assicurati che il layout principale occupi tutto lo spazio
+        VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
+        mainLayout.setSizeFull();
 
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
@@ -119,20 +115,14 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
         customHeader.add(newScenarioButton);
 
-        // --- Search Filter Layout ---
         configureSearchFilters();
         HorizontalLayout filterLayout = new HorizontalLayout(searchTitolo, searchTipo, searchAutori, searchPatologia, resetButton);
         filterLayout.setWidthFull();
-        filterLayout.setPadding(true); // Potresti voler usare LumoUtility per padding consistenti
-        filterLayout.setSpacing(true);  // Potresti voler usare LumoUtility per spacing consistenti
+        filterLayout.setPadding(true);
+        filterLayout.setSpacing(true);
         filterLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
 
-
-        // Main Content - Usa StyleApp.getContentLayout()
         VerticalLayout contentLayout = StyleApp.getContentLayout();
-        // Se necessario, puoi sovrascrivere la larghezza massima qui, ma è preferibile la coerenza:
-        // contentLayout.setMaxWidth("1350px");
-
 
         configureGrid();
         configurePagination();
@@ -140,19 +130,12 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         progressBar = new ProgressBar();
         progressBar.setIndeterminate(true);
         progressBar.setVisible(false);
-        // Aggiungi la progress bar sopra i filtri per una migliore visibilità durante il caricamento
         contentLayout.add(progressBar, filterLayout, scenariosGrid, paginationControls);
 
-        // Footer - Usa StyleApp.getFooterLayout()
-        // Assumendo che StyleApp.getFooterLayout() crei internamente CreditsComponent
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(null);
 
-        // Final Assembly
-        // getContent() è già il mainLayout grazie a StyleApp.getMainLayout(getContent())
         getContent().add(customHeader, contentLayout, footerLayout);
 
-
-        // Event Listeners
         backButton.addClickListener(e -> {
             if (!detached.get()) {
                 getUI().ifPresent(ui -> ui.navigate(""));
@@ -161,7 +144,8 @@ public class ScenariosListView extends Composite<VerticalLayout> {
 
         newScenarioButton.addClickListener(e -> {
             if (!detached.get()) {
-                showJsonUploadDialog();
+                boolean load = DialogSupport.showJsonUploadDialog(executorService, scenarioService);
+                if (load) loadData();
             }
         });
     }
@@ -219,7 +203,6 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         });
     }
 
-
     /**
      * Applica i filtri correnti alla lista completa degli scenari
      * e aggiorna la griglia e la paginazione.
@@ -250,95 +233,6 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         updatePaginationInfo();
     }
 
-
-    /**
-     * Mostra il dialog per il caricamento del file JSON utilizzando Dialog.
-     */
-    private void showJsonUploadDialog() {
-        if (detached.get()) {
-            return;
-        }
-
-        Dialog uploadDialog = new Dialog();
-        uploadDialog.setCloseOnEsc(true);
-        uploadDialog.setCloseOnOutsideClick(true);
-        uploadDialog.setWidth("550px");
-        uploadDialog.setHeaderTitle("Carica Nuovo Scenario");
-
-        VerticalLayout dialogLayout = new VerticalLayout();
-        dialogLayout.setPadding(false); // Il padding è gestito dal Dialog
-        dialogLayout.setSpacing(true);
-        dialogLayout.setAlignItems(FlexComponent.Alignment.STRETCH); // Stretch per l'upload
-
-        H4 title = new H4("Carica un file JSON per creare un nuovo scenario");
-        title.getStyle().set("margin-top", "0");
-
-        Paragraph description = new Paragraph("Seleziona un file JSON (.json) da caricare. Il sistema proverà a creare un nuovo scenario basato sul contenuto del file.");
-        description.addClassName(LumoUtility.FontSize.SMALL);
-
-        MemoryBuffer buffer = new MemoryBuffer();
-        Upload upload = new Upload(buffer);
-        upload.setAcceptedFileTypes(".json");
-        upload.setMaxFiles(1);
-        upload.setDropLabel(new Span("Trascina qui il file JSON o clicca per cercare"));
-        upload.setWidthFull();
-
-        dialogLayout.add(title, description, upload);
-        uploadDialog.add(dialogLayout);
-
-        Button cancelButton = new Button("Annulla", e -> uploadDialog.close());
-        cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        // Il pulsante di upload/conferma è gestito dall'evento SucceededListener
-
-        uploadDialog.getFooter().add(cancelButton); // Aggiungi pulsanti al footer del Dialog
-
-        uploadDialog.open();
-
-        upload.addSucceededListener(event -> {
-            try {
-                InputStream inputStream = buffer.getInputStream();
-                byte[] jsonBytes = inputStream.readAllBytes();
-                uploadDialog.close();
-
-                UI ui = UI.getCurrent();
-                if (ui == null || detached.get()) return;
-
-                Notification loadingNotification = new Notification("Creazione scenario in corso...", 0, Position.MIDDLE);
-                loadingNotification.addThemeVariants(NotificationVariant.LUMO_PRIMARY); // Stile moderno
-                loadingNotification.open();
-
-                executorService.submit(() -> {
-                    try {
-                        boolean created = scenarioService.createScenarioByJSON(jsonBytes);
-                        if (!detached.get() && !ui.isClosing()) {
-                            ui.access(() -> {
-                                loadingNotification.close();
-                                if (created) {
-                                    Notification.show("Scenario creato con successo!", 3000, Position.TOP_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                                    loadData();
-                                } else {
-                                    Notification.show("Errore durante la creazione dello scenario.", 5000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                                }
-                            });
-                        }
-                    } catch (Exception ex) {
-                        if (!detached.get() && !ui.isClosing()) {
-                            ui.access(() -> {
-                                loadingNotification.close();
-                                Notification.show("Errore creazione: " + ex.getMessage(), 5000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                            });
-                        }
-                    }
-                });
-            } catch (IOException ex) {
-                Notification.show("Errore lettura file: " + ex.getMessage(), 5000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                uploadDialog.close();
-            }
-        });
-        upload.addFailedListener(event -> Notification.show("Caricamento fallito: " + event.getReason().getMessage(), 5000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR));
-    }
-
-
     private void configureGrid() {
         scenariosGrid.setWidthFull();
         scenariosGrid.addClassName(LumoUtility.BorderRadius.MEDIUM); // Angoli arrotondati per la griglia
@@ -358,7 +252,6 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                 .setSortable(true)
                 .setFlexGrow(2) // Dai più spazio al titolo
                 .setComparator(Comparator.comparing(Scenario::getTitolo, Comparator.nullsLast(String::compareToIgnoreCase)));
-
 
         scenariosGrid.addColumn(new ComponentRenderer<>(scenario -> {
                     String tipo = scenarioService.getScenarioType(scenario.getId());
@@ -535,7 +428,6 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         paginationControls.setVisible(false);
     }
 
-
     private void updatePaginationInfo() {
         if (detached.get()) return;
         int totalItems = filteredScenarios.size();
@@ -576,7 +468,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         String scenarioType = scenarioService.getScenarioType(scenario.getId());
 
         if (!"Advanced Scenario".equals(scenarioType) && !"Patient Simulated Scenario".equals(scenarioType)) {
-            executeExport(scenario, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true);
+            executeExport(scenario, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, zipExportService);
             return;
         }
 
@@ -614,7 +506,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
             briefingChk.setEnabled(false);
             briefingChk.setValue(false);
         }
-        // ... (continua con gli altri check di abilitazione come prima) ...
+
         var patologia = scenarioNew.getPatologia();
         if (patologia == null || patologia.isEmpty()) {
             pattoChk.setEnabled(false);
@@ -639,13 +531,13 @@ public class ScenariosListView extends Composite<VerticalLayout> {
             pattoChk.setValue(false);
         }
 
-        var moulageVal = scenarioNew.getMoulage(); // 'moulage' è già una variabile locale
+        var moulageVal = scenarioNew.getMoulage();
         if (moulageVal == null || moulageVal.isEmpty()) {
             moulageChk.setEnabled(false);
             moulageChk.setValue(false);
         }
 
-        var liquidiVal = scenarioNew.getLiquidi(); // 'liquidi' è già una variabile locale
+        var liquidiVal = scenarioNew.getLiquidi();
         if (liquidiVal == null || liquidiVal.isEmpty()) {
             liquidiChk.setEnabled(false);
             liquidiChk.setValue(false);
@@ -714,7 +606,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                     pattoChk.getValue(), azioniChk.getValue(), obiettiviChk.getValue(),
                     moulageChk.getValue(), liquidiChk.getValue(), matNecChk.getValue(),
                     paramChk.getValue(), accessiChk.getValue(), esameFisicoChk.getValue(),
-                    esamiERefertiChk.getValue(), timelineChk.getValue(), sceneggiaturaChk.getValue());
+                    esamiERefertiChk.getValue(), timelineChk.getValue(), sceneggiaturaChk.getValue(), zipExportService);
 
         });
         confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -725,13 +617,12 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         dialog.open();
     }
 
-    // Mantenuto executeExport, exportToSimExecution, triggerDownload, handleExportError, sanitizeFileName
-    // con le correzioni già presenti nel codice fornito.
     private void executeExport(Scenario scenario, boolean frontPage, boolean objectives, boolean generalInfo,
                                boolean briefing, boolean signs, boolean xray, boolean tests, boolean ecg,
                                boolean algorithms, boolean timeline, boolean debriefing, boolean medications,
-                               boolean equipment, boolean config, boolean scen) {
-        Notification.show("Generazione del PDF...", 3000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+                               boolean equipment, boolean config, boolean scen,
+                               ZipExportService zipExportService) {
+        Notification.show("Generazione del PDF...", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_PRIMARY);
         try {
             StreamResource resource = new StreamResource(
                     "scenario_" + sanitizeFileName(scenario.getTitolo()) + ".zip",
@@ -745,7 +636,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                         } catch (IOException | RuntimeException e) {
                             System.err.println("Errore generazione PDF per lo scenario " + scenario.getId() + ": " + e.getMessage());
                             getUI().ifPresent(ui -> ui.access(() ->
-                                    Notification.show("Errore creazione PDF", 5000, Position.MIDDLE)
+                                    Notification.show("Errore creazione PDF", 5000, Notification.Position.MIDDLE)
                                             .addThemeVariants(NotificationVariant.LUMO_ERROR)));
                             return new ByteArrayInputStream(new byte[0]);
                         }
@@ -808,11 +699,6 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         }
     }
 
-    private String sanitizeFileName(String name) {
-        if (name == null || name.isBlank()) return "scenario";
-        return name.replaceAll("[\\\\/:*?\"<>|\\s]+", "_").replaceAll("_+", "_");
-    }
-
     /**
      * Mostra un Dialog di conferma per l'eliminazione.
      */
@@ -858,8 +744,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         confirmDialog.open();
     }
 
-
-    private void loadData() {
+    public void loadData() {
         if (detached.get()) return;
         UI ui = UI.getCurrent();
         if (ui == null) return;
