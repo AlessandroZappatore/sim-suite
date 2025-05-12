@@ -11,12 +11,12 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.*;
-import it.uniupo.simnova.service.FileStorageService;
-import it.uniupo.simnova.service.ScenarioService;
-import it.uniupo.simnova.views.support.AppHeader;
-import it.uniupo.simnova.views.support.FieldGenerator;
-import it.uniupo.simnova.views.support.StyleApp;
-import it.uniupo.simnova.views.support.ValidationError;
+import it.uniupo.simnova.service.storage.FileStorageService;
+import it.uniupo.simnova.service.scenario.ScenarioService;
+import it.uniupo.simnova.views.common.components.AppHeader;
+import it.uniupo.simnova.views.common.utils.FieldGenerator;
+import it.uniupo.simnova.views.common.utils.StyleApp;
+import it.uniupo.simnova.views.common.utils.ValidationError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

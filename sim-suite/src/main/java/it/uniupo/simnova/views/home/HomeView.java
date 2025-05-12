@@ -12,9 +12,9 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import it.uniupo.simnova.service.FileStorageService;
-import it.uniupo.simnova.views.support.AppHeader;
-import it.uniupo.simnova.views.support.CreditsComponent;
+import it.uniupo.simnova.service.storage.FileStorageService;
+import it.uniupo.simnova.views.common.components.AppHeader;
+import it.uniupo.simnova.views.common.components.CreditsComponent;
 
 /**
  * Vista principale dell'applicazione SIM SUITE.
