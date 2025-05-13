@@ -14,7 +14,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import it.uniupo.simnova.service.scenario.ScenarioService;
+import it.uniupo.simnova.service.scenario.operations.ScenarioImportService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +25,7 @@ import static it.uniupo.simnova.views.creation.ScenariosListView.detached;
 
 public class DialogSupport {
 
-    public static boolean showJsonUploadDialog(ExecutorService executorService, ScenarioService scenarioService) {
+    public static boolean showJsonUploadDialog(ExecutorService executorService, ScenarioImportService scenarioImportService) {
         AtomicBoolean success = new AtomicBoolean(false);
         if (detached.get()) {
             return success.get();
@@ -80,7 +80,7 @@ public class DialogSupport {
 
                 executorService.submit(() -> {
                     try {
-                        boolean created = scenarioService.createScenarioByJSON(jsonBytes);
+                        boolean created = scenarioImportService.createScenarioByJSON(jsonBytes);
                         if (!detached.get() && !ui.isClosing()) {
                             ui.access(() -> {
                                 loadingNotification.close();

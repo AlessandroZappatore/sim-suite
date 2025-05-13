@@ -36,15 +36,18 @@ public class ZipExportService {
 
     private final PdfExportService pdfExportService;
 
+    private final JSONExportService jsonExportService;
+
     /**
      * Costruttore del servizio ZipExportService.
      *
      * @param fileStorageService servizio per la gestione dei file
      */
     @Autowired
-    public ZipExportService(FileStorageService fileStorageService, PdfExportService pdfExportService) {
+    public ZipExportService(FileStorageService fileStorageService, PdfExportService pdfExportService, JSONExportService jsonExportService) {
         this.fileStorageService = fileStorageService;
         this.pdfExportService = pdfExportService;
+        this.jsonExportService = jsonExportService;
     }
 
     /**
@@ -59,7 +62,7 @@ public class ZipExportService {
              ZipOutputStream zipOut = new ZipOutputStream(baos)) {
 
             // Aggiunge il file JSON dello scenario allo ZIP
-            byte[] jsonBytes = JSONExportService.exportScenarioToJSON(scenarioId);
+            byte[] jsonBytes = jsonExportService.exportScenarioToJSON(scenarioId);
             ZipEntry jsonEntry = new ZipEntry("scenario.json");
             zipOut.putNextEntry(jsonEntry);
             zipOut.write(jsonBytes);

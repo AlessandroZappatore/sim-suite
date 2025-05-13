@@ -13,6 +13,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.router.*;
 import it.uniupo.simnova.domain.paziente.EsameFisico;
+import it.uniupo.simnova.service.scenario.components.EsameFisicoService;
 import it.uniupo.simnova.service.storage.FileStorageService;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.views.common.components.AppHeader;
@@ -41,34 +42,36 @@ import java.util.Optional;
 @Menu(order = 13)
 public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     /**
+     * Logger per la registrazione degli eventi.
+     */
+    private static final Logger logger = LoggerFactory.getLogger(EsamefisicoView.class);
+    /**
      * Servizio per la gestione degli scenari.
      */
     private final ScenarioService scenarioService;
+    private final EsameFisicoService esameFisicoService;
     /**
      * Servizio per la gestione del caricamento dei file.
      */
     private final FileStorageService fileStorageService;
     /**
-     * ID dello scenario corrente.
-     */
-    private Integer scenarioId;
-    /**
      * Mappa per memorizzare le aree di testo delle sezioni dell'esame fisico.
      */
     private final Map<String, TinyMce> examSections = new HashMap<>();
     /**
-     * Logger per la registrazione degli eventi.
+     * ID dello scenario corrente.
      */
-    private static final Logger logger = LoggerFactory.getLogger(EsamefisicoView.class);
+    private Integer scenarioId;
 
     /**
      * Costruttore che inizializza l'interfaccia utente.
      *
      * @param scenarioService servizio per la gestione degli scenari
      */
-    public EsamefisicoView(ScenarioService scenarioService, FileStorageService fileStorageService) {
+    public EsamefisicoView(ScenarioService scenarioService, FileStorageService fileStorageService, EsameFisicoService esameFisicoService) {
         this.scenarioService = scenarioService;
         this.fileStorageService = fileStorageService;
+        this.esameFisicoService = esameFisicoService;
         setupView();
     }
 
@@ -247,7 +250,7 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
      * Carica i dati dell'esame fisico esistente per lo scenario corrente.
      */
     private void loadExistingExamData() {
-        EsameFisico esameFisico = scenarioService.getEsameFisicoById(scenarioId);
+        EsameFisico esameFisico = esameFisicoService.getEsameFisicoById(scenarioId);
 
         if (esameFisico != null) {
             Map<String, String> savedSections = esameFisico.getSections();
@@ -277,7 +280,7 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
                 Map<String, String> examData = new HashMap<>();
                 examSections.forEach((section, editor) -> examData.put(section, editor.getValue()));
 
-                boolean success = scenarioService.addEsameFisico(
+                boolean success = esameFisicoService.addEsameFisico(
                         scenarioId, examData
                 );
 

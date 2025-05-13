@@ -15,6 +15,7 @@ import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.domain.paziente.EsameReferto;
+import it.uniupo.simnova.service.scenario.components.EsameRefertoService;
 import it.uniupo.simnova.service.storage.FileStorageService;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.views.common.components.AppHeader;
@@ -56,6 +57,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
      * Servizio per la gestione degli scenari.
      */
     private final ScenarioService scenarioService;
+    private final EsameRefertoService esameRefertoService;
     /**
      * Layout principale per la visualizzazione delle righe degli esami.
      */
@@ -92,9 +94,10 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
      * @param scenarioService    servizio per la gestione degli scenari
      * @param fileStorageService servizio per la gestione dei file
      */
-    public EsamiRefertiView(ScenarioService scenarioService, FileStorageService fileStorageService) {
+    public EsamiRefertiView(ScenarioService scenarioService, FileStorageService fileStorageService, EsameRefertoService esameRefertoService) {
         this.scenarioService = scenarioService;
         this.fileStorageService = fileStorageService;
+        this.esameRefertoService = esameRefertoService;
 
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
@@ -209,7 +212,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
      * Carica i dati esistenti per lo scenario corrente in modalità "edit".
      */
     private void loadExistingData() {
-        List<EsameReferto> existingData = scenarioService.getEsamiRefertiByScenarioId(scenarioId);
+        List<EsameReferto> existingData = esameRefertoService.getEsamiRefertiByScenarioId(scenarioId);
 
         if (existingData == null || existingData.isEmpty()) {
             logger.warn("Nessun dato esistente trovato per scenario {} in modalità edit. Aggiungo una riga vuota.", this.scenarioId);
@@ -393,7 +396,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
                 // Salva i dati solo se ci sono contenuti validi
                 if (hasValidData) {
-                    boolean success = scenarioService.saveEsamiReferti(scenarioId, esamiReferti);
+                    boolean success = esameRefertoService.saveEsamiReferti(scenarioId, esamiReferti);
                     if (success) {
                         Notification.show("Esami e referti salvati con successo", 3000, Notification.Position.TOP_CENTER)
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);

@@ -22,6 +22,8 @@ import it.uniupo.simnova.domain.common.ParametroAggiuntivo;
 import it.uniupo.simnova.domain.common.Tempo;
 import it.uniupo.simnova.domain.paziente.PazienteT0;
 import it.uniupo.simnova.service.scenario.ScenarioService;
+import it.uniupo.simnova.service.scenario.components.PazienteT0Service;
+import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
 import it.uniupo.simnova.service.storage.FileStorageService;
 import it.uniupo.simnova.views.common.components.AppHeader;
 import it.uniupo.simnova.views.common.components.CreditsComponent;
@@ -72,6 +74,10 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
      * Servizio per la gestione degli scenari.
      */
     private final ScenarioService scenarioService;
+
+    private final AdvancedScenarioService advancedScenarioService;
+
+    private final PazienteT0Service pazienteT0Service;
     /**
      * Contatore per il numero di tempo corrente.
      * Inizializzato a 1 per rappresentare T1 (T0 viene aggiunto separatamente se necessario).
@@ -92,8 +98,10 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
      *
      * @param scenarioService servizio per la gestione degli scenari
      */
-    public TempoView(ScenarioService scenarioService, FileStorageService fileStorageService) {
+    public TempoView(ScenarioService scenarioService, FileStorageService fileStorageService, AdvancedScenarioService advancedScenarioService, PazienteT0Service pazienteT0Service) {
         this.scenarioService = scenarioService;
+        this.advancedScenarioService = advancedScenarioService;
+        this.pazienteT0Service = pazienteT0Service;
 
         // Configurazione layout principale
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
@@ -481,7 +489,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
             }
 
             // Invia tutti i dati raccolti al servizio per il salvataggio nel DB
-            boolean success = scenarioService.saveTempi(scenarioId, allTempi);
+            boolean success = advancedScenarioService.saveTempi(scenarioId, allTempi);
 
             if (success) {
                 if (!mode.equals("edit")) {
@@ -536,7 +544,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
      */
     private void loadInitialData() {
         try {
-            PazienteT0 pazienteT0 = scenarioService.getPazienteT0ById(scenarioId);
+            PazienteT0 pazienteT0 = pazienteT0Service.getPazienteT0ById(scenarioId);
 
             // Controlla se la sezione T0 è già stata aggiunta (magari da loadExistingTimes in edit mode)
             Optional<TimeSection> existingT0 = timeSections.stream()
@@ -605,7 +613,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
     private void loadExistingTimes() {
         if (!"edit".equals(mode)) return; // Esegui solo in modalità modifica
 
-        List<Tempo> existingTempi = scenarioService.getTempiByScenarioId(scenarioId); // Usa il metodo statico corretto
+        List<Tempo> existingTempi = advancedScenarioService.getTempiByScenarioId(scenarioId); // Usa il metodo statico corretto
 
         if (!existingTempi.isEmpty()) {
             logger.info("Trovati {} tempi esistenti per scenario {}", existingTempi.size(), scenarioId);
@@ -699,7 +707,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
      * @param tempoId l'ID del tempo (0 per T0, 1 per T1, ...) di cui caricare i parametri
      */
     private void loadAdditionalParameters(TimeSection section, int tempoId) {
-        List<ParametroAggiuntivo> params = ScenarioService.getParametriAggiuntiviByTempoId(tempoId, scenarioId);
+        List<ParametroAggiuntivo> params = advancedScenarioService.getParametriAggiuntiviByTempoId(tempoId, scenarioId);
 
         if (!params.isEmpty()) {
             logger.debug("Caricamento di {} parametri aggiuntivi per T{} scenario {}", params.size(), tempoId, scenarioId);

@@ -1,7 +1,8 @@
 package it.uniupo.simnova.service.export.helper.pdf;
 
 import it.uniupo.simnova.domain.scenario.Scenario;
-import it.uniupo.simnova.service.scenario.MaterialeService;
+import it.uniupo.simnova.service.scenario.components.AzioneChiaveService;
+import it.uniupo.simnova.service.scenario.components.MaterialeService;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 
 import java.io.IOException;
@@ -21,7 +22,8 @@ public class ScenarioDescription {
                                                  boolean liqui,
                                                  boolean matNec,
                                                  ScenarioService scenarioService,
-                                                 MaterialeService materialeService) throws IOException {
+                                                 MaterialeService materialeService,
+                                                 AzioneChiaveService azioneChiaveService) throws IOException {
         // Descrizione
         if (scenario.getDescrizione() != null && !scenario.getDescrizione().isEmpty() && desc) {
             drawSection("Descrizione", scenario.getDescrizione());
@@ -42,8 +44,8 @@ public class ScenarioDescription {
         }
 
         // Azioni chiave
-        if (scenarioService.getNomiAzioniChiaveByScenarioId(scenario.getId()) != null && !scenarioService.getNomiAzioniChiaveByScenarioId(scenario.getId()).isEmpty() && azioni) {
-            drawSection("Azioni Chiave", scenarioService.getNomiAzioniChiaveByScenarioId(scenario.getId()).toString());
+        if (azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenario.getId()) != null && !azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenario.getId()).isEmpty() && azioni) {
+            drawSection("Azioni Chiave", azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenario.getId()).toString());
         }
 
         // Obiettivi didattici

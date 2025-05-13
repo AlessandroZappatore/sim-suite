@@ -5,6 +5,7 @@ import it.uniupo.simnova.domain.common.Tempo;
 import it.uniupo.simnova.domain.scenario.Scenario;
 import it.uniupo.simnova.service.export.PdfExportService;
 import it.uniupo.simnova.service.scenario.ScenarioService;
+import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
 
 import java.io.IOException;
 import java.util.List;
@@ -16,8 +17,8 @@ import static it.uniupo.simnova.views.constant.PdfConstant.*;
 import static it.uniupo.simnova.views.constant.PdfConstant.LEADING;
 
 public class ScenarioTimeline {
-    public static void createTimelineSection(Scenario scenario, ScenarioService scenarioService) throws IOException {
-        List<Tempo> tempi = scenarioService.getTempiByScenarioId(scenario.getId());
+    public static void createTimelineSection(Scenario scenario, AdvancedScenarioService advancedScenarioService, ScenarioService scenarioService) throws IOException {
+        List<Tempo> tempi = advancedScenarioService.getTempiByScenarioId(scenario.getId());
         if (tempi.isEmpty()) {
             return;
         }
@@ -71,7 +72,7 @@ public class ScenarioTimeline {
             checkForNewPage(LEADING * 2);
             drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, paramsIndent, String.format("EtCO2: %d mmHg", tempo.getEtCO2()));
 
-            List<ParametroAggiuntivo> parametriAggiuntivo = ScenarioService.getParametriAggiuntiviByTempoId(tempo.getIdTempo(), scenario.getId());
+            List<ParametroAggiuntivo> parametriAggiuntivo = advancedScenarioService.getParametriAggiuntiviByTempoId(tempo.getIdTempo(), scenario.getId());
             if (!parametriAggiuntivo.isEmpty()) {
                 for (ParametroAggiuntivo parametro : parametriAggiuntivo) {
                     checkForNewPage(LEADING * 2);

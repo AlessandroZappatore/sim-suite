@@ -1,4 +1,4 @@
-package it.uniupo.simnova.service.scenario;
+package it.uniupo.simnova.service.scenario.components;
 
 import it.uniupo.simnova.utils.DBConnect;
 import org.slf4j.Logger;

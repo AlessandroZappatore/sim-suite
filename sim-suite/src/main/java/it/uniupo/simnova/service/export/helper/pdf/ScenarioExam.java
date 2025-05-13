@@ -2,7 +2,7 @@ package it.uniupo.simnova.service.export.helper.pdf;
 
 import it.uniupo.simnova.domain.paziente.EsameReferto;
 import it.uniupo.simnova.service.export.PdfExportService;
-import it.uniupo.simnova.service.scenario.ScenarioService;
+import it.uniupo.simnova.service.scenario.components.EsameRefertoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,8 +20,8 @@ import static it.uniupo.simnova.views.constant.PdfConstant.LEADING;
 public class ScenarioExam {
     private static final Logger logger = LoggerFactory.getLogger(ScenarioExam.class);
 
-    public static void createExamsSection(Integer scenarioId, boolean esam, ScenarioService scenarioService) throws IOException {
-        List<EsameReferto> esami = scenarioService.getEsamiRefertiByScenarioId(scenarioId);
+    public static void createExamsSection(Integer scenarioId, boolean esam, EsameRefertoService esameRefertoService) throws IOException {
+        List<EsameReferto> esami = esameRefertoService.getEsamiRefertiByScenarioId(scenarioId);
         if (esami == null || esami.isEmpty() || !esam) {
             return;
         }

@@ -19,8 +19,9 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.domain.common.Accesso;
+import it.uniupo.simnova.service.scenario.components.PazienteT0Service;
 import it.uniupo.simnova.service.storage.FileStorageService;
-import it.uniupo.simnova.service.scenario.PresidiService;
+import it.uniupo.simnova.service.scenario.components.PresidiService;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.views.common.components.AppHeader;
 import it.uniupo.simnova.views.common.utils.FieldGenerator;
@@ -57,6 +58,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
      */
     private final ScenarioService scenarioService;
     private final PresidiService presidiService;
+    private final PazienteT0Service pazienteT0Service;
     /**
      * ID dello scenario corrente.
      */
@@ -118,9 +120,10 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
      *
      * @param scenarioService servizio per la gestione degli scenari
      */
-    public PazienteT0View(ScenarioService scenarioService, FileStorageService fileStorageService, PresidiService presidiService) {
+    public PazienteT0View(ScenarioService scenarioService, FileStorageService fileStorageService, PresidiService presidiService, PazienteT0Service pazienteT0Service) {
         this.scenarioService = scenarioService;
         this.presidiService = presidiService;
+        this.pazienteT0Service = pazienteT0Service;
         // Configurazione layout principale
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
@@ -372,7 +375,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                     arteriosi.add(comp.getAccesso());
                 }
                 // Salva nel database
-                boolean success = scenarioService.savePazienteT0(
+                boolean success = pazienteT0Service.savePazienteT0(
                         scenarioId,
                         paField.getValue(),
                         fcField.getValue().intValue(),

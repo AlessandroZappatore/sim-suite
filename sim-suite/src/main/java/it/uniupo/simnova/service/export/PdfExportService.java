@@ -2,8 +2,10 @@ package it.uniupo.simnova.service.export;
 
 import it.uniupo.simnova.domain.scenario.Scenario;
 import it.uniupo.simnova.service.export.helper.pdf.LogoLoader;
+import it.uniupo.simnova.service.scenario.components.*;
+import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
+import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
 import it.uniupo.simnova.service.storage.FileStorageService;
-import it.uniupo.simnova.service.scenario.MaterialeService;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -86,20 +88,39 @@ public class PdfExportService {
     private static PDImageXObject centerLogo;
     private final FileStorageService fileStorageService;
     private final MaterialeService materialeService;
+    private final PatientSimulatedScenarioService patientSimulatedScenarioService;
+    private final AzioneChiaveService azioneChiaveService;
+    private final PazienteT0Service pazienteT0Service;
+    private final EsameRefertoService esameRefertoService;
+    private final EsameFisicoService esameFisicoService;
     /**
      * Servizio per la gestione degli scenari.
      */
     private final ScenarioService scenarioService;
+    private final AdvancedScenarioService advancedScenarioService;
 
     /**
      * Costruttore del servizio PdfExportService.
      *
      * @param scenarioService il servizio per la gestione degli scenari
      */
-    public PdfExportService(ScenarioService scenarioService, FileStorageService fileStorageService, MaterialeService materialeService) {
+    public PdfExportService(ScenarioService scenarioService,
+                            FileStorageService fileStorageService,
+                            MaterialeService materialeService,
+                            PatientSimulatedScenarioService patientSimulatedScenarioService,
+                            AzioneChiaveService azioneChiaveService,
+                            PazienteT0Service pazienteT0Service,
+                            EsameRefertoService esameRefertoService,
+                            EsameFisicoService esameFisicoService, AdvancedScenarioService advancedScenarioService) {
         this.scenarioService = scenarioService;
         this.fileStorageService = fileStorageService;
         this.materialeService = materialeService;
+        this.patientSimulatedScenarioService = patientSimulatedScenarioService;
+        this.azioneChiaveService = azioneChiaveService;
+        this.pazienteT0Service = pazienteT0Service;
+        this.esameRefertoService = esameRefertoService;
+        this.esameFisicoService = esameFisicoService;
+        this.advancedScenarioService = advancedScenarioService;
     }
 
     /**
@@ -223,19 +244,19 @@ public class PdfExportService {
             logger.info("Recuperato scenario: {}", scenario.getTitolo());
 
             createScenarioHeader(scenario);
-            createScenarioDescription(scenario, desc, brief, infoGen, patto, azioni, obiettivi, moula, liqui, matNec, scenarioService, materialeService);
-            createPatientSection(scenarioId, param, acces, fisic, scenarioService);
-            createExamsSection(scenarioId, esam, scenarioService);
+            createScenarioDescription(scenario, desc, brief, infoGen, patto, azioni, obiettivi, moula, liqui, matNec, scenarioService, materialeService, azioneChiaveService);
+            createPatientSection(scenarioId, param, acces, fisic, pazienteT0Service, esameFisicoService);
+            createExamsSection(scenarioId, esam, esameRefertoService);
 
             String scenarioType = scenarioService.getScenarioType(scenarioId);
             if (scenarioType != null && (scenarioType.equals("Advanced Scenario") ||
                     scenarioType.equals("Patient Simulated Scenario")) && time) {
-                createTimelineSection(scenario, scenarioService);
+                createTimelineSection(scenario, advancedScenarioService,scenarioService);
                 logger.info("Timeline creata");
             }
 
             if (scenarioType != null && scenarioType.equals("Patient Simulated Scenario")) {
-                createSceneggiaturaSection(scenario, scen);
+                createSceneggiaturaSection(scenario, scen, patientSimulatedScenarioService);
             }
 
             if (currentContentStream != null) {

@@ -4,7 +4,8 @@ import it.uniupo.simnova.domain.common.Accesso;
 import it.uniupo.simnova.domain.paziente.EsameFisico;
 import it.uniupo.simnova.domain.paziente.PazienteT0;
 import it.uniupo.simnova.service.export.PdfExportService;
-import it.uniupo.simnova.service.scenario.ScenarioService;
+import it.uniupo.simnova.service.scenario.components.EsameFisicoService;
+import it.uniupo.simnova.service.scenario.components.PazienteT0Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +24,7 @@ import static it.uniupo.simnova.views.constant.PdfConstant.LEADING;
 public class ScenarioPatient {
     private static final Logger logger = LoggerFactory.getLogger(ScenarioPatient.class);
 
-    public static void createPatientSection(Integer scenarioId, boolean param, boolean acces, boolean fisic, ScenarioService scenarioService) throws IOException {
+    public static void createPatientSection(Integer scenarioId, boolean param, boolean acces, boolean fisic, PazienteT0Service pazienteT0Service, EsameFisicoService esameFisicoService) throws IOException {
         if (!param && !acces && !fisic) {
             return; // Se tutte le sezioni sono false, non fare nulla
         }
@@ -32,7 +33,7 @@ public class ScenarioPatient {
 
         drawSection("Stato Paziente", "");
 
-        PazienteT0 paziente = scenarioService.getPazienteT0ById(scenarioId);
+        PazienteT0 paziente = pazienteT0Service.getPazienteT0ById(scenarioId);
         if (paziente != null) {
 
 
@@ -107,7 +108,7 @@ public class ScenarioPatient {
             }
         }
 
-        EsameFisico esame = scenarioService.getEsameFisicoById(scenarioId);
+        EsameFisico esame = esameFisicoService.getEsameFisicoById(scenarioId);
         if (esame != null && esame.getSections() != null && !esame.getSections().isEmpty() && fisic) {
 
             checkForNewPage(LEADING * 3); // Spazio stimato per drawSubsection

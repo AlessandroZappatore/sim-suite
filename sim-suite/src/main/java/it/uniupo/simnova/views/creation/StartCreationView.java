@@ -11,6 +11,8 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.*;
+import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
+import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
 import it.uniupo.simnova.service.storage.FileStorageService;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.views.common.components.AppHeader;
@@ -45,6 +47,10 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
      * Servizio per la gestione degli scenari.
      */
     private final ScenarioService scenarioService;
+
+    private final AdvancedScenarioService advancedScenarioService;
+
+    private final PatientSimulatedScenarioService patientSimulatedScenarioService;
     /**
      * Campi di input per il titolo dello scenario, nome del paziente, patologia e durata.
      */
@@ -75,8 +81,10 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
      *
      * @param scenarioService servizio per la gestione degli scenari
      */
-    public StartCreationView(ScenarioService scenarioService, FileStorageService fileStorageService) {
+    public StartCreationView(ScenarioService scenarioService, FileStorageService fileStorageService, AdvancedScenarioService advancedScenarioService, PatientSimulatedScenarioService patientSimulatedScenarioService) {
         this.scenarioService = scenarioService;
+        this.advancedScenarioService = advancedScenarioService;
+        this.patientSimulatedScenarioService = patientSimulatedScenarioService;
 
         // Configurazione layout principale
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
@@ -240,7 +248,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
                         );
                         break;
                     case "advancedscenario":
-                        scenarioId = scenarioService.startAdvancedScenario(
+                        scenarioId = advancedScenarioService.startAdvancedScenario(
                                 scenarioTitle.getValue(),
                                 patientName.getValue(),
                                 pathology.getValue(),
@@ -250,7 +258,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
                         );
                         break;
                     case "patientsimulatedscenario":
-                        scenarioId = scenarioService.startPatientSimulatedScenario(
+                        scenarioId = patientSimulatedScenarioService.startPatientSimulatedScenario(
                                 scenarioTitle.getValue(),
                                 patientName.getValue(),
                                 pathology.getValue(),

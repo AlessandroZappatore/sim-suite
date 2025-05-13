@@ -26,8 +26,13 @@ import it.uniupo.simnova.domain.common.Accesso;
 import it.uniupo.simnova.domain.paziente.EsameFisico;
 import it.uniupo.simnova.domain.paziente.PazienteT0;
 import it.uniupo.simnova.domain.scenario.Scenario;
+import it.uniupo.simnova.service.scenario.components.AzioneChiaveService;
+import it.uniupo.simnova.service.scenario.components.EsameFisicoService;
+import it.uniupo.simnova.service.scenario.components.PazienteT0Service;
+import it.uniupo.simnova.service.scenario.operations.ScenarioUpdateService;
+import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
 import it.uniupo.simnova.service.storage.FileStorageService;
-import it.uniupo.simnova.service.scenario.PresidiService;
+import it.uniupo.simnova.service.scenario.components.PresidiService;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.views.common.components.AppHeader;
 import it.uniupo.simnova.views.common.utils.FieldGenerator;
@@ -59,6 +64,11 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
     private final ScenarioService scenarioService;
     private final FileStorageService fileStorageService;
     private final PresidiService presidiService;
+    private final ScenarioUpdateService scenarioUpdateService;
+    private final PatientSimulatedScenarioService patientSimulatedScenarioService;
+    private final AzioneChiaveService azioneChiaveService;
+    private final EsameFisicoService esameFisicoService;
+    private final PazienteT0Service pazienteT0Service;
     /**
      * ID dello scenario da modificare.
      */
@@ -123,10 +133,22 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
      *
      * @param scenarioService servizio per la gestione degli scenari
      */
-    public ScenarioEditView(ScenarioService scenarioService, FileStorageService fileStorageService, PresidiService presidiService) {
+    public ScenarioEditView(ScenarioService scenarioService,
+                            FileStorageService fileStorageService,
+                            PresidiService presidiService,
+                            ScenarioUpdateService scenarioUpdateService,
+                            PatientSimulatedScenarioService patientSimulatedScenarioService,
+                            AzioneChiaveService azioneChiaveService,
+                            EsameFisicoService esameFisicoService,
+                            PazienteT0Service pazienteT0Service) {
         this.scenarioService = scenarioService;
         this.fileStorageService = fileStorageService;
         this.presidiService = presidiService;
+        this.scenarioUpdateService = scenarioUpdateService;
+        this.patientSimulatedScenarioService = patientSimulatedScenarioService;
+        this.azioneChiaveService = azioneChiaveService;
+        this.esameFisicoService = esameFisicoService;
+        this.pazienteT0Service = pazienteT0Service;
     }
 
     /**
@@ -282,7 +304,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
 
         // Azioni chiave scenario
         azioniChiaveArea = createAzioniChiavePanel(
-                scenarioService.getNomiAzioniChiaveByScenarioId(scenarioId)
+                azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenarioId)
         );
 
         // Obiettivi didattici scenario
@@ -331,7 +353,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         parametriT0Layout.setWidthFull();
 
         // Recupera i dati del paziente T0 (Optional per sicurezza)
-        PazienteT0 parametriT0 = scenarioService.getPazienteT0ById(scenarioId);
+        PazienteT0 parametriT0 = pazienteT0Service.getPazienteT0ById(scenarioId);
 
         // Crea i componenti per visualizzare i dati
         paField = FieldGenerator.createTextField(
@@ -500,7 +522,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         esameFisicoLayout.setWidthFull();
 
         // Recupera i dati dell'esame fisico (Optional per sicurezza)
-        EsameFisico esamiFisici = scenarioService.getEsameFisicoById(scenarioId);
+        EsameFisico esamiFisici = esameFisicoService.getEsameFisicoById(scenarioId);
 
         // Esame fisico generale
         generaleArea = createTinyMcePanel(
@@ -616,7 +638,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
 
         // Aggiunta della tendina per la sceneggiatura
         if (scenarioType.equals("Patient Simulated Scenario")) {
-            String sceneggiatura = ScenarioService.getSceneggiatura(scenarioId);
+            String sceneggiatura = patientSimulatedScenarioService.getSceneggiatura(scenarioId);
             VerticalLayout sceneggiaturaArea = createTinyMcePanel(
                     "SCENEGGIATURA",
                     "Inserisci la sceneggiatura dello scenario...",
@@ -780,7 +802,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         presidiService.savePresidi(scenarioId, presidiField.getValue());
 
         // Salva le modifiche
-        scenarioService.updateScenario(scenarioId, updatedFields, updatedSections,
+        scenarioUpdateService.updateScenario(scenarioId, updatedFields, updatedSections,
                 esameFisico, updatedSectionsT0, venosiDaSalvare, arteriosiDaSalvare);
     }
 
@@ -975,7 +997,6 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
             TinyMce editor = (TinyMce) component.get();
             return editor.getValue();
         }
-
         // Restituisci stringa vuota se l'editor non viene trovato
         return "";
     }

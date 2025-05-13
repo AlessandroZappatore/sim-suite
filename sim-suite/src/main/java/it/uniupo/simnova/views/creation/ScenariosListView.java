@@ -29,6 +29,14 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.domain.scenario.Scenario;
 import it.uniupo.simnova.service.export.ZipExportService;
 import it.uniupo.simnova.service.scenario.ScenarioService;
+import it.uniupo.simnova.service.scenario.components.AzioneChiaveService;
+import it.uniupo.simnova.service.scenario.components.EsameFisicoService;
+import it.uniupo.simnova.service.scenario.components.EsameRefertoService;
+import it.uniupo.simnova.service.scenario.components.PazienteT0Service;
+import it.uniupo.simnova.service.scenario.operations.ScenarioDeletionService;
+import it.uniupo.simnova.service.scenario.operations.ScenarioImportService;
+import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
+import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
 import it.uniupo.simnova.service.storage.FileStorageService;
 import it.uniupo.simnova.views.common.components.AppHeader;
 import it.uniupo.simnova.views.common.utils.FieldGenerator;
@@ -70,8 +78,18 @@ public class ScenariosListView extends Composite<VerticalLayout> {
     final int MAX_DESCRIPTION_LENGTH = 30;
     final int MAX_AUTHORS_NAME_LENGTH = 20;
     final int MAX_PATHOLOGY_LENGTH = 20;
+
     private final ScenarioService scenarioService;
+    private final ScenarioImportService scenarioImportService;
     private final ZipExportService zipExportService;
+    private final AzioneChiaveService azioneChiaveService;
+    private final PazienteT0Service pazienteT0Service;
+    private final EsameFisicoService esameFisicoService;
+    private final EsameRefertoService esameRefertoService;
+    private final AdvancedScenarioService advancedScenarioService;
+    private final PatientSimulatedScenarioService patientSimulatedScenarioService;
+    private final ScenarioDeletionService scenarioDeletionService;
+
     private final Grid<Scenario> scenariosGrid = new Grid<>();
     private final FileStorageService fileStorageService;
     private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
@@ -90,10 +108,28 @@ public class ScenariosListView extends Composite<VerticalLayout> {
 
 
     @Autowired
-    public ScenariosListView(ScenarioService scenarioService, ZipExportService zipExportService, FileStorageService fileStorageService) {
+    public ScenariosListView(ScenarioService scenarioService,
+                             ZipExportService zipExportService,
+                             FileStorageService fileStorageService,
+                             ScenarioImportService scenarioImportService,
+                             AzioneChiaveService azioneChiaveService,
+                             PazienteT0Service pazienteT0Service,
+                             EsameFisicoService esameFisicoService,
+                             EsameRefertoService esameRefertoService,
+                             AdvancedScenarioService advancedScenarioService,
+                             PatientSimulatedScenarioService patientSimulatedScenarioService,
+                             ScenarioDeletionService scenarioDeletionService) {
         this.scenarioService = scenarioService;
         this.zipExportService = zipExportService;
         this.fileStorageService = fileStorageService;
+        this.scenarioImportService = scenarioImportService;
+        this.azioneChiaveService = azioneChiaveService;
+        this.pazienteT0Service = pazienteT0Service;
+        this.esameFisicoService = esameFisicoService;
+        this.esameRefertoService = esameRefertoService;
+        this.advancedScenarioService = advancedScenarioService;
+        this.patientSimulatedScenarioService = patientSimulatedScenarioService;
+        this.scenarioDeletionService = scenarioDeletionService;
         initView();
         loadData();
     }
@@ -144,7 +180,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
 
         newScenarioButton.addClickListener(e -> {
             if (!detached.get()) {
-                boolean load = DialogSupport.showJsonUploadDialog(executorService, scenarioService);
+                boolean load = DialogSupport.showJsonUploadDialog(executorService, scenarioImportService);
                 if (load) loadData();
             }
         });
@@ -543,19 +579,19 @@ public class ScenariosListView extends Composite<VerticalLayout> {
             liquidiChk.setValue(false);
         }
 
-        var azioniChiave = scenarioService.getNomiAzioniChiaveByScenarioId(scenarioNew.getId());
+        var azioniChiave = azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenarioNew.getId());
         if (azioniChiave == null || azioniChiave.isEmpty()) {
             azioniChk.setEnabled(false);
             azioniChk.setValue(false);
         }
 
-        var esameFisico = scenarioService.getEsameFisicoById(scenario.getId());
+        var esameFisico = esameFisicoService.getEsameFisicoById(scenario.getId());
         if (esameFisico == null || esameFisico.getSections().isEmpty()) {
             esameFisicoChk.setEnabled(false);
             esameFisicoChk.setValue(false);
         }
 
-        var pazienteT0 = scenarioService.getPazienteT0ById(scenario.getId());
+        var pazienteT0 = pazienteT0Service.getPazienteT0ById(scenario.getId());
         if (pazienteT0 == null) {
             paramChk.setEnabled(false);
             paramChk.setValue(false);
@@ -571,13 +607,13 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                 accessiChk.setValue(false);
             }
         }
-        var esamiReferti = scenarioService.getEsamiRefertiByScenarioId(scenario.getId());
+        var esamiReferti = esameRefertoService.getEsamiRefertiByScenarioId(scenario.getId());
         if (esamiReferti == null || esamiReferti.isEmpty()) {
             esamiERefertiChk.setEnabled(false);
             esamiERefertiChk.setValue(false);
         }
 
-        var tempi = scenarioService.getTempiByScenarioId(scenario.getId());
+        var tempi = advancedScenarioService.getTempiByScenarioId(scenario.getId());
         if (tempi == null || tempi.isEmpty()) {
             timelineChk.setEnabled(false);
             timelineChk.setValue(false);
@@ -590,7 +626,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
 
         Checkbox sceneggiaturaChk = new Checkbox("Sceneggiatura", true);
         if ("Patient Simulated Scenario".equals(scenarioType)) {
-            var sceneggiatura = scenarioService.getPatientSimulatedScenarioById(scenario.getId()).getSceneggiatura();
+            var sceneggiatura = patientSimulatedScenarioService.getPatientSimulatedScenarioById(scenario.getId()).getSceneggiatura();
             if (sceneggiatura == null || sceneggiatura.isEmpty()) {
                 sceneggiaturaChk.setEnabled(false);
                 sceneggiaturaChk.setValue(false);
@@ -723,7 +759,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
 
         Button confirmButton = new Button("Elimina", event -> {
             if (!detached.get()) {
-                boolean deleted = scenarioService.deleteScenario(scenario.getId());
+                boolean deleted = scenarioDeletionService.deleteScenario(scenario.getId());
                 getUI().ifPresent(ui -> ui.access(() -> {
                     if (deleted) {
                         Notification.show("Scenario eliminato.", 3000, Position.TOP_CENTER).addThemeVariants(NotificationVariant.LUMO_CONTRAST);

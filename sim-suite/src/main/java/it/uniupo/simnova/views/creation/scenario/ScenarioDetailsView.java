@@ -17,8 +17,10 @@ import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.domain.scenario.Scenario;
 import it.uniupo.simnova.domain.common.Tempo;
+import it.uniupo.simnova.service.scenario.components.*;
+import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
+import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
 import it.uniupo.simnova.service.storage.FileStorageService;
-import it.uniupo.simnova.service.scenario.MaterialeService;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.views.common.components.AppHeader;
 import it.uniupo.simnova.views.common.utils.StyleApp;
@@ -46,12 +48,29 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Route(value = "scenari")
 public class ScenarioDetailsView extends Composite<VerticalLayout> implements HasUrlParameter<String>, BeforeEnterObserver {
     /**
+     * Logger per la registrazione delle informazioni e degli errori.
+     */
+    private static final Logger logger = LoggerFactory.getLogger(ScenarioDetailsView.class);
+    /**
      * Servizio per la gestione degli scenari.
      */
     private final ScenarioService scenarioService;
-
     private final FileStorageService fileStorageService;
     private final MaterialeService materialeNecessario;
+    private final AdvancedScenarioService advancedScenarioService;
+    private final PatientSimulatedScenarioService patientSimulatedScenarioService;
+    private final AzioneChiaveService azioneChiaveService;
+    private final EsameRefertoService esameRefertoService;
+    private final EsameFisicoService esameFisicoService;
+    private final PazienteT0Service pazienteT0Service;
+    /**
+     * Flag per verificare se la vista è stata staccata.
+     */
+    private final AtomicBoolean detached = new AtomicBoolean(false);
+    /**
+     * ExecutorService per gestire i task in background.
+     */
+    private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
     /**
      * ID dello scenario attualmente visualizzato.
      */
@@ -60,18 +79,6 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * Oggetto Scenario caricato.
      */
     private Scenario scenario;
-    /**
-     * Flag per verificare se la vista è stata staccata.
-     */
-    private final AtomicBoolean detached = new AtomicBoolean(false);
-    /**
-     * Logger per la registrazione delle informazioni e degli errori.
-     */
-    private static final Logger logger = LoggerFactory.getLogger(ScenarioDetailsView.class);
-    /**
-     * ExecutorService per gestire i task in background.
-     */
-    private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
 
     /**
@@ -80,13 +87,27 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * @param scenarioService servizio per la gestione degli scenari
      */
     @Autowired
-    public ScenarioDetailsView(ScenarioService scenarioService, FileStorageService fileStorageService, MaterialeService materialeNecessario) {
+    public ScenarioDetailsView(ScenarioService scenarioService,
+                               FileStorageService fileStorageService,
+                               MaterialeService materialeNecessario,
+                               AdvancedScenarioService advancedScenarioService,
+                               PatientSimulatedScenarioService patientSimulatedScenarioService,
+                               AzioneChiaveService azionechiaveService,
+                               EsameRefertoService esameRefertoService,
+                               EsameFisicoService esameFisicoService, PazienteT0Service pazienteT0Service) {
         this.scenarioService = scenarioService;
+        this.fileStorageService = fileStorageService;
+        this.materialeNecessario = materialeNecessario;
+        this.advancedScenarioService = advancedScenarioService;
+        this.patientSimulatedScenarioService = patientSimulatedScenarioService;
+        this.azioneChiaveService = azionechiaveService;
+        this.esameRefertoService = esameRefertoService;
+        this.esameFisicoService = esameFisicoService;
+
         UI.getCurrent();
         getContent().addClassName("scenario-details-view");
         getContent().setPadding(false);
-        this.fileStorageService = fileStorageService;
-        this.materialeNecessario = materialeNecessario;
+        this.pazienteT0Service = pazienteT0Service;
     }
 
     /**
@@ -232,26 +253,26 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         Component subtitle = InfoSupport.getInfo(scenario);
 
         // Sezioni Details
-        Details detailsInfoGenerali = new Details("Informazioni Generali", GeneralSupport.createOverviewContentWithData(scenario, scenarioService.isPediatric(scenarioId), scenario.getInfoGenitore(), materialeNecessario.toStringAllMaterialsByScenarioId(scenarioId), scenarioService.getNomiAzioniChiaveByScenarioId(scenarioId)));
+        Details detailsInfoGenerali = new Details("Informazioni Generali", GeneralSupport.createOverviewContentWithData(scenario, scenarioService.isPediatric(scenarioId), scenario.getInfoGenitore(), materialeNecessario.toStringAllMaterialsByScenarioId(scenarioId), azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenarioId)));
         detailsInfoGenerali.setOpened(true); // Espandi il primo pannello di default
         detailsInfoGenerali.addThemeVariants(DetailsVariant.FILLED);
         StyleApp.styleDetailsSummary(detailsInfoGenerali);
 
 
-        Details detailsStatoPaziente = new Details("Stato Paziente", PatientT0Support.createPatientContent(scenarioService.getPazienteT0ById(scenarioId), scenarioService.getEsameFisicoById(scenarioId), scenarioId));
+        Details detailsStatoPaziente = new Details("Stato Paziente", PatientT0Support.createPatientContent(pazienteT0Service.getPazienteT0ById(scenarioId), esameFisicoService.getEsameFisicoById(scenarioId), scenarioId));
         detailsStatoPaziente.addThemeVariants(DetailsVariant.FILLED);
         StyleApp.styleDetailsSummary(detailsStatoPaziente);
 
-        Details detailsEsamiReferti = new Details("Esami e Referti", ExamSupport.createExamsContent(scenarioService.getEsamiRefertiByScenarioId(scenarioId)));
+        Details detailsEsamiReferti = new Details("Esami e Referti", ExamSupport.createExamsContent(esameRefertoService.getEsamiRefertiByScenarioId(scenarioId)));
         detailsEsamiReferti.addThemeVariants(DetailsVariant.FILLED);
         StyleApp.styleDetailsSummary(detailsEsamiReferti);
 
         contentLayout.add(editButtonContainer, headerSection, titleContainer, subtitle, detailsInfoGenerali, detailsStatoPaziente, detailsEsamiReferti);
 
 
-        List<Tempo> tempi = scenarioService.getTempiByScenarioId(scenarioId);
+        List<Tempo> tempi = advancedScenarioService.getTempiByScenarioId(scenarioId);
         if (!tempi.isEmpty()) {
-            Details timelineDetails = new Details("Timeline", TimesSupport.createTimelineContent(scenarioService.getTempiByScenarioId(scenarioId), scenarioId));
+            Details timelineDetails = new Details("Timeline", TimesSupport.createTimelineContent(tempi, scenarioId, advancedScenarioService));
             timelineDetails.addThemeVariants(DetailsVariant.FILLED);
             StyleApp.styleDetailsSummary(timelineDetails);
             contentLayout.add(timelineDetails);
@@ -260,7 +281,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
 
         String scenarioType = scenarioService.getScenarioType(scenarioId);
         if ("Patient Simulated Scenario".equalsIgnoreCase(scenarioType)) {
-            Details sceneggiaturaDetails = new Details("Sceneggiatura", SceneggiaturaSupport.createSceneggiaturaContent(ScenarioService.getSceneggiatura(scenarioId)));
+            Details sceneggiaturaDetails = new Details("Sceneggiatura", SceneggiaturaSupport.createSceneggiaturaContent(patientSimulatedScenarioService.getSceneggiatura(scenarioId)));
             sceneggiaturaDetails.addThemeVariants(DetailsVariant.FILLED);
             StyleApp.styleDetailsSummary(sceneggiaturaDetails);
             contentLayout.add(sceneggiaturaDetails);

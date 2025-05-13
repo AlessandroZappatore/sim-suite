@@ -4,6 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import it.uniupo.simnova.domain.scenario.Scenario;
 import it.uniupo.simnova.service.scenario.ScenarioService;
+import it.uniupo.simnova.service.scenario.components.EsameFisicoService;
+import it.uniupo.simnova.service.scenario.components.EsameRefertoService;
+import it.uniupo.simnova.service.scenario.components.PazienteT0Service;
+import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
+import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
@@ -23,11 +28,16 @@ public class JSONExportService implements Serializable {
     /**
      * Servizio per la gestione degli scenari.
      */
-    private static ScenarioService scenarioService = null;
+    private final ScenarioService scenarioService;
+    private final EsameRefertoService esameRefertoService;
+    private final PazienteT0Service pazienteT0Service;
+    private final AdvancedScenarioService advancedScenarioService;
+    private final PatientSimulatedScenarioService patientSimulatedScenarioService;
     /**
      * Oggetto Gson per la serializzazione in JSON.
      */
     private static Gson gson = null;
+    private final EsameFisicoService esameFisicoService;
 
     /**
      * Costruttore del servizio JSONExportService.
@@ -35,12 +45,19 @@ public class JSONExportService implements Serializable {
      *
      * @param scenarioService Il servizio ScenarioService da utilizzare.
      */
-    public JSONExportService(ScenarioService scenarioService) {
-        JSONExportService.scenarioService = scenarioService;
+    public JSONExportService(ScenarioService scenarioService, EsameRefertoService esameRefertoService,
+                             PazienteT0Service pazienteT0Service, AdvancedScenarioService advancedScenarioService,
+                             PatientSimulatedScenarioService patientSimulatedScenarioService, EsameFisicoService esameFisicoService) {
+        this.scenarioService = scenarioService;
+        this.esameRefertoService = esameRefertoService;
+        this.pazienteT0Service = pazienteT0Service;
+        this.advancedScenarioService = advancedScenarioService;
+        this.patientSimulatedScenarioService = patientSimulatedScenarioService;
         gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .serializeNulls()
                 .create();
+        this.esameFisicoService = esameFisicoService;
     }
 
     /**
@@ -49,7 +66,7 @@ public class JSONExportService implements Serializable {
      * @param scenarioId L'ID dello scenario da esportare.
      * @return I dati dello scenario in formato JSON come array di byte.
      */
-    public static byte[] exportScenarioToJSON(Integer scenarioId) {
+    public byte[] exportScenarioToJSON(Integer scenarioId) {
         // Recupera lo scenario e il suo tipo
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
         String scenarioType = scenarioService.getScenarioType(scenarioId);
@@ -60,23 +77,23 @@ public class JSONExportService implements Serializable {
         exportData.put("type", scenarioType);
 
         // Recupera gli esami dello scenario
-        var esamiReferti = scenarioService.getEsamiRefertiByScenarioId(scenarioId);
+        var esamiReferti = esameRefertoService.getEsamiRefertiByScenarioId(scenarioId);
         exportData.put("esamiReferti", esamiReferti);
 
         // Recupera i dati del paziente in T0 dello scenario
-        var pazienteT0 = scenarioService.getPazienteT0ById(scenarioId);
+        var pazienteT0 = pazienteT0Service.getPazienteT0ById(scenarioId);
         exportData.put("pazienteT0", pazienteT0);
 
         // Recupera l'esame fisico dello scenario
-        var esameFisico = scenarioService.getEsameFisicoById(scenarioId);
+        var esameFisico = esameFisicoService.getEsameFisicoById(scenarioId);
         exportData.put("esameFisico", esameFisico);
 
         // Controlla il tipo di scenario e recupera i dati specifici
         if (scenarioType.equals("Advanced Scenario")) {
-            var tempi = scenarioService.getTempiByScenarioId(scenarioId);
+            var tempi = advancedScenarioService.getTempiByScenarioId(scenarioId);
             exportData.put("tempi", tempi);
         } else if (scenarioType.equals("Patient Simulated Scenario")) {
-            var sceneggiatura = ScenarioService.getSceneggiatura(scenarioId);
+            var sceneggiatura = patientSimulatedScenarioService.getSceneggiatura(scenarioId);
             exportData.put("sceneggiatura", sceneggiatura);
         }
 

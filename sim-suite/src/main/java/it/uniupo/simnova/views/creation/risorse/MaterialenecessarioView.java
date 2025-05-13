@@ -24,7 +24,7 @@ import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.domain.common.Materiale;
 import it.uniupo.simnova.service.storage.FileStorageService;
-import it.uniupo.simnova.service.scenario.MaterialeService;
+import it.uniupo.simnova.service.scenario.components.MaterialeService;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.views.common.components.AppHeader;
 import it.uniupo.simnova.views.common.components.CreditsComponent;

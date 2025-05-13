@@ -11,7 +11,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import it.uniupo.simnova.domain.common.ParametroAggiuntivo;
-import it.uniupo.simnova.service.scenario.PresidiService;
+import it.uniupo.simnova.service.scenario.components.PresidiService;
 
 import java.util.List;
 import java.util.Objects;

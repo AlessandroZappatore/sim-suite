@@ -11,6 +11,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.router.*;
 import it.uniupo.simnova.domain.scenario.PatientSimulatedScenario;
+import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
 import it.uniupo.simnova.service.storage.FileStorageService;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.views.common.components.AppHeader;
@@ -41,6 +42,7 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
      * Servizio per la gestione degli scenari.
      */
     private final ScenarioService scenarioService;
+    private final PatientSimulatedScenarioService patientSimulatedScenarioService;
     /**
      * ID dello scenario corrente.
      */
@@ -59,8 +61,9 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
      *
      * @param scenarioService il servizio per la gestione degli scenari
      */
-    public SceneggiaturaView(ScenarioService scenarioService, FileStorageService fileStorageService) {
+    public SceneggiaturaView(ScenarioService scenarioService, FileStorageService fileStorageService, PatientSimulatedScenarioService patientSimulatedScenarioService) {
         this.scenarioService = scenarioService;
+        this.patientSimulatedScenarioService = patientSimulatedScenarioService;
 
         // Configurazione del layout principale con altezza piena e senza spazi interni
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
@@ -153,7 +156,7 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
      * Carica la sceneggiatura esistente per lo scenario corrente.
      */
     private void loadExistingSceneggiatura() {
-        PatientSimulatedScenario scenario = scenarioService.getPatientSimulatedScenarioById(scenarioId);
+        PatientSimulatedScenario scenario = patientSimulatedScenarioService.getPatientSimulatedScenarioById(scenarioId);
         if (scenario != null && scenario.getSceneggiatura() != null && !scenario.getSceneggiatura().isEmpty()) {
             sceneggiaturaEditor.setValue(scenario.getSceneggiatura());
         }
@@ -173,7 +176,7 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
 
             try {
                 // Salvataggio della sceneggiatura tramite il service
-                boolean success = scenarioService.updateScenarioSceneggiatura(
+                boolean success = patientSimulatedScenarioService.updateScenarioSceneggiatura(
                         scenarioId, sceneggiaturaEditor.getValue()
                 );
 

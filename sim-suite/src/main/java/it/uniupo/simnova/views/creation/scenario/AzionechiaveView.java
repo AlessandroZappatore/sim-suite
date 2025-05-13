@@ -14,6 +14,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.*;
+import it.uniupo.simnova.service.scenario.components.AzioneChiaveService;
 import it.uniupo.simnova.service.storage.FileStorageService;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.views.common.components.AppHeader;
@@ -45,13 +46,14 @@ import java.util.stream.Collectors;
 public class AzionechiaveView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
 
     /**
+     * Logger per la registrazione degli eventi.
+     */
+    private static final Logger logger = LoggerFactory.getLogger(AzionechiaveView.class);
+    /**
      * Servizio per la gestione degli scenari.
      */
     private final ScenarioService scenarioService;
-    /**
-     * ID dello scenario corrente.
-     */
-    private Integer scenarioId;
+    private final AzioneChiaveService azioneChiaveService;
     /**
      * Layout contenente le caselle di testo per le azioni chiave.
      */
@@ -59,11 +61,13 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
     /**
      * Lista dei campi di testo per le azioni chiave.
      */
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private final List<TextField> actionFields = new ArrayList<>();
+    private int size = 1;
     /**
-     * Logger per la registrazione degli eventi.
+     * ID dello scenario corrente.
      */
-    private static final Logger logger = LoggerFactory.getLogger(AzionechiaveView.class);
+    private Integer scenarioId;
 
     /**
      * Costruttore che inizializza l'interfaccia utente.
@@ -71,8 +75,9 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
      * @param scenarioService    servizio per la gestione degli scenari
      * @param fileStorageService servizio per la gestione dei file (usato nell'header)
      */
-    public AzionechiaveView(ScenarioService scenarioService, FileStorageService fileStorageService) {
+    public AzionechiaveView(ScenarioService scenarioService, FileStorageService fileStorageService, AzioneChiaveService azioneChiaveService) {
         this.scenarioService = scenarioService;
+        this.azioneChiaveService = azioneChiaveService;
 
         // Configurazione layout principale
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
@@ -128,22 +133,20 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
         HorizontalLayout fieldLayout = new HorizontalLayout();
         fieldLayout.setWidthFull();
         fieldLayout.setSpacing(true); // Spaziatura tra TextField e bottone Rimuovi
-        fieldLayout.setAlignItems(FlexComponent.Alignment.BASELINE); // Allinea alla baseline per un aspetto migliore
+        fieldLayout.setAlignItems(FlexComponent.Alignment.CENTER); // Allinea alla baseline per un aspetto migliore
 
-        TextField actionField = FieldGenerator.createTextField("Azione Chiave", "Inserisci un'azione chiave", false);
-        actionField.setValue(initialValue != null ? initialValue : ""); // Imposta il valore iniziale
-        actionFields.add(actionField);
+        TextField actionField = FieldGenerator.createTextField("Azione Chiave #" + size++,
+                "Inserisci un'azione chiave",
+                false);
+        actionField.setValue(initialValue != null ? initialValue : "");
 
         Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
         removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_ICON);
-        removeButton.getElement().setAttribute("aria-label", "Rimuovi azione"); // Per accessibilità
+        removeButton.setAriaLabel("Rimuovi azione");// Per accessibilità
         removeButton.addClickListener(e -> {
             actionFields.remove(actionField);
             actionFieldsContainer.remove(fieldLayout);
-            // Se non ci sono più campi, se ne potrebbe aggiungere uno vuoto automaticamente
-            // if (actionFields.isEmpty()) {
-            //     addNewActionField("");
-            // }
+            size--;
         });
 
         fieldLayout.addAndExpand(actionField); // actionField occupa lo spazio disponibile
@@ -194,7 +197,7 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
         actionFieldsContainer.removeAll(); // Rimuovi i componenti UI esistenti
 
         // Assumiamo che scenarioService.getNomiAzioniChiaveByScenarioId restituisca List<String>
-        List<String> nomiAzioni = scenarioService.getNomiAzioniChiaveByScenarioId(scenarioId);
+        List<String> nomiAzioni = azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenarioId);
 
         if (nomiAzioni != null && !nomiAzioni.isEmpty()) {
             for (String nomeAzione : nomiAzioni) {
@@ -230,7 +233,7 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
                     .collect(Collectors.toList());
 
             try {
-                boolean success = scenarioService.updateAzioniChiaveForScenario(scenarioId, nomiAzioniDaSalvare);
+                boolean success = azioneChiaveService.updateAzioniChiaveForScenario(scenarioId, nomiAzioniDaSalvare);
 
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);

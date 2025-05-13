@@ -2,7 +2,7 @@ package it.uniupo.simnova.service.export.helper.pdf;
 
 import it.uniupo.simnova.domain.scenario.Scenario;
 import it.uniupo.simnova.service.export.PdfExportService;
-import it.uniupo.simnova.service.scenario.ScenarioService;
+import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,8 +16,8 @@ import static it.uniupo.simnova.views.constant.PdfConstant.*;
 public class ScenarioSceneggiatura {
     private static final Logger logger = LoggerFactory.getLogger(ScenarioSceneggiatura.class);
 
-    public static void createSceneggiaturaSection(Scenario scenario, boolean scen) throws IOException {
-        String sceneggiatura = ScenarioService.getSceneggiatura(scenario.getId());
+    public static void createSceneggiaturaSection(Scenario scenario, boolean scen, PatientSimulatedScenarioService patientSimulatedScenarioService) throws IOException {
+        String sceneggiatura = patientSimulatedScenarioService.getSceneggiatura(scenario.getId());
         if (sceneggiatura == null || sceneggiatura.isEmpty() || !scen) {
             return;
         }
