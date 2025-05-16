@@ -77,7 +77,7 @@ public class PattoaulaView extends Composite<VerticalLayout> implements HasUrlPa
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "PATTO D'AULA / FAMILIARIZZAZIONE",
                 "Inserisci il testo del patto d'aula che definisce le regole di interazione durante la simulazione e fornisce indicazioni per la familiarizzazione con l'ambiente virtuale.",
-                VaadinIcon.HANDSHAKE,
+                VaadinIcon.HANDSHAKE.create(),
                 "var(--lumo-primary-color)"
         );
 

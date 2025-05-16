@@ -1,5 +1,6 @@
 package it.uniupo.simnova.views.ui.helper;
 
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
@@ -40,8 +41,7 @@ public class TimesSupport {
         return sectionContainer;
     }
 
-    private static HorizontalLayout createSectionTitle(VaadinIcon vaadinIcon, String titleText) {
-        Icon icon = new Icon(vaadinIcon);
+    private static HorizontalLayout createSectionTitle(Icon icon, String titleText) {
         icon.getStyle()
                 .set("color", "var(--lumo-primary-color)") // Potrebbe essere il borderColor per coerenza
                 .set("font-size", "var(--lumo-icon-size-m)")
@@ -124,7 +124,7 @@ public class TimesSupport {
             // --- Azione Section (con transizioni incluse) ---
             if (tempo.getAzione() != null && !tempo.getAzione().isEmpty()) {
                 Div azioneSection = createStyledSectionContainer(AZIONE_BORDER_COLOR);
-                azioneSection.add(createSectionTitle(VaadinIcon.PLAY_CIRCLE_O, "Azione"));
+                azioneSection.add(createSectionTitle(VaadinIcon.PLAY_CIRCLE_O.create(), "Azione"));
 
                 Paragraph azioneParagraph = new Paragraph(tempo.getAzione());
                 azioneParagraph.addClassName(LumoUtility.TextColor.SECONDARY);
@@ -178,7 +178,7 @@ public class TimesSupport {
             // --- Altri Dettagli Section ---
             if (tempo.getAltriDettagli() != null && !tempo.getAltriDettagli().isEmpty()) {
                 Div dettagliSection = createStyledSectionContainer(DETTAGLI_BORDER_COLOR);
-                dettagliSection.add(createSectionTitle(VaadinIcon.INFO_CIRCLE_O, "Dettagli Aggiuntivi"));
+                dettagliSection.add(createSectionTitle(VaadinIcon.INFO_CIRCLE_O.create(), "Dettagli Aggiuntivi"));
                 Paragraph dettagliParagraph = new Paragraph(tempo.getAltriDettagli());
                 dettagliParagraph.addClassName(LumoUtility.TextColor.SECONDARY);
                 dettagliParagraph.getStyle().set("white-space", "pre-wrap").set("line-height", "var(--lumo-line-height-l)");
@@ -189,7 +189,7 @@ public class TimesSupport {
             // --- Ruolo Genitore Section ---
             if (tempo.getRuoloGenitore() != null && !tempo.getRuoloGenitore().isEmpty()) {
                 Div ruoloSection = createStyledSectionContainer(RUOLO_BORDER_COLOR);
-                ruoloSection.add(createSectionTitle(VaadinIcon.USER_HEART, "Ruolo Genitore"));
+                ruoloSection.add(createSectionTitle(FontAwesome.Solid.CHILD_REACHING.create(), "Ruolo Genitore"));
                 Paragraph ruoloParagraph = new Paragraph(tempo.getRuoloGenitore());
                 ruoloParagraph.addClassName(LumoUtility.TextColor.SECONDARY);
                 ruoloParagraph.getStyle().set("white-space", "pre-wrap").set("line-height", "var(--lumo-line-height-l)");

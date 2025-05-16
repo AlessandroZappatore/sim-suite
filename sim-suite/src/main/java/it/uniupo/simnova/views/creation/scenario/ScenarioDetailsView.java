@@ -1,8 +1,7 @@
 package it.uniupo.simnova.views.creation.scenario;
 
+import com.flowingcode.vaadin.addons.enhancedtabs.EnhancedTabs;
 import com.vaadin.flow.component.*;
-import com.vaadin.flow.component.details.Details;
-import com.vaadin.flow.component.details.DetailsVariant;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.*;
@@ -13,6 +12,7 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.domain.scenario.Scenario;
@@ -29,9 +29,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Map;
+
+import static it.uniupo.simnova.views.ui.helper.TabsSupport.createTabWithIcon;
 
 /**
  * Vista per la visualizzazione dei dettagli di uno scenario.
@@ -41,7 +43,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * </p>
  *
  * @author Alessandro Zappatore
- * @version 1.3
+ * @version 1.4
  */
 @SuppressWarnings("ThisExpressionReferencesGlobalObjectJS")
 @PageTitle("Dettagli Scenario")
@@ -64,14 +66,6 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
     private final EsameFisicoService esameFisicoService;
     private final PazienteT0Service pazienteT0Service;
     /**
-     * Flag per verificare se la vista è stata staccata.
-     */
-    private final AtomicBoolean detached = new AtomicBoolean(false);
-    /**
-     * ExecutorService per gestire i task in background.
-     */
-    private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
-    /**
      * ID dello scenario attualmente visualizzato.
      */
     private Integer scenarioId;
@@ -87,13 +81,10 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * @param scenarioService servizio per la gestione degli scenari
      */
     @Autowired
-    public ScenarioDetailsView(ScenarioService scenarioService,
-                               FileStorageService fileStorageService,
-                               MaterialeService materialeNecessario,
-                               AdvancedScenarioService advancedScenarioService,
+    public ScenarioDetailsView(ScenarioService scenarioService, FileStorageService fileStorageService,
+                               MaterialeService materialeNecessario, AdvancedScenarioService advancedScenarioService,
                                PatientSimulatedScenarioService patientSimulatedScenarioService,
-                               AzioneChiaveService azionechiaveService,
-                               EsameRefertoService esameRefertoService,
+                               AzioneChiaveService azionechiaveService, EsameRefertoService esameRefertoService,
                                EsameFisicoService esameFisicoService, PazienteT0Service pazienteT0Service) {
         this.scenarioService = scenarioService;
         this.fileStorageService = fileStorageService;
@@ -103,11 +94,11 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         this.azioneChiaveService = azionechiaveService;
         this.esameRefertoService = esameRefertoService;
         this.esameFisicoService = esameFisicoService;
+        this.pazienteT0Service = pazienteT0Service;
 
         UI.getCurrent();
         getContent().addClassName("scenario-details-view");
         getContent().setPadding(false);
-        this.pazienteT0Service = pazienteT0Service;
     }
 
     /**
@@ -142,8 +133,8 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         if (scenarioId == null) {
-            Notification.show("ID scenario non valido", 3000, Position.MIDDLE).addThemeVariants(
-                    NotificationVariant.LUMO_ERROR);
+            Notification.show("ID scenario non valido", 3000, Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
             UI.getCurrent().navigate("scenari");
             return;
         }
@@ -151,27 +142,10 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
     }
 
     /**
-     * Metodo chiamato quando la vista viene staccata.
-     * Ferma l'esecuzione dei task in background.
-     *
-     * @param detachEvent evento di distacco
-     */
-    @Override
-    protected void onDetach(DetachEvent detachEvent) {
-        super.onDetach(detachEvent);
-        detached.set(true);
-        executorService.shutdownNow();
-    }
-
-    /**
      * Inizializza la vista con i dati dello scenario.
      * Crea e aggiunge i componenti alla vista.
      */
     private void initView() {
-        if (detached.get()) {
-            return;
-        }
-
         scenario = scenarioService.getScenarioById(scenarioId);
 
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
@@ -181,9 +155,13 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         // 1. HEADER
         Button backButton = StyleApp.getBackButton();
 
-        Button editButton = StyleApp.getButton("Modifica Scenario", VaadinIcon.EDIT, ButtonVariant.LUMO_PRIMARY, "var(--lumo-primary-color)");
-        editButton.addClickListener(e ->
-                UI.getCurrent().navigate("modificaScenario/" + scenario.getId()));
+        Button editButton = StyleApp.getButton(
+                "Modifica Scenario",
+                VaadinIcon.EDIT,
+                ButtonVariant.LUMO_PRIMARY,
+                "var(--lumo-primary-color)"
+        );
+        editButton.addClickListener(e -> UI.getCurrent().navigate("modificaScenario/" + scenario.getId()));
 
         HorizontalLayout editButtonContainer = new HorizontalLayout();
         editButtonContainer.setWidthFull();
@@ -195,13 +173,12 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "Dettagli Scenario",
                 "Visualizza i dettagli dello scenario selezionato",
-                VaadinIcon.INFO_CIRCLE,
-                "var(--lumo-primary-color)"
-        );
+                VaadinIcon.INFO_CIRCLE.create(),
+                "var(--lumo-primary-color)");
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
-        // 2. CONTENUTO PRINCIPALE (con details)
+        // 2. CONTENUTO PRINCIPALE (con tabs)
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
         // Titolo e sottotitolo
@@ -235,8 +212,13 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                 .set("font-weight", "600")
                 .set("letter-spacing", "0.5px");
 
-        // Autori con stile migliorato
-        Paragraph authors = new Paragraph("Autori: " + scenario.getAutori());
+        // Autori con stile migliorato e "Autori" in grassetto
+        Span boldAutori = new Span("Autori: ");
+        boldAutori.getStyle().set("font-weight", "bold");
+        Span autoriValue = new Span(scenario.getAutori());
+
+        Paragraph authors = new Paragraph();
+        authors.add(boldAutori, autoriValue);
         authors.addClassNames(
                 LumoUtility.TextColor.SECONDARY,
                 LumoUtility.TextAlignment.CENTER,
@@ -248,59 +230,125 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         // Aggiungi elementi al contenitore
         titleContainer.add(title, authors);
 
-        // Aggiungi il contenitore al layout invece degli elementi separati
-
         Component subtitle = InfoSupport.getInfo(scenario);
 
-        // Sezioni Details
-        Details detailsInfoGenerali = new Details("Informazioni Generali", GeneralSupport.createOverviewContentWithData(scenario, scenarioService.isPediatric(scenarioId), scenario.getInfoGenitore(), materialeNecessario.toStringAllMaterialsByScenarioId(scenarioId), azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenarioId)));
-        detailsInfoGenerali.setOpened(true); // Espandi il primo pannello di default
-        detailsInfoGenerali.addThemeVariants(DetailsVariant.FILLED);
-        StyleApp.styleDetailsSummary(detailsInfoGenerali);
+        // Creazione dei tab e relativo contenuto
+        Tab tabInfoGenerali = createTabWithIcon("Informazioni Generali", VaadinIcon.INFO_CIRCLE);
+        Tab tabStatoPaziente = createTabWithIcon("Stato Paziente", VaadinIcon.USER);
+        Tab tabEsamiReferti = createTabWithIcon("Esami e Referti", VaadinIcon.CLIPBOARD_TEXT);
 
+        // Contenuto dei tab
+        Component infoGeneraliContent = GeneralSupport.createOverviewContentWithData(
+                scenario,
+                scenarioService.isPediatric(scenarioId),
+                scenario.getInfoGenitore(),
+                materialeNecessario.toStringAllMaterialsByScenarioId(scenarioId),
+                azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenarioId)
+        );
 
-        Details detailsStatoPaziente = new Details("Stato Paziente", PatientT0Support.createPatientContent(pazienteT0Service.getPazienteT0ById(scenarioId), esameFisicoService.getEsameFisicoById(scenarioId), scenarioId));
-        detailsStatoPaziente.addThemeVariants(DetailsVariant.FILLED);
-        StyleApp.styleDetailsSummary(detailsStatoPaziente);
+        Component statoPazienteContent = PatientT0Support.createPatientContent(
+                pazienteT0Service.getPazienteT0ById(scenarioId),
+                esameFisicoService.getEsameFisicoById(scenarioId),
+                scenarioId
+        );
 
-        Details detailsEsamiReferti = new Details("Esami e Referti", ExamSupport.createExamsContent(esameRefertoService.getEsamiRefertiByScenarioId(scenarioId)));
-        detailsEsamiReferti.addThemeVariants(DetailsVariant.FILLED);
-        StyleApp.styleDetailsSummary(detailsEsamiReferti);
+        Component esamiRefertiContent = ExamSupport.createExamsContent(
+                esameRefertoService.getEsamiRefertiByScenarioId(scenarioId)
+        );
 
-        contentLayout.add(editButtonContainer, headerSection, titleContainer, subtitle, detailsInfoGenerali, detailsStatoPaziente, detailsEsamiReferti);
+        // Configurazione EnhancedTabs
+        EnhancedTabs enhancedTabs = new EnhancedTabs();
+        enhancedTabs.setWidthFull();
+        enhancedTabs.getStyle()
+                .set("max-width", "1000px")
+                .set("margin", "0 auto");
 
+        // Configurazione del contenitore principale
+        Div tabsContainer = new Div();
+        tabsContainer.setWidthFull();
+        tabsContainer.getStyle()
+                .set("max-width", "1000px")
+                .set("margin", "0 auto")
+                .set("overflow", "hidden")
+                .set("box-shadow", "var(--lumo-box-shadow-xs)")
+                .set("border-radius", "var(--lumo-border-radius-m)");
 
+        // Container per il contenuto del tab selezionato
+        Div contentContainer = new Div();
+        contentContainer.addClassName("tab-content");
+        contentContainer.getStyle()
+                .set("width", "100%")
+                .set("background-color", "var(--lumo-base-color)")
+                .set("border-radius", "0 0 var(--lumo-border-radius-m) var(--lumo-border-radius-m)")
+                .set("padding", "var(--lumo-space-m)")
+                .set("transition", "opacity 0.3s ease-in-out");
+
+        // Map per associare ogni tab al suo contenuto
+        Map<Tab, Component> tabsToContent = new HashMap<>();
+        tabsToContent.put(tabInfoGenerali, infoGeneraliContent);
+        tabsToContent.put(tabStatoPaziente, statoPazienteContent);
+        tabsToContent.put(tabEsamiReferti, esamiRefertiContent);
+
+        // Aggiunta dei tab base a EnhancedTabs
+        enhancedTabs.add(tabInfoGenerali, tabStatoPaziente, tabEsamiReferti);
+
+        // Tab aggiuntivi condizionali
         List<Tempo> tempi = advancedScenarioService.getTempiByScenarioId(scenarioId);
         if (!tempi.isEmpty()) {
-            Details timelineDetails = new Details("Timeline", TimesSupport.createTimelineContent(tempi, scenarioId, advancedScenarioService));
-            timelineDetails.addThemeVariants(DetailsVariant.FILLED);
-            StyleApp.styleDetailsSummary(timelineDetails);
-            contentLayout.add(timelineDetails);
+            Tab tabTimeline = createTabWithIcon("Timeline", VaadinIcon.CLOCK);
+            Component timelineContent = TimesSupport.createTimelineContent(tempi, scenarioId, advancedScenarioService);
+            tabsToContent.put(tabTimeline, timelineContent);
+            enhancedTabs.add(tabTimeline);
         }
-
 
         String scenarioType = scenarioService.getScenarioType(scenarioId);
         if ("Patient Simulated Scenario".equalsIgnoreCase(scenarioType)) {
-            Details sceneggiaturaDetails = new Details("Sceneggiatura", SceneggiaturaSupport.createSceneggiaturaContent(patientSimulatedScenarioService.getSceneggiatura(scenarioId)));
-            sceneggiaturaDetails.addThemeVariants(DetailsVariant.FILLED);
-            StyleApp.styleDetailsSummary(sceneggiaturaDetails);
-            contentLayout.add(sceneggiaturaDetails);
+            Tab tabSceneggiatura = createTabWithIcon("Sceneggiatura", VaadinIcon.FILE_TEXT);
+            Component sceneggiaturaContent = SceneggiaturaSupport.createSceneggiaturaContent(
+                    patientSimulatedScenarioService.getSceneggiatura(scenarioId)
+            );
+            tabsToContent.put(tabSceneggiatura, sceneggiaturaContent);
+            enhancedTabs.add(tabSceneggiatura);
         }
 
+        // Impostazione iniziale del contenuto
+        contentContainer.add(infoGeneraliContent);
+
+        // Gestione del cambio tab
+        enhancedTabs.addSelectedChangeListener(event -> {
+            // Rimuovi tutti i contenuti precedenti
+            contentContainer.removeAll();
+
+            // Aggiungi il nuovo contenuto in base al tab selezionato
+            Component selectedContent = tabsToContent.get(event.getSelectedTab());
+            contentContainer.add(selectedContent);
+
+            // Effetto di transizione
+            contentContainer.getElement().executeJs(
+                    "this.style.opacity = '0'; setTimeout(() => this.style.opacity = '1', 50);"
+            );
+        });
+
+        // Personalizzazione stile EnhancedTabs
+        enhancedTabs.getStyle()
+                .set("background-color", "var(--lumo-contrast-5pct)")
+                .set("border-radius", "var(--lumo-border-radius-m) var(--lumo-border-radius-m) 0 0")
+                .set("margin", "0");
+
+        // Aggiungi i tabs e il contenuto al contenitore
+        tabsContainer.add(enhancedTabs, contentContainer);
+
+        contentLayout.add(editButtonContainer, headerSection, titleContainer, subtitle, tabsContainer);
 
         // 3. FOOTER
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(null);
+
         // Assemblaggio finale
-        mainLayout.add(
-                customHeader,
-                contentLayout,
-                footerLayout
-        );
+        mainLayout.add(customHeader, contentLayout, footerLayout);
 
         // Pulsante "Torna su"
         Button scrollToTopButton = StyleApp.getScrollButton();
-
-        mainLayout.add(scrollToTopButton); // Aggiunge il pulsante al layout principale
+        mainLayout.add(scrollToTopButton);
 
         backButton.addClickListener(e -> UI.getCurrent().navigate("scenari"));
     }

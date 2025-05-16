@@ -37,6 +37,28 @@ public class GeneralSupport extends HorizontalLayout { // L'estensione di Horizo
             String materialiNecessari,
             List<String> azioniChiave) {
 
+        // Verifica se tutte le informazioni sono vuote
+        boolean allEmpty = isEmptyOrNull(scenario.getDescrizione()) &&
+                isEmptyOrNull(scenario.getBriefing()) &&
+                (!isPediatricScenario || isEmptyOrNull(infoGenitore)) &&
+                isEmptyOrNull(scenario.getPattoAula()) &&
+                (azioniChiave == null || azioniChiave.isEmpty()) &&
+                isEmptyOrNull(scenario.getObiettivo()) &&
+                isEmptyOrNull(scenario.getMoulage()) &&
+                isEmptyOrNull(scenario.getLiquidi()) &&
+                isEmptyOrNull(materialiNecessari);
+
+        // Se tutto è vuoto, mostra un messaggio di errore
+        if (allEmpty) {
+            VerticalLayout errorLayout = new VerticalLayout();
+            errorLayout.setPadding(true);
+            errorLayout.setSpacing(false);
+            errorLayout.setWidthFull();
+            errorLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+            errorLayout.add(EmptySupport.createErrorContent("Nessuna informazione disponibile"));
+            return errorLayout;
+        }
+
         VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setPadding(true);
         mainLayout.setSpacing(false);
@@ -134,5 +156,9 @@ public class GeneralSupport extends HorizontalLayout { // L'estensione di Horizo
     // Metodo sovraccaricato per convenienza, assume che non sia il primo item se non specificato
     private static void addInfoItemIfNotEmpty(VerticalLayout container, String title, String content, VaadinIcon iconType) {
         addInfoItemIfNotEmpty(container, title, content, iconType, false);
+    }
+
+    private static boolean isEmptyOrNull(String str) {
+        return str == null || str.trim().isEmpty();
     }
 }

@@ -77,7 +77,7 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> implements
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "Obiettivi Didattici",
                 "Definisci gli obiettivi di apprendimento per la simulazione",
-                VaadinIcon.BOOK,
+                VaadinIcon.BOOK.create(),
                 "var(--lumo-primary-color)"
         );
 

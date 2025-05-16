@@ -93,7 +93,7 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "AZIONI CHIAVE",
                 "Definisci le azioni chiave che saranno valutate durante il debriefing",
-                VaadinIcon.KEY,
+                VaadinIcon.KEY.create(),
                 "var(--lumo-primary-color)"
         );
 

@@ -77,7 +77,7 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "Moulage",
                 "Inserisci la descrizione del trucco da applicare al manichino/paziente simulato",
-                VaadinIcon.EYE,
+                VaadinIcon.EYE.create(),
                 "var(--lumo-primary-color)"
         );
 

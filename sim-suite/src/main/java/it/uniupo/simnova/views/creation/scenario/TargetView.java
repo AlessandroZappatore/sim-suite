@@ -87,7 +87,7 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "TARGET E LEARNING GROUPS",
                 "Seleziona il destinatario per cui è progettato lo scenario di simulazione. Per alcune categorie, saranno richieste informazioni addizionali.",
-                VaadinIcon.USER_CARD,
+                VaadinIcon.USER_CARD.create(),
                 "var(--lumo-primary-color)"
         );
 
@@ -554,30 +554,45 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
 
     private void loadExistingTargets() {
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
-        String targetString;
-
-        if (scenario != null && scenario.getTarget() != null && !scenario.getTarget().trim().isEmpty()) {
-            targetString = scenario.getTarget().trim();
-            logger.debug("Caricamento target esistente per scenario {}: {}", scenarioId, targetString);
-        } else {
+        if (scenario == null || scenario.getTarget() == null || scenario.getTarget().trim().isEmpty()) {
             logger.debug("Nessun target esistente o scenario nullo per ID: {}", scenarioId);
             resetAllFields();
             return;
         }
 
+        String targetString = scenario.getTarget().trim();
+        logger.debug("Caricamento target esistente per scenario {}: {}", scenarioId, targetString);
+
         resetAllFields();
 
-        String mainTarget = targetString.split("[:(]")[0].trim();
+        // Estrai il target principale (prima di qualsiasi parentesi o due punti)
+        String mainTarget;
+        if (targetString.contains("(")) {
+            mainTarget = targetString.substring(0, targetString.indexOf("(")).trim();
+        } else if (targetString.contains(":")) {
+            mainTarget = targetString.substring(0, targetString.indexOf(":")).trim();
+        } else {
+            mainTarget = targetString;
+        }
+
         targetRadioGroup.setValue(mainTarget);
 
         try {
-            String substring = targetString.substring(targetString.indexOf("(") + 1, targetString.indexOf(")"));
-            String substring1 = targetString.substring(targetString.indexOf("(") + 1, targetString.lastIndexOf(")"));
+            // Estrai dettagli tra parentesi se esistono
+            boolean hasParentheses = targetString.contains("(") && targetString.contains(")");
+            String detailsInParentheses = "";
+            if (hasParentheses) {
+                detailsInParentheses = targetString.substring(
+                    targetString.indexOf("(") + 1,
+                    targetString.lastIndexOf(")")
+                );
+            }
+
             switch (mainTarget) {
                 case MEDICI_ASSISTENTI:
-                    if (targetString.contains("(") && targetString.contains(")")) {
+                    if (hasParentheses) {
                         try {
-                            String yearStr = substring.trim();
+                            String yearStr = detailsInParentheses.trim();
                             yearStr = yearStr.replace(" anno", "").trim();
                             mediciAssistentiYearRadio.setValue(Integer.parseInt(yearStr));
                         } catch (NumberFormatException e) {
@@ -586,26 +601,26 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
                     }
                     break;
                 case MEDICI_SPECIALISTI:
-                    if (targetString.contains("(") && targetString.contains(")")) {
-                        if (substring1.contains(SPEC_ANESTESIA)) mediciSpecialistiAnestesiaChk.setValue(true);
-                        if (substring1.contains(SPEC_EMERGENZA)) mediciSpecialistiEmergenzaChk.setValue(true);
-                        if (substring1.contains(SPEC_CURE_INTENSE)) mediciSpecialistiCureIntenseChk.setValue(true);
-                        if (substring1.contains(SPEC_CHIRURGIA)) mediciSpecialistiChirurgiaChk.setValue(true);
-                        if (substring1.contains(SPEC_OSTETRICIA)) mediciSpecialistiOstetriciaChk.setValue(true);
-                        if (substring1.contains(SPEC_PEDIATRIA)) mediciSpecialistiPediatriaChk.setValue(true);
-                        if (substring1.contains(SPEC_INTERNA)) mediciSpecialistiInternaChk.setValue(true);
-                        if (substring1.contains(SPEC_CARDIOLOGIA)) mediciSpecialistiCardiologiaChk.setValue(true);
-                        if (substring1.contains(SPEC_DISASTRI)) mediciSpecialistiDisastriChk.setValue(true);
+                    if (hasParentheses) {
+                        if (detailsInParentheses.contains(SPEC_ANESTESIA)) mediciSpecialistiAnestesiaChk.setValue(true);
+                        if (detailsInParentheses.contains(SPEC_EMERGENZA)) mediciSpecialistiEmergenzaChk.setValue(true);
+                        if (detailsInParentheses.contains(SPEC_CURE_INTENSE)) mediciSpecialistiCureIntenseChk.setValue(true);
+                        if (detailsInParentheses.contains(SPEC_CHIRURGIA)) mediciSpecialistiChirurgiaChk.setValue(true);
+                        if (detailsInParentheses.contains(SPEC_OSTETRICIA)) mediciSpecialistiOstetriciaChk.setValue(true);
+                        if (detailsInParentheses.contains(SPEC_PEDIATRIA)) mediciSpecialistiPediatriaChk.setValue(true);
+                        if (detailsInParentheses.contains(SPEC_INTERNA)) mediciSpecialistiInternaChk.setValue(true);
+                        if (detailsInParentheses.contains(SPEC_CARDIOLOGIA)) mediciSpecialistiCardiologiaChk.setValue(true);
+                        if (detailsInParentheses.contains(SPEC_DISASTRI)) mediciSpecialistiDisastriChk.setValue(true);
 
-                        if (substring1.contains(ALTRO)) {
+                        if (detailsInParentheses.contains(ALTRO)) {
                             mediciSpecialistiAltroChk.setValue(true);
                             String marker = ALTRO + ":";
-                            int startIdx = substring1.indexOf(marker);
+                            int startIdx = detailsInParentheses.indexOf(marker);
                             if (startIdx != -1) {
-                                int endIdx = substring1.indexOf(",", startIdx); // Trova la prossima virgola
+                                int endIdx = detailsInParentheses.indexOf(",", startIdx);
                                 String altroText = (endIdx == -1)
-                                        ? substring1.substring(startIdx + marker.length()).trim() // Fino alla fine
-                                        : substring1.substring(startIdx + marker.length(), endIdx).trim(); // Fino alla virgola
+                                        ? detailsInParentheses.substring(startIdx + marker.length()).trim()
+                                        : detailsInParentheses.substring(startIdx + marker.length(), endIdx).trim();
                                 mediciSpecialistiAltroField.setValue(altroText);
                                 mediciSpecialistiAltroField.setEnabled(true);
                             }
@@ -613,9 +628,9 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
                     }
                     break;
                 case STUDENTI_MEDICINA:
-                    if (targetString.contains("(") && targetString.contains(")")) {
+                    if (hasParentheses) {
                         try {
-                            String yearStr = substring.trim();
+                            String yearStr = detailsInParentheses.trim();
                             yearStr = yearStr.replace(" anno", "").trim();
                             studentiMedicinaYearRadio.setValue(Integer.parseInt(yearStr));
                         } catch (NumberFormatException e) {
@@ -624,9 +639,9 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
                     }
                     break;
                 case STUDENTI_INFERMIERISTICA:
-                    if (targetString.contains("(") && targetString.contains(")")) {
+                    if (hasParentheses) {
                         try {
-                            String yearStr = substring.trim();
+                            String yearStr = detailsInParentheses.trim();
                             yearStr = yearStr.replace(" anno", "").trim();
                             studentiInfermieristicaYearRadio.setValue(Integer.parseInt(yearStr));
                         } catch (NumberFormatException e) {
@@ -635,16 +650,16 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
                     }
                     break;
                 case INFERMIERI_SPECIALIZZATI:
-                    if (targetString.contains("(") && targetString.contains(")")) {
-                        if (substring1.contains(SPEC_ANESTESIA)) infSpecAnestesiaChk.setValue(true);
-                        if (substring1.contains(SPEC_CURE_INTENSE)) infSpecCureIntenseChk.setValue(true);
-                        if (substring1.contains(SPEC_INF_CURE_URGENTI)) infSpecCureUrgentiChk.setValue(true);
+                    if (hasParentheses) {
+                        if (detailsInParentheses.contains(SPEC_ANESTESIA)) infSpecAnestesiaChk.setValue(true);
+                        if (detailsInParentheses.contains(SPEC_CURE_INTENSE)) infSpecCureIntenseChk.setValue(true);
+                        if (detailsInParentheses.contains(SPEC_INF_CURE_URGENTI)) infSpecCureUrgentiChk.setValue(true);
                     }
                     break;
                 case STUDENTI_ODONTOIATRIA:
-                    if (targetString.contains("(") && targetString.contains(")")) {
+                    if (hasParentheses) {
                         try {
-                            String yearStr = substring.trim();
+                            String yearStr = detailsInParentheses.trim();
                             yearStr = yearStr.replace(" anno", "").trim();
                             studentiOdontoiatriaYearRadio.setValue(Integer.parseInt(yearStr));
                         } catch (NumberFormatException e) {
@@ -655,15 +670,15 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
                 case ALTRO:
                     if (targetString.contains(":")) {
                         altroField.setValue(targetString.substring(targetString.indexOf(":") + 1).trim());
-                    } else if (!targetString.equals(ALTRO)) {
-                        altroField.setValue(targetString);
                     }
                     break;
             }
         } catch (Exception e) {
-            logger.error("Errore durante il parsing dei dettagli della stringa target '{}'. Resetting fields.", targetString, e);
+            logger.error("Errore durante il parsing dei dettagli della stringa target '{}': {}",
+                        targetString, e.getMessage(), e);
             resetAllFields();
             targetRadioGroup.clear();
+            return;
         }
 
         updateConditionalLayoutsVisibility(mainTarget);

@@ -1,5 +1,6 @@
 package it.uniupo.simnova.views.creation;
 
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -46,7 +47,7 @@ public class CreationView extends Composite<VerticalLayout> {
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "Creazione Scenario",
                 "Seleziona il tipo di scenario da creare o visualizza gli scenari salvati",
-                VaadinIcon.HAMMER,
+                FontAwesome.Solid.HAMMER.create(),
                 "var(--lumo-primary-text-color)"
         );
 
@@ -57,28 +58,28 @@ public class CreationView extends Composite<VerticalLayout> {
         // Creazione dei pulsanti per i diversi tipi di scenario
         Button quickScenarioButton = createScenarioButton(
                 "Quick Scenario",
-                VaadinIcon.BOLT,
+                VaadinIcon.BOLT.create(),
                 "Scenario veloce con un solo tempo",
                 "Scenario con un solo tempo di simulazione"
         );
 
         Button advancedScenarioButton = createScenarioButton(
                 "Advanced Scenario",
-                VaadinIcon.CLOCK,
+                VaadinIcon.CLOCK.create(),
                 "Scenario più tempi",
                 "Scenario con possibilità di aggiungere un algoritmo di simulazione"
         );
 
         Button patientSimulatedScenarioButton = createScenarioButton(
                 "Patient Simulated Scenario",
-                VaadinIcon.USER_HEART,
+                FontAwesome.Solid.USER_INJURED.create(),
                 "Advanced Scenario con sceneggiatura",
                 "Scenario avanzato con possibilità di aggiungere una sceneggiatura"
         );
 
         Button visualizzaScenari = createScenarioButton(
                 "Visualizza Scenari Salvati",
-                VaadinIcon.ARCHIVE,
+                VaadinIcon.ARCHIVE.create(),
                 "Libreria scenari",
                 "Accedi alla libreria degli scenari creati"
         );
@@ -168,17 +169,17 @@ public class CreationView extends Composite<VerticalLayout> {
      * Crea un pulsante personalizzato per la selezione del tipo di scenario.
      *
      * @param title     Titolo del pulsante
-     * @param icon      Icona da visualizzare
+     * @param buttonIcon      Icona da visualizzare
      * @param shortDesc Descrizione breve (per mobile)
      * @param longDesc  Descrizione estesa (per desktop)
      * @return Pulsante configurato
      */
-    private Button createScenarioButton(String title, VaadinIcon icon, String shortDesc, String longDesc) {
+    private Button createScenarioButton(String title, Icon buttonIcon, String shortDesc, String longDesc) {
         Div content = new Div();
         content.addClassName("button-content");
 
         // Icona
-        Icon buttonIcon = icon.create();
+
         buttonIcon.setSize("24px");
         buttonIcon.getStyle().set("margin-right", "0.5rem");
         buttonIcon.addClassName("buttonIcon");

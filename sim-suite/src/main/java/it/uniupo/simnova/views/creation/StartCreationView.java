@@ -98,7 +98,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "INIZIO CREAZIONE SCENARIO",
                 "Compila i campi richiesti per iniziare la creazione del tuo scenario.",
-                VaadinIcon.START_COG,
+                VaadinIcon.START_COG.create(),
                 "var(--lumo-primary-color)"
         );
 

@@ -1,36 +1,100 @@
 package it.uniupo.simnova.views.ui.helper;
 
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 
 public class EmptySupport extends HorizontalLayout {
-    public EmptySupport() {
-        // Constructor
-    }
-
+    /**
+     * Crea un componente visuale che segnala contenuto vuoto o mancante.
+     *
+     * @param errorMessage Il messaggio da mostrare
+     * @return Un Div contenente l'avviso formattato
+     */
     public static Div createErrorContent(String errorMessage) {
-        Div emptyMessage = new Div();
-        emptyMessage.getStyle()
-                .set("text-align", "center")
+        // Contenitore principale
+        Div emptyContainer = new Div();
+        emptyContainer.addClassName("empty-state-container");
+        emptyContainer.getStyle()
+                .set("border-radius", "var(--lumo-border-radius-l)")
+                .set("background-color", "var(--lumo-contrast-5pct)")
                 .set("padding", "var(--lumo-space-l)")
-                .set("color", "var(--lumo-tertiary-text-color)")
-                .set("font-style", "italic");
+                .set("width", "90%")
+                .set("box-sizing", "border-box")
+                .set("text-align", "center")
+                .set("animation", "fadeIn 0.5s ease-in-out")
+                .set("transition", "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out")
+                .set("margin-right", "auto")
+                .set("margin-left", "auto");
 
-        Icon infoIcon = new Icon(VaadinIcon.INFO_CIRCLE);
+        // Definizione dell'animazione CSS
+        emptyContainer.getElement().executeJs(
+                "document.head.insertAdjacentHTML('beforeend', " +
+                        "'<style>@keyframes fadeIn {from {opacity: 0;} to {opacity: 1;}}</style>');"
+        );
+
+        // Effetto hover
+        emptyContainer.getElement().executeJs(
+                "this.addEventListener('mouseover', function() {" +
+                        "  this.style.transform = 'scale(1.01)';" +
+                        "  this.style.boxShadow = 'var(--lumo-box-shadow-xs)';" +
+                        "});" +
+                        "this.addEventListener('mouseout', function() {" +
+                        "  this.style.transform = 'scale(1)';" +
+                        "  this.style.boxShadow = 'none';" +
+                        "});"
+        );
+
+        // Layout verticale per organizzare gli elementi
+        VerticalLayout content = new VerticalLayout();
+        content.setPadding(false);
+        content.setSpacing(true);
+        content.setAlignItems(FlexComponent.Alignment.CENTER);
+        content.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+
+        // Icona più moderna con decorazione
+        Div iconContainer = new Div();
+        iconContainer.getStyle()
+                .set("background-color", "var(--lumo-contrast-10pct)")
+                .set("border-radius", "50%")
+                .set("width", "64px")
+                .set("height", "64px")
+                .set("display", "flex")
+                .set("align-items", "center")
+                .set("justify-content", "center")
+                .set("margin-bottom", "var(--lumo-space-m)");
+
+        Icon infoIcon = new Icon(VaadinIcon.FILE_SEARCH);
         infoIcon.getStyle()
-                .set("display", "block")
-                .set("margin", "0 auto var(--lumo-space-m) auto")
-                .set("width", "48px")
-                .set("height", "48px")
-                .set("color", "var(--lumo-contrast-30pct)");
+                .set("color", "var(--lumo-primary-color)")
+                .set("width", "32px")
+                .set("height", "32px");
 
-        Paragraph noContentText = new Paragraph(errorMessage);
+        iconContainer.add(infoIcon);
 
-        emptyMessage.add(infoIcon, noContentText);
+        // Messaggio più strutturato
+        H4 title = new H4("Contenuto non disponibile");
+        title.addClassNames(
+                LumoUtility.TextColor.SECONDARY,
+                LumoUtility.FontWeight.MEDIUM,
+                LumoUtility.Margin.Top.NONE,
+                LumoUtility.Margin.Bottom.SMALL
+        );
 
-        return emptyMessage;
+        Paragraph message = new Paragraph(errorMessage);
+        message.addClassNames(
+                LumoUtility.TextColor.SECONDARY
+        );
+
+        content.add(iconContainer, title, message);
+        emptyContainer.add(content);
+
+        return emptyContainer;
     }
 }

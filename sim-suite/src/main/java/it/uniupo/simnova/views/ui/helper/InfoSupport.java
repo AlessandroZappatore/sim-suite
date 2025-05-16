@@ -6,6 +6,9 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import it.uniupo.simnova.domain.scenario.Scenario;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class InfoSupport extends HorizontalLayout {
     public InfoSupport() {
         // Constructor
@@ -22,16 +25,32 @@ public class InfoSupport extends HorizontalLayout {
         // Colore primario per tutti i badge per uniformità
         String badgeColor = "var(--lumo-primary-color)";
 
-        // Crea i badge con informazioni
-        Span pazienteBadge = createInfoBadge("Paziente", scenario.getNomePaziente(), badgeColor);
-        Span tipologiaBadge = createInfoBadge("Tipologia", scenario.getTipologia(), badgeColor);
-        Span patologiaBadge = createInfoBadge("Patologia", scenario.getPatologia(), badgeColor);
-        Span durataBadge = createInfoBadge("Durata", String.format("%.1f min", scenario.getTimerGenerale()), badgeColor);
-        Span targetBadge = createInfoBadge("Target", scenario.getTarget(), badgeColor);
+        List<Span> badges = new ArrayList<>();
 
-        // Aggiungi i badge al container
-        badgesContainer.add(pazienteBadge, tipologiaBadge, patologiaBadge, durataBadge, targetBadge);
+        // Crea i badge solo se i valori non sono null/vuoti
+        if (scenario.getNomePaziente() != null && !scenario.getNomePaziente().trim().isEmpty()) {
+            badges.add(createInfoBadge("Paziente", scenario.getNomePaziente(), badgeColor));
+        }
 
+        if (scenario.getTipologia() != null && !scenario.getTipologia().trim().isEmpty()) {
+            badges.add(createInfoBadge("Tipologia", scenario.getTipologia(), badgeColor));
+        }
+
+        if (scenario.getPatologia() != null && !scenario.getPatologia().trim().isEmpty()) {
+            badges.add(createInfoBadge("Patologia", scenario.getPatologia(), badgeColor));
+        }
+
+        // Per il timer, verifica se è maggiore di zero
+        if (scenario.getTimerGenerale() > 0) {
+            badges.add(createInfoBadge("Durata", String.format("%.1f min", scenario.getTimerGenerale()), badgeColor));
+        }
+
+        if (scenario.getTarget() != null && !scenario.getTarget().trim().isEmpty()) {
+            badges.add(createInfoBadge("Target", scenario.getTarget(), badgeColor));
+        }
+
+        // Aggiungi al container solo i badge creati
+        badges.forEach(badgesContainer::add);
         return badgesContainer;
     }
 
@@ -43,8 +62,19 @@ public class InfoSupport extends HorizontalLayout {
      * @param color colore del badge
      * @return componente Span formattato come badge
      */
-    private static Span createInfoBadge(String label, String value, String color) {
-        Span badge = new Span(label + ": " + value);
+    public static Span createInfoBadge(String label, String value, String color) {
+        Span badge = new Span();
+
+        // Label in grassetto
+        Span labelSpan = new Span(label + ": ");
+        labelSpan.getStyle().set("font-weight", "bold");
+
+        // Valore normale
+        Span valueSpan = new Span(value);
+
+        // Aggiungi entrambi al badge
+        badge.add(labelSpan, valueSpan);
+
         badge.getStyle()
                 .set("background-color", color + "10")  // Colore con opacità al 10%
                 .set("color", color)

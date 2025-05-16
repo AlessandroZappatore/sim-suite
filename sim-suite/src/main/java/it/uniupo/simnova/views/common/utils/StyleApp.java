@@ -1,5 +1,6 @@
 package it.uniupo.simnova.views.common.utils;
 
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -41,11 +42,11 @@ public class StyleApp extends HorizontalLayout {
      *
      * @param title     Titolo da mostrare nell'header
      * @param subtitle  Sottotitolo da mostrare nell'header
-     * @param icon      Icona Vaadin da utilizzare
+     * @param iconComponent      Icona Vaadin da utilizzare
      * @param iconColor Colore dell'icona (formato hex, es. "#4285F4", o CSS variable es. "var(--lumo-primary-color)")
      * @return Layout completo dell'header
      */
-    public static VerticalLayout getTitleSubtitle(String title, String subtitle, VaadinIcon icon, String iconColor) {
+    public static VerticalLayout getTitleSubtitle(String title, String subtitle, Icon iconComponent, String iconColor) {
         H2 headerTitle = new H2(title.toUpperCase());
         headerTitle.addClassName(LumoUtility.Margin.Bottom.NONE);
         headerTitle.addClassName(LumoUtility.Margin.Top.NONE);
@@ -69,7 +70,6 @@ public class StyleApp extends HorizontalLayout {
         titleWithIconLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         titleWithIconLayout.getStyle().set("margin-bottom", "0.5rem");
 
-        Icon iconComponent = new Icon(icon);
         iconComponent.setSize("3em");
         iconComponent.getStyle()
                 .set("margin-right", "0.25em")
@@ -253,7 +253,7 @@ public class StyleApp extends HorizontalLayout {
     }
 
     public static Button getScrollButton() {
-        Button scrollToTopButton = new Button(VaadinIcon.ARROW_UP.create());
+        Button scrollToTopButton = new Button(FontAwesome.Solid.ARROW_TURN_UP.create());
         scrollToTopButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ICON);
         scrollToTopButton.setAriaLabel("Torna all'inizio della pagina");
         scrollToTopButton.setTooltipText("Torna all'inizio della pagina");

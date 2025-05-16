@@ -140,7 +140,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "PARAMETRI VITALI PRINCIPALI IN T0",
                 "Definisci i parametri vitali principali del paziente T0",
-                VaadinIcon.HEART,
+                VaadinIcon.HEART.create(),
                 "var(--lumo-primary-color)"
 
         );

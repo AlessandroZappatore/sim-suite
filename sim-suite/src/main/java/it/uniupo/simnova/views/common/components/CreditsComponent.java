@@ -1,5 +1,6 @@
 package it.uniupo.simnova.views.common.components;
 
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
@@ -53,7 +54,7 @@ public class CreditsComponent extends VerticalLayout {
         Anchor emailLink = new Anchor("mailto:alessandrozappatore03@gmail.com", "alessandrozappatore03@gmail.com");
         emailLink.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
 
-        Icon githubIcon = new Icon(VaadinIcon.CODE);
+        Icon githubIcon = FontAwesome.Brands.GITHUB.create();
         githubIcon.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
         githubIcon.getStyle().set("margin-left", "8px");
 

@@ -71,7 +71,7 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "BRIEFING",
                 "Definisci il briefing che verrà mostrato ai discenti prima della simulazione",
-                VaadinIcon.INFO_CIRCLE,
+                VaadinIcon.INFO_CIRCLE.create(),
                 "var(--lumo-primary-color)"
         );
 

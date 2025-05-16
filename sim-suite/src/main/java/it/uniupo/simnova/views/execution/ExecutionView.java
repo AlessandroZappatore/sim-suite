@@ -45,13 +45,27 @@ public class ExecutionView extends Composite<VerticalLayout> {
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "SIM ECECUTION",
                 "Funzionalità non implementata",
-                VaadinIcon.BUILDING,
+                VaadinIcon.BUILDING.create(),
                 "var(--lumo-primary-color)"
         );
 
+        contentLayout.add(headerSection);
+
         HorizontalLayout footerSection = StyleApp.getFooterLayout(null);
 
-        mainLayout.add(headerSection, customHeader, contentLayout, footerSection);
+        mainLayout.add(customHeader, contentLayout, footerSection);
     }
-
 }
+
+/*
+  Note per l'implementazione futura:
+
+  1. Per visualizzare parametri e informazioni temporali:
+     - Utilizzare l'implementazione esistente in detailView (vedere @MonitorSupport in ui.helper)
+
+  2. Per l'editor di note:
+     - Utilizzare il componente text editor già disponibile (@TinyEditor in views.utils)
+
+  3. Per il timer dei vari tempi:
+     - Si può utilizzare un addon di Vaadin (https://vaadin.com/directory/component/simple-timer-addon)
+ */

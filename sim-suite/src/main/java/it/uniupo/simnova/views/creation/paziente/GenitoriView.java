@@ -75,7 +75,7 @@ public class GenitoriView extends Composite<VerticalLayout> implements HasUrlPar
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "Informazioni per i Genitori",
                 "Definisci ciò che i genitori del paziente riferiranno durante la simulazione",
-                VaadinIcon.FAMILY,
+                VaadinIcon.FAMILY.create(),
                 "var(--lumo-primary-color)"
         );
         // 2. CONTENUTO PRINCIPALE con area di testo

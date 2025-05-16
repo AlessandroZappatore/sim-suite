@@ -1,5 +1,6 @@
 package it.uniupo.simnova.views.creation;
 
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
@@ -72,13 +73,12 @@ import static it.uniupo.simnova.views.ui.helper.support.SanitizedFileName.saniti
 @Route(value = "scenari")
 @Menu(order = 3)
 public class ScenariosListView extends Composite<VerticalLayout> {
-    public static final AtomicBoolean detached = new AtomicBoolean(false);
     private static final int PAGE_SIZE = 10;
+    public final AtomicBoolean detached;
     final int MAX_TITLE_LENGTH = 20;
     final int MAX_DESCRIPTION_LENGTH = 30;
     final int MAX_AUTHORS_NAME_LENGTH = 20;
     final int MAX_PATHOLOGY_LENGTH = 20;
-
     private final ScenarioService scenarioService;
     private final ScenarioImportService scenarioImportService;
     private final ZipExportService zipExportService;
@@ -89,7 +89,6 @@ public class ScenariosListView extends Composite<VerticalLayout> {
     private final AdvancedScenarioService advancedScenarioService;
     private final PatientSimulatedScenarioService patientSimulatedScenarioService;
     private final ScenarioDeletionService scenarioDeletionService;
-
     private final Grid<Scenario> scenariosGrid = new Grid<>();
     private final FileStorageService fileStorageService;
     private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
@@ -102,10 +101,8 @@ public class ScenariosListView extends Composite<VerticalLayout> {
     private ComboBox<String> searchTipo;
     private TextField searchPatologia;
     private Button resetButton;
-
     private List<Scenario> allScenarios = new ArrayList<>();
     private List<Scenario> filteredScenarios = new ArrayList<>();
-
 
     @Autowired
     public ScenariosListView(ScenarioService scenarioService,
@@ -130,6 +127,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         this.advancedScenarioService = advancedScenarioService;
         this.patientSimulatedScenarioService = patientSimulatedScenarioService;
         this.scenarioDeletionService = scenarioDeletionService;
+        this.detached = new AtomicBoolean(false);
         initView();
         loadData();
     }
@@ -142,8 +140,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
     }
 
     private void initView() {
-        VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
-        mainLayout.setSizeFull();
+        @SuppressWarnings("unused") VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
@@ -180,7 +177,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
 
         newScenarioButton.addClickListener(e -> {
             if (!detached.get()) {
-                boolean load = DialogSupport.showJsonUploadDialog(executorService, scenarioImportService);
+                boolean load = DialogSupport.showJsonUploadDialog(detached, executorService, scenarioImportService);
                 if (load) loadData();
             }
         });
@@ -367,7 +364,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                     actions.setPadding(false);
                     actions.setJustifyContentMode(FlexComponent.JustifyContentMode.START); // Allinea a sinistra
 
-                    Button pdfButton = new Button(new Icon(VaadinIcon.FILE_TEXT_O));
+                    Button pdfButton = new Button(FontAwesome.Regular.FILE_PDF.create());
                     pdfButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE);
                     pdfButton.getElement().setAttribute("title", "Esporta in PDF");
                     pdfButton.getStyle().set("margin-right", "var(--lumo-space-xs)");
@@ -375,7 +372,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                         if (!detached.get()) exportToPdf(scenario);
                     });
 
-                    Button simButton = new Button(new Icon(VaadinIcon.DOWNLOAD));
+                    Button simButton = new Button(FontAwesome.Solid.FILE_EXPORT.create());
                     simButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE);
                     simButton.getElement().setAttribute("title", "Esporta in .zip (sim.execution)");
                     simButton.getStyle().set("margin-right", "var(--lumo-space-xs)");

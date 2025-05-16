@@ -1,5 +1,6 @@
 package it.uniupo.simnova.views.ui.helper;
 
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
@@ -256,8 +257,26 @@ public class PatientT0Support {
 
     private static void addSectionIfNotEmpty(VerticalLayout content, String title, String value) {
         if (value != null && !value.trim().isEmpty()) {
-            content.add(InfoItemSupport.createInfoItem(title, value, new Icon(VaadinIcon.INFO)));
+            Icon sectionIcon = getSectionIcon(title);
+            content.add(InfoItemSupport.createInfoItem(title, value, sectionIcon));
         }
+    }
+
+    private static Icon getSectionIcon(String sectionTitle) {
+        return switch (sectionTitle) {
+            case "Generale" -> new Icon(VaadinIcon.CLIPBOARD_PULSE);
+            case "Pupille" -> new Icon(VaadinIcon.EYE);
+            case "Collo" -> new Icon(VaadinIcon.USER);
+            case "Torace" -> FontAwesome.Solid.LUNGS.create();
+            case "Cuore" -> new Icon(VaadinIcon.HEART);
+            case "Addome" -> FontAwesome.Solid.A.create();
+            case "Retto" -> FontAwesome.Solid.POOP.create();
+            case "Cute" -> FontAwesome.Solid.HAND_DOTS.create();
+            case "Estremità" -> FontAwesome.Solid.HANDS.create();
+            case "Neurologico" -> FontAwesome.Solid.BRAIN.create();
+            case "FAST" -> new Icon(VaadinIcon.AMBULANCE);
+            default -> new Icon(VaadinIcon.INFO);
+        };
     }
 
     private static Grid<Accesso> createAccessiGrid(List<Accesso> accessi) {

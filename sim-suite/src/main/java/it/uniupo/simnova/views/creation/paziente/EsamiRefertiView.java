@@ -113,7 +113,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "Esami e Referti",
                 "Aggiungi gli esami e referti per il tuo scenario",
-                VaadinIcon.FILE_TEXT_O,
+                VaadinIcon.FILE_TEXT_O.create(),
                 "var(--lumo-primary-color)"
         );
 

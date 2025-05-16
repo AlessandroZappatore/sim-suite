@@ -1,9 +1,11 @@
 package it.uniupo.simnova.views.creation.paziente;
 
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -88,7 +90,7 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "ESAME FISICO",
                 "Definisci il briefing che verrà mostrato ai discenti prima della simulazione",
-                VaadinIcon.INFO_CIRCLE,
+                VaadinIcon.INFO_CIRCLE.create(),
                 "var(--lumo-primary-color)"
         );
 
@@ -120,107 +122,134 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
      * @param contentLayout layout a cui aggiungere le sezioni
      */
     private void setupExamSections(VerticalLayout contentLayout) {
-        VerticalLayout examSectionsLayout = new VerticalLayout();
-        examSectionsLayout.setWidthFull();
-        examSectionsLayout.setSpacing(true);
-        examSectionsLayout.setPadding(false);
+    VerticalLayout examSectionsLayout = new VerticalLayout();
+    examSectionsLayout.setWidthFull();
+    examSectionsLayout.setSpacing(true);
+    examSectionsLayout.setPadding(false);
 
-        // Definizione delle sezioni dell'esame fisico con colori per categorie
-        String[][] sections = {
-                {"Generale", "Stato generale, livello di coscienza, etc.", "#4285F4"},
-                {"Pupille", "Dimensione, reattività, simmetria", "#4285F4"},
-                {"Collo", "Esame del collo, tiroide, linfonodi", "#0F9D58"},
-                {"Torace", "Ispezione, palpazione, percussione, auscultazione", "#0F9D58"},
-                {"Cuore", "Frequenza, ritmo, soffi", "#0F9D58"},
-                {"Addome", "Ispezione, palpazione, dolorabilità, organomegalie", "#DB4437"},
-                {"Retto", "Esame rettale se indicato", "#DB4437"},
-                {"Cute", "Colorito, turgore, lesioni", "#F4B400"},
-                {"Estremità", "Edemi, pulsazioni periferiche", "#F4B400"},
-                {"Neurologico", "Stato mentale, nervi cranici, forza, sensibilità", "#673AB7"},
-                {"FAST", "Focused Assessment with Sonography for Trauma", "#673AB7"}
-        };
+    // Definizione delle sezioni dell'esame fisico con colori per categorie
+    String[][] sections = {
+            {"Generale", "Stato generale, livello di coscienza, etc.", "#4285F4"},
+            {"Pupille", "Dimensione, reattività, simmetria", "#4285F4"},
+            {"Collo", "Esame del collo, tiroide, linfonodi", "#0F9D58"},
+            {"Torace", "Ispezione, palpazione, percussione, auscultazione", "#0F9D58"},
+            {"Cuore", "Frequenza, ritmo, soffi", "#0F9D58"},
+            {"Addome", "Ispezione, palpazione, dolorabilità, organomegalie", "#DB4437"},
+            {"Retto", "Esame rettale se indicato", "#DB4437"},
+            {"Cute", "Colorito, turgore, lesioni", "#F4B400"},
+            {"Estremità", "Edemi, pulsazioni periferiche", "#F4B400"},
+            {"Neurologico", "Stato mentale, nervi cranici, forza, sensibilità", "#673AB7"},
+            {"FAST", "Focused Assessment with Sonography for Trauma", "#673AB7"}
+    };
 
-        // Creazione delle aree di testo per ogni sezione
-        for (String[] section : sections) {
-            String sectionName = section[0];
-            String sectionDesc = section[1];
-            String sectionColor = section[2];
+    // Creazione delle aree di testo per ogni sezione
+    for (String[] section : sections) {
+        String sectionName = section[0];
+        String sectionDesc = section[1];
+        String sectionColor = section[2];
 
-            // Layout per la sezione completa
-            VerticalLayout sectionLayout = new VerticalLayout();
-            sectionLayout.setWidthFull();
-            sectionLayout.setPadding(true);
-            sectionLayout.setSpacing(false);
-            sectionLayout.getStyle()
-                    .set("background", "var(--lumo-base-color)")
-                    .set("border-radius", "12px")
-                    .set("margin-bottom", "1.5rem")
-                    .set("border-left", "4px solid " + sectionColor)
-                    .set("box-shadow", "0 2px 10px rgba(0, 0, 0, 0.05)");
+        // Layout per la sezione completa
+        VerticalLayout sectionLayout = new VerticalLayout();
+        sectionLayout.setWidthFull();
+        sectionLayout.setPadding(true);
+        sectionLayout.setSpacing(false);
+        sectionLayout.getStyle()
+                .set("background", "var(--lumo-base-color)")
+                .set("border-radius", "12px")
+                .set("margin-bottom", "1.5rem")
+                .set("border-left", "4px solid " + sectionColor)
+                .set("box-shadow", "0 2px 10px rgba(0, 0, 0, 0.05)");
 
-            // Layout per il titolo e descrizione
-            HorizontalLayout headerLayout = new HorizontalLayout();
-            headerLayout.setWidthFull();
-            headerLayout.setPadding(false);
-            headerLayout.setSpacing(true);
-            headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        // Layout per il titolo e descrizione
+        HorizontalLayout headerLayout = new HorizontalLayout();
+        headerLayout.setWidthFull();
+        headerLayout.setPadding(false);
+        headerLayout.setSpacing(true);
+        headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-            // Cerchio colorato con iniziale
-            Div iconCircle = new Div();
-            iconCircle.setText(sectionName.substring(0, 1));
-            iconCircle.getStyle()
-                    .set("background-color", sectionColor)
-                    .set("color", "white")
-                    .set("border-radius", "50%")
-                    .set("width", "36px")
-                    .set("height", "36px")
-                    .set("display", "flex")
-                    .set("align-items", "center")
-                    .set("justify-content", "center")
-                    .set("font-weight", "bold")
-                    .set("font-size", "18px")
-                    .set("margin-right", "12px");
+        // Utilizzo delle icone da getSectionIcon invece delle lettere
+        Icon sectionIcon = getSectionIcon(sectionName);
+        Div iconCircle = new Div();
+        iconCircle.add(sectionIcon);
+        iconCircle.getStyle()
+                .set("background-color", sectionColor)
+                .set("color", "white")
+                .set("border-radius", "50%")
+                .set("width", "36px")
+                .set("height", "36px")
+                .set("display", "flex")
+                .set("align-items", "center")
+                .set("justify-content", "center")
+                .set("margin-right", "12px");
 
-            // Layout per titolo e descrizione
-            VerticalLayout titleDescLayout = new VerticalLayout();
-            titleDescLayout.setPadding(false);
-            titleDescLayout.setSpacing(false);
+        // Imposta le dimensioni dell'icona
+        sectionIcon.getStyle()
+                .set("color", "white")
+                .set("width", "20px")
+                .set("height", "20px");
 
-            // Titolo migliorato
-            H3 sectionTitle = new H3(sectionName);
-            sectionTitle.getStyle()
-                    .set("margin", "0")
-                    .set("font-size", "18px")
-                    .set("color", sectionColor)
-                    .set("font-weight", "600");
+        // Layout per titolo e descrizione
+        VerticalLayout titleDescLayout = new VerticalLayout();
+        titleDescLayout.setPadding(false);
+        titleDescLayout.setSpacing(false);
 
-            // Descrizione migliorata
-            Paragraph sectionDescription = new Paragraph(sectionDesc);
-            sectionDescription.getStyle()
-                    .set("margin", "0")
-                    .set("color", "var(--lumo-secondary-text-color)")
-                    .set("font-size", "14px")
-                    .set("font-weight", "400");
+        // Titolo migliorato
+        H3 sectionTitle = new H3(sectionName);
+        sectionTitle.getStyle()
+                .set("margin", "0")
+                .set("font-size", "18px")
+                .set("color", sectionColor)
+                .set("font-weight", "600");
 
-            titleDescLayout.add(sectionTitle, sectionDescription);
-            headerLayout.add(iconCircle, titleDescLayout);
+        // Descrizione migliorata
+        Paragraph sectionDescription = new Paragraph(sectionDesc);
+        sectionDescription.getStyle()
+                .set("margin", "0")
+                .set("color", "var(--lumo-secondary-text-color)")
+                .set("font-size", "14px")
+                .set("font-weight", "400");
 
-            // Editor con bordo abbinato al colore della sezione
-            TinyMce editor = TinyEditor.getEditor();
-            editor.getStyle()
-                    .set("margin-top", "12px")
-                    .set("border", "1px solid " + sectionColor + "30")
-                    .set("border-radius", "8px");
+        titleDescLayout.add(sectionTitle, sectionDescription);
+        headerLayout.add(iconCircle, titleDescLayout);
 
-            examSections.put(sectionName, editor);
+        // Editor con bordo abbinato al colore della sezione
+        TinyMce editor = TinyEditor.getEditor();
+        editor.getStyle()
+                .set("margin-top", "12px")
+                .set("border", "1px solid " + sectionColor + "30")
+                .set("border-radius", "8px");
 
-            sectionLayout.add(headerLayout, editor);
-            examSectionsLayout.add(sectionLayout);
-        }
+        examSections.put(sectionName, editor);
 
-        contentLayout.add(examSectionsLayout);
+        sectionLayout.add(headerLayout, editor);
+        examSectionsLayout.add(sectionLayout);
     }
 
+    contentLayout.add(examSectionsLayout);
+}
+
+/**
+ * Restituisce l'icona corrispondente alla sezione dell'esame fisico
+ *
+ * @param sectionTitle il nome della sezione
+ * @return l'icona corrispondente
+ */
+private static Icon getSectionIcon(String sectionTitle) {
+    return switch (sectionTitle) {
+        case "Generale" -> new Icon(VaadinIcon.CLIPBOARD_PULSE);
+        case "Pupille" -> new Icon(VaadinIcon.EYE);
+        case "Collo" -> new Icon(VaadinIcon.USER);
+        case "Torace" -> FontAwesome.Solid.LUNGS.create();
+        case "Cuore" -> new Icon(VaadinIcon.HEART);
+        case "Addome" -> FontAwesome.Solid.A.create();
+        case "Retto" -> FontAwesome.Solid.POOP.create();
+        case "Cute" -> FontAwesome.Solid.HAND_DOTS.create();
+        case "Estremità" -> FontAwesome.Solid.HANDS.create();
+        case "Neurologico" -> FontAwesome.Solid.BRAIN.create();
+        case "FAST" -> new Icon(VaadinIcon.AMBULANCE);
+        default -> new Icon(VaadinIcon.INFO);
+    };
+}
     /**
      * Gestisce il parametro ricevuto dall'URL (ID scenario).
      *

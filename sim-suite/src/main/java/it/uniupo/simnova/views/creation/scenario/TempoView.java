@@ -133,7 +133,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                 "Definisci i tempi dello scenario (T0, T1, T2...). Per ogni tempo, specifica i parametri vitali, " +
                         "eventuali parametri aggiuntivi, l'azione richiesta per procedere e le transizioni possibili (Tempo SI / Tempo NO). " +
                         "T0 rappresenta lo stato iniziale del paziente.",
-                VaadinIcon.CLOCK,
+                VaadinIcon.CLOCK.create(),
                 "var(--lumo-primary-color)"
         );
 

@@ -87,7 +87,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "Materiale necessario",
                 "Seleziona i materiali necessari per l'allestimento della sala o aggiungine di nuovi",
-                VaadinIcon.BED,
+                VaadinIcon.BED.create(),
                 "var(--lumo-primary-color)"
         );
 

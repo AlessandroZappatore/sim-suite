@@ -21,11 +21,9 @@ import java.io.InputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static it.uniupo.simnova.views.creation.ScenariosListView.detached;
-
 public class DialogSupport {
 
-    public static boolean showJsonUploadDialog(ExecutorService executorService, ScenarioImportService scenarioImportService) {
+    public static boolean showJsonUploadDialog(AtomicBoolean detached,ExecutorService executorService, ScenarioImportService scenarioImportService) {
         AtomicBoolean success = new AtomicBoolean(false);
         if (detached.get()) {
             return success.get();

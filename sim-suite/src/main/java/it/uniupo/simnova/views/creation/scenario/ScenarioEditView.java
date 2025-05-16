@@ -39,6 +39,7 @@ import it.uniupo.simnova.views.common.utils.FieldGenerator;
 import it.uniupo.simnova.views.common.utils.StyleApp;
 import it.uniupo.simnova.views.common.utils.TinyEditor;
 import it.uniupo.simnova.views.ui.helper.AccessoComponent;
+import it.uniupo.simnova.views.ui.helper.InfoSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vaadin.tinymce.TinyMce;
@@ -82,14 +83,12 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
      */
     private static final Logger logger = LoggerFactory.getLogger(ScenarioEditView.class);
 
-    // --- Variabili d'istanza per la gestione accessi (come in PazienteT0View ma non statiche) ---
     private VerticalLayout venosiContainer;
     private VerticalLayout arteriosiContainer;
     private List<AccessoComponent> venosiAccessi = new ArrayList<>();
     private List<AccessoComponent> arteriosiAccessi = new ArrayList<>();
     private Button addVenosiButton;
     private Button addArteriosiButton;
-    // --- Fine variabili gestione accessi ---
 
     TextField editAuthorField;
     TextField scenarioTitle;
@@ -126,7 +125,6 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
     TextField litriO2Field;
     TextField etco2Field;
     MultiSelectComboBox<String> presidiField;
-
 
     /**
      * Costruttore della classe ScenarioEditView.
@@ -182,7 +180,6 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         }
     }
 
-
     /**
      * Costruisce la vista per la modifica dello scenario.
      */
@@ -196,7 +193,7 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "Modifica Scenario",
                 "Modifica i dettagli dello scenario selezionato",
-                VaadinIcon.EDIT,
+                VaadinIcon.EDIT.create(),
                 "var(--lumo-primary-color)"
         );
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
@@ -207,19 +204,14 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
 
         // Recupera il tipo di scenario
         String scenarioType = scenarioService.getScenarioType(scenarioId);
-        TextField scenarioTypeField = FieldGenerator.createTextField(
-                "TIPO SCENARIO",
-                "Inserisci il tipo di scenario",
-                null
-        );
-        scenarioTypeField.setValue(scenarioType);
-        scenarioTypeField.setReadOnly(true);
+        Span scenarioTypeSpan = InfoSupport.createInfoBadge("TIPO SCENARIO", scenarioType, "var(--lumo-primary-color)");
 
         editAuthorField = FieldGenerator.createTextField(
-                "AUTORE",
+                "AUTORI DELLO SCENARIO (aggiungi il tuo nome se non presente)",
                 "Inserisci il tuo nome",
                 true
         );
+        editAuthorField.setValue(scenario.getAutori());
 
         // Titolo scenario
         scenarioTitle = FieldGenerator.createTextField(
@@ -616,8 +608,8 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         // Aggiunta dei componenti al layout principale
         contentLayout.add(
                 headerSection,
+                scenarioTypeSpan,
                 editAuthorField,
-                scenarioTypeField,
                 scenarioTitle,
                 patientName,
                 pathology,

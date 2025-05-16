@@ -80,7 +80,7 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "Sceneggiatura",
                 "Inserisci la sceneggiatura dettagliata dello scenario corrente, includendo azioni, dialoghi ed eventi chiave",
-                VaadinIcon.FILE_TEXT,
+                VaadinIcon.FILE_TEXT.create(),
                 "var(--lumo-primary-color)"
         );
 

@@ -37,8 +37,10 @@ public class ExamSupport {
                         .set("box-shadow", "0 3px 10px rgba(0, 0, 0, 0.08)")
                         .set("padding", "var(--lumo-space-m)")
                         .set("margin-bottom", "var(--lumo-space-m)")
-                        .set("width", "100%")
-                        .set("box-sizing", "border-box"); // AGGIUNTO
+                        .set("width", "95%")
+                        .set("box-sizing", "border-box")
+                        .set("margin-left", "auto")
+                        .set("margin-right", "auto");
 
                 H3 examTitle = new H3(esame.getTipo());
                 examTitle.getStyle()
@@ -57,6 +59,7 @@ public class ExamSupport {
                 }
 
                 // Referto testuale - ora viene aggiunto come parte dell'examCard con stile migliorato
+                // Referto testuale - ora viene aggiunto come parte dell'examCard con stile migliorato
                 if (esame.getRefertoTestuale() != null && !esame.getRefertoTestuale().isEmpty()) {
                     Div refertoContainer = new Div();
                     refertoContainer.getStyle()
@@ -65,8 +68,10 @@ public class ExamSupport {
                             .set("padding", "var(--lumo-space-m)")
                             .set("margin-top", "var(--lumo-space-m)")
                             .set("border-left", "3px solid var(--lumo-primary-color)")
-                            .set("width", "100%")
-                            .set("box-sizing", "border-box"); // AGGIUNTO
+                            .set("width", "90%")
+                            .set("box-sizing", "border-box")
+                            .set("margin-left", "auto")    // Aggiunta per centrare
+                            .set("margin-right", "auto");  // Aggiunta per centrare
 
                     HorizontalLayout refertoHeader = new HorizontalLayout();
                     refertoHeader.setPadding(false);
@@ -87,17 +92,21 @@ public class ExamSupport {
                     refertoText.getStyle()
                             .set("margin", "var(--lumo-space-s) 0 0 0")
                             .set("color", "var(--lumo-body-text-color)")
-                            .set("white-space", "pre-wrap");  // Mantiene la formattazione del testo
+                            .set("white-space", "pre-wrap")
+                            .set("box-sizing", "border-box");
 
                     refertoContainer.add(refertoHeader, refertoText);
                     examContent.add(refertoContainer);
+
+                    examContent.setAlignItems(FlexComponent.Alignment.CENTER);
                 }
 
                 examCard.add(examTitle, examContent);
                 layout.add(examCard);
             }
         } else {
-            layout.add(new Paragraph("Nessun esame/referto disponibile"));
+            Div errorDiv = EmptySupport.createErrorContent("Nessun esame disponibile");
+            layout.add(errorDiv);
         }
         return layout;
     }

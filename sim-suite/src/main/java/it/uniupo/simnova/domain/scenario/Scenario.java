@@ -90,7 +90,7 @@ public class Scenario {
         }
         this.autori = autori;
         this.tipologia = tipologia;
-        if(tipologia.equals("Pediatrico"))
+        if(tipologia != null && tipologia.equals("Pediatrico"))
             this.infoGenitore = infoGenitore;
         else
             this.infoGenitore = null;
@@ -320,7 +320,7 @@ public class Scenario {
     }
 
     public String getTipologia() {
-        return tipologia;
+        return tipologia != null ? tipologia : "";
     }
 
     public void setTipologia(String tipologia) {
@@ -332,7 +332,7 @@ public class Scenario {
     }
 
     public void setInfoGenitore(String infoGenitore) {
-        if(tipologia.equals("Pediatrico"))
+        if(tipologia != null && tipologia.equals("Pediatrico"))
             this.infoGenitore = infoGenitore;
         else
             this.infoGenitore = null;
