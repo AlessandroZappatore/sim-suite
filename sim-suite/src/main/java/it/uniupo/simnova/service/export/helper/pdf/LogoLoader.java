@@ -64,10 +64,10 @@ public class LogoLoader {
 
         } catch (FileNotFoundException e) {
             logger.info("Logo del centro non trovato nella directory di upload: {}", CENTER_LOGO_FILENAME);
-            return null; // Il logo non esiste, gestito come caso normale.
+            throw new RuntimeException("Logo del centro non trovato nella directory di upload");
         } catch (IOException e) {
             logger.error("Errore durante il caricamento del logo del centro da upload: {}", CENTER_LOGO_FILENAME, e);
-            return null; // Errore durante la lettura o creazione dell'immagine
+            throw new RuntimeException("Errore durante il caricamento del logo del centro da upload", e);
         }
     }
 }

@@ -669,7 +669,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                         } catch (IOException | RuntimeException e) {
                             System.err.println("Errore generazione PDF per lo scenario " + scenario.getId() + ": " + e.getMessage());
                             getUI().ifPresent(ui -> ui.access(() ->
-                                    Notification.show("Errore creazione PDF", 5000, Notification.Position.MIDDLE)
+                                    Notification.show(e.getMessage(), 5000, Notification.Position.MIDDLE)
                                             .addThemeVariants(NotificationVariant.LUMO_ERROR)));
                             return new ByteArrayInputStream(new byte[0]);
                         }

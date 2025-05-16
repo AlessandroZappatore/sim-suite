@@ -20,10 +20,11 @@ public class ScenarioDeletionService {
     private final AdvancedScenarioService advancedScenarioService;
     private final Logger logger = LoggerFactory.getLogger(ScenarioDeletionService.class);
 
-    public ScenarioDeletionService(FileStorageService fileStorageService,AdvancedScenarioService advancedScenarioService) {
+    public ScenarioDeletionService(FileStorageService fileStorageService, AdvancedScenarioService advancedScenarioService) {
         this.fileStorageService = fileStorageService;
         this.advancedScenarioService = advancedScenarioService;
     }
+
     public boolean deleteScenario(int scenarioId) {
         Connection conn = null;
         try {
@@ -38,6 +39,8 @@ public class ScenarioDeletionService {
             deleteAccessi(conn, scenarioId, "AccessoArterioso");
             deleteRelatedMaterial(conn, scenarioId);
             deleteRelatedAccessi(conn);
+            deleteRelatedPresidi(conn, scenarioId);
+            deleteRelatedAzioniChiave(conn, scenarioId);
             advancedScenarioService.deleteTempi(conn, scenarioId);
             deletePatientSimulatedScenario(conn, scenarioId);
             deleteAdvancedScenario(conn, scenarioId);
@@ -71,6 +74,37 @@ public class ScenarioDeletionService {
                     logger.error("Errore durante il ripristino dell'autocommit per lo scenario con ID {}", scenarioId, e);
                 }
             }
+        }
+    }
+
+    private void deleteRelatedAzioniChiave(Connection conn, int scenarioId) throws SQLException {
+        // Elimina le associazioni per questo scenario
+        final String sqlDeleteAzioneScenario = "DELETE FROM AzioneScenario WHERE id_scenario = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sqlDeleteAzioneScenario)) {
+            stmt.setInt(1, scenarioId);
+            int count = stmt.executeUpdate();
+            logger.debug("Eliminate {} associazioni azione-scenario per lo scenario {}", count, scenarioId);
+        }
+
+        // Elimina le azioni chiave non più associate ad alcuno scenario
+        final String sqlDeleteOrphanAzioni =
+            "DELETE FROM AzioniChiave WHERE id_azione NOT IN (" +
+            "  SELECT DISTINCT id_azione FROM AzioneScenario" +
+            ")";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sqlDeleteOrphanAzioni)) {
+            int count = stmt.executeUpdate();
+            logger.debug("Eliminate {} azioni chiave orfane dopo eliminazione scenario {}", count, scenarioId);
+        }
+    }
+
+    private void deleteRelatedPresidi(Connection conn, int scenarioId) {
+        final String sql = "DELETE FROM PresidioScenario WHERE id_scenario = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, scenarioId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            logger.error("Errore durante l'eliminazione dei presidi per lo scenario con ID {}", scenarioId, e);
         }
     }
 

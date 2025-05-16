@@ -75,8 +75,8 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
 
         // Crea la sezione dell'intestazione
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
-                "Liquidi e presidi",
-                "Inserisci i liquidi e presidi disponibili all'inizio della simulazione (T0)",
+                "Liquidi e dosi farmaci",
+                "Inserisci i liquidi e dosi farmaci disponibili all'inizio della simulazione (T0)",
                 VaadinIcon.DROP.create(),
                 "var(--lumo-primary-color)"
         );

@@ -140,6 +140,9 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
                 false);
         actionField.setValue(initialValue != null ? initialValue : "");
 
+        // AGGIUNTO: Aggiungi il campo alla lista actionFields
+        actionFields.add(actionField);
+
         Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
         removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_ICON);
         removeButton.setAriaLabel("Rimuovi azione");// Per accessibilità
@@ -231,6 +234,7 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
                     .filter(value -> !value.isEmpty()) // Filtra valori nulli o vuoti
                     .distinct() // Rimuove duplicati se necessario (opzionale, dipende dai requisiti)
                     .collect(Collectors.toList());
+            logger.error("Nomi azioni da salvare: {}", nomiAzioniDaSalvare);
 
             try {
                 boolean success = azioneChiaveService.updateAzioniChiaveForScenario(scenarioId, nomiAzioniDaSalvare);
