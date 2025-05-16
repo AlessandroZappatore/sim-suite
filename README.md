@@ -25,7 +25,7 @@
 
 2. Apri il terminale nella cartella ed esegui:
     ```bash
-    run.sh
+    bash run.sh
     ```
 ---
 ### Alternativa (qualsiasi sistema operativo con Java)
