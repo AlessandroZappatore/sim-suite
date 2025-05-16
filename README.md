@@ -15,13 +15,13 @@
   ```
 ## 🛠️ Come eseguire Sim Suite
 ### Windows
-1. Scarica e decomprimi la cartella [Sim_suite.beta_1.0.zip](https://github.com/AlessandroZappatore/sim-suite/releases/download/beta/Sim_suite.beta_1.0.zip).
+1. Scarica e decomprimi la cartella (Sim_suite.beta_1.0.zip in release/beta).
 2. Esegui il file 
     ```bash
     run.bat
     ```
 ### Linux e macOS
-1. Scarica e decomprimi la cartella [Sim_suite.beta_1.0.zip](https://github.com/AlessandroZappatore/sim-suite/releases/download/beta/Sim_suite.beta_1.0.zip).
+1. Scarica e decomprimi la cartella (Sim_suite.beta_1.0.zip in release/beta).
 
 2. Apri il terminale nella cartella ed esegui:
     ```bash
@@ -29,7 +29,7 @@
     ```
 ---
 ### Alternativa (qualsiasi sistema operativo con Java)
-1. Scarica e decomprimi la cartella [Sim_suite.beta_1.0.zip](https://github.com/AlessandroZappatore/sim-suite/releases/download/beta/Sim_suite.beta_1.0.zip).
+1. Scarica e decomprimi la cartella (Sim_suite.beta_1.0.zip in release/beta).
 2. Apri un terminale nella cartella ed esegui:
     ```bash
     java -jar sim.suite-1.0-SNAPSHOT.jar
