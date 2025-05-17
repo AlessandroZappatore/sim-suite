@@ -1,11 +1,13 @@
 package it.uniupo.simnova.service.export.helper.pdf;
 
+import it.uniupo.simnova.domain.common.Materiale;
 import it.uniupo.simnova.domain.scenario.Scenario;
 import it.uniupo.simnova.service.scenario.components.AzioneChiaveService;
 import it.uniupo.simnova.service.scenario.components.MaterialeService;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 
 import java.io.IOException;
+import java.util.List;
 
 import static it.uniupo.simnova.service.export.helper.pdf.SectionDrawer.drawSection;
 
@@ -44,8 +46,17 @@ public class ScenarioDescription {
         }
 
         // Azioni chiave
-        if (azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenario.getId()) != null && !azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenario.getId()).isEmpty() && azioni) {
-            drawSection("Azioni Chiave", azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenario.getId()).toString());
+        List<String> nomiAzioniChiave = azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenario.getId());
+        if (nomiAzioniChiave != null && !nomiAzioniChiave.isEmpty() && azioni) {
+            StringBuilder azioniFormattate = new StringBuilder();
+            for (String azione : nomiAzioniChiave) {
+                azioniFormattate.append("• ").append(azione).append("\n");
+            }
+            // Rimuove l'ultimo carattere di nuova riga se la stringa non è vuota
+            if (!azioniFormattate.isEmpty()) {
+                azioniFormattate.setLength(azioniFormattate.length() - 1);
+            }
+            drawSection("Azioni Chiave", azioniFormattate.toString());
         }
 
         // Obiettivi didattici
@@ -64,9 +75,17 @@ public class ScenarioDescription {
         }
 
         //Materiale necessario
-        if (materialeService.toStringAllMaterialsByScenarioId(scenario.getId()) != null && !materialeService.toStringAllMaterialsByScenarioId(scenario.getId()).isEmpty() && matNec) {
-            drawSection("Materiale necessario", materialeService.toStringAllMaterialsByScenarioId(scenario.getId()));
+        List<Materiale> materialiNecessari = materialeService.getMaterialiByScenarioId(scenario.getId());
+        if (materialiNecessari != null && !materialiNecessari.isEmpty() && matNec) {
+            StringBuilder materialiNecessariFormattati = new StringBuilder();
+            for (Materiale materiale : materialiNecessari) {
+                materialiNecessariFormattati.append("• ").append(materiale.getNome()).append(": ").append(materiale.getDescrizione()).append("\n");
+            }
+            // Rimuove l'ultimo carattere di nuova riga se la stringa non è vuota
+            if (!materialiNecessariFormattati.isEmpty()) {
+                materialiNecessariFormattati.setLength(materialiNecessariFormattati.length() - 1);
+            }
+            drawSection("Materiale necessario", materialiNecessariFormattati.toString());
         }
-
     }
 }
