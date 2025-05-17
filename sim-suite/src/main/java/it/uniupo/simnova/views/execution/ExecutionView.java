@@ -37,6 +37,7 @@ public class ExecutionView extends Composite<VerticalLayout> {
         AppHeader header = new AppHeader(fileStorageService);
 
         Button backButton = StyleApp.getBackButton();
+        backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("")));
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 

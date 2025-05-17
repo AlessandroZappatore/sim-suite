@@ -650,7 +650,10 @@ public class ScenarioEditView extends Composite<VerticalLayout> implements HasUr
         contentLayout.add(saveButton);
 
         Button scrollToTopButton = StyleApp.getScrollButton();
-        mainLayout.add(scrollToTopButton);
+        Button scrollDownButton = StyleApp.getScrollDownButton();
+        VerticalLayout scrollButtonLayout = new VerticalLayout(scrollToTopButton, scrollDownButton);
+
+        mainLayout.add(scrollButtonLayout);
 
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(null);
         mainLayout.add(customHeader, contentLayout, footerLayout);

@@ -37,6 +37,7 @@ public class JSONExportService implements Serializable {
     private final PatientSimulatedScenarioService patientSimulatedScenarioService;
     private final EsameFisicoService esameFisicoService;
     private final MaterialeService materialeService;
+    private final AzioneChiaveService azioneChiaveService;
 
     /**
      * Costruttore del servizio JSONExportService.
@@ -46,7 +47,7 @@ public class JSONExportService implements Serializable {
      */
     public JSONExportService(ScenarioService scenarioService, EsameRefertoService esameRefertoService,
                              PazienteT0Service pazienteT0Service, AdvancedScenarioService advancedScenarioService,
-                             PatientSimulatedScenarioService patientSimulatedScenarioService, EsameFisicoService esameFisicoService, MaterialeService materialeService) {
+                             PatientSimulatedScenarioService patientSimulatedScenarioService, EsameFisicoService esameFisicoService, MaterialeService materialeService, AzioneChiaveService azioneChiaveService) {
         this.scenarioService = scenarioService;
         this.esameRefertoService = esameRefertoService;
         this.pazienteT0Service = pazienteT0Service;
@@ -58,6 +59,7 @@ public class JSONExportService implements Serializable {
                 .create();
         this.esameFisicoService = esameFisicoService;
         this.materialeService = materialeService;
+        this.azioneChiaveService = azioneChiaveService;
     }
 
     /**
@@ -74,7 +76,7 @@ public class JSONExportService implements Serializable {
         // Crea un oggetto contenente sia lo scenario che il tipo
         Map<String, Object> exportData = new HashMap<>();
         exportData.put("scenario", scenario);
-        exportData.put("type", scenarioType);
+        exportData.put("tipo", scenarioType);
 
         // Recupera gli esami dello scenario
         var esamiReferti = esameRefertoService.getEsamiRefertiByScenarioId(scenarioId);
@@ -89,6 +91,9 @@ public class JSONExportService implements Serializable {
         // Recupera l'esame fisico dello scenario
         var esameFisico = esameFisicoService.getEsameFisicoById(scenarioId);
         exportData.put("esameFisico", esameFisico);
+
+        var azioniChiave = azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenarioId);
+        exportData.put("azioniChiave", azioniChiave);
 
         var presidi = PresidiService.getPresidiByScenarioId(scenarioId);
         exportData.put("presidi", presidi);

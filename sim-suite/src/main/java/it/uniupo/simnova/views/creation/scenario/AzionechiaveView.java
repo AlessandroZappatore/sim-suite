@@ -121,8 +121,31 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("pattoaula/" + scenarioId)));
 
-        nextButton.addClickListener(e -> saveAzioniChiaveAndNavigate(nextButton.getUI()));
-    }
+        nextButton.addClickListener(e -> {
+            // Verifica se il contenuto è vuoto o contiene solo spazi bianchi/HTML vuoto
+            List<String> content = actionFields.stream()
+                    .map(TextField::getValue)
+                    .map(String::trim) // Rimuove spazi bianchi
+                    .filter(value -> !value.isEmpty()) // Filtra valori nulli o vuoti
+                    .distinct() // Rimuove duplicati se necessario (opzionale, dipende dai requisiti)
+                    .collect(Collectors.toList());
+
+            boolean isEmpty = content.isEmpty();
+
+            if (isEmpty) {
+                // Se è vuoto, mostra il dialog di conferma
+                StyleApp.createConfirmDialog(
+                        "Descrizione vuota",
+                        "Sei sicuro di voler continuare senza una descrizione?",
+                        "Prosegui",
+                        "Annulla",
+                        () -> saveAzioniChiaveAndNavigate(nextButton.getUI(), content)
+                );
+            } else {
+                // Se c'è contenuto, procedi direttamente
+                saveAzioniChiaveAndNavigate(nextButton.getUI(), content);
+            }
+        });    }
 
     /**
      * Aggiunge un nuovo campo di input per un'azione chiave, con un valore iniziale opzionale.
@@ -222,19 +245,12 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
      *
      * @param uiOptional l'UI corrente (opzionale)
      */
-    private void saveAzioniChiaveAndNavigate(Optional<UI> uiOptional) {
+    private void saveAzioniChiaveAndNavigate(Optional<UI> uiOptional, List<String> nomiAzioniDaSalvare) {
         uiOptional.ifPresent(ui -> {
             ProgressBar progressBar = new ProgressBar();
             progressBar.setIndeterminate(true);
             getContent().add(progressBar);
             // Raccoglie i valori dai TextField
-            List<String> nomiAzioniDaSalvare = actionFields.stream()
-                    .map(TextField::getValue)
-                    .map(String::trim) // Rimuove spazi bianchi
-                    .filter(value -> !value.isEmpty()) // Filtra valori nulli o vuoti
-                    .distinct() // Rimuove duplicati se necessario (opzionale, dipende dai requisiti)
-                    .collect(Collectors.toList());
-            logger.error("Nomi azioni da salvare: {}", nomiAzioniDaSalvare);
 
             try {
                 boolean success = azioneChiaveService.updateAzioniChiaveForScenario(scenarioId, nomiAzioniDaSalvare);

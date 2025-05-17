@@ -33,7 +33,7 @@ public class EsameRefertoService {
                 stmt.setInt(1, esame.getIdEsame());
                 stmt.setInt(2, scenarioId);
                 stmt.setString(3, esame.getTipo());
-                stmt.setString(4, esame.getMedia()); // Qui salva solo il nome del file
+                stmt.setString(4, esame.getMedia());
                 stmt.setString(5, esame.getRefertoTestuale());
                 stmt.addBatch();
             }

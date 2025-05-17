@@ -45,13 +45,13 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
      */
     private final ScenarioService scenarioService;
     /**
-     * ID dello scenario corrente.
-     */
-    private Integer scenarioId;
-    /**
      * Area di testo per l'inserimento della descrizione dello scenario.
      */
     private final TinyMce descriptionEditor;
+    /**
+     * ID dello scenario corrente.
+     */
+    private Integer scenarioId;
 
     /**
      * Costruttore che inizializza l'interfaccia utente.
@@ -97,7 +97,26 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("target/" + scenarioId)));
 
-        nextButton.addClickListener(e -> saveDescriptionAndNavigate(nextButton.getUI()));
+        nextButton.addClickListener(e -> {
+            // Verifica se il contenuto è vuoto o contiene solo spazi bianchi/HTML vuoto
+            String content = descriptionEditor.getValue();
+            boolean isEmpty = content == null || content.trim().isEmpty() ||
+                    content.trim().equals("<p><br></p>") || content.trim().equals("<p></p>");
+
+            if (isEmpty) {
+                // Se è vuoto, mostra il dialog di conferma
+                StyleApp.createConfirmDialog(
+                        "Descrizione vuota",
+                        "Sei sicuro di voler continuare senza una descrizione?",
+                        "Prosegui",
+                        "Annulla",
+                        () -> saveDescriptionAndNavigate(nextButton.getUI())
+                );
+            } else {
+                // Se c'è contenuto, procedi direttamente
+                saveDescriptionAndNavigate(nextButton.getUI());
+            }
+        });
     }
 
     /**

@@ -76,6 +76,9 @@ public class HomeView extends Composite<VerticalLayout> {
         Button creationButton = createMainButton("SIM CREATION", "vaadin:cogs");
         Button executionButton = createMainButton("SIM EXECUTION", "vaadin:play");
 
+        executionButton.setEnabled(false);
+        executionButton.setTooltipText("Funzionalità non implementata");
+
         // Aggiungi azioni ai bottoni
         creationButton.addClickListener(e ->
                 creationButton.getUI().ifPresent(ui -> ui.navigate("creation")));

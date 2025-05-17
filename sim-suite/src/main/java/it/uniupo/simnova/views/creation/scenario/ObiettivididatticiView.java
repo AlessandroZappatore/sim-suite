@@ -45,13 +45,13 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> implements
      */
     private final ScenarioService scenarioService;
     /**
-     * ID dello scenario corrente.
-     */
-    private Integer scenarioId;
-    /**
      * Area di testo per l'inserimento degli obiettivi didattici.
      */
     private final TinyMce obiettiviEditor;
+    /**
+     * ID dello scenario corrente.
+     */
+    private Integer scenarioId;
 
     /**
      * Costruttore che inizializza l'interfaccia utente.
@@ -104,7 +104,26 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> implements
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("azionechiave/" + scenarioId)));
 
-        nextButton.addClickListener(e -> saveObiettiviAndNavigate(nextButton.getUI()));
+        nextButton.addClickListener(e -> {
+            // Verifica se il contenuto è vuoto o contiene solo spazi bianchi/HTML vuoto
+            String content = obiettiviEditor.getValue();
+            boolean isEmpty = content == null || content.trim().isEmpty() ||
+                    content.trim().equals("<p><br></p>") || content.trim().equals("<p></p>");
+
+            if (isEmpty) {
+                // Se è vuoto, mostra il dialog di conferma
+                StyleApp.createConfirmDialog(
+                        "Descrizione vuota",
+                        "Sei sicuro di voler continuare senza una descrizione?",
+                        "Prosegui",
+                        "Annulla",
+                        () -> saveObiettiviAndNavigate(nextButton.getUI())
+                );
+            } else {
+                // Se c'è contenuto, procedi direttamente
+                saveObiettiviAndNavigate(nextButton.getUI());
+            }
+        });
     }
 
     /**

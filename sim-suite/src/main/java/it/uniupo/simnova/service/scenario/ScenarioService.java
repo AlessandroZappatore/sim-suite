@@ -363,44 +363,6 @@ public class ScenarioService {
         }
     }
 
-    /**
-     * Aggiorna uno scenario esistente nel database.
-     *
-     * @param scenario l'oggetto Scenario da aggiornare
-     */
-    public void update(Scenario scenario) {
-        final String sql = "UPDATE Scenario SET titolo = ?, nome_paziente = ?, patologia = ?, descrizione = ?, " +
-                "briefing = ?, patto_aula = ?, azione_chiave = ?, obiettivo = ?, " +
-                "moulage = ?, liquidi = ?, timer_generale = ? " +
-                "WHERE id_scenario = ?";
-
-        try (Connection conn = DBConnect.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, scenario.getTitolo());
-            stmt.setString(2, scenario.getNomePaziente());
-            stmt.setString(3, scenario.getPatologia());
-            stmt.setString(4, scenario.getDescrizione());
-            stmt.setString(5, scenario.getBriefing());
-            stmt.setString(6, scenario.getPattoAula());
-            stmt.setString(7, scenario.getObiettivo());
-            stmt.setString(8, scenario.getMoulage());
-            stmt.setString(9, scenario.getLiquidi());
-            stmt.setFloat(10, scenario.getTimerGenerale());
-            stmt.setInt(11, scenario.getId());
-
-            int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected > 0) {
-                logger.info("Scenario con ID {} aggiornato con successo", scenario.getId());
-            } else {
-                logger.warn("Nessuno scenario trovato con ID {}", scenario.getId());
-            }
-        } catch (SQLException e) {
-            logger.error("Errore durante l'aggiornamento dello scenario con ID {}", scenario.getId(), e);
-            throw new RuntimeException("Impossibile aggiornare lo scenario", e);
-        }
-    }
-
     public boolean isPediatric(int scenarioId) {
         final String sql = "SELECT tipologia_paziente FROM Scenario WHERE id_scenario = ?";
         try (Connection conn = DBConnect.getInstance().getConnection();

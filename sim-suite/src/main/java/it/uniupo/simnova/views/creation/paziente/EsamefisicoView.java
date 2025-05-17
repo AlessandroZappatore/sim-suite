@@ -90,7 +90,7 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "ESAME FISICO",
                 "Definisci il briefing che verrà mostrato ai discenti prima della simulazione",
-                VaadinIcon.INFO_CIRCLE.create(),
+                VaadinIcon.STETHOSCOPE.create(),
                 "var(--lumo-primary-color)"
         );
 
@@ -106,6 +106,11 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
         Button nextButton = StyleApp.getNextButton();
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
+        Button scrollToTopButton = StyleApp.getScrollButton();
+        Button scrollDownButton = StyleApp.getScrollDownButton();
+        VerticalLayout scrollLayout = new VerticalLayout(scrollToTopButton, scrollDownButton);
+
+        mainLayout.add(scrollLayout);
         // Aggiunta componenti al layout principale
         mainLayout.add(customHeader, contentLayout, footerLayout);
 

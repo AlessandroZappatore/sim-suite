@@ -95,7 +95,26 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("descrizione/" + scenarioId)));
 
-        nextButton.addClickListener(e -> saveBriefingAndNavigate(nextButton.getUI()));
+        nextButton.addClickListener(e -> {
+            // Verifica se il contenuto è vuoto o contiene solo spazi bianchi/HTML vuoto
+            String content = briefingEditor.getValue();
+            boolean isEmpty = content == null || content.trim().isEmpty() ||
+                    content.trim().equals("<p><br></p>") || content.trim().equals("<p></p>");
+
+            if (isEmpty) {
+                // Se è vuoto, mostra il dialog di conferma
+                StyleApp.createConfirmDialog(
+                        "Descrizione vuota",
+                        "Sei sicuro di voler continuare senza una descrizione?",
+                        "Prosegui",
+                        "Annulla",
+                        () -> saveBriefingAndNavigate(nextButton.getUI())
+                );
+            } else {
+                // Se c'è contenuto, procedi direttamente
+                saveBriefingAndNavigate(nextButton.getUI());
+            }
+        });
     }
 
     /**

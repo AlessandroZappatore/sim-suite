@@ -44,6 +44,8 @@ public class AppHeader extends HorizontalLayout {
     private final Button toggleThemeButton;
     private boolean isDarkMode = false;
 
+    private static final String LOGO_URL = "/icons/icon.png";
+
     /**
      * Costruttore che inizializza l'header.
      * Richiede FileStorageService per gestire il logo del centro.
@@ -66,7 +68,7 @@ public class AppHeader extends HorizontalLayout {
         // --- Sezione Sinistra: Loghi e Titolo ---
 
         // Logo SIM SUITE
-        Image simSuiteLogo = new Image("icons/LogoSimsuiteNoSlogan.png", "SIM SUITE Logo");
+        Image simSuiteLogo = new Image(LOGO_URL, "SIM SUITE Logo");
         simSuiteLogo.setHeight("40px");
         simSuiteLogo.getStyle().set("cursor", "pointer");
         simSuiteLogo.addClickListener(e -> UI.getCurrent().navigate(""));

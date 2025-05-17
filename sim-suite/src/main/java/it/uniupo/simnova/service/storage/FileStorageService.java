@@ -31,6 +31,46 @@ public class FileStorageService {
     }
 
     /**
+     * Genera un nome file sicuro aggiungendo l'ID dello scenario e rimuovendo caratteri non validi.
+     *
+     * @param filename Nome originale del file.
+     * @return Nome del file sanitizzato.
+     */
+    private static String getSanitizedFilename(String filename) {
+        if (filename == null || filename.isBlank()) return "file";
+
+        String extension = "";
+        String baseName = filename;
+        int lastDotIndex = filename.lastIndexOf('.');
+
+        if (lastDotIndex >= 0) { // Gestisce file con estensione
+            extension = filename.substring(lastDotIndex); // Include il punto
+            baseName = filename.substring(0, lastDotIndex);
+        }
+
+        // Sanitizza il nome base
+        String sanitizedBaseName = baseName.replaceAll("[^a-zA-Z0-9_-]", "_");
+        // Rimuovi eventuali underscore multipli
+        sanitizedBaseName = sanitizedBaseName.replaceAll("_+", "_");
+        // Rimuovi eventuali underscore all'inizio o alla fine
+        sanitizedBaseName = sanitizedBaseName.replaceAll("^_|_$", "");
+
+        // Sanitizza l'estensione (se presente)
+        String sanitizedExtension = extension;
+        if (!extension.isEmpty()) {
+            sanitizedExtension = extension.replaceAll("[^a-zA-Z0-9.]", "");
+        }
+
+        // Se il nome base è stato completamente rimosso, usa un valore predefinito
+        if (sanitizedBaseName.isEmpty()) {
+            sanitizedBaseName = "file";
+        }
+
+        // Costruisci il nome file finale
+        return sanitizedBaseName + sanitizedExtension;
+    }
+
+    /**
      * Metodo eseguito dopo l'inizializzazione del bean per creare la directory
      * di archiviazione se non esiste.
      */
@@ -79,31 +119,6 @@ public class FileStorageService {
             // Rilancia come RuntimeException per segnalare l'errore al chiamante
             throw new RuntimeException("Failed to store file " + filename, e);
         }
-    }
-
-    /**
-     * Genera un nome file sicuro aggiungendo l'ID dello scenario e rimuovendo caratteri non validi.
-     *
-     * @param filename Nome originale del file.
-     * @return Nome del file sanitizzato.
-     */
-    private static String getSanitizedFilename(String filename) {
-        String extension = "";
-        String baseName = filename;
-        int lastDotIndex = filename.lastIndexOf('.');
-        if (lastDotIndex >= 0) { // Usa >= 0 per gestire file che iniziano con '.'
-            extension = filename.substring(lastDotIndex); // Include il '.'
-            baseName = filename.substring(0, lastDotIndex);
-        }
-        // Pulisce il nome base e l'estensione separatamente se necessario
-        String sanitizedBaseName = baseName.replaceAll("[^a-zA-Z0-9_-]", "_");
-        String sanitizedExtension = extension.replaceAll("[^a-zA-Z0-9.]", ""); // Permette solo lettere, numeri e '.' nell'estensione
-
-        // Costruisce il nuovo nome file
-        String newFilename = sanitizedBaseName + "_" + sanitizedExtension;
-
-        // Ulteriore sanitizzazione generale (potrebbe essere ridondante ma sicura)
-        return newFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
     }
 
     /**

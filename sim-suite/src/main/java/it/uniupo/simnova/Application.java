@@ -2,6 +2,7 @@ package it.uniupo.simnova;
 
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.server.AppShellSettings;
+import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.theme.Theme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,11 @@ import java.sql.SQLException;
  */
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 @Theme(value = "sim.suite")
+@PWA(
+        name = "Sim Suite",
+        shortName = "SimSuite",
+        iconPath = "icons/icon.png"
+)
 public class Application implements AppShellConfigurator {
     /**
      * Logger per la registrazione delle informazioni e degli errori.

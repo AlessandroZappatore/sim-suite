@@ -5,7 +5,9 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -40,10 +42,10 @@ public class StyleApp extends HorizontalLayout {
     /**
      * Crea un header completo con pulsante indietro, titolo, sottotitolo e icona.
      *
-     * @param title     Titolo da mostrare nell'header
-     * @param subtitle  Sottotitolo da mostrare nell'header
-     * @param iconComponent      Icona Vaadin da utilizzare
-     * @param iconColor Colore dell'icona (formato hex, es. "#4285F4", o CSS variable es. "var(--lumo-primary-color)")
+     * @param title         Titolo da mostrare nell'header
+     * @param subtitle      Sottotitolo da mostrare nell'header
+     * @param iconComponent Icona Vaadin da utilizzare
+     * @param iconColor     Colore dell'icona (formato hex, es. "#4285F4", o CSS variable es. "var(--lumo-primary-color)")
      * @return Layout completo dell'header
      */
     public static VerticalLayout getTitleSubtitle(String title, String subtitle, Icon iconComponent, String iconColor) {
@@ -259,14 +261,35 @@ public class StyleApp extends HorizontalLayout {
         scrollToTopButton.setTooltipText("Torna all'inizio della pagina");
         scrollToTopButton.getStyle()
                 .set("position", "fixed")
-                .set("bottom", "20px")
+                .set("top", "calc(50% - 50px)")
                 .set("right", "20px")
-                .set("z-index", "1000");
+                .set("z-index", "1000")
+                .set("box-shadow", "0 2px 5px rgba(0,0,0,0.2)");
         scrollToTopButton.addClickListener(e ->
-                UI.getCurrent().getPage().executeJs("window.scrollTo(0, 0);")
+                UI.getCurrent().getPage().executeJs("window.scrollTo({top: 0, behavior: 'smooth'});")
         );
 
         return scrollToTopButton;
+    }
+
+    public static Button getScrollDownButton() {
+        Button scrollToBottomButton = new Button(FontAwesome.Solid.ARROW_TURN_DOWN.create());
+        scrollToBottomButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ICON);
+        scrollToBottomButton.setAriaLabel("Vai alla fine della pagina");
+        scrollToBottomButton.setTooltipText("Vai alla fine della pagina");
+        scrollToBottomButton.getStyle()
+                .set("position", "fixed")
+                .set("top", "calc(50% + 10px)")
+                .set("right", "20px")
+                .set("z-index", "1000")
+                .set("box-shadow", "0 2px 5px rgba(0,0,0,0.2)");
+        scrollToBottomButton.addClickListener(e ->
+                UI.getCurrent().getPage().executeJs(
+                        "window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});"
+                )
+        );
+
+        return scrollToBottomButton;
     }
 
     public static void styleDetailsSummary(Details details) {
@@ -278,4 +301,53 @@ public class StyleApp extends HorizontalLayout {
                     .set("padding-bottom", "var(--lumo-space-s)");
         }
     }
+
+    public static void createConfirmDialog(String title, String message,
+                                           String confirmText, String cancelText,
+                                           Runnable confirmAction) {
+        Dialog dialog = new Dialog();
+        dialog.setCloseOnEsc(true);
+        dialog.setCloseOnOutsideClick(false);
+
+        // Intestazione
+        H3 titleComponent = new H3(title);
+        titleComponent.getStyle()
+                .set("margin-top", "0")
+                .set("margin-bottom", "var(--lumo-space-m)");
+
+        // Messaggio
+        Paragraph messageComponent = new Paragraph(message);
+        messageComponent.getStyle()
+                .set("color", "var(--lumo-secondary-text-color)")
+                .set("margin-bottom", "var(--lumo-space-l)");
+
+        // Pulsanti
+        Button confirmButton = new Button(confirmText);
+        confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        confirmButton.getStyle().set("margin-right", "var(--lumo-space-s)");
+        confirmButton.addClickListener(e -> {
+            dialog.close();
+            if (confirmAction != null) {
+                confirmAction.run();
+            }
+        });
+
+        Button cancelButton = new Button(cancelText);
+        cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        cancelButton.addClickListener(e -> dialog.close());
+
+        HorizontalLayout buttonLayout = new HorizontalLayout(cancelButton, confirmButton);
+        buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+        buttonLayout.setWidthFull();
+
+        // Layout principale
+        VerticalLayout mainLayout = new VerticalLayout(titleComponent, messageComponent, buttonLayout);
+        mainLayout.setPadding(true);
+        mainLayout.setSpacing(true);
+
+        dialog.add(mainLayout);
+        dialog.open();
+
+    }
+
 }

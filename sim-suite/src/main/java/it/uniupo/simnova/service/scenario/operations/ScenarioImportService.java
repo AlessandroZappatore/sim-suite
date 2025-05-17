@@ -8,46 +8,53 @@ import it.uniupo.simnova.domain.common.Accesso;
 import it.uniupo.simnova.domain.common.ParametroAggiuntivo;
 import it.uniupo.simnova.domain.common.Tempo;
 import it.uniupo.simnova.domain.paziente.EsameReferto;
-import it.uniupo.simnova.domain.scenario.Scenario;
 import it.uniupo.simnova.service.scenario.ScenarioService;
-import it.uniupo.simnova.service.scenario.components.EsameFisicoService;
-import it.uniupo.simnova.service.scenario.components.EsameRefertoService;
-import it.uniupo.simnova.service.scenario.components.PazienteT0Service;
+import it.uniupo.simnova.service.scenario.components.*;
 import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
-import it.uniupo.simnova.utils.DBConnect;
+import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
+import it.uniupo.simnova.service.storage.FileStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
 @Service
 public class ScenarioImportService {
 
+    private static final Logger logger = LoggerFactory.getLogger(ScenarioImportService.class);
     private final ScenarioService scenarioService;
     private final EsameFisicoService esameFisicoService;
     private final PazienteT0Service pazienteT0Service;
     private final EsameRefertoService esameRefertoService;
     private final AdvancedScenarioService advancedScenarioService;
-    private static final Logger logger = LoggerFactory.getLogger(ScenarioImportService.class);
+    private final PatientSimulatedScenarioService patientSimulatedScenarioService;
+    private final MaterialeService materialeService;
+    private final PresidiService presidiService;
+    private final AzioneChiaveService azioneChiaveService;
+    private final UnZipScenarioService unZipScenarioService;
+    private final FileStorageService fileStorageService;
 
     public ScenarioImportService(ScenarioService scenarioService, EsameFisicoService esameFisicoService,
-                                  PazienteT0Service pazienteT0Service, EsameRefertoService esameRefertoService,
-                                  AdvancedScenarioService advancedScenarioService) {
+                                 PazienteT0Service pazienteT0Service, EsameRefertoService esameRefertoService,
+                                 AdvancedScenarioService advancedScenarioService, PatientSimulatedScenarioService patientSimulatedScenarioService, MaterialeService materialeService, PresidiService presidiService, AzioneChiaveService azioneChiaveService, UnZipScenarioService unZipScenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
         this.esameFisicoService = esameFisicoService;
         this.pazienteT0Service = pazienteT0Service;
         this.esameRefertoService = esameRefertoService;
         this.advancedScenarioService = advancedScenarioService;
+        this.patientSimulatedScenarioService = patientSimulatedScenarioService;
+        this.materialeService = materialeService;
+        this.presidiService = presidiService;
+        this.azioneChiaveService = azioneChiaveService;
+        this.unZipScenarioService = unZipScenarioService;
+        this.fileStorageService = fileStorageService;
     }
 
     public boolean createScenarioByJSON(byte[] jsonFile) {
@@ -60,41 +67,48 @@ public class ScenarioImportService {
             Map<String, Object> jsonData = gson.fromJson(jsonString, new TypeToken<Map<String, Object>>() {
             }.getType());
 
-            // Estrai i dati principali dello scenario
-            Map<String, Object> scenarioData = (Map<String, Object>) jsonData.get("scenario");
-            int scenarioId = ((Double) scenarioData.get("id")).intValue();
-
-            // Verifica se lo scenario esiste già
-            if (scenarioService.existScenario(scenarioId)) {
-                logger.warn("Lo scenario con ID {} esiste già nel database", scenarioId);
-                return false;
-            }
-
             // Crea lo scenario in base al tipo
-            String scenarioType = (String) jsonData.get("type");
-            boolean creationResult;
+            String scenarioType = (String) jsonData.get("tipo");
+            int creationResult;
+
+            // Common data extraction
+            Map<String, Object> scenarioData = (Map<String, Object>) jsonData.get("scenario");
+            String titolo = (String) scenarioData.get("titolo");
+            String nomePaziente = (String) scenarioData.get("nome_paziente");
+            String patologia = (String) scenarioData.get("patologia");
+            String autori = (String) scenarioData.get("autori");
+            double timerGenerale = (Double) scenarioData.get("timer_generale");
+            String tipologia = (String) scenarioData.get("tipologia");
 
             switch (scenarioType) {
                 case "Quick Scenario":
-                    creationResult = createQuickScenarioFromJson(scenarioData);
+                    creationResult = createQuickScenarioFromJson(jsonData, titolo, nomePaziente, patologia, autori, (float) timerGenerale, tipologia);
                     break;
                 case "Advanced Scenario":
-                    creationResult = createAdvancedScenarioFromJson(jsonData);
+                    creationResult = advancedScenarioService.startAdvancedScenario(titolo, nomePaziente, patologia, autori, (float) timerGenerale, tipologia);
+                    if (creationResult > 0) {
+                        saveCommonScenarioComponents(creationResult, jsonData);
+                        saveAdvancedScenarioComponents(creationResult, jsonData);
+                    }
                     break;
                 case "Patient Simulated Scenario":
-                    creationResult = createPatientSimulatedScenarioFromJson(jsonData);
+                    creationResult = patientSimulatedScenarioService.startPatientSimulatedScenario(titolo, nomePaziente, patologia, autori, (float) timerGenerale, tipologia);
+                    if (creationResult > 0) {
+                        saveCommonScenarioComponents(creationResult, jsonData);
+                        saveAdvancedScenarioComponents(creationResult, jsonData);
+                        savePatientSimulatedScenarioComponents(creationResult, jsonData);
+                    }
                     break;
                 default:
                     logger.error("Tipo di scenario non riconosciuto: {}", scenarioType);
                     return false;
             }
 
-            if (!creationResult) {
+            if (creationResult <= 0) {
                 logger.error("Errore durante la creazione dello scenario di tipo {}", scenarioType);
                 return false;
             }
 
-            logger.info("Scenario creato con successo dal JSON con ID {}", scenarioId);
             return true;
 
         } catch (JsonSyntaxException e) {
@@ -106,113 +120,140 @@ public class ScenarioImportService {
         }
     }
 
-    private boolean createQuickScenarioFromJson(Map<String, Object> scenarioData) {
-        String titolo = (String) scenarioData.get("titolo");
-        String nomePaziente = (String) scenarioData.get("nome_paziente");
-        String patologia = (String) scenarioData.get("patologia");
-        String autori = (String) scenarioData.get("autori");
-        double timerGenerale = (Double) scenarioData.get("timer_generale");
-        String tipologia = (String) scenarioData.get("tipologia_paziente");
-
-        int newId = scenarioService.startQuickScenario(-1, titolo, nomePaziente, patologia, autori, (float) timerGenerale, tipologia);
-        if (newId <= 0) return false;
-
-        // Aggiorna i campi aggiuntivi
-        Scenario scenario = new Scenario(
-                newId,
-                titolo,
-                nomePaziente,
-                patologia,
-                (String) scenarioData.get("descrizione"),
-                (String) scenarioData.get("briefing"),
-                (String) scenarioData.get("patto_aula"),
-                (String) scenarioData.get("obiettivo"),
-                (String) scenarioData.get("moulage"),
-                (String) scenarioData.get("liquidi"),
-                (float) timerGenerale,
-                (String) scenarioData.get("autori"),
-                (String) scenarioData.get("tipologia_paziente"),
-                (String) scenarioData.get("infoGenitore"),
-                (String) scenarioData.get("target")
-        );
-
-        scenarioService.update(scenario);
-        return true;
-    }
-
     /**
-     * Crea uno scenario avanzato a partire dai dati JSON.
+     * Importa uno scenario da un file ZIP.
+     * Il file ZIP deve contenere un 'scenario.json' e una cartella 'media/' opzionale.
      *
-     * @param jsonData i dati JSON contenenti le informazioni dello scenario
-     * @return true se lo scenario è stato creato con successo, false altrimenti
+     * @param zipBytes I byte del file ZIP.
+     * @param fileName Il nome del file ZIP (attualmente non utilizzato ma potrebbe esserlo in futuro).
+     * @return true se l'importazione ha successo, false altrimenti.
      */
-    private boolean createAdvancedScenarioFromJson(Map<String, Object> jsonData) {
-        Map<String, Object> scenarioData = (Map<String, Object>) jsonData.get("scenario");
+    public boolean importScenarioFromZip(byte[] zipBytes, String fileName) {
+        logger.info("Inizio importazione scenario da file ZIP: {}", fileName);
+        try (InputStream zipInputStream = new ByteArrayInputStream(zipBytes)) {
+            UnZipScenarioService.UnzippedScenarioData unzippedData = unZipScenarioService.unzipScenario(zipInputStream);
 
-        // Crea lo scenario base
-        if (!createQuickScenarioFromJson(scenarioData)) {
+            byte[] scenarioJsonBytes = unzippedData.scenarioJson();
+            if (scenarioJsonBytes == null || scenarioJsonBytes.length == 0) {
+                logger.error("Il file 'scenario.json' è vuoto o mancante nello ZIP.");
+                return false;
+            }
+
+            // Crea lo scenario utilizzando il JSON estratto
+            boolean scenarioCreated = createScenarioByJSON(scenarioJsonBytes);
+
+            if (scenarioCreated) {
+                logger.info("Scenario creato con successo da 'scenario.json' contenuto in {}", fileName);
+
+                if (!unzippedData.mediaFiles().isEmpty()) {
+                    for(Map.Entry<String, byte[]> mediaFile : unzippedData.mediaFiles().entrySet()) {
+                        String mediaFileName = mediaFile.getKey();
+                        logger.info("File multimediale trovato: {}", mediaFileName);
+                        byte[] mediaFileBytes = mediaFile.getValue();
+                        InputStream mediaInputStream = new ByteArrayInputStream(mediaFileBytes);
+                        fileStorageService.storeFile(mediaInputStream, mediaFileName);
+                    }
+                    logger.warn("La gestione dei file multimediali non è ancora implementata.");
+                }
+                return true;
+            } else {
+                logger.error("Errore durante la creazione dello scenario dal JSON estratto da {}", fileName);
+                return false;
+            }
+
+        } catch (IOException e) {
+            logger.error("Errore di I/O durante la decompressione del file ZIP: {}", fileName, e);
             return false;
-        }
-
-        int scenarioId = ((Double) scenarioData.get("id")).intValue();
-
-        // Aggiungi alla tabella AdvancedScenario
-        final String sql = "INSERT INTO AdvancedScenario (id_advanced_scenario) VALUES (?)";
-        try (Connection conn = DBConnect.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, scenarioId);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            logger.error("Errore durante l'inserimento in AdvancedScenario", e);
+        } catch (IllegalArgumentException e) {
+            logger.error("Errore nel contenuto del file ZIP: {} - {}", fileName, e.getMessage(), e);
             return false;
-        }
-
-        // Salva i componenti aggiuntivi
-        return saveAdvancedScenarioComponents(scenarioId, jsonData);
-    }
-
-    /**
-     * Crea uno scenario simulato per pazienti a partire dai dati JSON.
-     *
-     * @param jsonData i dati JSON contenenti le informazioni dello scenario
-     * @return true se lo scenario è stato creato con successo, false altrimenti
-     */
-    private boolean createPatientSimulatedScenarioFromJson(Map<String, Object> jsonData) {
-        Map<String, Object> scenarioData = (Map<String, Object>) jsonData.get("scenario");
-
-        // Crea lo scenario avanzato
-        if (!createAdvancedScenarioFromJson(jsonData)) {
-            return false;
-        }
-
-        int scenarioId = ((Double) scenarioData.get("id")).intValue();
-        String sceneggiatura = (String) jsonData.get("sceneggiatura");
-
-        // Aggiungi alla tabella PatientSimulatedScenario
-        final String sql = "INSERT INTO PatientSimulatedScenario (id_patient_simulated_scenario, id_advanced_scenario, sceneggiatura) VALUES (?, ?, ?)";
-        try (Connection conn = DBConnect.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, scenarioId);
-            stmt.setInt(2, scenarioId);
-            stmt.setString(3, sceneggiatura != null ? sceneggiatura : "");
-            stmt.executeUpdate();
-            return true;
-        } catch (SQLException e) {
-            logger.error("Errore durante l'inserimento in PatientSimulatedScenario", e);
+        } catch (Exception e) {
+            logger.error("Errore imprevisto durante l'importazione dello scenario da ZIP: {}", fileName, e);
             return false;
         }
     }
 
-    /**
-     * Salva i componenti avanzati dello scenario.
-     *
-     * @param scenarioId l'ID dello scenario
-     * @param jsonData   i dati JSON contenenti le informazioni dello scenario
-     * @return true se il salvataggio è andato a buon fine, false altrimenti
-     */
-    private boolean saveAdvancedScenarioComponents(int scenarioId, Map<String, Object> jsonData) {
-        // Salva esame fisico
-        Map<String, Object> esameFisicoData = (Map<String, Object>) jsonData.get("esameFisico");
+    private int createQuickScenarioFromJson(Map<String, Object> scenarioData, String titolo, String nomePaziente, String patologia, String autori, float timerGenerale, String tipologia) {
+        int newId = scenarioService.startQuickScenario(-1, titolo, nomePaziente, patologia, autori, timerGenerale, tipologia);
+        if (newId <= 0) return -1;
+
+        saveCommonScenarioComponents(newId, scenarioData);
+
+        return newId;
+    }
+
+    private void saveCommonScenarioComponents(int scenarioId, Map<String, Object> scenarioData) {
+        Map<String, Object> scenario = (Map<String, Object>) scenarioData.get("scenario");
+
+        boolean targetResult = scenarioService.updateScenarioTarget(scenarioId, (String) scenario.get("target"));
+        if (!targetResult)
+            throw new RuntimeException("Errore durante il salvataggio del target");
+
+        boolean descrizioneResult = scenarioService.updateScenarioDescription(scenarioId, (String) scenario.get("descrizione"));
+        if (!descrizioneResult)
+            throw new RuntimeException("Errore durante il salvataggio della descrizione");
+
+        boolean briefingResult = scenarioService.updateScenarioBriefing(scenarioId, (String) scenario.get("briefing"));
+        if (!briefingResult)
+            throw new RuntimeException("Errore durante il salvataggio del briefing");
+
+        boolean pattoResult = scenarioService.updateScenarioPattoAula(scenarioId, (String) scenario.get("patto_aula"));
+        if (!pattoResult)
+            throw new RuntimeException("Errore durante il salvataggio del patto aula");
+
+        boolean obiettivoResult = scenarioService.updateScenarioObiettiviDidattici(scenarioId, (String) scenario.get("obiettivo"));
+        if (!obiettivoResult)
+            throw new RuntimeException("Errore durante il salvataggio dell'obiettivo didattico");
+
+        boolean moulaResult = scenarioService.updateScenarioMoulage(scenarioId, (String) scenario.get("moulage"));
+        if (!moulaResult)
+            throw new RuntimeException("Errore durante il salvataggio del moulage");
+
+        boolean liquidiResult = scenarioService.updateScenarioLiquidi(scenarioId, (String) scenario.get("liquidi"));
+        if (!liquidiResult)
+            throw new RuntimeException("Errore durante il salvataggio dei liquidi");
+
+        boolean infoGenitoreResult = scenarioService.updateScenarioGenitoriInfo(scenarioId, (String) scenario.get("infoGenitore"));
+        if (!infoGenitoreResult)
+            throw new RuntimeException("Errore durante il salvataggio delle informazioni per il genitore");
+
+
+        List<String> azioniChiaveList = (List<String>) scenarioData.get("azioniChiave");
+        boolean azioniChiaveResult = azioneChiaveService.updateAzioniChiaveForScenario(scenarioId, azioniChiaveList);
+        if (!azioniChiaveResult)
+            throw new RuntimeException("Errore durante il salvataggio delle azioni chiave");
+
+        List<Map<String, Object>> materialiList = (List<Map<String, Object>>) scenarioData.get("materialeNecessario");
+        List<Integer> idMateriali = new ArrayList<>();
+        if (materialiList != null) {
+            idMateriali = materialiList.stream()
+                    .map(m -> ((Double) m.get("idMateriale")).intValue())
+                    .collect(Collectors.toList());
+        }
+        boolean materialeNecessarioResult = materialeService.associaMaterialiToScenario(scenarioId, idMateriali);
+        if (!materialeNecessarioResult)
+            throw new RuntimeException("Errore durante il salvataggio del materiale necessario");
+
+
+        List<String> presidiList = (List<String>) scenarioData.get("presidi");
+        Set<String> presidi = presidiList != null ? new HashSet<>(presidiList) : new HashSet<>();
+
+        // Verifica che tutti i presidi esistano nel database
+        List<String> presidiEsistenti = PresidiService.getAllPresidi();
+        Set<String> presidiNonEsistenti = presidi.stream()
+                .filter(p -> !presidiEsistenti.contains(p))
+                .collect(Collectors.toSet());
+
+        if (!presidiNonEsistenti.isEmpty()) {
+            logger.warn("I seguenti presidi non sono presenti nel database: {}", presidiNonEsistenti);
+            throw new RuntimeException("Alcuni presidi non sono presenti nel database: " + String.join(", ", presidiNonEsistenti));
+        }
+
+        boolean presidiResult = presidiService.savePresidi(scenarioId, presidi);
+        if (!presidiResult)
+            throw new RuntimeException("Errore durante il salvataggio dei presidi");
+
+        Map<String, Object> esameFisicoData = (Map<String, Object>) scenarioData.get("esameFisico");
         if (esameFisicoData != null) {
             Map<String, String> sections = new HashMap<>();
             Map<String, String> sectionsData = (Map<String, String>) esameFisicoData.get("sections");
@@ -224,8 +265,7 @@ public class ScenarioImportService {
             }
         }
 
-        // Salva paziente T0
-        Map<String, Object> pazienteT0Data = (Map<String, Object>) jsonData.get("pazienteT0");
+        Map<String, Object> pazienteT0Data = (Map<String, Object>) scenarioData.get("pazienteT0");
         if (pazienteT0Data != null) {
             List<Map<String, Object>> venosiData = (List<Map<String, Object>>) pazienteT0Data.get("accessiVenosi");
             List<Map<String, Object>> arteriosiData = (List<Map<String, Object>>) pazienteT0Data.get("accessiArteriosi");
@@ -241,7 +281,7 @@ public class ScenarioImportService {
                     (Double) pazienteT0Data.get("T"),
                     ((Double) pazienteT0Data.get("SpO2")).intValue(),
                     ((Double) pazienteT0Data.get("FiO2")).intValue(),
-                    ((Double) pazienteT0Data.get("LitriOssigeno")).floatValue(),
+                    pazienteT0Data.get("LitriOssigeno") != null ? ((Double) pazienteT0Data.get("LitriOssigeno")).floatValue() : 0f,
                     ((Double) pazienteT0Data.get("EtCO2")).intValue(),
                     (String) pazienteT0Data.get("Monitor"),
                     venosi,
@@ -251,13 +291,12 @@ public class ScenarioImportService {
             }
         }
 
-        // Salva esami e referti
-        List<Map<String, Object>> esamiRefertiData = (List<Map<String, Object>>) jsonData.get("esamiReferti");
+        List<Map<String, Object>> esamiRefertiData = (List<Map<String, Object>>) scenarioData.get("esamiReferti");
         if (esamiRefertiData != null) {
             List<EsameReferto> esami = esamiRefertiData.stream()
                     .map(e -> new EsameReferto(
-                            ((Double) e.get("idEsameReferto")).intValue(),
-                            ((Double) e.get("idEsame")).intValue(),
+                            e.get("idEsame") != null ? ((Double) e.get("idEsame")).intValue() : -1,
+                            scenarioId,
                             (String) e.get("tipo"),
                             (String) e.get("media"),
                             (String) e.get("refertoTestuale")
@@ -268,7 +307,23 @@ public class ScenarioImportService {
                 logger.warn("Errore durante il salvataggio degli esami e referti");
             }
         }
+    }
 
+
+    private void savePatientSimulatedScenarioComponents(int scenarioId, Map<String, Object> jsonData) {
+        String sceneggiatura = (String) jsonData.get("sceneggiatura");
+        boolean result = patientSimulatedScenarioService.updateScenarioSceneggiatura(scenarioId, sceneggiatura);
+        if (!result) throw new RuntimeException("Errore durante il salvataggio della sceneggiatura");
+    }
+
+
+    /**
+     * Salva i componenti avanzati dello scenario.
+     *
+     * @param scenarioId l'ID dello scenario
+     * @param jsonData   i dati JSON contenenti le informazioni dello scenario
+     */
+    private void saveAdvancedScenarioComponents(int scenarioId, Map<String, Object> jsonData) {
         // Salva tempi (solo per Advanced Scenario)
         List<Map<String, Object>> tempiData = (List<Map<String, Object>>) jsonData.get("tempi");
         if (tempiData != null) {
@@ -316,7 +371,6 @@ public class ScenarioImportService {
             }
         }
 
-        return true;
     }
 
     /**
@@ -334,9 +388,8 @@ public class ScenarioImportService {
                         (String) a.get("tipologia"),
                         (String) a.get("posizione"),
                         (String) a.get("lato"),
-                        (Integer) a.get("misura")
+                        a.get("misura") != null ? ((Double) a.get("misura")).intValue() : null
                 ))
                 .collect(Collectors.toList());
     }
-
 }

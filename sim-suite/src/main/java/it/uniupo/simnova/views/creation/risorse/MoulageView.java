@@ -38,21 +38,21 @@ import java.util.Optional;
 @Menu(order = 10)
 public class MoulageView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     /**
+     * Logger per la registrazione degli eventi.
+     */
+    private static final Logger logger = LoggerFactory.getLogger(MoulageView.class);
+    /**
      * Servizio per la gestione degli scenari.
      */
     private final ScenarioService scenarioService;
-    /**
-     * ID dello scenario corrente.
-     */
-    private Integer scenarioId;
     /**
      * Area di testo per la descrizione del moulage.
      */
     private final TinyMce moulageEditor;
     /**
-     * Logger per la registrazione degli eventi.
+     * ID dello scenario corrente.
      */
-    private static final Logger logger = LoggerFactory.getLogger(MoulageView.class);
+    private Integer scenarioId;
 
     /**
      * Costruttore della view.
@@ -104,7 +104,26 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("esamiReferti/" + scenarioId)));
 
-        nextButton.addClickListener(e -> saveMoulageAndNavigate(nextButton.getUI()));
+        nextButton.addClickListener(e -> {
+            // Verifica se il contenuto è vuoto o contiene solo spazi bianchi/HTML vuoto
+            String content = moulageEditor.getValue();
+            boolean isEmpty = content == null || content.trim().isEmpty() ||
+                    content.trim().equals("<p><br></p>") || content.trim().equals("<p></p>");
+
+            if (isEmpty) {
+                // Se è vuoto, mostra il dialog di conferma
+                StyleApp.createConfirmDialog(
+                        "Descrizione vuota",
+                        "Sei sicuro di voler continuare senza una descrizione?",
+                        "Prosegui",
+                        "Annulla",
+                        () -> saveMoulageAndNavigate(nextButton.getUI())
+                );
+            } else {
+                // Se c'è contenuto, procedi direttamente
+                saveMoulageAndNavigate(nextButton.getUI());
+            }
+        });
     }
 
     /**

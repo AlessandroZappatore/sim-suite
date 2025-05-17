@@ -177,8 +177,8 @@ public class ScenariosListView extends Composite<VerticalLayout> {
 
         newScenarioButton.addClickListener(e -> {
             if (!detached.get()) {
-                boolean load = DialogSupport.showJsonUploadDialog(detached, executorService, scenarioImportService);
-                if (load) loadData();
+                DialogSupport.showZipUploadDialog(detached, executorService, scenarioImportService);
+                loadData();
             }
         });
     }
@@ -709,16 +709,21 @@ public class ScenariosListView extends Composite<VerticalLayout> {
     private void triggerDownload(StreamResource resource) {
         UI ui = UI.getCurrent();
         if (ui == null || detached.get() || ui.isClosing()) return;
+
         Button downloadButton = new Button();
         downloadButton.getStyle().set("display", "none");
+
         FileDownloadWrapper downloadWrapper = new FileDownloadWrapper(resource);
         downloadWrapper.wrapComponent(downloadButton);
+
         ui.access(() -> {
-            // Aggiungere al layout della UI corrente o un componente visibile
-            // getContent().add(downloadWrapper); // Se getContent() è il layout principale della vista
-            this.getContent().add(downloadWrapper); // Aggiunge alla radice di ScenariosListView
+            this.getContent().add(downloadWrapper);
             downloadButton.getElement().executeJs("this.click()")
-                    .then(result -> ui.access(() -> this.getContent().remove(downloadWrapper)));
+                    .then(result -> ui.access(() -> {
+                        if (!detached.get()) {
+                            this.getContent().remove(downloadWrapper);
+                        }
+                    }));
         });
     }
 

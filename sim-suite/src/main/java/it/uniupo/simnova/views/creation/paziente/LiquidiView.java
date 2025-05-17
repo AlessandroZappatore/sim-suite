@@ -37,21 +37,21 @@ import java.util.Optional;
 @Menu(order = 11)
 public class LiquidiView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     /**
+     * Logger per la registrazione degli eventi.
+     */
+    private static final Logger logger = LoggerFactory.getLogger(LiquidiView.class);
+    /**
      * Servizio per la gestione degli scenari.
      */
     private final ScenarioService scenarioService;
-    /**
-     * ID dello scenario corrente.
-     */
-    private Integer scenarioId;
     /**
      * Area di testo per l'inserimento dei liquidi e presidi.
      */
     private final TinyMce liquidiEditor;
     /**
-     * Logger per la registrazione degli eventi.
+     * ID dello scenario corrente.
      */
-    private static final Logger logger = LoggerFactory.getLogger(LiquidiView.class);
+    private Integer scenarioId;
 
     /**
      * Costruttore che inizializza l'interfaccia utente.
@@ -104,7 +104,26 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("moulage/" + scenarioId)));
 
-        nextButton.addClickListener(e -> saveLiquidiAndNavigate(nextButton.getUI()));
+        nextButton.addClickListener(e -> {
+            // Verifica se il contenuto è vuoto o contiene solo spazi bianchi/HTML vuoto
+            String content = liquidiEditor.getValue();
+            boolean isEmpty = content == null || content.trim().isEmpty() ||
+                    content.trim().equals("<p><br></p>") || content.trim().equals("<p></p>");
+
+            if (isEmpty) {
+                // Se è vuoto, mostra il dialog di conferma
+                StyleApp.createConfirmDialog(
+                        "Descrizione vuota",
+                        "Sei sicuro di voler continuare senza una descrizione?",
+                        "Prosegui",
+                        "Annulla",
+                        () -> saveLiquidiAndNavigate(nextButton.getUI())
+                );
+            } else {
+                // Se c'è contenuto, procedi direttamente
+                saveLiquidiAndNavigate(nextButton.getUI());
+            }
+        });
     }
 
     /**

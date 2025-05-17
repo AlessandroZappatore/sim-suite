@@ -1,6 +1,8 @@
 package it.uniupo.simnova.views.common.components;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
@@ -11,14 +13,15 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 
-import static it.uniupo.simnova.views.constant.CreditConst.DATE;
-import static it.uniupo.simnova.views.constant.CreditConst.VERSION;
+import static it.uniupo.simnova.views.constant.CreditConst.*;
 
 /**
  * Componente riutilizzabile per visualizzare i crediti dell'applicazione.
- * Include informazioni sullo sviluppatore, l'università e i contatti.
+ * Include informazioni sull'ideatore, l'università e contatti dello sviluppatore
+ * visualizzati in un popup.
  */
 public class CreditsComponent extends VerticalLayout {
+
     /**
      * Crea una nuova istanza del componente crediti.
      */
@@ -38,39 +41,90 @@ public class CreditsComponent extends VerticalLayout {
         );
         creditsTitle.getStyle().set("margin", "0 0 4px 0");
 
-        // Riga sviluppatore con nome
-        HorizontalLayout developerRow = getHorizontalLayout();
+        // Riga ideatore con nome e link (uses existing helper)
+        HorizontalLayout ideatorRow = getRow(VaadinIcon.LIGHTBULB.create());
 
-        // Riga contatti
-        HorizontalLayout contactsRow = new HorizontalLayout();
-        contactsRow.setSpacing(true);
-        contactsRow.setPadding(false);
-        contactsRow.setMargin(false);
-        contactsRow.setAlignItems(FlexComponent.Alignment.CENTER);
+        // Riga sviluppatore con nome e azione per aprire il popup
+        HorizontalLayout developerRow = createDeveloperRow();
 
-        Icon emailIcon = new Icon(VaadinIcon.ENVELOPE);
-        emailIcon.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
+        // Riga università con icona (uses existing helper pattern)
+        HorizontalLayout universityRow = createUniversityRow();
 
-        Anchor emailLink = new Anchor("mailto:alessandrozappatore03@gmail.com", "alessandrozappatore03@gmail.com");
-        emailLink.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
+        // Riga versione e data (uses existing helper pattern)
+        HorizontalLayout versionRow = createVersionRow();
 
-        Icon githubIcon = FontAwesome.Brands.GITHUB.create();
-        githubIcon.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
-        githubIcon.getStyle().set("margin-left", "8px");
 
-        Anchor githubLink = new Anchor("https://github.com/AlessandroZappatore", "Github: AlessandroZappatore");
-        githubLink.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
-        githubLink.getElement().setAttribute("target", "_blank");
-        githubLink.getElement().setAttribute("rel", "noopener noreferrer");
+        // Aggiunta dei componenti al layout principale
+        this.add(creditsTitle, ideatorRow, developerRow, universityRow, versionRow);
+    }
 
-        contactsRow.add(emailIcon, emailLink, githubIcon, githubLink);
+    /**
+     * Helper method to create a standard row with an icon and a linked Anchor.
+     *
+     * @param icon The icon for the row.
+     * @return A HorizontalLayout representing the row.
+     */
+    private static HorizontalLayout getRow(Icon icon) {
+        HorizontalLayout row = new HorizontalLayout();
+        row.setSpacing(true);
+        row.setPadding(false);
+        row.setMargin(false);
+        row.setAlignItems(Alignment.CENTER);
 
-        // Riga università con icona
-        HorizontalLayout universityRow = new HorizontalLayout();
-        universityRow.setSpacing(true);
-        universityRow.setPadding(false);
-        universityRow.setMargin(false);
-        universityRow.setAlignItems(FlexComponent.Alignment.CENTER);
+        Anchor linkAnchor = new Anchor(it.uniupo.simnova.views.constant.CreditConst.IDEATORLINK, "Ideatore: Antonio Scalogna");
+        linkAnchor.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
+        linkAnchor.getElement().setAttribute("target", "_blank");
+        linkAnchor.getElement().setAttribute("rel", "noopener noreferrer");
+
+        icon.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
+
+        row.add(icon, linkAnchor);
+        return row;
+    }
+
+    /**
+     * Creates the row for the developer, with a clickable name.
+     * @return A HorizontalLayout for the developer row.
+     */
+    private HorizontalLayout createDeveloperRow() {
+        HorizontalLayout row = new HorizontalLayout();
+        row.setSpacing(true);
+        row.setPadding(false);
+        row.setMargin(false);
+        row.setAlignItems(Alignment.CENTER);
+
+        Icon developerIcon = VaadinIcon.USER.create();
+        developerIcon.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
+
+        // Use a Button styled as text/link to be clickable
+        Button developerNameButton = new Button("Sviluppatore: Alessandro Zappatore");
+        developerNameButton.addClassNames(
+                LumoUtility.TextColor.SECONDARY,
+                LumoUtility.FontSize.XSMALL,
+                LumoUtility.Padding.Right.NONE, // Remove default button padding
+                LumoUtility.Padding.Left.NONE,
+                LumoUtility.Background.TRANSPARENT
+        );
+
+        developerNameButton.getStyle().set("cursor", "pointer"); // Indicate it's clickable
+
+        // Add click listener to open the dialog
+        developerNameButton.addClickListener(e -> openDeveloperInfoDialog());
+
+        row.add(developerIcon, developerNameButton);
+        return row;
+    }
+
+    /**
+     * Creates the row for the university.
+     * @return A HorizontalLayout for the university row.
+     */
+    private HorizontalLayout createUniversityRow() {
+        HorizontalLayout row = new HorizontalLayout();
+        row.setSpacing(true);
+        row.setPadding(false);
+        row.setMargin(false);
+        row.setAlignItems(FlexComponent.Alignment.CENTER);
 
         Icon universityIcon = new Icon(VaadinIcon.ACADEMY_CAP);
         universityIcon.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
@@ -80,13 +134,20 @@ public class CreditsComponent extends VerticalLayout {
         universityLink.getElement().setAttribute("target", "_blank");
         universityLink.getElement().setAttribute("rel", "noopener noreferrer");
 
-        universityRow.add(universityIcon, universityLink);
+        row.add(universityIcon, universityLink);
+        return row;
+    }
 
-        HorizontalLayout versionRow = new HorizontalLayout();
-        versionRow.setSpacing(true);
-        versionRow.setPadding(false);
-        versionRow.setMargin(false);
-        versionRow.setAlignItems(FlexComponent.Alignment.CENTER);
+    /**
+     * Creates the row for version and date.
+     * @return A HorizontalLayout for the version/date row.
+     */
+    private HorizontalLayout createVersionRow() {
+        HorizontalLayout row = new HorizontalLayout();
+        row.setSpacing(true);
+        row.setPadding(false);
+        row.setMargin(false);
+        row.setAlignItems(FlexComponent.Alignment.CENTER);
 
         Icon versionIcon = new Icon(VaadinIcon.INFO_CIRCLE);
         versionIcon.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
@@ -96,30 +157,61 @@ public class CreditsComponent extends VerticalLayout {
 
         Icon dateIcon = new Icon(VaadinIcon.CALENDAR);
         dateIcon.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
-        dateIcon.getStyle().set("margin-left", "8px");
+        dateIcon.getStyle().set("margin-left", "8px"); // Add some space between version and date
 
         Span dateText = new Span("Data: " + DATE);
         dateText.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
 
-        versionRow.add(versionIcon, versionText, dateIcon, dateText);
-        // Aggiunta dei componenti al layout
-        this.add(creditsTitle, developerRow, contactsRow, universityRow, versionRow);
+        row.add(versionIcon, versionText, dateIcon, dateText);
+        return row;
     }
 
-    private static HorizontalLayout getHorizontalLayout() {
-        HorizontalLayout developerRow = new HorizontalLayout();
-        developerRow.setSpacing(true);
-        developerRow.setPadding(false);
-        developerRow.setMargin(false);
-        developerRow.setAlignItems(Alignment.CENTER);
 
-        Icon developerIcon = new Icon(VaadinIcon.USER);
-        developerIcon.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
+    /**
+     * Creates and opens the dialog with developer contact information.
+     */
+    private void openDeveloperInfoDialog() {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Contatti Sviluppatore");
 
-        Span developerText = new Span("Sviluppato da Alessandro Zappatore");
-        developerText.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
+        // Create the content for the dialog
+        VerticalLayout dialogContent = new VerticalLayout();
+        dialogContent.setPadding(false);
+        dialogContent.setSpacing(true); // Space between contact lines
+        dialogContent.setAlignItems(Alignment.START);
+        dialogContent.setWidthFull(); // Ensure content uses dialog width
 
-        developerRow.add(developerIcon, developerText);
-        return developerRow;
+        // Email Row
+        HorizontalLayout emailRow = new HorizontalLayout();
+        emailRow.setSpacing(true);
+        emailRow.setAlignItems(Alignment.CENTER);
+        Icon emailIcon = new Icon(VaadinIcon.ENVELOPE);
+        emailIcon.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
+        Anchor emailLink = new Anchor("mailto:alessandrozappatore03@gmail.com", "alessandrozappatore03@gmail.com");
+        emailLink.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
+        emailRow.add(emailIcon, emailLink);
+
+        // GitHub Row
+        HorizontalLayout githubRow = new HorizontalLayout();
+        githubRow.setSpacing(true);
+        githubRow.setAlignItems(Alignment.CENTER);
+        Icon githubIcon = FontAwesome.Brands.GITHUB.create();
+        githubIcon.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
+        Anchor githubLink = new Anchor("https://github.com/AlessandroZappatore", "Github: AlessandroZappatore");
+        githubLink.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
+        githubLink.getElement().setAttribute("target", "_blank");
+        githubLink.getElement().setAttribute("rel", "noopener noreferrer");
+        githubRow.add(githubIcon, githubLink);
+
+        dialogContent.add(emailRow, githubRow);
+
+        dialog.add(dialogContent);
+
+        // Add a close button to the dialog header
+        Button closeButton = new Button(new Icon(VaadinIcon.CLOSE), e -> dialog.close());
+        closeButton.addThemeVariants(); // Add default button theme (optional, but common for close)
+        dialog.getHeader().add(closeButton);
+
+        dialog.open();
     }
 }

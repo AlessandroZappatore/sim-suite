@@ -348,7 +348,10 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
 
         // Pulsante "Torna su"
         Button scrollToTopButton = StyleApp.getScrollButton();
-        mainLayout.add(scrollToTopButton);
+        Button scrollDownButton = StyleApp.getScrollDownButton();
+        VerticalLayout scrollButtonContainer = new VerticalLayout(scrollToTopButton, scrollDownButton);
+
+        mainLayout.add(scrollButtonContainer);
 
         backButton.addClickListener(e -> UI.getCurrent().navigate("scenari"));
     }
