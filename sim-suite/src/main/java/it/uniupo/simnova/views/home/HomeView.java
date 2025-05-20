@@ -17,11 +17,10 @@ import it.uniupo.simnova.views.common.components.AppHeader;
 import it.uniupo.simnova.views.common.components.CreditsComponent;
 
 /**
- * Vista principale dell'applicazione SIM SUITE.
+ * Vista principale (homepage) dell'applicazione SIM SUITE.
  * <p>
- * Questa classe rappresenta la homepage dell'applicazione, contenente il titolo,
- * il sottotitolo e i pulsanti principali per navigare verso le altre sezioni.
- * Implementata utilizzando Vaadin Flow e il tema Lumo.
+ * Fornisce l'interfaccia iniziale con titolo, sottotitolo e pulsanti per la navigazione
+ * verso le principali funzionalità della piattaforma. Utilizza Vaadin Flow e il tema Lumo.
  * </p>
  *
  * @author Alessandro Zappatore
@@ -34,11 +33,10 @@ public class HomeView extends Composite<VerticalLayout> {
     /**
      * Costruttore della vista Home.
      * <p>
-     * Inizializza l'interfaccia utente con:
-     * - Un header
-     * - Titolo e sottotitolo centrati
-     * - Pulsanti principali per la navigazione
+     * Inizializza l'interfaccia utente con header, titoli e pulsanti principali.
      * </p>
+     *
+     * @param fileStorageService servizio per la gestione dei file, utilizzato dall'header
      */
     public HomeView(FileStorageService fileStorageService) {
         // Header dell'applicazione
@@ -115,11 +113,11 @@ public class HomeView extends Composite<VerticalLayout> {
     }
 
     /**
-     * Crea un pulsante principale con stile personalizzato.
+     * Crea un pulsante principale con stile personalizzato per la homepage.
      *
-     * @param text     Il testo da visualizzare sul pulsante
-     * @param iconName Il nome dell'icona da visualizzare (dalla libreria Vaadin)
-     * @return Un pulsante configurato con lo stile principale dell'applicazione
+     * @param text     testo da visualizzare sul pulsante
+     * @param iconName nome dell'icona Vaadin da visualizzare
+     * @return pulsante configurato con stile principale
      */
     private Button createMainButton(String text, String iconName) {
         Button button = new Button(text, new Icon(iconName));
@@ -142,3 +140,4 @@ public class HomeView extends Composite<VerticalLayout> {
         return button;
     }
 }
+

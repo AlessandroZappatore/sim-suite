@@ -58,8 +58,7 @@ public class ExamSupport {
                     examContent.add(createMediaPreview(esame.getMedia()));
                 }
 
-                // Referto testuale - ora viene aggiunto come parte dell'examCard con stile migliorato
-                // Referto testuale - ora viene aggiunto come parte dell'examCard con stile migliorato
+
                 if (esame.getRefertoTestuale() != null && !esame.getRefertoTestuale().isEmpty()) {
                     Div refertoContainer = new Div();
                     refertoContainer.getStyle()

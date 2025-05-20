@@ -18,99 +18,132 @@ import static it.uniupo.simnova.service.export.helper.pdf.SectionDrawer.*;
 import static it.uniupo.simnova.service.export.helper.pdf.SectionDrawer.drawSubsection;
 import static it.uniupo.simnova.service.export.helper.pdf.SectionDrawer.drawWrappedText;
 import static it.uniupo.simnova.service.export.helper.pdf.SectionDrawer.renderHtmlWithFormatting;
-import static it.uniupo.simnova.views.constant.PdfConstant.*;
-import static it.uniupo.simnova.views.constant.PdfConstant.LEADING;
+import static it.uniupo.simnova.service.export.helper.pdf.PdfConstant.*;
+import static it.uniupo.simnova.service.export.helper.pdf.PdfConstant.LEADING;
 
+/**
+ * Classe di utilità per la generazione della sezione "Stato Paziente" nel PDF.
+ * Permette di esportare i parametri vitali, accessi venosi/arteriosi ed esame fisico
+ * del paziente associato a uno scenario.
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 public class ScenarioPatient {
+    /**
+     * Logger per la classe ScenarioPatient.
+     */
     private static final Logger logger = LoggerFactory.getLogger(ScenarioPatient.class);
 
+    /**
+     * Crea la sezione "Stato Paziente" nel PDF, includendo parametri vitali,
+     * accessi venosi/arteriosi ed esame fisico a seconda dei flag forniti.
+     *
+     * @param scenarioId         ID dello scenario di riferimento.
+     * @param param              true per includere i parametri vitali.
+     * @param acces              true per includere gli accessi venosi/arteriosi.
+     * @param fisic              true per includere l'esame fisico.
+     * @param pazienteT0Service  Service per recuperare i dati del paziente.
+     * @param esameFisicoService Service per recuperare l'esame fisico.
+     * @throws IOException In caso di errore nella scrittura del PDF.
+     */
     public static void createPatientSection(Integer scenarioId, boolean param, boolean acces, boolean fisic, PazienteT0Service pazienteT0Service, EsameFisicoService esameFisicoService) throws IOException {
+        // Se tutte le sezioni sono false, non fare nulla
         if (!param && !acces && !fisic) {
-            return; // Se tutte le sezioni sono false, non fare nulla
+            return;
         }
 
+        // Verifica se c'è spazio sufficiente per la sezione
         checkForNewPage(LEADING * 3); // Spazio stimato per drawSection
 
+        // Titolo principale della sezione
         drawSection("Stato Paziente", "");
 
+        // Recupera i dati del paziente T0
         PazienteT0 paziente = pazienteT0Service.getPazienteT0ById(scenarioId);
         if (paziente != null) {
 
-
+            // Se richiesto, stampa i parametri vitali
             if (param) {
                 checkForNewPage(LEADING * 3); // Spazio stimato per drawSubsection
                 drawSubsection("Parametri Vitali");
 
+                // PA
                 checkForNewPage(LEADING * 2); // Spazio per una riga
                 drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("PA: %s mmHg", paziente.getPA()));
 
-                checkForNewPage(LEADING * 2); // Spazio per una riga
+                // FC
+                checkForNewPage(LEADING * 2);
                 drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("FC: %d bpm", paziente.getFC()));
 
-                checkForNewPage(LEADING * 2); // Spazio per una riga
+                // RR
+                checkForNewPage(LEADING * 2);
                 drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("RR: %d atti/min", paziente.getRR()));
 
-                checkForNewPage(LEADING * 2); // Spazio per una riga
+                // Temperatura
+                checkForNewPage(LEADING * 2);
                 drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("Temperatura: %.1f °C", paziente.getT()));
 
-                checkForNewPage(LEADING * 2); // Spazio per una riga
+                // SpO2
+                checkForNewPage(LEADING * 2);
                 drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("SpO2: %d%%", paziente.getSpO2()));
 
-
+                // FiO2 (solo se > 0)
                 if (paziente.getFiO2() > 0) {
-                    checkForNewPage(LEADING * 2); // Spazio per una riga
-
-                    drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("FiO2: %d%%", paziente.getFiO2())); // Esempio: formatta come intero %
+                    checkForNewPage(LEADING * 2);
+                    drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("FiO2: %d%%", paziente.getFiO2()));
                 }
 
-
+                // Litri O2 (solo se > 0)
                 if (paziente.getLitriO2() > 0) {
-                    checkForNewPage(LEADING * 2); // Spazio per una riga
-                    drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("Litri O2: %.1f L/min", paziente.getLitriO2())); // Esempio: formatta con un decimale L/min
+                    checkForNewPage(LEADING * 2);
+                    drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("Litri O2: %.1f L/min", paziente.getLitriO2()));
                 }
 
-                checkForNewPage(LEADING * 2); // Spazio per una riga
+                // EtCO2
+                checkForNewPage(LEADING * 2);
                 drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("EtCO2: %d mmHg", paziente.getEtCO2()));
 
+                // Monitor (solo se presente)
                 if (paziente.getMonitor() != null && !paziente.getMonitor().isEmpty()) {
-                    checkForNewPage(LEADING * 2); // Spazio per una riga
+                    checkForNewPage(LEADING * 2);
                     drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("Monitor: %s", paziente.getMonitor()));
                 }
-                PdfExportService.currentYPosition -= LEADING; // Aggiungi un piccolo spazio dopo il blocco dei parametri vitali
+                PdfExportService.currentYPosition -= LEADING; // Spazio dopo il blocco parametri vitali
             }
 
+            // Accessi venosi
             List<Accesso> accessiVenosi = paziente.getAccessiVenosi();
             if (accessiVenosi != null && !accessiVenosi.isEmpty() && acces) {
-
                 checkForNewPage(LEADING * 3); // Spazio stimato per drawSubsection
                 drawSubsection("Accessi Venosi");
 
                 for (Accesso accesso : accessiVenosi) {
-
                     checkForNewPage(LEADING * 2); // Spazio stimato per una riga
+                    // Descrizione accesso venoso
                     drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, "• " + accesso.getTipologia() + " - " + accesso.getPosizione() + " (" + accesso.getLato() + ") - " + accesso.getMisura() + "G");
                 }
-                PdfExportService.currentYPosition -= LEADING; // Aggiungi spazio dopo la sezione
+                PdfExportService.currentYPosition -= LEADING; // Spazio dopo la sezione
             }
 
+            // Accessi arteriosi
             List<Accesso> accessiArteriosi = paziente.getAccessiArteriosi();
             if (accessiArteriosi != null && !accessiArteriosi.isEmpty() && acces) {
-
                 checkForNewPage(LEADING * 3); // Spazio stimato per drawSubsection
                 drawSubsection("Accessi Arteriosi");
 
                 for (Accesso accesso : accessiArteriosi) {
-
                     checkForNewPage(LEADING * 2); // Spazio stimato per una riga
+                    // Descrizione accesso arterioso
                     drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, "• " + accesso.getTipologia() + " - " + accesso.getPosizione() + " (" + accesso.getLato() + ") - " + accesso.getMisura() + "G");
                 }
-                PdfExportService.currentYPosition -= LEADING; // Aggiungi spazio dopo la sezione
+                PdfExportService.currentYPosition -= LEADING; // Spazio dopo la sezione
             }
         }
 
+        // Esame fisico
         EsameFisico esame = esameFisicoService.getEsameFisicoById(scenarioId);
         if (esame != null && esame.getSections() != null && !esame.getSections().isEmpty() && fisic) {
-
             checkForNewPage(LEADING * 3); // Spazio stimato per drawSubsection
             drawSubsection("Esame Fisico");
 
@@ -120,17 +153,20 @@ public class ScenarioPatient {
                 String key = entry.getKey();
                 String value = entry.getValue();
 
+                // Solo se chiave e valore sono valorizzati
                 if (key != null && !key.trim().isEmpty() && value != null && !value.trim().isEmpty()) {
                     checkForNewPage(LEADING * 4);
 
+                    // Titolo della sottosezione (es. "Torace:")
                     drawWrappedText(FONTBOLD, BODY_FONT_SIZE, MARGIN + 20, key + ":");
 
+                    // Testo formattato della sezione (può contenere HTML)
                     renderHtmlWithFormatting(value, MARGIN + 40);
 
-                    PdfExportService.currentYPosition -= LEADING; // Aggiungi piccolo spazio tra le entry
+                    PdfExportService.currentYPosition -= LEADING; // Spazio tra le entry
                 }
             }
-            PdfExportService.currentYPosition -= LEADING; // Aggiungi spazio dopo la sezione
+            PdfExportService.currentYPosition -= LEADING; // Spazio dopo la sezione
         }
 
         logger.info("Patient section creata con page break granulare e vitali riga per riga.");

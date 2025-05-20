@@ -11,21 +11,32 @@ import java.util.List;
 
 import static it.uniupo.simnova.service.export.helper.pdf.SectionDrawer.drawSection;
 
+/**
+ * Classe per la creazione delle varie sezioni della descrizione dello scenario.
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 public class ScenarioDescription {
-
-    public static void createScenarioDescription(Scenario scenario,
-                                                 boolean desc,
-                                                 boolean brief,
-                                                 boolean infoGen,
-                                                 boolean patto,
-                                                 boolean azioni,
-                                                 boolean obiettivi,
-                                                 boolean moula,
-                                                 boolean liqui,
-                                                 boolean matNec,
-                                                 ScenarioService scenarioService,
-                                                 MaterialeService materialeService,
-                                                 AzioneChiaveService azioneChiaveService) throws IOException {
+    /**
+     * Crea la descrizione dello scenario.
+     *
+     * @param scenario            Lo scenario contenente tutte le informazioni.
+     * @param desc                true se la descrizione deve essere stampata, false altrimenti.
+     * @param brief               true se il briefing deve essere stampato, false altrimenti.
+     * @param infoGen             true se le informazioni dai genitori devono essere stampate, false altrimenti.
+     * @param patto               true se il patto d'aula deve essere stampato, false altrimenti.
+     * @param azioni              true se le azioni chiave devono essere stampate, false altrimenti.
+     * @param obiettivi           true se gli obiettivi didattici devono essere stampati, false altrimenti.
+     * @param moula               true se il moulage deve essere stampato, false altrimenti.
+     * @param liqui               true se i liquidi devono essere stampati, false altrimenti.
+     * @param matNec              true se i materiali necessari devono essere stampati, false altrimenti.
+     * @param scenarioService     Servizio per la gestione degli scenari.
+     * @param materialeService    Servizio per la gestione dei materiali necessari.
+     * @param azioneChiaveService Servizio per la gestione delle azioni chiave.
+     * @throws IOException Eccezione sollevata in caso di errore durante la scrittura del file PDF.
+     */
+    public static void createScenarioDescription(Scenario scenario, boolean desc, boolean brief, boolean infoGen, boolean patto, boolean azioni, boolean obiettivi, boolean moula, boolean liqui, boolean matNec, ScenarioService scenarioService, MaterialeService materialeService, AzioneChiaveService azioneChiaveService) throws IOException {
         // Descrizione
         if (scenario.getDescrizione() != null && !scenario.getDescrizione().isEmpty() && desc) {
             drawSection("Descrizione", scenario.getDescrizione());
@@ -36,6 +47,7 @@ public class ScenarioDescription {
             drawSection("Briefing", scenario.getBriefing());
         }
 
+        // Informazioni dai genitori
         if (scenarioService.isPediatric(scenario.getId()) && scenario.getInfoGenitore() != null && !scenario.getInfoGenitore().isEmpty() && infoGen) {
             drawSection("Informazioni dai genitori", scenario.getInfoGenitore());
         }
@@ -49,6 +61,7 @@ public class ScenarioDescription {
         List<String> nomiAzioniChiave = azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenario.getId());
         if (nomiAzioniChiave != null && !nomiAzioniChiave.isEmpty() && azioni) {
             StringBuilder azioniFormattate = new StringBuilder();
+            // Aggiunge un bullet point per ogni azione chiave
             for (String azione : nomiAzioniChiave) {
                 azioniFormattate.append("• ").append(azione).append("\n");
             }
@@ -78,6 +91,7 @@ public class ScenarioDescription {
         List<Materiale> materialiNecessari = materialeService.getMaterialiByScenarioId(scenario.getId());
         if (materialiNecessari != null && !materialiNecessari.isEmpty() && matNec) {
             StringBuilder materialiNecessariFormattati = new StringBuilder();
+            // Aggiunge un bullet point per ogni materiale necessario
             for (Materiale materiale : materialiNecessari) {
                 materialiNecessariFormattati.append("• ").append(materiale.getNome()).append(": ").append(materiale.getDescrizione()).append("\n");
             }

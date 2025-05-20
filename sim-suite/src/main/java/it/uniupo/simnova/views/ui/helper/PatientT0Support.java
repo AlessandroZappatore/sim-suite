@@ -11,71 +11,24 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.domain.common.Accesso;
 import it.uniupo.simnova.domain.paziente.EsameFisico;
 import it.uniupo.simnova.domain.common.ParametroAggiuntivo;
 import it.uniupo.simnova.domain.paziente.PazienteT0;
+import it.uniupo.simnova.service.scenario.components.EsameFisicoService;
+import it.uniupo.simnova.views.common.utils.StyleApp;
+import it.uniupo.simnova.views.common.utils.TinyEditor;
+import org.vaadin.tinymce.TinyMce;
 
 import java.util.List;
 import java.util.Map;
 
 public class PatientT0Support {
 
-    // Adattatore da PazienteT0 a VitalSignsDataProvider
-    private record PazienteT0VitalSignsAdapter(PazienteT0 paziente) implements VitalSignsDataProvider {
-
-        @Override
-        public String getPA() {
-            return paziente.getPA();
-        }
-
-        @Override
-        public Integer getFC() {
-            return paziente.getFC();
-        }
-
-        @Override
-        public Double getT() {
-            return paziente.getT();
-        }
-
-        @Override
-        public Integer getRR() {
-            return paziente.getRR();
-        }
-
-        @Override
-        public Integer getSpO2() {
-            return paziente.getSpO2();
-        }
-
-        @Override
-        public Integer getFiO2() {
-            return paziente.getFiO2();
-        }
-
-        @Override
-        public Float getLitriO2() {
-            return paziente.getLitriO2();
-        }
-
-        @Override
-        public Integer getEtCO2() {
-            return paziente.getEtCO2();
-        }
-
-        @Override
-        public String getAdditionalMonitorText() {
-            return paziente.getMonitor();
-        }
-
-        @Override
-        public List<ParametroAggiuntivo> getAdditionalParameters() {
-            return List.of();
-        }
-    }
-
-    public static VerticalLayout createPatientContent(PazienteT0 paziente, EsameFisico esame, Integer scenarioId) {
+    public static VerticalLayout createPatientContent(PazienteT0 paziente, EsameFisico esame, Integer scenarioId, EsameFisicoService esameFisicoService) {
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(false);
         layout.setSpacing(true);
@@ -235,17 +188,17 @@ public class PatientT0Support {
             examLayout.getStyle().set("margin-top", "var(--lumo-space-m)");
             examLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-            addSectionIfNotEmpty(examLayout, "Generale", sections.get("Generale"));
-            addSectionIfNotEmpty(examLayout, "Pupille", sections.get("Pupille"));
-            addSectionIfNotEmpty(examLayout, "Collo", sections.get("Collo"));
-            addSectionIfNotEmpty(examLayout, "Torace", sections.get("Torace"));
-            addSectionIfNotEmpty(examLayout, "Cuore", sections.get("Cuore"));
-            addSectionIfNotEmpty(examLayout, "Addome", sections.get("Addome"));
-            addSectionIfNotEmpty(examLayout, "Retto", sections.get("Retto"));
-            addSectionIfNotEmpty(examLayout, "Cute", sections.get("Cute"));
-            addSectionIfNotEmpty(examLayout, "Estremità", sections.get("Estremità"));
-            addSectionIfNotEmpty(examLayout, "Neurologico", sections.get("Neurologico"));
-            addSectionIfNotEmpty(examLayout, "FAST", sections.get("FAST"));
+            addSectionIfNotEmpty(examLayout, "Generale", sections.get("Generale"), esameFisicoService, scenarioId);
+            addSectionIfNotEmpty(examLayout, "Pupille", sections.get("Pupille"), esameFisicoService, scenarioId);
+            addSectionIfNotEmpty(examLayout, "Collo", sections.get("Collo"), esameFisicoService, scenarioId);
+            addSectionIfNotEmpty(examLayout, "Torace", sections.get("Torace"), esameFisicoService, scenarioId);
+            addSectionIfNotEmpty(examLayout, "Cuore", sections.get("Cuore"), esameFisicoService, scenarioId);
+            addSectionIfNotEmpty(examLayout, "Addome", sections.get("Addome"), esameFisicoService, scenarioId);
+            addSectionIfNotEmpty(examLayout, "Retto", sections.get("Retto"), esameFisicoService, scenarioId);
+            addSectionIfNotEmpty(examLayout, "Cute", sections.get("Cute"), esameFisicoService, scenarioId);
+            addSectionIfNotEmpty(examLayout, "Estremità", sections.get("Estremità"), esameFisicoService, scenarioId);
+            addSectionIfNotEmpty(examLayout, "Neurologico", sections.get("Neurologico"), esameFisicoService, scenarioId);
+            addSectionIfNotEmpty(examLayout, "FAST", sections.get("FAST"), esameFisicoService, scenarioId);
 
             if (examLayout.getComponentCount() > 0) {
                 examCard.add(examLayout);
@@ -255,10 +208,100 @@ public class PatientT0Support {
         return layout;
     }
 
-    private static void addSectionIfNotEmpty(VerticalLayout content, String title, String value) {
+    private static void addSectionIfNotEmpty(VerticalLayout content, String title, String value, EsameFisicoService esameFisicoService, Integer scenarioId) {
         if (value != null && !value.trim().isEmpty()) {
             Icon sectionIcon = getSectionIcon(title);
-            content.add(InfoItemSupport.createInfoItem(title, value, sectionIcon));
+            // Layout principale della sezione
+            VerticalLayout sectionLayout = new VerticalLayout();
+            sectionLayout.setPadding(false);
+            sectionLayout.setSpacing(false);
+            sectionLayout.setWidthFull();
+
+            // Header con icona, titolo e pulsante modifica
+            HorizontalLayout headerRow = new HorizontalLayout();
+            headerRow.setWidthFull();
+            headerRow.setAlignItems(FlexComponent.Alignment.CENTER);
+            headerRow.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+
+            HorizontalLayout titleGroup = new HorizontalLayout();
+            titleGroup.setAlignItems(FlexComponent.Alignment.CENTER);
+            sectionIcon.addClassName(LumoUtility.TextColor.PRIMARY);
+            sectionIcon.getStyle()
+                    .set("background-color", "var(--lumo-primary-color-10pct)")
+                    .set("padding", "var(--lumo-space-s)")
+                    .set("border-radius", "var(--lumo-border-radius-l)")
+                    .set("font-size", "var(--lumo-icon-size-m)")
+                    .set("margin-right", "var(--lumo-space-xs)");
+
+            H4 titleLabel = new H4(title);
+            titleLabel.addClassNames(LumoUtility.Margin.NONE, LumoUtility.TextColor.PRIMARY);
+            titleLabel.getStyle().set("font-weight", "600");
+            titleGroup.add(sectionIcon, titleLabel);
+
+            Button editButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT, ButtonVariant.LUMO_SMALL, "var(--lumo-base-color");
+            editButton.setTooltipText("Modifica " + title);
+            editButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_SMALL);
+
+            headerRow.add(titleGroup, editButton);
+            sectionLayout.add(headerRow);
+
+            // Contenuto visualizzato
+            Div contentDisplay = new Div();
+            contentDisplay.getStyle()
+                    .set("font-family", "var(--lumo-font-family)")
+                    .set("line-height", "var(--lumo-line-height-m)")
+                    .set("color", "var(--lumo-body-text-color)")
+                    .set("white-space", "pre-wrap")
+                    .set("padding", "var(--lumo-space-xs) 0 var(--lumo-space-s) calc(var(--lumo-icon-size-m) + var(--lumo-space-m))")
+                    .set("width", "100%")
+                    .set("box-sizing", "border-box");
+            contentDisplay.getElement().setProperty("innerHTML", value.replace("\n", "<br />"));
+            sectionLayout.add(contentDisplay);
+
+            // Editor TinyMCE - inizialmente nascosto
+            TinyMce contentEditor = TinyEditor.getEditor();
+            contentEditor.setValue(value);
+            contentEditor.setVisible(false);
+            // Pulsanti Salva/Annulla per l'editor - inizialmente nascosti
+            Button saveButton = new Button("Salva");
+            saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+            Button cancelButton = new Button("Annulla");
+            cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+            HorizontalLayout editorActions = new HorizontalLayout(saveButton, cancelButton);
+            editorActions.setVisible(false);
+            editorActions.getStyle()
+                    .set("margin-top", "var(--lumo-space-xs)")
+                    .set("padding-left", "calc(var(--lumo-icon-size-m) + var(--lumo-space-m))");
+
+            sectionLayout.add(contentEditor, editorActions);
+
+            // Logica dei pulsanti
+            editButton.addClickListener(e -> {
+                contentDisplay.setVisible(false);
+                contentEditor.setValue(contentDisplay.getElement().getProperty("innerHTML").replace("<br />", "\n").replace("<br>", "\n"));
+                contentEditor.setVisible(true);
+                editorActions.setVisible(true);
+                editButton.setVisible(false);
+            });
+
+            saveButton.addClickListener(e -> {
+                String newContent = contentEditor.getValue();
+                contentDisplay.getElement().setProperty("innerHTML", newContent.replace("\n", "<br />"));
+                esameFisicoService.updateSingleEsameFisico(scenarioId, title, newContent);
+                contentEditor.setVisible(false);
+                editorActions.setVisible(false);
+                contentDisplay.setVisible(true);
+                editButton.setVisible(true);
+            });
+
+            cancelButton.addClickListener(e -> {
+                contentEditor.setVisible(false);
+                editorActions.setVisible(false);
+                contentDisplay.setVisible(true);
+                editButton.setVisible(true);
+            });
+
+            content.add(sectionLayout);
         }
     }
 
@@ -289,4 +332,59 @@ public class PatientT0Support {
         grid.setAllRowsVisible(true);
         return grid;
     }
+
+    // Adattatore da PazienteT0 a VitalSignsDataProvider
+    private record PazienteT0VitalSignsAdapter(PazienteT0 paziente) implements VitalSignsDataProvider {
+
+        @Override
+        public String getPA() {
+            return paziente.getPA();
+        }
+
+        @Override
+        public Integer getFC() {
+            return paziente.getFC();
+        }
+
+        @Override
+        public Double getT() {
+            return paziente.getT();
+        }
+
+        @Override
+        public Integer getRR() {
+            return paziente.getRR();
+        }
+
+        @Override
+        public Integer getSpO2() {
+            return paziente.getSpO2();
+        }
+
+        @Override
+        public Integer getFiO2() {
+            return paziente.getFiO2();
+        }
+
+        @Override
+        public Float getLitriO2() {
+            return paziente.getLitriO2();
+        }
+
+        @Override
+        public Integer getEtCO2() {
+            return paziente.getEtCO2();
+        }
+
+        @Override
+        public String getAdditionalMonitorText() {
+            return paziente.getMonitor();
+        }
+
+        @Override
+        public List<ParametroAggiuntivo> getAdditionalParameters() {
+            return List.of();
+        }
+    }
 }
+

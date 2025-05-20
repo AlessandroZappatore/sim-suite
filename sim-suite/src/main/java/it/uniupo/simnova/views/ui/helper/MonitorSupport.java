@@ -10,11 +10,18 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import it.uniupo.simnova.domain.common.ParametroAggiuntivo;
 import it.uniupo.simnova.service.scenario.components.PresidiService;
+import it.uniupo.simnova.views.common.utils.StyleApp;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MonitorSupport {
@@ -233,6 +240,7 @@ public class MonitorSupport {
             HorizontalLayout monitorTextHeader = new HorizontalLayout();
             monitorTextHeader.setWidthFull();
             monitorTextHeader.setAlignItems(FlexComponent.Alignment.CENTER);
+            monitorTextHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
             Icon monitorIcon = new Icon(VaadinIcon.LAPTOP);
             monitorIcon.getStyle()
@@ -245,7 +253,13 @@ public class MonitorSupport {
                     .set("font-weight", "500")
                     .set("font-size", "var(--lumo-font-size-m)")
                     .set("color", "var(--lumo-tertiary-text-color)");
-            monitorTextHeader.add(monitorIcon, monitorTextTitle);
+
+            Button editMonitorButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color");
+            editMonitorButton.setTooltipText("Modifica il monitoraggio");
+            HorizontalLayout titleAndIconMonitor = new HorizontalLayout(monitorIcon, monitorTextTitle);
+            titleAndIconMonitor.setAlignItems(FlexComponent.Alignment.CENTER);
+            titleAndIconMonitor.setSpacing(true);
+            monitorTextHeader.add(titleAndIconMonitor, editMonitorButton);
 
             Span monitorText = new Span(additionalText);
             monitorText.getStyle()
@@ -258,6 +272,42 @@ public class MonitorSupport {
                     .set("line-height", "1.5");
             monitorTextContainer.add(monitorTextHeader, monitorText);
 
+            // TextArea per modifica
+            TextArea monitorTextArea = new TextArea();
+            monitorTextArea.setWidthFull();
+            monitorTextArea.setVisible(false);
+            monitorTextArea.setValue(additionalText);
+            Button saveMonitorButton = new Button("Salva");
+            saveMonitorButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+            Button cancelMonitorButton = new Button("Annulla");
+            cancelMonitorButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+            HorizontalLayout monitorActions = new HorizontalLayout(saveMonitorButton, cancelMonitorButton);
+            monitorActions.setVisible(false);
+            monitorTextContainer.add(monitorTextArea, monitorActions);
+
+            editMonitorButton.addClickListener(e -> {
+                monitorText.setVisible(false);
+                monitorTextArea.setValue(monitorText.getText());
+                monitorTextArea.setVisible(true);
+                monitorActions.setVisible(true);
+                editMonitorButton.setVisible(false);
+            });
+            saveMonitorButton.addClickListener(e -> {
+                String newText = monitorTextArea.getValue();
+                monitorText.setText(newText);
+                // TODO: chiamare il service per il salvataggio se disponibile
+                monitorText.setVisible(true);
+                monitorTextArea.setVisible(false);
+                monitorActions.setVisible(false);
+                editMonitorButton.setVisible(true);
+            });
+            cancelMonitorButton.addClickListener(e -> {
+                monitorTextArea.setVisible(false);
+                monitorActions.setVisible(false);
+                monitorText.setVisible(true);
+                editMonitorButton.setVisible(true);
+            });
+
             Div textWrapper = new Div(monitorTextContainer);
             textWrapper.setWidthFull();
             textWrapper.getStyle().set("padding-left", "var(--lumo-space-xs)")
@@ -266,14 +316,14 @@ public class MonitorSupport {
         }
 
         List<String> presidiList = PresidiService.getPresidiByScenarioId(scenarioId);
-        if (!presidiList.isEmpty() && isT0) {
-            Div presidiOuterContainer = new Div(); // Contenitore esterno per allineamento padding con "Monitoraggio"
+        if (isT0) {
+            Div presidiOuterContainer = new Div();
             presidiOuterContainer.setWidthFull();
             presidiOuterContainer.getStyle()
                     .set("padding-left", "var(--lumo-space-xs)")
                     .set("padding-right", "var(--lumo-space-xs)");
 
-            Div presidiInnerContainer = new Div(); // Contenitore interno per lo stile del box
+            Div presidiInnerContainer = new Div();
             presidiInnerContainer.setWidthFull();
             presidiInnerContainer.getStyle()
                     .set("margin-top", "var(--lumo-space-m)")
@@ -287,8 +337,9 @@ public class MonitorSupport {
             HorizontalLayout presidiHeader = new HorizontalLayout();
             presidiHeader.setWidthFull();
             presidiHeader.setAlignItems(FlexComponent.Alignment.CENTER);
+            presidiHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
-            Icon presidiIcon = new Icon(VaadinIcon.TOOLS); // Icona per i presidi
+            Icon presidiIcon = new Icon(VaadinIcon.TOOLS);
             presidiIcon.getStyle()
                     .set("color", "var(--lumo-tertiary-color)")
                     .set("margin-right", "var(--lumo-space-xs)");
@@ -299,15 +350,20 @@ public class MonitorSupport {
                     .set("font-weight", "500")
                     .set("font-size", "var(--lumo-font-size-m)")
                     .set("color", "var(--lumo-tertiary-text-color)");
-            presidiHeader.add(presidiIcon, presidiTitle);
 
-            Div presidiItemsDiv = new Div(); // Contenitore per gli elementi della lista dei presidi
+            Button editPresidiButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color");
+            editPresidiButton.setTooltipText("Modifica i presidi");
+            HorizontalLayout titleAndIconPresidi = new HorizontalLayout(presidiIcon, presidiTitle);
+            titleAndIconPresidi.setAlignItems(FlexComponent.Alignment.CENTER);
+            titleAndIconPresidi.setSpacing(true);
+            presidiHeader.add(titleAndIconPresidi, editPresidiButton);
+
+            Div presidiItemsDiv = new Div();
             presidiItemsDiv.getStyle()
                     .set("display", "flex")
-                    .set("flex-direction", "column") // Lista verticale
+                    .set("flex-direction", "column")
                     .set("margin-top", "var(--lumo-space-s)")
-                    .set("padding-left", "var(--lumo-space-xs)"); // Leggero indent per gli item
-
+                    .set("padding-left", "var(--lumo-space-xs)");
             for (String presidio : presidiList) {
                 HorizontalLayout itemLayout = new HorizontalLayout();
                 itemLayout.setSpacing(false);
@@ -315,31 +371,77 @@ public class MonitorSupport {
                 itemLayout.setAlignItems(FlexComponent.Alignment.CENTER);
                 itemLayout.getStyle()
                         .set("margin-bottom", "var(--lumo-space-xxs)");
-
                 Span bulletPoint = new Span("•");
                 bulletPoint.getStyle()
                         .set("color", "var(--lumo-tertiary-color)")
                         .set("font-size", "var(--lumo-font-size-m)")
                         .set("line-height", "1")
                         .set("margin-right", "var(--lumo-space-xs)");
-
                 Span presidioSpan = new Span(presidio);
                 presidioSpan.getStyle()
                         .set("font-family", "var(--lumo-font-family)")
                         .set("color", "var(--lumo-body-text-color)")
                         .set("font-size", "var(--lumo-font-size-s)")
                         .set("line-height", "1.5");
-
                 itemLayout.add(bulletPoint, presidioSpan);
                 presidiItemsDiv.add(itemLayout);
             }
-
             presidiInnerContainer.add(presidiHeader, presidiItemsDiv);
+
+            // MultiSelectComboBox per modifica
+            List<String> allPresidi = PresidiService.getAllPresidi();
+            MultiSelectComboBox<String> presidiComboBox = new MultiSelectComboBox<>();
+            presidiComboBox.setItems(allPresidi);
+            presidiComboBox.setWidthFull();
+            presidiComboBox.setVisible(false);
+            presidiComboBox.setValue(Set.copyOf(presidiList));
+            Button savePresidiButton = new Button("Salva");
+            savePresidiButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+            Button cancelPresidiButton = new Button("Annulla");
+            cancelPresidiButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+            HorizontalLayout presidiActions = new HorizontalLayout(savePresidiButton, cancelPresidiButton);
+            presidiActions.setVisible(false);
+            presidiInnerContainer.add(presidiComboBox, presidiActions);
+
+            editPresidiButton.addClickListener(e -> {
+                presidiItemsDiv.setVisible(false);
+                presidiComboBox.setVisible(true);
+                presidiActions.setVisible(true);
+                editPresidiButton.setVisible(false);
+            });
+            savePresidiButton.addClickListener(e -> {
+                Set<String> newPresidi = presidiComboBox.getValue();
+                presidiItemsDiv.removeAll();
+                for (String presidio : newPresidi) {
+                    HorizontalLayout itemLayout = new HorizontalLayout();
+                    itemLayout.setSpacing(false);
+                    itemLayout.setPadding(false);
+                    itemLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+                    itemLayout.getStyle().set("margin-bottom", "var(--lumo-space-xxs)");
+                    Span bulletPoint = new Span("•");
+                    bulletPoint.getStyle().set("color", "var(--lumo-tertiary-color)").set("font-size", "var(--lumo-font-size-m)").set("line-height", "1").set("margin-right", "var(--lumo-space-xs)");
+                    Span presidioSpan = new Span(presidio);
+                    presidioSpan.getStyle().set("font-family", "var(--lumo-font-family)").set("color", "var(--lumo-body-text-color)").set("font-size", "var(--lumo-font-size-s)").set("line-height", "1.5");
+                    itemLayout.add(bulletPoint, presidioSpan);
+                    presidiItemsDiv.add(itemLayout);
+                }
+                // Salva tramite service
+                //TODO: chiamare il service per il salvataggio se disponibile
+                presidiItemsDiv.setVisible(true);
+                presidiComboBox.setVisible(false);
+                presidiActions.setVisible(false);
+                editPresidiButton.setVisible(true);
+            });
+            cancelPresidiButton.addClickListener(e -> {
+                presidiComboBox.setVisible(false);
+                presidiActions.setVisible(false);
+                presidiItemsDiv.setVisible(true);
+                editPresidiButton.setVisible(true);
+            });
+
             presidiOuterContainer.add(presidiInnerContainer);
             monitorContainer.add(presidiOuterContainer);
         }
-        // --- FINE NUOVA SEZIONE: PRESIDI UTILIZZATI ---
-
         return monitorContainer;
     }
 
@@ -418,7 +520,69 @@ public class MonitorSupport {
                 .set("font-size", "12px")
                 .set("color", "var(--lumo-tertiary-text-color)");
 
-        box.add(labelSpan, valueSpan, unitSpan);
+        // Elementi per la modifica
+        TextField valueEditField = new TextField();
+        valueEditField.setVisible(false);
+        valueEditField.setWidthFull();
+        valueEditField.getStyle().set("margin-bottom", "var(--lumo-space-xs)");
+
+        Button editButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+        editButton.setTooltipText("Modifica " + label);
+        editButton.getStyle().set("margin-left", "auto").set("align-self", "flex-start");
+
+
+        Button saveButton = new Button("Salva");
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+        Button cancelButton = new Button("Annulla");
+        cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+        HorizontalLayout editActions = new HorizontalLayout(saveButton, cancelButton);
+        editActions.setVisible(false);
+        editActions.setSpacing(true);
+        editActions.getStyle().set("margin-top", "var(--lumo-space-xs)");
+
+        // Layout per label e pulsante modifica
+        HorizontalLayout labelAndEditButtonLayout = new HorizontalLayout(labelSpan, editButton);
+        labelAndEditButtonLayout.setWidthFull();
+        labelAndEditButtonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        labelAndEditButtonLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        labelAndEditButtonLayout.setSpacing(false);
+
+
+        box.add(labelAndEditButtonLayout, valueSpan, valueEditField, unitSpan, editActions);
+
+        editButton.addClickListener(e -> {
+            valueSpan.setVisible(false);
+            unitSpan.setVisible(false); // Nasconde anche l'unità durante la modifica del valore puro
+            valueEditField.setValue(valueSpan.getText()); // Pre-popola con il valore attuale
+            valueEditField.setVisible(true);
+            editActions.setVisible(true);
+            editButton.setVisible(false);
+            labelAndEditButtonLayout.remove(editButton); // Rimuove temporaneamente per evitare disallineamenti
+        });
+
+        saveButton.addClickListener(e -> {
+            String newValue = valueEditField.getValue();
+            // Qui andrebbe la logica di salvataggio e riverifica dei threshold
+            // Per ora, aggiorniamo solo il display
+            valueSpan.setText(newValue);
+
+            valueSpan.setVisible(true);
+            unitSpan.setVisible(true);
+            valueEditField.setVisible(false);
+            editActions.setVisible(false);
+            labelAndEditButtonLayout.add(editButton); // Riaggiunge il pulsante edit
+            editButton.setVisible(true);
+        });
+
+        cancelButton.addClickListener(e -> {
+            valueSpan.setVisible(true);
+            unitSpan.setVisible(true);
+            valueEditField.setVisible(false);
+            editActions.setVisible(false);
+            labelAndEditButtonLayout.add(editButton); // Riaggiunge il pulsante edit
+            editButton.setVisible(true);
+        });
         return box;
     }
 }
+

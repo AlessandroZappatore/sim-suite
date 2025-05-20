@@ -2,7 +2,13 @@ package it.uniupo.simnova.views.constant;
 
 import java.util.List;
 
+/**
+ * Classe di supporto contenente le costanti per gli esami.
+ */
 public class ExamConst {
+    /**
+     * Tutti i tipi di esami di laboratorio
+     */
     public static final List<String> ALLLABSEXAMS = List.of(
             "Emocromo con formula", "Glicemia", "Elettroliti sierici (Na⁺, K⁺, Cl⁻, Ca²⁺, Mg²⁺)",
             "Funzionalità renale (Creatinina, Azotemia)", "Funzionalità epatica (AST, ALT, Bilirubina, ALP, GGT)",
@@ -11,6 +17,9 @@ public class ExamConst {
             "Emogas venoso", "Osmolarità sierica", "CPK", "Mioglobina"
     );
 
+    /**
+     * Tutti i tipi di esami strumentali
+     */
     public static final List<String> ALLINSTREXAMS = List.of(
             "ECG (Elettrocardiogramma)", "RX Torace", "TC Torace (con mdc)", "TC Torace (senza mdc)",
             "TC Addome (con mdc)", "TC Addome (senza mdc)", "Ecografia addominale", "Ecografia polmonare",

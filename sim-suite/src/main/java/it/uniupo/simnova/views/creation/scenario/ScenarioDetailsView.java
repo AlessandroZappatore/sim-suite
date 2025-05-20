@@ -5,6 +5,7 @@ import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.Notification.Position;
@@ -13,6 +14,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.domain.scenario.Scenario;
@@ -23,6 +25,7 @@ import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
 import it.uniupo.simnova.service.storage.FileStorageService;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.views.common.components.AppHeader;
+import it.uniupo.simnova.views.common.utils.FieldGenerator;
 import it.uniupo.simnova.views.common.utils.StyleApp;
 import it.uniupo.simnova.views.ui.helper.*;
 import org.slf4j.Logger;
@@ -43,7 +46,7 @@ import static it.uniupo.simnova.views.ui.helper.TabsSupport.createTabWithIcon;
  * </p>
  *
  * @author Alessandro Zappatore
- * @version 1.4
+ * @version 1.5 // Version incremented to reflect changes
  */
 @SuppressWarnings("ThisExpressionReferencesGlobalObjectJS")
 @PageTitle("Dettagli Scenario")
@@ -70,9 +73,22 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      */
     private Integer scenarioId;
     /**
-     * Oggetto Scenario caricato.
+     * Oggetto Scenario attualmente visualizzato.
+     * Dichiarato come campo della classe per mantenere lo stato aggiornato.
      */
     private Scenario scenario;
+
+    // Components for displaying title and authors
+    private H2 titleDisplay;
+    private Paragraph authorsDisplay;
+
+    // Components for editing title and authors
+    private TextField titleEdit;
+    private TextField authorsEdit;
+    private HorizontalLayout editButtonsLayout;
+    private Button saveTitleAuthorsButton;
+    private Button cancelTitleAuthorsButton;
+    private Button editTitleAuthorsButton;
 
 
     /**
@@ -111,16 +127,22 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
     public void setParameter(BeforeEvent event, String parameter) {
         try {
             if (parameter == null || parameter.trim().isEmpty()) {
-                throw new NumberFormatException();
+                throw new NumberFormatException("Il parametro ID scenario è nullo o vuoto.");
             }
 
             this.scenarioId = Integer.parseInt(parameter);
-            if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
-                throw new NumberFormatException();
+            if (scenarioId <= 0) {
+                throw new NumberFormatException("ID scenario deve essere un numero positivo.");
+            }
+            if (!scenarioService.existScenario(scenarioId)) {
+                throw new NotFoundException("Scenario con ID " + scenarioId + " non trovato.");
             }
         } catch (NumberFormatException e) {
-            logger.error("ID scenario non valido: {}", parameter, e);
-            event.rerouteToError(NotFoundException.class, "ID scenario " + scenarioId + " non valido");
+            logger.error("ID scenario non valido: {}. Causa: {}", parameter, e.getMessage());
+            event.rerouteToError(NotFoundException.class, "ID scenario '" + parameter + "' non valido. " + e.getMessage());
+        } catch (NotFoundException e) {
+            logger.warn("Tentativo di accesso a scenario non esistente: ID {}", scenarioId);
+            event.rerouteToError(NotFoundException.class, e.getMessage());
         }
     }
 
@@ -133,9 +155,19 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         if (scenarioId == null) {
-            Notification.show("ID scenario non valido", 3000, Position.MIDDLE)
+            // Questa condizione dovrebbe essere già gestita da setParameter,
+            // ma è una sicurezza aggiuntiva.
+            Notification.show("ID scenario non specificato.", 3000, Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
-            UI.getCurrent().navigate("scenari");
+            UI.getCurrent().navigate("scenari"); // O una pagina di errore generica
+            return;
+        }
+        // Carica lo scenario qui per assicurarsi che sia disponibile per initView
+        // e per gestire il caso in cui lo scenario non esista più (raro se setParameter funziona bene)
+        this.scenario = scenarioService.getScenarioById(scenarioId);
+        if (this.scenario == null) {
+            logger.error("Scenario non trovato con ID: {} durante beforeEnter", scenarioId);
+            event.rerouteToError(NotFoundException.class, "Scenario con ID " + scenarioId + " non trovato.");
             return;
         }
         initView();
@@ -146,29 +178,14 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * Crea e aggiunge i componenti alla vista.
      */
     private void initView() {
-        scenario = scenarioService.getScenarioById(scenarioId);
+        // L'oggetto 'scenario' è già stato caricato in beforeEnter e assegnato a this.scenario
 
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
-
         AppHeader header = new AppHeader(fileStorageService);
 
         // 1. HEADER
         Button backButton = StyleApp.getBackButton();
-
-        Button editButton = StyleApp.getButton(
-                "Modifica Scenario",
-                VaadinIcon.EDIT,
-                ButtonVariant.LUMO_PRIMARY,
-                "var(--lumo-primary-color)"
-        );
-        editButton.addClickListener(e -> UI.getCurrent().navigate("modificaScenario/" + scenario.getId()));
-
-        HorizontalLayout editButtonContainer = new HorizontalLayout();
-        editButtonContainer.setWidthFull();
-        editButtonContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-        editButtonContainer.setPadding(false);
-        editButtonContainer.setMargin(false);
-        editButtonContainer.add(editButton);
+        backButton.addClickListener(e -> UI.getCurrent().navigate("scenari"));
 
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "Dettagli Scenario",
@@ -181,8 +198,6 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         // 2. CONTENUTO PRINCIPALE (con tabs)
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
-        // Titolo e sottotitolo
-        // Contenitore per titolo e autori con ombra e bordi arrotondati
         Div titleContainer = new Div();
         titleContainer.setWidthFull();
         titleContainer.getStyle()
@@ -194,32 +209,30 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                 .set("margin-bottom", "var(--lumo-space-m)")
                 .set("transition", "box-shadow 0.3s ease-in-out");
 
-        // Effetto hover sul contenitore
         titleContainer.getElement().executeJs(
                 "this.addEventListener('mouseover', function() { this.style.boxShadow = 'var(--lumo-box-shadow-s)'; });" +
                         "this.addEventListener('mouseout', function() { this.style.boxShadow = 'var(--lumo-box-shadow-xs)'; });"
         );
 
-        // Titolo con stile migliorato
-        H2 title = new H2(scenario.getTitolo());
-        title.addClassNames(
+        // Titolo e Autori (Display mode)
+        titleDisplay = new H2(this.scenario.getTitolo());
+        titleDisplay.addClassNames(
                 LumoUtility.TextAlignment.CENTER,
                 LumoUtility.Margin.Bottom.XSMALL,
                 LumoUtility.FontSize.XXLARGE
         );
-        title.getStyle()
+        titleDisplay.getStyle()
                 .set("color", "var(--lumo-primary-text-color)")
                 .set("font-weight", "600")
                 .set("letter-spacing", "0.5px");
 
-        // Autori con stile migliorato e "Autori" in grassetto
         Span boldAutori = new Span("Autori: ");
         boldAutori.getStyle().set("font-weight", "bold");
-        Span autoriValue = new Span(scenario.getAutori());
+        Span authorsValue = new Span(this.scenario.getAutori());
 
-        Paragraph authors = new Paragraph();
-        authors.add(boldAutori, autoriValue);
-        authors.addClassNames(
+        authorsDisplay = new Paragraph();
+        authorsDisplay.add(boldAutori, authorsValue);
+        authorsDisplay.addClassNames(
                 LumoUtility.TextColor.SECONDARY,
                 LumoUtility.TextAlignment.CENTER,
                 LumoUtility.Margin.Top.NONE,
@@ -227,43 +240,81 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                 LumoUtility.FontSize.XLARGE
         );
 
-        // Aggiungi elementi al contenitore
-        titleContainer.add(title, authors);
+        // Titolo e Autori (Edit mode)
+        titleEdit = FieldGenerator.createTextField("Titolo", "Titolo dello scenario", true);
+        titleEdit.setVisible(false);
 
-        Component subtitle = InfoSupport.getInfo(scenario);
+        authorsEdit = FieldGenerator.createTextField("Autori", "Autori dello scenario", true);
+        authorsEdit.setVisible(false);
 
-        // Creazione dei tab e relativo contenuto
+        editTitleAuthorsButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+        editTitleAuthorsButton.setTooltipText("Modifica titolo e autori");
+        editTitleAuthorsButton.getStyle().set("margin-left", "auto");
+
+        HorizontalLayout editButtonContainer = new HorizontalLayout(editTitleAuthorsButton);
+        editButtonContainer.setWidthFull();
+        editButtonContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+
+        saveTitleAuthorsButton = new Button("Salva", new Icon(VaadinIcon.CHECK));
+        saveTitleAuthorsButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+        saveTitleAuthorsButton.setVisible(false);
+
+        cancelTitleAuthorsButton = new Button("Annulla", new Icon(VaadinIcon.CLOSE_SMALL));
+        cancelTitleAuthorsButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
+        cancelTitleAuthorsButton.setVisible(false);
+
+        editButtonsLayout = new HorizontalLayout(saveTitleAuthorsButton, cancelTitleAuthorsButton);
+        editButtonsLayout.setSpacing(true);
+        editButtonsLayout.setVisible(false);
+        editButtonsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+
+        VerticalLayout displayLayout = new VerticalLayout(titleDisplay, authorsDisplay);
+        displayLayout.setPadding(false);
+        displayLayout.setSpacing(false);
+        displayLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        displayLayout.setWidthFull();
+
+        VerticalLayout editLayout = new VerticalLayout(titleEdit, authorsEdit, editButtonsLayout);
+        editLayout.setPadding(false);
+        editLayout.setSpacing(true);
+        editLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        editLayout.setWidthFull();
+        editLayout.setVisible(false);
+
+        titleContainer.add(displayLayout, editLayout, editButtonContainer);
+
+        Component subtitle = InfoSupport.getInfo(this.scenario);
+
         Tab tabInfoGenerali = createTabWithIcon("Informazioni Generali", VaadinIcon.INFO_CIRCLE);
         Tab tabStatoPaziente = createTabWithIcon("Stato Paziente", VaadinIcon.USER);
         Tab tabEsamiReferti = createTabWithIcon("Esami e Referti", VaadinIcon.CLIPBOARD_TEXT);
 
-        // Contenuto dei tab
         Component infoGeneraliContent = GeneralSupport.createOverviewContentWithData(
-                scenario,
+                this.scenario,
                 scenarioService.isPediatric(scenarioId),
-                scenario.getInfoGenitore(),
+                this.scenario.getInfoGenitore(),
                 materialeNecessario.toStringAllMaterialsByScenarioId(scenarioId),
-                azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenarioId)
+                azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenarioId),
+                scenarioService
         );
 
         Component statoPazienteContent = PatientT0Support.createPatientContent(
                 pazienteT0Service.getPazienteT0ById(scenarioId),
                 esameFisicoService.getEsameFisicoById(scenarioId),
-                scenarioId
+                scenarioId,
+                esameFisicoService
         );
 
         Component esamiRefertiContent = ExamSupport.createExamsContent(
                 esameRefertoService.getEsamiRefertiByScenarioId(scenarioId)
         );
 
-        // Configurazione EnhancedTabs
         EnhancedTabs enhancedTabs = new EnhancedTabs();
         enhancedTabs.setWidthFull();
         enhancedTabs.getStyle()
                 .set("max-width", "1000px")
                 .set("margin", "0 auto");
 
-        // Configurazione del contenitore principale
         Div tabsContainer = new Div();
         tabsContainer.setWidthFull();
         tabsContainer.getStyle()
@@ -271,9 +322,8 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                 .set("margin", "0 auto")
                 .set("overflow", "hidden")
                 .set("box-shadow", "var(--lumo-box-shadow-xs)")
-                .set("border-radius", "var(--lumo-border-radius-m)");
+                .set("border-radius", "var(--lumo-border-radius-m) var(--lumo-border-radius-m) 0 0");
 
-        // Container per il contenuto del tab selezionato
         Div contentContainer = new Div();
         contentContainer.addClassName("tab-content");
         contentContainer.getStyle()
@@ -283,16 +333,13 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                 .set("padding", "var(--lumo-space-m)")
                 .set("transition", "opacity 0.3s ease-in-out");
 
-        // Map per associare ogni tab al suo contenuto
         Map<Tab, Component> tabsToContent = new HashMap<>();
         tabsToContent.put(tabInfoGenerali, infoGeneraliContent);
         tabsToContent.put(tabStatoPaziente, statoPazienteContent);
         tabsToContent.put(tabEsamiReferti, esamiRefertiContent);
 
-        // Aggiunta dei tab base a EnhancedTabs
         enhancedTabs.add(tabInfoGenerali, tabStatoPaziente, tabEsamiReferti);
 
-        // Tab aggiuntivi condizionali
         List<Tempo> tempi = advancedScenarioService.getTempiByScenarioId(scenarioId);
         if (!tempi.isEmpty()) {
             Tab tabTimeline = createTabWithIcon("Timeline", VaadinIcon.CLOCK);
@@ -305,54 +352,112 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         if ("Patient Simulated Scenario".equalsIgnoreCase(scenarioType)) {
             Tab tabSceneggiatura = createTabWithIcon("Sceneggiatura", VaadinIcon.FILE_TEXT);
             Component sceneggiaturaContent = SceneggiaturaSupport.createSceneggiaturaContent(
-                    patientSimulatedScenarioService.getSceneggiatura(scenarioId)
+                    scenarioId,
+                    patientSimulatedScenarioService.getSceneggiatura(scenarioId),
+                    patientSimulatedScenarioService
             );
             tabsToContent.put(tabSceneggiatura, sceneggiaturaContent);
             enhancedTabs.add(tabSceneggiatura);
         }
 
-        // Impostazione iniziale del contenuto
-        contentContainer.add(infoGeneraliContent);
+        contentContainer.add(infoGeneraliContent); // Impostazione iniziale
 
-        // Gestione del cambio tab
         enhancedTabs.addSelectedChangeListener(event -> {
-            // Rimuovi tutti i contenuti precedenti
             contentContainer.removeAll();
-
-            // Aggiungi il nuovo contenuto in base al tab selezionato
             Component selectedContent = tabsToContent.get(event.getSelectedTab());
-            contentContainer.add(selectedContent);
-
-            // Effetto di transizione
+            if (selectedContent != null) {
+                contentContainer.add(selectedContent);
+            }
             contentContainer.getElement().executeJs(
                     "this.style.opacity = '0'; setTimeout(() => this.style.opacity = '1', 50);"
             );
         });
 
-        // Personalizzazione stile EnhancedTabs
         enhancedTabs.getStyle()
                 .set("background-color", "var(--lumo-contrast-5pct)")
                 .set("border-radius", "var(--lumo-border-radius-m) var(--lumo-border-radius-m) 0 0")
                 .set("margin", "0");
 
-        // Aggiungi i tabs e il contenuto al contenitore
         tabsContainer.add(enhancedTabs, contentContainer);
+        contentLayout.add(headerSection, titleContainer, subtitle, tabsContainer);
 
-        contentLayout.add(editButtonContainer, headerSection, titleContainer, subtitle, tabsContainer);
-
-        // 3. FOOTER
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(null);
-
-        // Assemblaggio finale
         mainLayout.add(customHeader, contentLayout, footerLayout);
 
-        // Pulsante "Torna su"
         Button scrollToTopButton = StyleApp.getScrollButton();
         Button scrollDownButton = StyleApp.getScrollDownButton();
         VerticalLayout scrollButtonContainer = new VerticalLayout(scrollToTopButton, scrollDownButton);
-
         mainLayout.add(scrollButtonContainer);
 
-        backButton.addClickListener(e -> UI.getCurrent().navigate("scenari"));
+
+        // Add event listeners for editing title and authors
+        editTitleAuthorsButton.addClickListener(e -> {
+            displayLayout.setVisible(false);
+            editTitleAuthorsButton.setVisible(false);
+            editLayout.setVisible(true); // Mostra il layout di edit che contiene i textfield e i bottoni salva/annulla
+            saveTitleAuthorsButton.setVisible(true);
+            cancelTitleAuthorsButton.setVisible(true);
+            titleEdit.setValue(this.scenario.getTitolo()); // Usa il valore da this.scenario
+            authorsEdit.setValue(this.scenario.getAutori()); // Usa il valore da this.scenario
+            titleEdit.setVisible(true);
+            authorsEdit.setVisible(true);
+            editButtonsLayout.setVisible(true); // Mostra i bottoni Salva/Annulla
+        });
+
+        cancelTitleAuthorsButton.addClickListener(e -> {
+            editLayout.setVisible(false); // Nasconde l'intero layout di edit
+            displayLayout.setVisible(true);
+            editTitleAuthorsButton.setVisible(true);
+        });
+
+        saveTitleAuthorsButton.addClickListener(e -> {
+            String newTitle = titleEdit.getValue();
+            String newAuthors = authorsEdit.getValue();
+
+            if (newTitle == null || newTitle.trim().isEmpty()) {
+                Notification.show("Il titolo non può essere vuoto.", 3000, Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                titleEdit.focus();
+                return;
+            }
+            if (newAuthors == null || newAuthors.trim().isEmpty()) {
+                Notification.show("Il campo autori non può essere vuoto.", 3000, Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                authorsEdit.focus();
+                return;
+            }
+
+
+            try {
+                scenarioService.updateScenarioTitleAndAuthors(scenarioId, newTitle, newAuthors);
+
+                // Aggiorna l'oggetto scenario locale
+                // Assicurati che la classe Scenario abbia i metodi setTitolo e setAutori
+                this.scenario.setTitolo(newTitle);
+                this.scenario.setAutori(newAuthors);
+                // Alternativa se Scenario è immutabile o non ha setter:
+                // this.scenario = scenarioService.getScenarioById(scenarioId);
+
+
+                titleDisplay.setText(newTitle);
+                Span updatedBoldAutori = new Span("Autori: ");
+                updatedBoldAutori.getStyle().set("font-weight", "bold");
+                Span updatedAuthorsValue = new Span(newAuthors);
+                authorsDisplay.removeAll();
+                authorsDisplay.add(updatedBoldAutori, updatedAuthorsValue);
+
+                editLayout.setVisible(false);
+                displayLayout.setVisible(true);
+                editTitleAuthorsButton.setVisible(true);
+
+                Notification.show("Titolo e autori aggiornati con successo", 3000, Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+
+            } catch (Exception ex) {
+                logger.error("Errore durante l'aggiornamento di titolo e autori dello scenario {}", scenarioId, ex);
+                Notification.show("Errore durante l'aggiornamento. Riprovare più tardi.", 3000, Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+        });
     }
 }

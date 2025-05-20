@@ -102,4 +102,37 @@ public class EsameFisicoService {
         }
     }
 
+    public void updateSingleEsameFisico(int scenarioId, String name, String value) {
+        if (name == null || name.isEmpty()) {
+            logger.warn("Nome della colonna non valido");
+            return;
+        }
+
+        // Verifica che l'esame fisico esista
+        if (getEsameFisicoById(scenarioId) == null) {
+            logger.warn("Nessun esame fisico trovato con ID {}", scenarioId);
+            return;
+        }
+
+        // Creazione della query dinamica con il nome colonna come parametro
+        final String sql = "UPDATE EsameFisico SET " + name + "=? WHERE id_esame_fisico=?";
+
+        //noinspection SqlSourceToSinkFlow
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, value);
+            stmt.setInt(2, scenarioId);
+
+            boolean result = stmt.executeUpdate() > 0;
+            if (result) {
+                logger.info("Colonna {} dell'esame fisico con ID {} aggiornata a {}", name, scenarioId, value);
+            } else {
+                logger.warn("Impossibile aggiornare la colonna {} dell'esame fisico con ID {}", name, scenarioId);
+            }
+        } catch (SQLException e) {
+            logger.error("Errore durante l'aggiornamento della colonna {} dell'esame fisico con ID {}", name, scenarioId, e);
+        }
+    }
+
 }

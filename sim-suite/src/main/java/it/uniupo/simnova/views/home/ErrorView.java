@@ -15,8 +15,11 @@ import it.uniupo.simnova.views.common.components.AppHeader;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
- * La classe ErrorView rappresenta una vista personalizzata per gestire gli errori di pagina non trovata (404).
- * Implementa l'interfaccia HasErrorParameter per gestire gli errori di tipo NotFoundException.
+ * Vista di errore personalizzata per la gestione delle pagine non trovate (errore 404).
+ * <p>
+ * Mostra un messaggio di errore, un logo animato e un pulsante per tornare alla homepage.
+ * Implementa {@link HasErrorParameter} per intercettare e gestire le eccezioni di tipo {@link NotFoundException}.
+ * </p>
  *
  * @author Alessandro Zappatore
  * @version 1.0
@@ -26,13 +29,17 @@ public class ErrorView extends Composite<VerticalLayout>
         implements HasErrorParameter<NotFoundException> {
 
     /**
-     * Messaggio di errore visualizzato nella pagina.
+     * Paragrafo che visualizza il messaggio di errore nella pagina.
      */
     private final Paragraph message;
 
     /**
-     * Costruttore della classe ErrorView.
-     * Configura il layout della pagina di errore con un header, un logo, un titolo, un messaggio e un pulsante per tornare alla home.
+     * Costruttore della vista di errore.
+     * <p>
+     * Inizializza il layout della pagina di errore con header, logo, titolo, messaggio e pulsante di ritorno alla home.
+     * </p>
+     *
+     * @param fileStorageService servizio per la gestione dei file, utilizzato dall'header
      */
     public ErrorView(FileStorageService fileStorageService) {
         // Header dell'applicazione
@@ -119,10 +126,13 @@ public class ErrorView extends Composite<VerticalLayout>
 
     /**
      * Gestisce il parametro di errore per la rotta non trovata.
+     * <p>
+     * Se presente, visualizza un messaggio personalizzato. Restituisce sempre lo stato HTTP 404.
+     * </p>
      *
-     * @param event     l'evento di navigazione
-     * @param parameter il parametro di errore
-     * @return il codice di stato HTTP 404 (Pagina non trovata)
+     * @param event     evento di navigazione
+     * @param parameter parametro di errore contenente eventuale messaggio personalizzato
+     * @return codice di stato HTTP 404 (pagina non trovata)
      */
     @Override
     public int setErrorParameter(BeforeEnterEvent event,

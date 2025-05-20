@@ -11,6 +11,7 @@ import java.sql.SQLException;
  * Utilizza il pattern Singleton per garantire una singola istanza della connessione.
  * </p>
  *
+ * @author Alessandro Zappatore
  * @version 1.0
  */
 public class DBConnect {
@@ -35,7 +36,7 @@ public class DBConnect {
     private DBConnect() {
         System.out.println(DB_URL);
         try {
-            // Carica esplicitamente il driver (opzionale)
+            // Carica esplicitamente il driver JDBC di SQLite
             Class.forName("org.sqlite.JDBC");
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("Driver SQLite non trovato", e);
@@ -44,6 +45,7 @@ public class DBConnect {
 
     /**
      * Restituisce l'istanza Singleton di DBConnect.
+     * Se l'istanza non esiste, viene creata.
      *
      * @return l'istanza Singleton di DBConnect
      */
@@ -55,7 +57,7 @@ public class DBConnect {
     }
 
     /**
-     * Ottiene una connessione al database.
+     * Ottiene una nuova connessione al database SQLite.
      *
      * @return la connessione al database
      * @throws SQLException se non è possibile connettersi al database
@@ -67,19 +69,5 @@ public class DBConnect {
             throw new SQLException("Impossibile connettersi al database a " + DB_URL, e);
         }
     }
-
-    /**
-     * Chiude la connessione al database.
-     *
-     * @param connection la connessione da chiudere
-     */
-    public static void closeConnection(Connection connection) {
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                System.err.println("Errore durante la chiusura della connessione: " + e.getMessage());
-            }
-        }
-    }
 }
+

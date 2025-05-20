@@ -29,7 +29,7 @@ import static it.uniupo.simnova.service.export.helper.pdf.ScenarioHeader.createS
 import static it.uniupo.simnova.service.export.helper.pdf.ScenarioPatient.createPatientSection;
 import static it.uniupo.simnova.service.export.helper.pdf.ScenarioSceneggiatura.createSceneggiaturaSection;
 import static it.uniupo.simnova.service.export.helper.pdf.ScenarioTimeline.createTimelineSection;
-import static it.uniupo.simnova.views.constant.PdfConstant.*;
+import static it.uniupo.simnova.service.export.helper.pdf.PdfConstant.*;
 
 /**
  * Servizio per l'esportazione di scenari in formato PDF.
@@ -79,30 +79,62 @@ public class PdfExportService {
      */
     private static PDDocument document;
     /**
-     * Font per il testo in grassetto di piccole dimensioni.
+     * Immagine del logo.
      */
     private static PDImageXObject logo;
     /**
      * Logo del centro.
      */
     private static PDImageXObject centerLogo;
+    /**
+     * Servizio per la gestione dei file.
+     */
     private final FileStorageService fileStorageService;
+    /**
+     * Servizio per la gestione dei materiali.
+     */
     private final MaterialeService materialeService;
+    /**
+     * Servizio per la gestione dei pazienti simulati.
+     */
     private final PatientSimulatedScenarioService patientSimulatedScenarioService;
+    /**
+     * Servizio per la gestione delle azioni chiave.
+     */
     private final AzioneChiaveService azioneChiaveService;
+    /**
+     * Servizio per la gestione dei pazienti T0.
+     */
     private final PazienteT0Service pazienteT0Service;
+    /**
+     * Servizio per la gestione degli esami e dei referti.
+     */
     private final EsameRefertoService esameRefertoService;
+    /**
+     * Servizio per la gestione degli esami fisici.
+     */
     private final EsameFisicoService esameFisicoService;
     /**
      * Servizio per la gestione degli scenari.
      */
     private final ScenarioService scenarioService;
+    /**
+     * Servizio per la gestione degli scenari avanzati.
+     */
     private final AdvancedScenarioService advancedScenarioService;
 
     /**
      * Costruttore del servizio PdfExportService.
      *
-     * @param scenarioService il servizio per la gestione degli scenari
+     * @param scenarioService                 Il servizio per la gestione degli scenari.
+     * @param fileStorageService              Il servizio per la gestione dei file.
+     * @param materialeService                Il servizio per la gestione dei materiali.
+     * @param patientSimulatedScenarioService Il servizio per la gestione degli scenari simulati.
+     * @param azioneChiaveService             Il servizio per la gestione delle azioni chiave.
+     * @param pazienteT0Service               Il servizio per la gestione dei pazienti T0.
+     * @param esameRefertoService             Il servizio per la gestione degli esami e dei referti.
+     * @param esameFisicoService              Il servizio per la gestione degli esami fisici.
+     * @param advancedScenarioService         Il servizio per la gestione degli scenari avanzati.
      */
     public PdfExportService(ScenarioService scenarioService,
                             FileStorageService fileStorageService,
@@ -124,7 +156,8 @@ public class PdfExportService {
     }
 
     /**
-     * Inizializza una nuova pagina nel documento
+     * Inizializza una nuova pagina nel documento PDF, aggiungendo loghi e impostando la posizione iniziale del contenuto.
+     * Chiude lo stream di contenuto precedente se necessario.
      *
      * @throws IOException se si verifica un errore durante la creazione della pagina
      */
@@ -143,13 +176,14 @@ public class PdfExportService {
 
         currentContentStream = new PDPageContentStream(document, currentPage);
 
+        // Se è la prima pagina aggiunge i loghi
         if (pageNumber == 1) {
 
-            float simLogoWidth = 40; // Ridotto da 60
-            float simLogoHeight = 40; // Ridotto da 60
+            float simLogoWidth = 40;
+            float simLogoHeight = 40;
 
-            float centerLogoMaxWidth = 120; // Aumentato (dimensione massima)
-            float centerLogoMaxHeight = 80; // Aumentato (dimensione massima)
+            float centerLogoMaxWidth = 120;
+            float centerLogoMaxHeight = 80;
 
             float centerLogoWidth;
             float centerLogoHeight = 0;
@@ -188,7 +222,7 @@ public class PdfExportService {
     }
 
     /**
-     * Verifica se è necessario creare una nuova pagina in base allo spazio rimanente
+     * Verifica se è necessario creare una nuova pagina in base allo spazio rimanente.
      *
      * @param neededSpace lo spazio necessario per il contenuto successivo
      * @throws IOException se si verifica un errore durante la creazione della pagina
@@ -199,11 +233,25 @@ public class PdfExportService {
         }
     }
 
-
     /**
      * Esporta uno scenario in formato PDF.
      *
      * @param scenarioId l'ID dello scenario da esportare
+     * @param desc       flag per includere la descrizione
+     * @param brief      flag per includere il brief
+     * @param infoGen    flag per includere le informazioni generali
+     * @param patto      flag per includere il patto
+     * @param azioni     flag per includere le azioni chiave
+     * @param obiettivi  flag per includere gli obiettivi
+     * @param moula      flag per includere la sezione moula
+     * @param liqui      flag per includere la sezione liquidi
+     * @param matNec     flag per includere i materiali necessari
+     * @param param      flag per includere i parametri
+     * @param acces      flag per includere gli accessi
+     * @param fisic      flag per includere l'esame fisico
+     * @param esam       flag per includere gli esami
+     * @param time       flag per includere la timeline
+     * @param scen       flag per includere la sceneggiatura
      * @return un array di byte contenente il PDF generato
      * @throws IOException se si verifica un errore durante la creazione del PDF
      */
@@ -223,42 +271,56 @@ public class PdfExportService {
                                       boolean esam,
                                       boolean time,
                                       boolean scen) throws IOException {
+        // Inizializzazione delle variabili statiche per la generazione del PDF
         document = null;
         currentContentStream = null;
         pageNumber = 1;
 
         try {
+            // Creazione di un nuovo documento PDF
             document = new PDDocument();
 
+            // Caricamento dei font personalizzati
             FONTREGULAR = loadFont(document, "/fonts/LiberationSans-Regular.ttf");
             FONTBOLD = loadFont(document, "/fonts/LiberationSans-Bold.ttf");
             FONTITALIC = loadFont(document, "/fonts/LiberationSans-Italic.ttf");
             FONTBOLDITALIC = loadFont(document, "/fonts/LiberationSans-BoldItalic.ttf");
 
+            // Caricamento dei loghi
             logo = loadLogo(document);
             centerLogo = loadCenterLogo(document, fileStorageService);
 
+            // Inizializzazione della prima pagina
             initNewPage();
 
+            // Recupero dello scenario dal database tramite il servizio
             Scenario scenario = scenarioService.getScenarioById(scenarioId);
             logger.info("Recuperato scenario: {}", scenario.getTitolo());
 
+            // Creazione dell'intestazione dello scenario
             createScenarioHeader(scenario);
+            // Creazione della descrizione e delle sezioni opzionali
             createScenarioDescription(scenario, desc, brief, infoGen, patto, azioni, obiettivi, moula, liqui, matNec, scenarioService, materialeService, azioneChiaveService);
+            // Creazione della sezione pazienti
             createPatientSection(scenarioId, param, acces, fisic, pazienteT0Service, esameFisicoService);
+            // Creazione della sezione esami
             createExamsSection(scenarioId, esam, esameRefertoService);
 
+            // Determinazione del tipo di scenario per eventuali sezioni aggiuntive
             String scenarioType = scenarioService.getScenarioType(scenarioId);
             if (scenarioType != null && (scenarioType.equals("Advanced Scenario") ||
                     scenarioType.equals("Patient Simulated Scenario")) && time) {
-                createTimelineSection(scenario, advancedScenarioService,scenarioService);
+                // Creazione della timeline per scenari avanzati o simulati
+                createTimelineSection(scenario, advancedScenarioService, scenarioService);
                 logger.info("Timeline creata");
             }
 
             if (scenarioType != null && scenarioType.equals("Patient Simulated Scenario")) {
+                // Creazione della sceneggiatura per scenari simulati
                 createSceneggiaturaSection(scenario, scen, patientSimulatedScenarioService);
             }
 
+            // Chiusura dello stream di contenuto se ancora aperto
             if (currentContentStream != null) {
                 try {
                     currentContentStream.close();
@@ -268,15 +330,17 @@ public class PdfExportService {
                 }
             }
 
+            // Scrittura del documento PDF su un array di byte
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             document.save(outputStream);
             logger.info("PDF salvato con successo");
             return outputStream.toByteArray();
         } catch (Exception e) {
+            // Gestione degli errori durante la generazione del PDF
             logger.error("Errore nella generazione del PDF", e);
             throw new IOException("Generazione PDF fallita: " + e.getMessage(), e);
         } finally {
-
+            // Chiusura delle risorse in ogni caso
             if (currentContentStream != null) {
                 try {
                     currentContentStream.close();

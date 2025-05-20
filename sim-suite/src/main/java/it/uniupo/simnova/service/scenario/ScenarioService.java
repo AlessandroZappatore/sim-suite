@@ -29,7 +29,6 @@ public class ScenarioService {
 
     /**
      * Costruttore del servizio ScenarioService.
-     *
      */
     public ScenarioService() {
     }
@@ -84,7 +83,7 @@ public class ScenarioService {
      * @return una lista di tutti gli scenari presenti nel database
      */
     public List<Scenario> getAllScenarios() {
-        final String sql = "SELECT id_scenario, titolo, autori, patologia, descrizione FROM Scenario";
+        final String sql = "SELECT id_scenario, titolo, autori, patologia, descrizione, tipologia_paziente FROM Scenario";
         List<Scenario> scenarios = new ArrayList<>();
 
         try (Connection conn = DBConnect.getInstance().getConnection();
@@ -97,7 +96,8 @@ public class ScenarioService {
                         rs.getString("titolo"),
                         rs.getString("autori"),
                         rs.getString("patologia"),
-                        rs.getString("descrizione"));
+                        rs.getString("descrizione"),
+                        rs.getString("tipologia_paziente"));
                 scenarios.add(scenario);
             }
             logger.info("Recuperati {} scenari dal database", scenarios.size());
@@ -421,6 +421,26 @@ public class ScenarioService {
         } catch (SQLException e) {
             logger.error("Errore durante l'aggiornamento del target dello scenario con ID {}", scenarioId, e);
             return false;
+        }
+    }
+
+    public void updateScenarioTitleAndAuthors(Integer scenarioId, String newTitle, String newAuthors) {
+        final String sql = "UPDATE Scenario SET titolo = ?, autori = ? WHERE id_scenario = ?";
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, newTitle);
+            stmt.setString(2, newAuthors);
+            stmt.setInt(3, scenarioId);
+
+            boolean result = stmt.executeUpdate() > 0;
+            if (result) {
+                logger.info("Titolo e autori aggiornati con successo per lo scenario con ID {}", scenarioId);
+            } else {
+                logger.warn("Nessun titolo o autore aggiornato per lo scenario con ID {}", scenarioId);
+            }
+        } catch (SQLException e) {
+            logger.error("Errore durante l'aggiornamento del titolo e degli autori dello scenario con ID {}", scenarioId, e);
         }
     }
 }

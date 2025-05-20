@@ -26,8 +26,7 @@ import java.sql.SQLException;
 @Theme(value = "sim.suite")
 @PWA(
         name = "Sim Suite",
-        shortName = "SimSuite",
-        iconPath = "icons/icon.png"
+        shortName = "SimSuite"
 )
 public class Application implements AppShellConfigurator {
     /**

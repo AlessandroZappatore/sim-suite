@@ -11,14 +11,41 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * Classe per il caricamento dei loghi per i PDF.
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 public class LogoLoader {
+    /**
+     * Logger per la classe LogoLoader.
+     */
     private static final Logger logger = LoggerFactory.getLogger(LogoLoader.class);
+    /**
+     * Percorso del logo di default.
+     */
     private static final String LOGO_URL = "/META-INF/resources/icons/LogoSimsuite.png";
+    /**
+     * Nome del file del logo del centro.
+     */
     private static final String CENTER_LOGO_FILENAME = "center_logo.png"; // Nome file standard per il logo del centro
-
+    /**
+     * Larghezza del logo del centro.
+     */
     public static float centerLogoWidth;
+    /**
+     * Altezza del logo del centro.
+     */
     public static float centerLogoHeight;
 
+    /**
+     * Carica il logo di SIMSUITE da aggiungere nel PDF.
+     *
+     * @param document Il documento PDF in cui caricare il logo.
+     * @return L'oggetto PDImageXObject rappresentante il logo.
+     * @throws IOException Se si verifica un errore durante il caricamento del logo.
+     */
     public static PDImageXObject loadLogo(PDDocument document) throws IOException {
         try (InputStream logoStream = LogoLoader.class.getResourceAsStream(LOGO_URL)) {
             if (logoStream == null) {
@@ -39,6 +66,13 @@ public class LogoLoader {
         }
     }
 
+    /**
+     * Carica il logo del centro da aggiungere nel PDF.
+     *
+     * @param document           Il documento PDF in cui caricare il logo.
+     * @param fileStorageService Il servizio di storage per il caricamento del logo.
+     * @return L'oggetto PDImageXObject rappresentante il logo del centro.
+     */
     public static PDImageXObject loadCenterLogo(PDDocument document, FileStorageService fileStorageService) {
         try (InputStream logoStream = fileStorageService.readFile(CENTER_LOGO_FILENAME)) {
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -48,6 +82,7 @@ public class LogoLoader {
                 buffer.write(data, 0, nRead);
             }
 
+            // Assicura che sia presente il logo del centro
             if (buffer.size() == 0) {
                 logger.warn("Il file del logo del centro è vuoto: {}", CENTER_LOGO_FILENAME);
                 return null;

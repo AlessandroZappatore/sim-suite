@@ -16,11 +16,11 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.shared.Tooltip;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
+import com.vaadin.flow.component.popover.Popover; // Aggiunto import Popover
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.service.storage.FileStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 import java.io.InputStream;
 
@@ -38,13 +38,11 @@ public class AppHeader extends HorizontalLayout {
 
     private static final Logger logger = LoggerFactory.getLogger(AppHeader.class);
     private static final String CENTER_LOGO_FILENAME = "center_logo.png"; // Nome file standard per il logo del centro
-
+    private static final String LOGO_URL = "/icons/icon.png";
     private final FileStorageService fileStorageService;
     private final Div centerLogoContainer; // Contenitore dinamico per logo o uploader
     private final Button toggleThemeButton;
     private boolean isDarkMode = false;
-
-    private static final String LOGO_URL = "/icons/icon.png";
 
     /**
      * Costruttore che inizializza l'header.
@@ -92,6 +90,9 @@ public class AppHeader extends HorizontalLayout {
                 .set("display", "flex") // Usa flex per allineare logo e pulsante
                 .set("align-items", "center"); // Allinea verticalmente
         updateCenterLogoArea(); // Popola inizialmente con logo o uploader
+
+        // Mostra popover se il logo centro è assente
+        showMissingLogoPopoverIfNeeded();
 
         // Layout per loghi e titolo
         HorizontalLayout leftSection = new HorizontalLayout(simSuiteLogo, appTitle, centerLogoContainer);
@@ -235,6 +236,32 @@ public class AppHeader extends HorizontalLayout {
         }
     }
 
+    /**
+     * Mostra un popover se il logo del centro è assente e ci troviamo nella home page.
+     */
+    private void showMissingLogoPopoverIfNeeded() {
+        UI.getCurrent().getPage().fetchCurrentURL(currentUrl -> {
+            String path = currentUrl.getPath();
+            // Mostra il popover solo se siamo nella home page (URL vuoto o solo "/") e manca il logo
+            if ((path.isEmpty() || "/".equals(path)) && !fileStorageService.fileExists(CENTER_LOGO_FILENAME)) {
+                // Esegue nel contesto dell'UI thread
+                UI.getCurrent().access(() -> {
+                    Popover popover = new Popover();
+                    popover.setOpened(true);
+                    Paragraph message = new Paragraph("⚠️ Carica il logo del centro per averlo nei PDF.");
+                    Button closeBtn = new Button("Chiudi", e -> popover.setOpened(false));
+                    closeBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+
+                    HorizontalLayout layout = new HorizontalLayout(message, closeBtn);
+                    layout.setAlignItems(Alignment.CENTER);
+
+                    popover.add(layout);
+                    popover.setTarget(centerLogoContainer);
+                    popover.open();
+                });
+            }
+        });
+    }
 
     /**
      * Verifica il tema iniziale dell'applicazione leggendo l'attributo 'theme' da documentElement.

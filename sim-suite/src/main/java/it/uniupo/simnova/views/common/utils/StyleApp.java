@@ -175,7 +175,6 @@ public class StyleApp extends HorizontalLayout {
     public static Button getButton(String label, VaadinIcon icon, ButtonVariant variant, String iconColor) {
         Button editButton = new Button(label, new Icon(icon));
         editButton.addThemeVariants(variant);
-        editButton.setMinWidth("150px");
         editButton.setMaxWidth("250px");
         editButton.getStyle()
                 .set("border-radius", "30px")

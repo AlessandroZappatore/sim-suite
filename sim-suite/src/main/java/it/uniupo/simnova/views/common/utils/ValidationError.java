@@ -6,6 +6,12 @@ import com.vaadin.flow.component.HasValidation;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 
+/**
+ * Classe di utilità per la gestione degli errori di validazione nei componenti Vaadin.
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 public class ValidationError {
 
     /**

@@ -1,6 +1,19 @@
 package it.uniupo.simnova.service.export.helper.pdf;
 
+/**
+ * Classe di supporto utilizzata per rimuovere i caratteri in apice e in pedice da usare nei PDF.
+ * Senza questa gestione il font utilizzato non saprebbe gestire questi caratteri sollevando un eccezione che non permetterebbe la creazione del PDF.
+ *
+ * @author Alessandro Zappatore
+ * @version 1.1
+ */
 public class ReplaceSubscript {
+    /**
+     * Sostituisce i caratteri in apice e in pedice con i rispettivi caratteri normali.
+     *
+     * @param text il testo da elaborare
+     * @return il testo con i caratteri in apice e in pedice sostituiti
+     */
     public static String replaceSubscriptCharacters(String text) {
         if (text == null) return null;
 

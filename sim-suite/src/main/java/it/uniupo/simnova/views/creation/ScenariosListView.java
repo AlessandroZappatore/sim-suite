@@ -25,6 +25,7 @@ import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode; // Added
 import com.vaadin.flow.router.*;
+import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.domain.scenario.Scenario;
@@ -96,6 +97,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
     private HorizontalLayout paginationControls;
     private int currentPage = 0;
     private Span pageInfo;
+    private ComboBox<String> searchPatientType;
     private TextField searchTitolo;
     private TextField searchAutori;
     private ComboBox<String> searchTipo;
@@ -149,7 +151,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         customHeader.add(newScenarioButton);
 
         configureSearchFilters();
-        HorizontalLayout filterLayout = new HorizontalLayout(searchTitolo, searchTipo, searchAutori, searchPatologia, resetButton);
+        HorizontalLayout filterLayout = new HorizontalLayout(searchPatientType,searchTitolo, searchTipo, searchAutori, searchPatologia, resetButton);
         filterLayout.setWidthFull();
         filterLayout.setPadding(true);
         filterLayout.setSpacing(true);
@@ -187,6 +189,16 @@ public class ScenariosListView extends Composite<VerticalLayout> {
      * Configura i campi per la ricerca/filtraggio degli scenari.
      */
     private void configureSearchFilters() {
+        List<String> allPatientTypes = List.of("Tutti", "Adulto", "Pediatrico", "Neonatale", "Prematuro");
+        searchPatientType = FieldGenerator.createComboBox(
+                "Filtra per Tipo Paziente",
+                allPatientTypes,
+                "Tutti",
+                false
+        );
+        searchPatientType.setClearButtonVisible(true);
+        searchPatientType.addValueChangeListener(e -> applyFiltersAndRefreshGrid()); // Added listener
+
         searchTitolo = FieldGenerator.createTextField(
                 "Filtra per Titolo",
                 "Cerca titolo...",
@@ -228,6 +240,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         resetButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         resetButton.getStyle().set("margin-top", "auto"); // Allinea verticalmente con i campi FieldGenerator
         resetButton.addClickListener(e -> {
+            searchPatientType.setValue("Tutti");
             searchTitolo.clear();
             searchAutori.clear();
             searchTipo.setValue("Tutti");
@@ -243,20 +256,28 @@ public class ScenariosListView extends Composite<VerticalLayout> {
     private void applyFiltersAndRefreshGrid() {
         if (detached.get()) return;
 
+        String tipologiaPatientFilter = searchPatientType.getValue() != null ? searchPatientType.getValue() : "Tutti"; // Corrected filter variable
         String titoloFilter = searchTitolo.getValue().trim().toLowerCase();
         String autoriFilter = searchAutori.getValue().trim().toLowerCase();
         String tipoFilter = searchTipo.getValue() != null ? searchTipo.getValue() : "Tutti";
         String patologiaFilter = searchPatologia.getValue().trim().toLowerCase();
 
         filteredScenarios = allScenarios.stream()
+                .filter(scenario -> {
+                    if ("Tutti".equals(tipologiaPatientFilter)) {
+                        return true;
+                    }
+                    String actualPatientType = scenario.getTipologia(); // Use getTipologia for patient type
+                    return actualPatientType != null && actualPatientType.equalsIgnoreCase(tipologiaPatientFilter);
+                })
                 .filter(scenario -> titoloFilter.isEmpty() || (scenario.getTitolo() != null && scenario.getTitolo().toLowerCase().contains(titoloFilter)))
                 .filter(scenario -> autoriFilter.isEmpty() || (scenario.getAutori() != null && scenario.getAutori().toLowerCase().contains(autoriFilter)))
                 .filter(scenario -> {
                     if ("Tutti".equals(tipoFilter)) {
                         return true;
                     }
-                    String actualType = scenarioService.getScenarioType(scenario.getId());
-                    return actualType != null && actualType.equalsIgnoreCase(tipoFilter);
+                    String actualScenarioType = scenarioService.getScenarioType(scenario.getId()); // Use getScenarioType for scenario type
+                    return actualScenarioType != null && actualScenarioType.equalsIgnoreCase(tipoFilter);
                 })
                 .filter(scenario -> patologiaFilter.isEmpty() || (scenario.getPatologia() != null && scenario.getPatologia().toLowerCase().contains(patologiaFilter)))
                 .collect(Collectors.toList());
@@ -273,6 +294,40 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         scenariosGrid.getStyle().set("min-height", "400px");
 
         scenariosGrid.addColumn(new ComponentRenderer<>(scenario -> {
+                    String patientType = scenario.getTipologia();
+                    return switch (patientType) {
+                        case "Adulto" -> {
+                            Span span = new Span(FontAwesome.Solid.USER.create());
+                            span.getElement().setAttribute("title", "Paziente adulto");
+                            yield span;
+                        }
+                        case "Pediatrico" -> {
+                            Span span = new Span(FontAwesome.Solid.CHILD.create());
+                            span.getElement().setAttribute("title", "Paziente pediatrico");
+                            yield span;
+                        }
+                        case "Neonatale" -> {
+                            Span span = new Span(FontAwesome.Solid.BABY.create());
+                            span.getElement().setAttribute("title", "Paziente neonatale");
+                            yield span;
+                        }
+                        case "Prematuro" -> {
+                            Span span = new Span(FontAwesome.Solid.HANDS_HOLDING_CHILD.create());
+                            span.getElement().setAttribute("title", "Paziente prematuro");
+                            yield span;
+                        }
+                        default -> {
+                            Span span = new Span(FontAwesome.Solid.INFO_CIRCLE.create());
+                            span.getElement().setAttribute("title", "Tipo paziente non specificato");
+                            yield span;
+                        }
+                    };
+                })).setHeader("Tipo Paziente")
+                .setFlexGrow(0)
+                .setWidth("100px")
+                .setComparator(Comparator.comparing(Scenario::getTipologia, Comparator.nullsLast(String::compareToIgnoreCase)));
+
+        scenariosGrid.addColumn(new ComponentRenderer<>(scenario -> {
                     String titolo = scenario.getTitolo() != null ? scenario.getTitolo() : "";
                     String displayTitolo = titolo.length() > MAX_TITLE_LENGTH ? titolo.substring(0, MAX_TITLE_LENGTH) + "..." : titolo;
                     Span titoloSpan = new Span(displayTitolo);
@@ -283,7 +338,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                 }))
                 .setHeader("Titolo")
                 .setSortable(true)
-                .setFlexGrow(2) // Dai più spazio al titolo
+                .setFlexGrow(2)
                 .setComparator(Comparator.comparing(Scenario::getTitolo, Comparator.nullsLast(String::compareToIgnoreCase)));
 
         scenariosGrid.addColumn(new ComponentRenderer<>(scenario -> {
@@ -791,6 +846,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
             progressBar.setVisible(true);
             scenariosGrid.setVisible(false);
             paginationControls.setVisible(false);
+            searchPatientType.setEnabled(false);
             searchTitolo.setEnabled(false);
             searchAutori.setEnabled(false);
             searchTipo.setEnabled(false);
@@ -812,6 +868,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                         progressBar.setVisible(false);
                         scenariosGrid.setVisible(true);
                         paginationControls.setVisible(true);
+                        searchPatientType.setEnabled(true);
                         searchTitolo.setEnabled(true);
                         searchAutori.setEnabled(true);
                         searchTipo.setEnabled(true);
@@ -827,6 +884,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                         progressBar.setVisible(false);
                         scenariosGrid.setVisible(true);
                         paginationControls.setVisible(true);
+                        searchPatientType.setEnabled(true);
                         searchTitolo.setEnabled(true);
                         searchAutori.setEnabled(true);
                         searchTipo.setEnabled(true);

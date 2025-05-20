@@ -3,8 +3,18 @@ package it.uniupo.simnova.views.constant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Classe di supporto contenente i parametri aggiuntivi da utilizzare nei vari tempi.
+ */
 public class AdditionParametersConst {
+    /**
+     * Mappa dei parametri aggiuntivi predefiniti.
+     * La chiave è il nome del parametro, il valore è la sua descrizione.
+     */
     public static final Map<String, String> ADDITIONAL_PARAMETERS = new LinkedHashMap<>();
+    /**
+     * Chiave per i parametri personalizzati.
+     */
     public static final String CUSTOM_PARAMETER_KEY = "CUSTOM";
 
     static {

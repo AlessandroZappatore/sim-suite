@@ -19,11 +19,15 @@ import static it.uniupo.simnova.views.constant.CreditConst.*;
  * Componente riutilizzabile per visualizzare i crediti dell'applicazione.
  * Include informazioni sull'ideatore, l'università e contatti dello sviluppatore
  * visualizzati in un popup.
+ *
+ * @author Alessandro Zappatore
+ * @version 1.1
  */
 public class CreditsComponent extends VerticalLayout {
 
     /**
      * Crea una nuova istanza del componente crediti.
+     * Mostra informazioni su ideatore, sviluppatore, università e versione.
      */
     public CreditsComponent() {
         this.setPadding(false);
@@ -59,10 +63,10 @@ public class CreditsComponent extends VerticalLayout {
     }
 
     /**
-     * Helper method to create a standard row with an icon and a linked Anchor.
+     * Crea una riga standard con icona e Anchor collegato.
      *
-     * @param icon The icon for the row.
-     * @return A HorizontalLayout representing the row.
+     * @param icon icona da mostrare nella riga
+     * @return layout orizzontale della riga
      */
     private static HorizontalLayout getRow(Icon icon) {
         HorizontalLayout row = new HorizontalLayout();
@@ -83,8 +87,8 @@ public class CreditsComponent extends VerticalLayout {
     }
 
     /**
-     * Creates the row for the developer, with a clickable name.
-     * @return A HorizontalLayout for the developer row.
+     * Crea la riga per lo sviluppatore, con nome cliccabile che apre un dialog.
+     * @return layout orizzontale per lo sviluppatore
      */
     private HorizontalLayout createDeveloperRow() {
         HorizontalLayout row = new HorizontalLayout();
@@ -116,8 +120,8 @@ public class CreditsComponent extends VerticalLayout {
     }
 
     /**
-     * Creates the row for the university.
-     * @return A HorizontalLayout for the university row.
+     * Crea la riga per l'università con link.
+     * @return layout orizzontale per l'università
      */
     private HorizontalLayout createUniversityRow() {
         HorizontalLayout row = new HorizontalLayout();
@@ -139,8 +143,8 @@ public class CreditsComponent extends VerticalLayout {
     }
 
     /**
-     * Creates the row for version and date.
-     * @return A HorizontalLayout for the version/date row.
+     * Crea la riga per versione e data.
+     * @return layout orizzontale per versione e data
      */
     private HorizontalLayout createVersionRow() {
         HorizontalLayout row = new HorizontalLayout();
@@ -166,9 +170,8 @@ public class CreditsComponent extends VerticalLayout {
         return row;
     }
 
-
     /**
-     * Creates and opens the dialog with developer contact information.
+     * Crea e apre il dialog con i contatti dello sviluppatore.
      */
     private void openDeveloperInfoDialog() {
         Dialog dialog = new Dialog();
@@ -203,7 +206,19 @@ public class CreditsComponent extends VerticalLayout {
         githubLink.getElement().setAttribute("rel", "noopener noreferrer");
         githubRow.add(githubIcon, githubLink);
 
-        dialogContent.add(emailRow, githubRow);
+        // Linkedin Row
+        HorizontalLayout linkedinRow = new HorizontalLayout();
+        linkedinRow.setSpacing(true);
+        linkedinRow.setAlignItems(Alignment.CENTER);
+        Icon linkedinIcon = FontAwesome.Brands.LINKEDIN.create();
+        linkedinIcon.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
+        Anchor linkedinLink = new Anchor(DEVELOPERLINK, "LinkedIn: Alessandro Zappatore");
+        linkedinLink.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
+        linkedinLink.getElement().setAttribute("target", "_blank");
+        linkedinLink.getElement().setAttribute("rel", "noopener noreferrer");
+        linkedinRow.add(linkedinIcon, linkedinLink);
+
+        dialogContent.add(emailRow, githubRow, linkedinRow);
 
         dialog.add(dialogContent);
 

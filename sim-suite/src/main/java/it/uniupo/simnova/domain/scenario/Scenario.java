@@ -105,12 +105,13 @@ public class Scenario {
      * @param patologia      la patologia del paziente
      * @param descrizione    la descrizione dello scenario
      */
-    public Scenario(int id, String titolo, String autori, String patologia, String descrizione) {
+    public Scenario(int id, String titolo, String autori, String patologia, String descrizione, String tipologia) {
         this.id = id;
         this.titolo = titolo;
         this.autori = autori;
         this.patologia = patologia;
         this.descrizione = descrizione;
+        this.tipologia = tipologia;
     }
 
     /**
