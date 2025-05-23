@@ -153,7 +153,6 @@ public class ScenarioImportService {
                         InputStream mediaInputStream = new ByteArrayInputStream(mediaFileBytes);
                         fileStorageService.storeFile(mediaInputStream, mediaFileName);
                     }
-                    logger.warn("La gestione dei file multimediali non è ancora implementata.");
                 }
                 return true;
             } else {

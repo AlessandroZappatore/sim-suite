@@ -3,7 +3,7 @@ package it.uniupo.simnova.views.constant;
 /**
  * Classe di supporto contenente le costanti per i target.
  */
-public class TargetConst {
+public final class TargetConst {
     // --- Costanti Target Principali ---
     public static final String MEDICI_ASSISTENTI = "Medici Assistenti";
     public static final String MEDICI_SPECIALISTI = "Medici specialisti";

@@ -22,7 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DialogSupport {
-    public static void showZipUploadDialog(AtomicBoolean detached, ExecutorService executorService, ScenarioImportService scenarioImportService) {
+    public static void showZipUploadDialog(AtomicBoolean detached, ExecutorService executorService, ScenarioImportService scenarioImportService, Runnable onSuccess) {
         if (detached.get()) {
             return;
         }
@@ -80,14 +80,13 @@ public class DialogSupport {
 
                 executorService.submit(() -> {
                     try {
-                        // Assumiamo che ScenarioImportService abbia un metodo per gestire l'import da ZIP
-                        // Questa è una modifica ipotetica all'interfaccia di ScenarioImportService
                         boolean imported = scenarioImportService.importScenarioFromZip(zipBytes, fileName);
                         if (!detached.get() && !ui.isClosing()) {
                             ui.access(() -> {
                                 loadingNotification.close();
                                 if (imported) {
                                     Notification.show("Scenario importato con successo!", 3000, Notification.Position.TOP_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                                    if (onSuccess != null) onSuccess.run();
                                 } else {
                                     Notification.show("Errore durante l'importazione dello scenario.", 5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                                 }

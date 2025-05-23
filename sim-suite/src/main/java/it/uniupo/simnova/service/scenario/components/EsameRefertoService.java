@@ -1,6 +1,7 @@
 package it.uniupo.simnova.service.scenario.components;
 
 import it.uniupo.simnova.domain.paziente.EsameReferto;
+import it.uniupo.simnova.service.storage.FileStorageService;
 import it.uniupo.simnova.utils.DBConnect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,11 @@ public class EsameRefertoService {
 
     private static final Logger logger = LoggerFactory.getLogger(EsameRefertoService.class);
 
+    private final FileStorageService fileStorageService;
+
+    public EsameRefertoService(FileStorageService fileStorageService) {
+        this.fileStorageService = fileStorageService;
+    }
     public boolean saveEsamiReferti(int scenarioId, List<EsameReferto> esamiData) {
         if (!deleteEsamiReferti(scenarioId)) {
             logger.warn("Impossibile eliminare i referti esistenti per lo scenario con ID {}", scenarioId);
@@ -100,6 +106,58 @@ public class EsameRefertoService {
         }
     }
 
+    public void deleteEsameReferto(int idEsameReferto, int scenarioId) {
+        // Prima ottiene il riferimento al media associato all'esame
+        String mediaFilename = getMediaFilenameByEsameId(idEsameReferto, scenarioId);
+
+        // Elimina il file media se esiste
+        if (mediaFilename != null && !mediaFilename.isEmpty()) {
+            fileStorageService.deleteFile(mediaFilename);
+            logger.info("File media {} dell'esame con ID {} eliminato", mediaFilename, idEsameReferto);
+        }
+
+        // Procede con l'eliminazione del record dal database
+        final String sql = "DELETE FROM EsameReferto WHERE id_esame = ? AND id_scenario = ?";
+
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, idEsameReferto);
+            stmt.setInt(2, scenarioId);
+            stmt.executeUpdate();
+            logger.info("Referto esame con ID {} eliminato con successo per lo scenario con ID {}", idEsameReferto, scenarioId);
+        } catch (SQLException e) {
+            logger.error("Errore durante l'eliminazione del referto esame con ID {} per lo scenario con ID {}", idEsameReferto, scenarioId, e);
+        }
+    }
+
+    /**
+     * Recupera il nome del file media associato a un esame.
+     *
+     * @param idEsame ID dell'esame
+     * @param scenarioId ID dello scenario
+     * @return Nome del file media o null se non trovato
+     */
+    private String getMediaFilenameByEsameId(int idEsame, int scenarioId) {
+        final String sql = "SELECT media FROM EsameReferto WHERE id_esame = ? AND id_scenario = ?";
+
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, idEsame);
+            stmt.setInt(2, scenarioId);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("media");
+            }
+        } catch (SQLException e) {
+            logger.error("Errore durante il recupero del media per l'esame con ID {} dello scenario {}",
+                        idEsame, scenarioId, e);
+        }
+
+        return null;
+    }
 
 
 }

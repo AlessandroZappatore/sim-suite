@@ -1,5 +1,6 @@
 package it.uniupo.simnova.views.creation.scenario;
 
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -87,7 +88,7 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "TARGET E LEARNING GROUPS",
                 "Seleziona il destinatario per cui è progettato lo scenario di simulazione. Per alcune categorie, saranno richieste informazioni addizionali.",
-                VaadinIcon.USER_CARD.create(),
+                FontAwesome.Solid.BULLSEYE.create(),
                 "var(--lumo-primary-color)"
         );
 

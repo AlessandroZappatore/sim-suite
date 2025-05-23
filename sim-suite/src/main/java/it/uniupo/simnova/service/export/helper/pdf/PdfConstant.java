@@ -6,7 +6,7 @@ package it.uniupo.simnova.service.export.helper.pdf;
  * @author Alessandro Zappatore
  * @version 1.0
  */
-public class PdfConstant {
+public final class PdfConstant {
     /**
      * Dimensione del font per l'intestazione del PDF (es. titolo scenario).
      */

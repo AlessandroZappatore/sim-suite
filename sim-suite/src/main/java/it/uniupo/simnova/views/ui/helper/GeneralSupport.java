@@ -1,12 +1,11 @@
 package it.uniupo.simnova.views.ui.helper;
 
-// Aggiunto se InfoItemSupport.createInfoItem restituisce Component
-
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Hr;
-// Aggiunto se createInfoItem è implementato qui
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -15,35 +14,38 @@ import it.uniupo.simnova.domain.scenario.Scenario;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.H5;
+import com.vaadin.flow.component.html.IFrame;
 import it.uniupo.simnova.service.scenario.ScenarioService;
+import it.uniupo.simnova.service.scenario.components.MaterialeService; // Import MaterialeService
 import it.uniupo.simnova.views.common.utils.StyleApp;
 import it.uniupo.simnova.views.common.utils.TinyEditor;
 import org.vaadin.tinymce.TinyMce;
 
 import java.util.List;
 
-public class GeneralSupport extends HorizontalLayout { // L'estensione di HorizontalLayout non è attivamente usata se si usa solo il metodo statico
+public class GeneralSupport extends HorizontalLayout {
 
-    public GeneralSupport() {
-        // Costruttore vuoto, la classe è usata principalmente per il metodo statico
-    }
+    // Removed the constructor because it's only used for static methods.
+    // If you plan to make GeneralSupport non-static, you'd re-add it for dependency injection.
 
     /**
-     * Crea il contenuto della panoramica generale dello scenario utilizzando dati pre-caricati.
+     * Creates the general overview content for the scenario using pre-loaded data.
      *
-     * @param scenario            L'oggetto Scenario principale, già caricato.
-     * @param isPediatricScenario true se lo scenario è pediatrico (risultato di scenarioService.isPediatric).
-     * @param infoGenitore        Stringa con le informazioni dai genitori, se applicabile e disponibile (può essere null).
-     * @param materialiNecessari  Stringa con l'elenco dei materiali necessari (risultato di materialeService.toStringAllMaterialsByScenarioId).
-     * @return Un VerticalLayout contenente la panoramica generale.
+     * @param scenario            The main Scenario object, already loaded.
+     * @param isPediatricScenario true if the scenario is pediatric (result of scenarioService.isPediatric).
+     * @param infoGenitore        String with information from parents, if applicable and available (can be null).
+     * @param azioniChiave        List of key actions.
+     * @param scenarioService     Scenario service to update scenario details.
+     * @param materialeService    MaterialeService to fetch updated materials data. // Added MaterialeService
+     * @return A VerticalLayout containing the general overview.
      */
     public static VerticalLayout createOverviewContentWithData(
             Scenario scenario,
             boolean isPediatricScenario,
             String infoGenitore,
-            String materialiNecessari,
             List<String> azioniChiave,
-            ScenarioService scenarioService) {
+            ScenarioService scenarioService,
+            MaterialeService materialeService) { // Added MaterialeService here
 
         VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setPadding(true);
@@ -73,12 +75,11 @@ public class GeneralSupport extends HorizontalLayout { // L'estensione di Horizo
         cardContentLayout.setSpacing(false);
         cardContentLayout.setWidthFull();
 
-        // Utilizza i dati passati direttamente e le proprietà dell'oggetto 'scenario'
+        // Use the passed data directly and the 'scenario' object properties
         addInfoItemIfNotEmpty(scenario.getId(), cardContentLayout, "Descrizione", scenario.getDescrizione(), VaadinIcon.PENCIL, true, scenarioService);
         addInfoItemIfNotEmpty(scenario.getId(), cardContentLayout, "Briefing", scenario.getBriefing(), VaadinIcon.GROUP, scenarioService);
 
         if (isPediatricScenario) {
-            // 'infoGenitore' è già stato recuperato (o è null) e passato come parametro
             addInfoItemIfNotEmpty(scenario.getId(), cardContentLayout, "Informazioni dai genitori", infoGenitore, VaadinIcon.FAMILY, scenarioService);
         }
 
@@ -88,8 +89,8 @@ public class GeneralSupport extends HorizontalLayout { // L'estensione di Horizo
         addInfoItemIfNotEmpty(scenario.getId(), cardContentLayout, "Moulage", scenario.getMoulage(), VaadinIcon.EYE, scenarioService);
         addInfoItemIfNotEmpty(scenario.getId(), cardContentLayout, "Liquidi e dosi farmaci", scenario.getLiquidi(), VaadinIcon.DROP, scenarioService);
 
-        // Utilizza la stringa 'materialiNecessari' pre-caricata
-        addInfoItemIfNotEmpty(scenario.getId(), cardContentLayout, "Materiale necessario", materialiNecessari, VaadinIcon.TOOLS, scenarioService);
+        // Special handling for "Materiale necessario" to open an iframe and self-refresh
+        addMaterialeNecessarioItem(scenario.getId(), cardContentLayout, materialeService); // Pass MaterialeService
 
         card.add(cardContentLayout);
         mainLayout.add(card);
@@ -97,18 +98,18 @@ public class GeneralSupport extends HorizontalLayout { // L'estensione di Horizo
     }
 
     /**
-     * Aggiunge un elemento informativo solo se il contenuto non è vuoto.
-     * Aggiunge un divisore (Hr) prima di ogni elemento tranne il primo.
-     * Include funzionalità di modifica inline.
+     * Adds an informational item only if the content is not empty.
+     * Adds a divider (Hr) before every item except the first.
+     * Includes inline editing functionality.
      *
-     * @param container   contenitore VerticalLayout dove aggiungere l'elemento
-     * @param title       titolo dell'informazione
-     * @param content     contenuto dell'informazione
-     * @param iconType    icona da utilizzare
-     * @param isFirstItem true se è il primo elemento, per non aggiungere un Hr prima
+     * @param container       VerticalLayout container where the item is added
+     * @param title           title of the information
+     * @param content         content of the information
+     * @param iconType        icon to use
+     * @param isFirstItem     true if it's the first item, to avoid adding an Hr before it
+     * @param scenarioService The scenario service for updating information.
      */
     private static void addInfoItemIfNotEmpty(Integer scenarioId, VerticalLayout container, String title, String content, VaadinIcon iconType, boolean isFirstItem, ScenarioService scenarioService) {
-        // Mostra sempre la sezione, anche se vuota
         if (!isFirstItem && container.getComponentCount() > 0) {
             Hr divider = new Hr();
             divider.getStyle()
@@ -123,7 +124,6 @@ public class GeneralSupport extends HorizontalLayout { // L'estensione di Horizo
         itemLayout.setSpacing(false);
         itemLayout.setWidthFull();
 
-        // Header con Icona, Titolo e Pulsante Modifica
         HorizontalLayout headerRow = new HorizontalLayout();
         headerRow.setWidthFull();
         headerRow.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -150,7 +150,6 @@ public class GeneralSupport extends HorizontalLayout { // L'estensione di Horizo
         headerRow.add(titleGroup, editButton);
         itemLayout.add(headerRow);
 
-        // Contenuto visualizzato
         Div contentDisplay = new Div();
         contentDisplay.getStyle()
                 .set("font-family", "var(--lumo-font-family)")
@@ -168,11 +167,10 @@ public class GeneralSupport extends HorizontalLayout { // L'estensione di Horizo
         }
         itemLayout.add(contentDisplay);
 
-        // Editor (TextArea) - inizialmente nascosto
         TinyMce contentEditor = TinyEditor.getEditor();
         contentEditor.setValue(content == null ? "" : content);
         contentEditor.setVisible(false);
-        // Pulsanti Salva/Annulla per l'editor - inizialmente nascosti
+
         Button saveButton = new Button("Salva");
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
         Button cancelButton = new Button("Annulla");
@@ -185,7 +183,6 @@ public class GeneralSupport extends HorizontalLayout { // L'estensione di Horizo
 
         itemLayout.add(contentEditor, editorActions);
 
-        // Logica dei pulsanti
         editButton.addClickListener(e -> {
             contentDisplay.setVisible(false);
             String currentHtml = contentDisplay.getElement().getProperty("innerHTML");
@@ -224,6 +221,8 @@ public class GeneralSupport extends HorizontalLayout { // L'estensione di Horizo
             editorActions.setVisible(false);
             contentDisplay.setVisible(true);
             editButton.setVisible(true);
+            Notification.show("Sezione " + title + " aggiornata.", 3000, Notification.Position.BOTTOM_CENTER)
+                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         });
 
         cancelButton.addClickListener(e -> {
@@ -242,11 +241,136 @@ public class GeneralSupport extends HorizontalLayout { // L'estensione di Horizo
             for (String azione : azioniChiave) {
                 content.append("• ").append(azione).append("\n");
             }
-            addInfoItemIfNotEmpty(scenarioId, container, "Azioni Chiave", content.toString(), VaadinIcon.KEY, scenarioService);
+            addInfoItemIfNotEmpty(scenarioId, container, "Azioni Chiave", content.toString(), VaadinIcon.KEY, false, scenarioService);
+        } else {
+            addInfoItemIfNotEmpty(scenarioId, container, "Azioni Chiave", null, VaadinIcon.KEY, false, scenarioService);
         }
     }
 
-    // Metodo sovraccaricato per convenienza, assume che non sia il primo item se non specificato
+    /**
+     * Special method to add the "Materiale necessario" item with an iframe for editing.
+     * Includes a close button for the iframe and triggers a self-refresh on close.
+     *
+     * @param scenarioId       The ID of the scenario.
+     * @param container        VerticalLayout container where the item is added.
+     * @param materialeService MaterialeService to fetch updated materials data.
+     */
+    private static void addMaterialeNecessarioItem(Integer scenarioId, VerticalLayout container, MaterialeService materialeService) {
+        if (container.getComponentCount() > 0) {
+            Hr divider = new Hr();
+            divider.getStyle()
+                    .set("margin-top", "var(--lumo-space-s)")
+                    .set("margin-bottom", "var(--lumo-space-s)")
+                    .set("border-color", "var(--lumo-contrast-10pct)");
+            container.add(divider);
+        }
+
+        VerticalLayout itemLayout = new VerticalLayout();
+        itemLayout.setPadding(false);
+        itemLayout.setSpacing(false);
+        itemLayout.setWidthFull();
+
+        HorizontalLayout headerRow = new HorizontalLayout();
+        headerRow.setWidthFull();
+        headerRow.setAlignItems(FlexComponent.Alignment.CENTER);
+        headerRow.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+
+        HorizontalLayout titleGroup = new HorizontalLayout();
+        titleGroup.setAlignItems(FlexComponent.Alignment.CENTER);
+        Icon icon = new Icon(VaadinIcon.TOOLS);
+        icon.addClassName(LumoUtility.TextColor.PRIMARY);
+        icon.getStyle()
+                .set("background-color", "var(--lumo-primary-color-10pct)")
+                .set("padding", "var(--lumo-space-s)")
+                .set("border-radius", "var(--lumo-border-radius-l)")
+                .set("font-size", "var(--lumo-icon-size-m)")
+                .set("margin-right", "var(--lumo-space-xs)");
+
+        H5 titleLabel = new H5("Materiale necessario");
+        titleLabel.addClassNames(LumoUtility.Margin.NONE, LumoUtility.TextColor.PRIMARY);
+        titleLabel.getStyle().set("font-weight", "600");
+        titleGroup.add(icon, titleLabel);
+
+        Button editButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+        editButton.setTooltipText("Modifica Materiale necessario");
+        headerRow.add(titleGroup, editButton);
+        itemLayout.add(headerRow);
+
+        // This Div will display the materials content
+        Div contentDisplay = new Div();
+        contentDisplay.getStyle()
+                .set("font-family", "var(--lumo-font-family)")
+                .set("line-height", "var(--lumo-line-height-m)")
+                .set("color", "var(--lumo-body-text-color)")
+                .set("white-space", "pre-wrap")
+                .set("padding", "var(--lumo-space-xs) 0 var(--lumo-space-s) calc(var(--lumo-icon-size-m) + var(--lumo-space-m))")
+                .set("width", "100%")
+                .set("box-sizing", "border-box");
+
+        // Helper method to update the displayed content
+        Runnable updateContentDisplay = () -> {
+            String updatedContent = materialeService.toStringAllMaterialsByScenarioId(scenarioId);
+            if (updatedContent == null || updatedContent.trim().isEmpty()) {
+                contentDisplay.setText("Sezione vuota");
+                contentDisplay.getStyle().set("color", "var(--lumo-secondary-text-color)").set("font-style", "italic");
+            } else {
+                contentDisplay.getElement().setProperty("innerHTML", updatedContent.replace("\n", "<br />"));
+                contentDisplay.getStyle().remove("color");
+                contentDisplay.getStyle().remove("font-style");
+            }
+        };
+
+        // Set initial content
+        updateContentDisplay.run(); // Call it once to set the initial content
+
+        itemLayout.add(contentDisplay);
+
+        IFrame iframe = new IFrame();
+        iframe.setWidth("100%");
+        iframe.setHeight("600px");
+        iframe.setVisible(false);
+        iframe.getStyle().set("border", "none");
+
+        Button closeIframeButton = StyleApp.getButton("Chiudi Editor", VaadinIcon.CLOSE, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color)");
+        closeIframeButton.setVisible(false);
+
+        HorizontalLayout iframeControls = new HorizontalLayout(closeIframeButton);
+        iframeControls.setWidthFull();
+        iframeControls.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+        iframeControls.setVisible(false);
+
+        itemLayout.add(iframe, iframeControls);
+
+        editButton.addClickListener(e -> {
+            String url = "materialeNecessario/" + scenarioId + "/edit";
+            iframe.setSrc(url);
+            iframe.setVisible(true);
+            closeIframeButton.setVisible(true);
+            iframeControls.setVisible(true);
+            contentDisplay.setVisible(false);
+            editButton.setVisible(false);
+            Notification.show("Apertura editor materiali.", 3000, Notification.Position.BOTTOM_CENTER)
+                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        });
+
+        // Logic for the close button: Now it calls the internal update method
+        closeIframeButton.addClickListener(e -> {
+            iframe.setVisible(false);
+            closeIframeButton.setVisible(false);
+            iframeControls.setVisible(false);
+            contentDisplay.setVisible(true);
+            editButton.setVisible(true);
+
+            // Re-fetch and update the displayed content for materials
+            updateContentDisplay.run();
+
+            Notification.show("Editor materiali chiuso e contenuto aggiornato.", 3000, Notification.Position.BOTTOM_CENTER)
+                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        });
+
+        container.add(itemLayout);
+    }
+
     private static void addInfoItemIfNotEmpty(Integer scenarioId, VerticalLayout container, String title, String content, VaadinIcon iconType, ScenarioService scenarioService) {
         addInfoItemIfNotEmpty(scenarioId, container, title, content, iconType, false, scenarioService);
     }

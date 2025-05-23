@@ -443,4 +443,31 @@ public class ScenarioService {
             logger.error("Errore durante l'aggiornamento del titolo e degli autori dello scenario con ID {}", scenarioId, e);
         }
     }
+
+    public void updateSingleField(int id, String label, String newValue) {
+        String dbLabel;
+        switch (label){
+            case "Paziente" -> dbLabel = "nome_paziente";
+            case "Patologia" -> dbLabel = "patologia";
+            case "Tipologia" -> dbLabel = "tipologia_paziente";
+            case "Durata" -> dbLabel = "timer_generale";
+            default -> throw new IllegalArgumentException("Label non valido");
+        }
+        String sql = "UPDATE Scenario SET " + dbLabel + " = ? WHERE id_scenario = ?";
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, newValue);
+            stmt.setInt(2, id);
+
+            boolean result = stmt.executeUpdate() > 0;
+            if (result) {
+                logger.info("Campo {} aggiornato con successo per lo scenario con ID {}", label, id);
+            } else {
+                logger.warn("Nessun campo {} aggiornato per lo scenario con ID {}", label, id);
+            }
+        } catch (SQLException e) {
+            logger.error("Errore durante l'aggiornamento del campo {} dello scenario con ID {}", label, id, e);
+        }
+    }
 }

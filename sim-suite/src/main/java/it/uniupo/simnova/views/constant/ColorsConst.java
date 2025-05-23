@@ -6,7 +6,7 @@ package it.uniupo.simnova.views.constant;
  * @author Alessandro Zappatore
  * @version 1.0
  */
-public class ColorsConst {
+public final class ColorsConst {
     /**
      * Colori da utilizzare per le righe delle varie sezioni.
      */

@@ -58,7 +58,7 @@ public class AppHeader extends HorizontalLayout {
         setWidthFull();
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.BETWEEN);
-        getStyle().set("background", "#D2E3FC") // Consider making this color adaptable to dark theme or use Lumo vars
+        getStyle().set("background", "var(--lumo-primary-color-10pct")
                 .set("border-radius", "8px")
                 .set("box-shadow", "0 2px 10px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0,0,0,0.1)")
                 .set("padding", "10px"); // Aggiunto padding per il layout
@@ -80,7 +80,7 @@ public class AppHeader extends HorizontalLayout {
         appTitle.addClassNames(
                 LumoUtility.FontSize.XLARGE,
                 LumoUtility.FontWeight.BOLD,
-                LumoUtility.TextColor.PRIMARY // This color will adapt if Lumo primary color changes with theme
+                LumoUtility.TextColor.PRIMARY
         );
 
         // Container per il logo del centro (o l'uploader)
@@ -105,12 +105,10 @@ public class AppHeader extends HorizontalLayout {
         toggleThemeButton = new Button();
         toggleThemeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         toggleThemeButton.setAriaLabel("Toggle dark mode");
-        // Add shadow to the theme toggle button
         toggleThemeButton.getStyle()
-                .set("box-shadow", "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)") // Added shadow
-                .set("border-radius", "50%"); // Optional: make it round for a common look
-        // For a round button, ensure padding and icon size are appropriate
-        // Or use ButtonVariant.LUMO_ICON along with LUMO_TERTIARY
+                .set("box-shadow", "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)")
+                .set("border-radius", "50%");
+
 
 
         checkInitialTheme(); // Sets initial icon and isDarkMode state
@@ -313,7 +311,7 @@ public class AppHeader extends HorizontalLayout {
             icon.setColor("var(--lumo-warning-color)"); // Icon color adapts to theme
         } else {
             icon = VaadinIcon.MOON_O.create(); // In light mode, button shows moon (to switch to dark)
-            icon.setColor("var(--lumo-primary-color-50pct)"); // Icon color adapts to theme
+            icon.setColor("var(--lumo-contrast)"); // Icon color adapts to theme
         }
 
         // Style the icon. These Lumo CSS variables should adapt to the current theme.

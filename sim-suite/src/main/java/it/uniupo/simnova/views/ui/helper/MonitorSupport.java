@@ -8,6 +8,7 @@ import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.button.Button;
@@ -16,7 +17,9 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import it.uniupo.simnova.domain.common.ParametroAggiuntivo;
+import it.uniupo.simnova.service.scenario.components.PazienteT0Service;
 import it.uniupo.simnova.service.scenario.components.PresidiService;
+import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
 import it.uniupo.simnova.views.common.utils.StyleApp;
 
 import java.util.List;
@@ -68,7 +71,13 @@ public class MonitorSupport {
     }
 
 
-    public static Component createVitalSignsMonitor(VitalSignsDataProvider dataProvider, Integer scenarioId, boolean isT0) {
+    public static Component createVitalSignsMonitor(VitalSignsDataProvider dataProvider,
+                                                    Integer scenarioId,
+                                                    boolean isT0,
+                                                    PresidiService presidiService,
+                                                    PazienteT0Service pazienteT0Service,
+                                                    AdvancedScenarioService advancedScenarioService,
+                                                    Integer tempoId) {
         UI currentUI = UI.getCurrent();
         if (currentUI != null && currentUI.getPage() != null) {
             currentUI.getPage().executeJs(
@@ -140,10 +149,10 @@ public class MonitorSupport {
         // PA
         if (dataProvider.getPA() != null && !dataProvider.getPA().isEmpty()) {
             vitalSignsLayout.add(createVitalSignBox("PA", dataProvider.getPA(), "mmHg",
-                    "var(--lumo-primary-color)", null, null, null, null, null));
+                    "var(--lumo-primary-color)", null, null, null, null, null, advancedScenarioService, scenarioId, tempoId));
         } else {
             vitalSignsLayout.add(createVitalSignBox("PA", NULL_DISPLAY_VALUE, "mmHg",
-                    "var(--lumo-secondary-text-color)", null, null, null, null, null));
+                    "var(--lumo-secondary-text-color)", null, null, null, null, null, advancedScenarioService, scenarioId, tempoId));
         }
         // FC
         final Double FC_CRITICAL_LOW = 40.0;
@@ -153,7 +162,7 @@ public class MonitorSupport {
         vitalSignsLayout.add(createVitalSignBox("FC",
                 formatDisplayValue(dataProvider.getFC()), "bpm",
                 "var(--lumo-primary-color)", toDouble(dataProvider.getFC()),
-                FC_CRITICAL_LOW, FC_CRITICAL_HIGH, FC_WARNING_LOW, FC_WARNING_HIGH));
+                FC_CRITICAL_LOW, FC_CRITICAL_HIGH, FC_WARNING_LOW, FC_WARNING_HIGH, advancedScenarioService, scenarioId, tempoId));
         // T
         if (dataProvider.getT() != null && dataProvider.getT() > -50) {
             final double MIN_CRITICAL_TEMP = 35.0;
@@ -163,11 +172,11 @@ public class MonitorSupport {
             vitalSignsLayout.add(createVitalSignBox("T",
                     formatDisplayValue(dataProvider.getT(), "%.1f"), "°C",
                     "var(--lumo-success-color)", toDouble(dataProvider.getT()),
-                    MIN_CRITICAL_TEMP, MAX_CRITICAL_TEMP, MIN_WARNING_TEMP, MAX_WARNING_TEMP));
+                    MIN_CRITICAL_TEMP, MAX_CRITICAL_TEMP, MIN_WARNING_TEMP, MAX_WARNING_TEMP, advancedScenarioService, scenarioId, tempoId));
         } else {
             vitalSignsLayout.add(createVitalSignBox("T", NULL_DISPLAY_VALUE, "°C",
                     "var(--lumo-secondary-text-color)", null,
-                    null, null, null, null));
+                    null, null, null, null, advancedScenarioService, scenarioId, tempoId));
         }
         // RR
         final Double RR_CRITICAL_LOW = 10.0;
@@ -177,28 +186,27 @@ public class MonitorSupport {
         vitalSignsLayout.add(createVitalSignBox("RR",
                 formatDisplayValue(dataProvider.getRR()), "rpm",
                 "var(--lumo-tertiary-color)", toDouble(dataProvider.getRR()),
-                RR_CRITICAL_LOW, RR_CRITICAL_HIGH, RR_WARNING_LOW, RR_WARNING_HIGH));
+                RR_CRITICAL_LOW, RR_CRITICAL_HIGH, RR_WARNING_LOW, RR_WARNING_HIGH, advancedScenarioService, scenarioId, tempoId));
         // SpO2
         final Double SPO2_CRITICAL_LOW = 90.0;
         final Double SPO2_WARNING_LOW = 94.0;
         vitalSignsLayout.add(createVitalSignBox("SpO₂",
                 formatDisplayValue(dataProvider.getSpO2()), "%",
                 "var(--lumo-contrast)", toDouble(dataProvider.getSpO2()),
-                SPO2_CRITICAL_LOW, null, SPO2_WARNING_LOW, null));
+                SPO2_CRITICAL_LOW, null, SPO2_WARNING_LOW, null, advancedScenarioService, scenarioId, tempoId));
+
         // FiO2
-        if (dataProvider.getFiO2() != null && dataProvider.getFiO2() != 0) {
-            vitalSignsLayout.add(createVitalSignBox("FiO₂",
-                    formatDisplayValue(dataProvider.getFiO2()), "%",
-                    "var(--lumo-primary-color-50pct)", toDouble(dataProvider.getFiO2()),
-                    null, null, null, null));
-        }
+        vitalSignsLayout.add(createVitalSignBox("FiO₂",
+                formatDisplayValue(dataProvider.getFiO2()), "%",
+                "var(--lumo-primary-color-50pct)", toDouble(dataProvider.getFiO2()),
+                null, null, null, null, advancedScenarioService, scenarioId, tempoId));
+
         // Litri O2
-        if (dataProvider.getLitriO2() != null && dataProvider.getLitriO2() != 0) {
-            vitalSignsLayout.add(createVitalSignBox("Litri O₂",
-                    formatDisplayValue(dataProvider.getLitriO2()), "Litri/m",
-                    "var(--lumo-contrast-70pct)", toDouble(dataProvider.getLitriO2()),
-                    null, null, null, null));
-        }
+        vitalSignsLayout.add(createVitalSignBox("Litri O₂",
+                formatDisplayValue(dataProvider.getLitriO2()), "Litri/m",
+                "var(--lumo-contrast-70pct)", toDouble(dataProvider.getLitriO2()),
+                null, null, null, null, advancedScenarioService, scenarioId, tempoId));
+
         // EtCO2
         final Double ETCO2_CRITICAL_LOW = 25.0;
         final Double ETCO2_CRITICAL_HIGH = 60.0;
@@ -207,7 +215,7 @@ public class MonitorSupport {
         vitalSignsLayout.add(createVitalSignBox("EtCO₂",
                 formatDisplayValue(dataProvider.getEtCO2()), "mmHg",
                 "var(--lumo-warning-color)", toDouble(dataProvider.getEtCO2()),
-                ETCO2_CRITICAL_LOW, ETCO2_CRITICAL_HIGH, ETCO2_WARNING_LOW, ETCO2_WARNING_HIGH));
+                ETCO2_CRITICAL_LOW, ETCO2_CRITICAL_HIGH, ETCO2_WARNING_LOW, ETCO2_WARNING_HIGH, advancedScenarioService, scenarioId, tempoId));
         // Parametri aggiuntivi
         List<ParametroAggiuntivo> additionalParams = dataProvider.getAdditionalParameters();
         if (additionalParams != null && !additionalParams.isEmpty()) {
@@ -218,7 +226,7 @@ public class MonitorSupport {
                 String unit = param.getUnitaMisura() != null ? param.getUnitaMisura() : "";
                 String color = ADDITIONAL_PARAM_COLORS.get(colorIndex.getAndIncrement() % ADDITIONAL_PARAM_COLORS.size());
                 vitalSignsLayout.add(createVitalSignBox(label, value, unit, color,
-                        null, null, null, null, null));
+                        null, null, null, null, null, advancedScenarioService, scenarioId, tempoId));
             }
         }
         monitorContainer.add(monitorHeader, vitalSignsLayout);
@@ -295,11 +303,12 @@ public class MonitorSupport {
             saveMonitorButton.addClickListener(e -> {
                 String newText = monitorTextArea.getValue();
                 monitorText.setText(newText);
-                // TODO: chiamare il service per il salvataggio se disponibile
+                pazienteT0Service.saveMonitor(scenarioId, newText);
                 monitorText.setVisible(true);
                 monitorTextArea.setVisible(false);
                 monitorActions.setVisible(false);
                 editMonitorButton.setVisible(true);
+                Notification.show("Monitoraggio aggiornato.", 3000, Notification.Position.BOTTOM_CENTER);
             });
             cancelMonitorButton.addClickListener(e -> {
                 monitorTextArea.setVisible(false);
@@ -425,12 +434,12 @@ public class MonitorSupport {
                     itemLayout.add(bulletPoint, presidioSpan);
                     presidiItemsDiv.add(itemLayout);
                 }
-                // Salva tramite service
-                //TODO: chiamare il service per il salvataggio se disponibile
+                presidiService.savePresidi(scenarioId, newPresidi);
                 presidiItemsDiv.setVisible(true);
                 presidiComboBox.setVisible(false);
                 presidiActions.setVisible(false);
                 editPresidiButton.setVisible(true);
+                Notification.show("Presidi aggiornati.", 3000, Notification.Position.BOTTOM_CENTER);
             });
             cancelPresidiButton.addClickListener(e -> {
                 presidiComboBox.setVisible(false);
@@ -448,7 +457,8 @@ public class MonitorSupport {
     private static Div createVitalSignBox(String label, String displayValue, String unit, String defaultNormalColor,
                                           Double numericValue,
                                           Double criticalLowThreshold, Double criticalHighThreshold,
-                                          Double warningLowThreshold, Double warningHighThreshold) {
+                                          Double warningLowThreshold, Double warningHighThreshold,
+                                          AdvancedScenarioService advancedScenarioService, Integer scenarioId, Integer tempoId) {
         Div box = new Div();
         box.getStyle()
                 .set("border", "1px solid var(--lumo-contrast-10pct)")
@@ -507,6 +517,17 @@ public class MonitorSupport {
             }
         }
 
+        Span unitSpan = new Span(unit);
+        // Caratterizzazione "spenta" per FiO₂ e Litri O₂ se valore 0
+        if (("FiO₂".equals(label) || "Litri O₂".equals(label)) && numericValue != null && numericValue == 0.0) {
+            box.getStyle()
+                .set("background-color", "#f3f3f3")
+                .set("border", "1.5px dashed #bbb");
+            valueSpan.getStyle().set("color", "#bbb");
+            unitSpan.getStyle().set("color", "#bbb");
+            labelSpan.getStyle().set("color", "#bbb");
+            valueSpan.setText("--");
+        }
         valueSpan.getStyle()
                 .set("display", "block")
                 .set("font-size", "24px")
@@ -514,7 +535,6 @@ public class MonitorSupport {
                 .set("color", finalValueColor)
                 .set("line-height", "1.2");
 
-        Span unitSpan = new Span(unit);
         unitSpan.getStyle()
                 .set("display", "block")
                 .set("font-size", "12px")
@@ -562,16 +582,45 @@ public class MonitorSupport {
 
         saveButton.addClickListener(e -> {
             String newValue = valueEditField.getValue();
-            // Qui andrebbe la logica di salvataggio e riverifica dei threshold
-            // Per ora, aggiorniamo solo il display
             valueSpan.setText(newValue);
-
+            advancedScenarioService.saveVitalSign(scenarioId, tempoId, label, newValue);
+            // Ricalcolo stato e stile
+            Double newNumericValue = null;
+            try {
+                newNumericValue = Double.parseDouble(newValue.replace(",", "."));
+            } catch (Exception ex) {
+                // Non numerico, nessun controllo
+            }
+            // Reset stile
+            box.getClassNames().remove("flash-alert-box");
+            box.getStyle().remove("border-color");
+            String newColor = defaultNormalColor;
+            if (newNumericValue != null) {
+                boolean isCritical = criticalLowThreshold != null && newNumericValue < criticalLowThreshold;
+                if (!isCritical && criticalHighThreshold != null && newNumericValue > criticalHighThreshold)
+                    isCritical = true;
+                boolean isWarning = false;
+                if (!isCritical) {
+                    if (warningLowThreshold != null && newNumericValue < warningLowThreshold) isWarning = true;
+                    if (!isWarning && warningHighThreshold != null && newNumericValue > warningHighThreshold)
+                        isWarning = true;
+                }
+                if (isCritical) {
+                    box.addClassName("flash-alert-box");
+                    newColor = "var(--lumo-error-color)";
+                } else if (isWarning) {
+                    newColor = "var(--lumo-warning-color)";
+                    box.getStyle().set("border-color", "var(--lumo-warning-color-50pct)");
+                }
+            }
+            valueSpan.getStyle().set("color", newColor);
             valueSpan.setVisible(true);
             unitSpan.setVisible(true);
             valueEditField.setVisible(false);
             editActions.setVisible(false);
-            labelAndEditButtonLayout.add(editButton); // Riaggiunge il pulsante edit
+            labelAndEditButtonLayout.add(editButton);
             editButton.setVisible(true);
+            Notification.show(label+" aggiornata.", 3000, Notification.Position.BOTTOM_CENTER);
         });
 
         cancelButton.addClickListener(e -> {

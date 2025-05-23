@@ -7,6 +7,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -82,6 +83,7 @@ public class SceneggiaturaSupport extends HorizontalLayout {
         headerLayout.add(scriptIcon, scriptTitle, editButton);
         sceneggiaturaCard.add(headerLayout);
 
+        // Display area for the script text
         Div scriptTextDisplay = new Div();
         scriptTextDisplay.getStyle()
                 .set("font-family", "var(--lumo-font-family)")
@@ -102,20 +104,22 @@ public class SceneggiaturaSupport extends HorizontalLayout {
         } else {
             scriptTextDisplay.getElement().setProperty("innerHTML", sceneggiaturaText.replace("\n", "<br />"));
         }
-        sceneggiaturaCard.add(scriptTextDisplay);
+        sceneggiaturaCard.add(scriptTextDisplay); // Add display div to the card
 
-
-        Div editorContainer = new Div();
-        editorContainer.setId("sceneggiatura-editor-container");
-        editorContainer.setVisible(false);
-        editorContainer.getStyle()
-                .set("width", "100%")
-                .set("max-width", "800px")
-                .set("margin", "var(--lumo-space-l) 0");
-
+        // Editor for the script text
         TinyMce editor = TinyEditor.getEditor();
         editor.setValue((sceneggiaturaText == null || sceneggiaturaText.trim().isEmpty()) ? "" : sceneggiaturaText);
-        editorContainer.add(editor);
+        editor.setVisible(false); // Initially hidden
+        editor.getStyle()
+                .set("width", "100%")
+                .set("padding", "var(--lumo-space-m)")
+                .set("max-height", "60vh")
+                .set("overflow-y", "auto")
+                .set("border-left", "3px solid var(--lumo-primary-color)")
+                .set("background-color", "var(--lumo-contrast-5pct)")
+                .set("border-radius", "var(--lumo-border-radius-s)")
+                .set("box-sizing", "border-box");
+        sceneggiaturaCard.add(editor); // Add editor directly to the card
 
         Button saveButton = new Button("Salva", new Icon(VaadinIcon.CHECK));
         saveButton.addThemeVariants(com.vaadin.flow.component.button.ButtonVariant.LUMO_PRIMARY);
@@ -127,23 +131,21 @@ public class SceneggiaturaSupport extends HorizontalLayout {
 
         HorizontalLayout buttonLayout = new HorizontalLayout(saveButton, cancelButton);
         buttonLayout.setSpacing(true);
-        buttonLayout.setVisible(false);
+        buttonLayout.setVisible(false); // Initially hidden
         buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        sceneggiaturaCard.add(buttonLayout); // Add buttons directly to the card
 
         editButton.addClickListener(e -> {
-            sceneggiaturaCard.setVisible(false);
-
-            editorContainer.setVisible(true);
+            scriptTextDisplay.setVisible(false);
+            editor.setVisible(true);
             buttonLayout.setVisible(true);
-
             editor.setValue((currentSceneggiatura[0] == null || currentSceneggiatura[0].trim().isEmpty()) ? "" : currentSceneggiatura[0]);
         });
 
         cancelButton.addClickListener(e -> {
-            editorContainer.setVisible(false);
+            editor.setVisible(false);
             buttonLayout.setVisible(false);
-
-            sceneggiaturaCard.setVisible(true);
+            scriptTextDisplay.setVisible(true);
         });
 
         saveButton.addClickListener(e -> {
@@ -159,13 +161,13 @@ public class SceneggiaturaSupport extends HorizontalLayout {
                 scriptTextDisplay.getElement().setProperty("innerHTML", currentSceneggiatura[0].replace("\n", "<br />"));
             }
 
-            editorContainer.setVisible(false);
+            editor.setVisible(false);
             buttonLayout.setVisible(false);
-
-            sceneggiaturaCard.setVisible(true);
+            scriptTextDisplay.setVisible(true);
+            Notification.show("Sceneggiatura aggiornata.", 3000, Notification.Position.BOTTOM_CENTER);
         });
 
-        mainLayout.add(sceneggiaturaCard, editorContainer, buttonLayout); // Add editorContainer and buttonLayout initially but hidden
+        mainLayout.add(sceneggiaturaCard); // Only the card needs to be added to the main layout
 
         return mainLayout;
     }

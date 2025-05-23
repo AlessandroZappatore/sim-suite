@@ -68,6 +68,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
     private final EsameRefertoService esameRefertoService;
     private final EsameFisicoService esameFisicoService;
     private final PazienteT0Service pazienteT0Service;
+    private final PresidiService presidiService;
     /**
      * ID dello scenario attualmente visualizzato.
      */
@@ -101,7 +102,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                                MaterialeService materialeNecessario, AdvancedScenarioService advancedScenarioService,
                                PatientSimulatedScenarioService patientSimulatedScenarioService,
                                AzioneChiaveService azionechiaveService, EsameRefertoService esameRefertoService,
-                               EsameFisicoService esameFisicoService, PazienteT0Service pazienteT0Service) {
+                               EsameFisicoService esameFisicoService, PazienteT0Service pazienteT0Service, PresidiService presidiService) {
         this.scenarioService = scenarioService;
         this.fileStorageService = fileStorageService;
         this.materialeNecessario = materialeNecessario;
@@ -115,6 +116,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         UI.getCurrent();
         getContent().addClassName("scenario-details-view");
         getContent().setPadding(false);
+        this.presidiService = presidiService;
     }
 
     /**
@@ -283,7 +285,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
 
         titleContainer.add(displayLayout, editLayout, editButtonContainer);
 
-        Component subtitle = InfoSupport.getInfo(this.scenario);
+        Component subtitle = InfoSupport.getInfo(this.scenario, scenarioService);
 
         Tab tabInfoGenerali = createTabWithIcon("Informazioni Generali", VaadinIcon.INFO_CIRCLE);
         Tab tabStatoPaziente = createTabWithIcon("Stato Paziente", VaadinIcon.USER);
@@ -293,20 +295,24 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                 this.scenario,
                 scenarioService.isPediatric(scenarioId),
                 this.scenario.getInfoGenitore(),
-                materialeNecessario.toStringAllMaterialsByScenarioId(scenarioId),
                 azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenarioId),
-                scenarioService
+                scenarioService,
+                materialeNecessario
         );
 
         Component statoPazienteContent = PatientT0Support.createPatientContent(
                 pazienteT0Service.getPazienteT0ById(scenarioId),
                 esameFisicoService.getEsameFisicoById(scenarioId),
                 scenarioId,
-                esameFisicoService
+                esameFisicoService,
+                pazienteT0Service,
+                presidiService,
+                advancedScenarioService
         );
 
         Component esamiRefertiContent = ExamSupport.createExamsContent(
-                esameRefertoService.getEsamiRefertiByScenarioId(scenarioId)
+                esameRefertoService,
+                scenarioId
         );
 
         EnhancedTabs enhancedTabs = new EnhancedTabs();

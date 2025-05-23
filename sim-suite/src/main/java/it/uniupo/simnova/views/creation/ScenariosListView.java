@@ -151,7 +151,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         customHeader.add(newScenarioButton);
 
         configureSearchFilters();
-        HorizontalLayout filterLayout = new HorizontalLayout(searchPatientType,searchTitolo, searchTipo, searchAutori, searchPatologia, resetButton);
+        HorizontalLayout filterLayout = new HorizontalLayout(searchPatientType, searchTitolo, searchTipo, searchAutori, searchPatologia, resetButton);
         filterLayout.setWidthFull();
         filterLayout.setPadding(true);
         filterLayout.setSpacing(true);
@@ -179,8 +179,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
 
         newScenarioButton.addClickListener(e -> {
             if (!detached.get()) {
-                DialogSupport.showZipUploadDialog(detached, executorService, scenarioImportService);
-                loadData();
+                DialogSupport.showZipUploadDialog(detached, executorService, scenarioImportService, this::loadData);
             }
         });
     }
@@ -276,7 +275,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                     if ("Tutti".equals(tipoFilter)) {
                         return true;
                     }
-                    String actualScenarioType = scenarioService.getScenarioType(scenario.getId()); // Use getScenarioType for scenario type
+                    String actualScenarioType = scenarioService.getScenarioType(scenario.getId());
                     return actualScenarioType != null && actualScenarioType.equalsIgnoreCase(tipoFilter);
                 })
                 .filter(scenario -> patologiaFilter.isEmpty() || (scenario.getPatologia() != null && scenario.getPatologia().toLowerCase().contains(patologiaFilter)))
@@ -295,37 +294,57 @@ public class ScenariosListView extends Composite<VerticalLayout> {
 
         scenariosGrid.addColumn(new ComponentRenderer<>(scenario -> {
                     String patientType = scenario.getTipologia();
-                    return switch (patientType) {
-                        case "Adulto" -> {
-                            Span span = new Span(FontAwesome.Solid.USER.create());
-                            span.getElement().setAttribute("title", "Paziente adulto");
-                            yield span;
-                        }
-                        case "Pediatrico" -> {
-                            Span span = new Span(FontAwesome.Solid.CHILD.create());
-                            span.getElement().setAttribute("title", "Paziente pediatrico");
-                            yield span;
-                        }
-                        case "Neonatale" -> {
-                            Span span = new Span(FontAwesome.Solid.BABY.create());
-                            span.getElement().setAttribute("title", "Paziente neonatale");
-                            yield span;
-                        }
-                        case "Prematuro" -> {
-                            Span span = new Span(FontAwesome.Solid.HANDS_HOLDING_CHILD.create());
-                            span.getElement().setAttribute("title", "Paziente prematuro");
-                            yield span;
-                        }
-                        default -> {
-                            Span span = new Span(FontAwesome.Solid.INFO_CIRCLE.create());
-                            span.getElement().setAttribute("title", "Tipo paziente non specificato");
-                            yield span;
-                        }
-                    };
-                })).setHeader("Tipo Paziente")
+                    if (patientType == null) {
+                        patientType = "Unknown";
+                    }
+
+                    Span span;
+                    Icon icon;
+                    String title;
+                    String colorClass;
+
+                    switch (patientType) {
+                        case "Adulto":
+                            icon = FontAwesome.Solid.USER.create();
+                            title = "Paziente adulto";
+                            colorClass = LumoUtility.TextColor.PRIMARY;
+                            break;
+                        case "Pediatrico":
+                            icon = FontAwesome.Solid.CHILD.create();
+                            title = "Paziente pediatrico";
+                            colorClass = LumoUtility.TextColor.SUCCESS;
+                            break;
+                        case "Neonatale":
+                            icon = FontAwesome.Solid.BABY.create();
+                            title = "Paziente neonatale";
+                            colorClass = LumoUtility.TextColor.WARNING;
+                            break;
+                        case "Prematuro":
+                            icon = FontAwesome.Solid.HANDS_HOLDING_CHILD.create();
+                            title = "Paziente prematuro";
+                            colorClass = LumoUtility.TextColor.ERROR;
+                            break;
+                        default:
+                            icon = FontAwesome.Solid.INFO_CIRCLE.create();
+                            title = "Tipo paziente non specificato";
+                            colorClass = LumoUtility.TextColor.TERTIARY;
+                            break;
+                    }
+
+                    span = new Span(icon);
+
+                    span.addClassName(colorClass);
+
+                    span.getElement().setAttribute("title", title);
+
+                    icon.setSize("24px");
+
+                    return span;
+                }))
+                .setHeader("Tipo Paziente")
                 .setFlexGrow(0)
-                .setWidth("100px")
                 .setComparator(Comparator.comparing(Scenario::getTipologia, Comparator.nullsLast(String::compareToIgnoreCase)));
+
 
         scenariosGrid.addColumn(new ComponentRenderer<>(scenario -> {
                     String titolo = scenario.getTitolo() != null ? scenario.getTitolo() : "";
@@ -338,31 +357,65 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                 }))
                 .setHeader("Titolo")
                 .setSortable(true)
-                .setFlexGrow(2)
+                .setFlexGrow(1)
                 .setComparator(Comparator.comparing(Scenario::getTitolo, Comparator.nullsLast(String::compareToIgnoreCase)));
 
         scenariosGrid.addColumn(new ComponentRenderer<>(scenario -> {
                     String tipo = scenarioService.getScenarioType(scenario.getId());
                     tipo = tipo != null ? tipo : "N/D";
+
+                    HorizontalLayout container = new HorizontalLayout();
+                    container.setSpacing(true);
+                    container.setPadding(false);
+                    container.setAlignItems(FlexComponent.Alignment.CENTER);
+
+                    Icon icon;
                     Span tipoSpan = new Span(tipo);
+                    String iconColorClass = LumoUtility.TextColor.SECONDARY;
+                    String fontWeightClass = LumoUtility.FontWeight.NORMAL;
+
                     switch (tipo.toLowerCase()) {
                         case "patient simulated scenario":
-                            tipoSpan.addClassNames(LumoUtility.TextColor.ERROR, LumoUtility.FontWeight.SEMIBOLD); // Lumo v23+ usa ERROR_TEXT
+                            icon = FontAwesome.Solid.USER_INJURED.create();
+                            icon.setSize("24px");
+                            iconColorClass = LumoUtility.TextColor.ERROR;
+                            fontWeightClass = LumoUtility.FontWeight.SEMIBOLD;
+                            tipoSpan.addClassNames(LumoUtility.TextColor.ERROR, LumoUtility.FontWeight.SEMIBOLD);
                             break;
                         case "advanced scenario":
-                            tipoSpan.addClassNames(LumoUtility.TextColor.SUCCESS, LumoUtility.FontWeight.SEMIBOLD); // Lumo v23+ usa SUCCESS_TEXT
+                            icon = VaadinIcon.CLOCK.create();
+                            icon.setSize("20px");
+                            iconColorClass = LumoUtility.TextColor.SUCCESS;
+                            fontWeightClass = LumoUtility.FontWeight.SEMIBOLD;
+                            tipoSpan.addClassNames(LumoUtility.TextColor.SUCCESS, LumoUtility.FontWeight.SEMIBOLD);
                             break;
                         case "quick scenario":
-                            tipoSpan.addClassNames(LumoUtility.TextColor.PRIMARY, LumoUtility.FontWeight.SEMIBOLD); // Lumo v23+ usa PRIMARY_TEXT
+                            icon = VaadinIcon.BOLT.create();
+                            icon.setSize("20px");
+                            iconColorClass = LumoUtility.TextColor.PRIMARY;
+                            fontWeightClass = LumoUtility.FontWeight.SEMIBOLD;
+                            tipoSpan.addClassNames(LumoUtility.TextColor.PRIMARY, LumoUtility.FontWeight.SEMIBOLD);
                             break;
                         default:
+                            icon = VaadinIcon.QUESTION.create();
                             tipoSpan.addClassName(LumoUtility.TextColor.SECONDARY);
+                            break;
                     }
-                    return tipoSpan;
+
+                    icon.addClassName(iconColorClass);
+
+                    if (!tipoSpan.getClassNames().contains(LumoUtility.FontWeight.SEMIBOLD) &&
+                            !tipoSpan.getClassNames().contains(LumoUtility.FontWeight.NORMAL) &&
+                            !fontWeightClass.equals(LumoUtility.FontWeight.NORMAL)) {
+                        tipoSpan.addClassName(fontWeightClass);
+                    }
+
+                    container.add(icon, tipoSpan);
+                    return container;
                 }))
                 .setHeader("Tipo")
                 .setSortable(true)
-                .setFlexGrow(1)
+                .setFlexGrow(2)
                 .setComparator(Comparator.comparing(s -> scenarioService.getScenarioType(s.getId()), Comparator.nullsLast(String::compareToIgnoreCase)));
 
         scenariosGrid.addColumn(new ComponentRenderer<>(scenario -> {
@@ -409,7 +462,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                     return container;
                 }))
                 .setHeader("Descrizione")
-                .setFlexGrow(2); // Dai più spazio alla descrizione
+                .setFlexGrow(1);
 
 
         scenariosGrid.addComponentColumn(scenario -> {

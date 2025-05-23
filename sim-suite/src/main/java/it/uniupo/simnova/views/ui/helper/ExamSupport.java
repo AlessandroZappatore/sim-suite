@@ -11,7 +11,10 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.dom.Element;
+import com.vaadin.flow.component.dialog.Dialog; // Import Dialog
+import com.vaadin.flow.component.notification.Notification; // Import Notification
 import it.uniupo.simnova.domain.paziente.EsameReferto;
+import it.uniupo.simnova.service.scenario.components.EsameRefertoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +23,8 @@ import java.util.List;
 public class ExamSupport {
     private static final Logger logger = LoggerFactory.getLogger(ExamSupport.class);
 
-    public static VerticalLayout createExamsContent(List<EsameReferto> esami) {
+    public static VerticalLayout createExamsContent(EsameRefertoService esameRefertoService, Integer scenarioId){
+        List<EsameReferto> esami = esameRefertoService.getEsamiRefertiByScenarioId(scenarioId);
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(false);
         layout.setSpacing(true);
@@ -42,11 +46,52 @@ public class ExamSupport {
                         .set("margin-left", "auto")
                         .set("margin-right", "auto");
 
+                // Header for title and delete button
+                HorizontalLayout cardHeader = new HorizontalLayout();
+                cardHeader.setWidthFull();
+                cardHeader.setAlignItems(FlexComponent.Alignment.CENTER);
+                cardHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN); // Distribute space
+
                 H3 examTitle = new H3(esame.getTipo());
                 examTitle.getStyle()
                         .set("margin-top", "0")
-                        .set("margin-bottom", "var(--lumo-space-s)")
+                        .set("margin-bottom", "0") // Remove bottom margin as it's in a layout now
                         .set("color", "var(--lumo-primary-text-color)");
+
+                Button deleteButton = new Button(VaadinIcon.TRASH.create());
+                deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
+                deleteButton.setTooltipText("Elimina Esame " + esame.getTipo());
+                deleteButton.getElement().setAttribute("aria-label", "Elimina Esame " + esame.getTipo());
+                deleteButton.addClickListener(e -> {
+                    Dialog confirmDialog = new Dialog();
+                    confirmDialog.setCloseOnEsc(true);
+                    confirmDialog.setCloseOnOutsideClick(true);
+
+                    confirmDialog.add(new H4("Conferma Eliminazione"));
+                    confirmDialog.add(new Paragraph("Sei sicuro di voler eliminare l'esame/referto '" + esame.getTipo() + "'? Questa operazione non può essere annullata."));
+
+                    Button confirmDeleteButton = new Button("Elimina", VaadinIcon.TRASH.create());
+                    confirmDeleteButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
+                    confirmDeleteButton.addClickListener(confirmEvent -> {
+                        esameRefertoService.deleteEsameReferto(esame.getIdEsame(), scenarioId);
+                        Notification.show("Esame '" + esame.getTipo() + "' eliminato con successo.", 3000, Notification.Position.BOTTOM_CENTER);
+                        confirmDialog.close();
+                        // Remove the card directly from the layout for immediate visual update
+                        layout.remove(examCard);
+                    });
+
+                    Button cancelDeleteButton = new Button("Annulla");
+                    cancelDeleteButton.addClickListener(cancelEvent -> confirmDialog.close());
+
+                    HorizontalLayout dialogButtons = new HorizontalLayout(confirmDeleteButton, cancelDeleteButton);
+                    dialogButtons.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+                    dialogButtons.setWidthFull();
+                    confirmDialog.add(dialogButtons);
+                    confirmDialog.open();
+                });
+
+                cardHeader.add(examTitle, deleteButton);
+                examCard.add(cardHeader); // Add the header to the exam card
 
                 VerticalLayout examContent = new VerticalLayout();
                 examContent.setPadding(false);
@@ -100,7 +145,7 @@ public class ExamSupport {
                     examContent.setAlignItems(FlexComponent.Alignment.CENTER);
                 }
 
-                examCard.add(examTitle, examContent);
+                examCard.add(examContent); // Add the content to the exam card
                 layout.add(examCard);
             }
         } else {
@@ -321,7 +366,14 @@ public class ExamSupport {
         }
 
         // Assemblaggio dei componenti
-        mediaHeader.add(new HorizontalLayout(typeIcon, fileTypeLabel, fileNameLabel));
+        HorizontalLayout fileInfoLayout = new HorizontalLayout(typeIcon, fileTypeLabel, fileNameLabel);
+        fileInfoLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        fileInfoLayout.setSpacing(true);
+
+        mediaHeader.removeAll(); // Clear existing content if any
+        mediaHeader.add(fileInfoLayout); // Add the combined file info
+        // The delete button is not part of the mediaHeader, but the examCardHeader
+
         mediaContentContainer.add(mediaComponent);
 
         previewContainer.add(mediaHeader, mediaContentContainer, fullscreenButton);

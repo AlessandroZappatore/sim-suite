@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Classe di supporto contenente le costanti per gli esami.
  */
-public class ExamConst {
+public final class ExamConst {
     /**
      * Tutti i tipi di esami di laboratorio
      */

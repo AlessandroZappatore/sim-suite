@@ -133,7 +133,7 @@ public class CreditsComponent extends VerticalLayout {
         Icon universityIcon = new Icon(VaadinIcon.ACADEMY_CAP);
         universityIcon.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
 
-        Anchor universityLink = new Anchor("https://www.uniupo.it", "Università del Piemonte Orientale");
+        Anchor universityLink = new Anchor(UNIVERSITYLINK, "Università del Piemonte Orientale");
         universityLink.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
         universityLink.getElement().setAttribute("target", "_blank");
         universityLink.getElement().setAttribute("rel", "noopener noreferrer");
@@ -156,17 +156,19 @@ public class CreditsComponent extends VerticalLayout {
         Icon versionIcon = new Icon(VaadinIcon.INFO_CIRCLE);
         versionIcon.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
 
-        Span versionText = new Span("Versione: " + VERSION);
-        versionText.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
+        Anchor versionLink = new Anchor(RELEASELINK, "Versione: " + VERSION);
+        versionLink.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
+        versionLink.getElement().setAttribute("target", "_blank");
+        versionLink.getElement().setAttribute("rel", "noopener noreferrer");
 
         Icon dateIcon = new Icon(VaadinIcon.CALENDAR);
         dateIcon.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
-        dateIcon.getStyle().set("margin-left", "8px"); // Add some space between version and date
+        dateIcon.getStyle().set("margin-left", "8px");
 
         Span dateText = new Span("Data: " + DATE);
         dateText.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
 
-        row.add(versionIcon, versionText, dateIcon, dateText);
+        row.add(versionIcon, versionLink, dateIcon, dateText);
         return row;
     }
 
@@ -190,7 +192,7 @@ public class CreditsComponent extends VerticalLayout {
         emailRow.setAlignItems(Alignment.CENTER);
         Icon emailIcon = new Icon(VaadinIcon.ENVELOPE);
         emailIcon.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
-        Anchor emailLink = new Anchor("mailto:alessandrozappatore03@gmail.com", "alessandrozappatore03@gmail.com");
+        Anchor emailLink = new Anchor(DEVELOPERMAIL, "alessandrozappatore03@gmail.com");
         emailLink.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
         emailRow.add(emailIcon, emailLink);
 
@@ -200,7 +202,7 @@ public class CreditsComponent extends VerticalLayout {
         githubRow.setAlignItems(Alignment.CENTER);
         Icon githubIcon = FontAwesome.Brands.GITHUB.create();
         githubIcon.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
-        Anchor githubLink = new Anchor("https://github.com/AlessandroZappatore", "Github: AlessandroZappatore");
+        Anchor githubLink = new Anchor(GITHUBLINK, "Github: AlessandroZappatore");
         githubLink.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
         githubLink.getElement().setAttribute("target", "_blank");
         githubLink.getElement().setAttribute("rel", "noopener noreferrer");

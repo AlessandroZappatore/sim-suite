@@ -299,5 +299,18 @@ public class PazienteT0Service {
         return false;
     }
 
+    public void saveMonitor(int scenarioId, String monitor) {
+        final String sql = "UPDATE PazienteT0 SET Monitor=? WHERE id_paziente=?";
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, monitor);
+            stmt.setInt(2, scenarioId);
+            stmt.executeUpdate();
+            logger.info("Monitor aggiornato per lo scenario con ID {}", scenarioId);
+        } catch (SQLException e) {
+            logger.error("Errore durante l'aggiornamento del monitor per lo scenario con ID {}", scenarioId, e);
+        }
+    }
 
 }

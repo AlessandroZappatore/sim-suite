@@ -1,34 +1,58 @@
 package it.uniupo.simnova.views.ui.helper;
 
+import com.flowingcode.vaadin.addons.fontawesome.FontAwesome;
 import com.vaadin.flow.component.Component;
-// Importato per rimuovere listener
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.html.IFrame;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.function.SerializableBiConsumer;
 import com.vaadin.flow.function.SerializableFunction;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.domain.scenario.Scenario;
+import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.views.common.utils.FieldGenerator;
+import it.uniupo.simnova.views.common.utils.StyleApp;
+
+import java.util.*;
+import java.util.function.Supplier;
+
 
 public class InfoSupport extends HorizontalLayout {
 
-    public InfoSupport() {
-        // Constructor
+    private static final Map<String, Supplier<Icon>> labelIconMap = new HashMap<>();
+    private static final Map<String, Supplier<Icon>> tipologiaIconMap = new HashMap<>();
+    private static final List<String> TIPOLOGIA_OPTIONS = Arrays.asList("Adulto", "Pediatrico", "Neonatale", "Prematuro");
+    private static final List<Integer> DURATION_OPTIONS = List.of(5, 10, 15, 20, 25, 30);
+
+
+    static {
+        labelIconMap.put("Paziente", FontAwesome.Solid.USER_INJURED::create);
+        labelIconMap.put("Patologia", FontAwesome.Solid.DISEASE::create);
+        labelIconMap.put("Durata", FontAwesome.Solid.STOPWATCH_20::create);
+        labelIconMap.put("Target", FontAwesome.Solid.BULLSEYE::create);
+
+        tipologiaIconMap.put("Adulto", FontAwesome.Solid.USER::create);
+        tipologiaIconMap.put("Pediatrico", FontAwesome.Solid.CHILD::create);
+        tipologiaIconMap.put("Neonatale", FontAwesome.Solid.BABY::create);
+        tipologiaIconMap.put("Prematuro", FontAwesome.Solid.HANDS_HOLDING_CHILD::create);
     }
 
-    // Updated styling method for the new badge structure
-    private static void styleBadge(HorizontalLayout badgeLayout, Span textSpan, Button editButton, String color, boolean isEmpty) {
+    private static void styleBadge(HorizontalLayout badgeLayout, Span textSpan, String color, boolean isEmpty) {
         badgeLayout.getStyle()
                 .set("background-color", color + (isEmpty ? "08" : "10"))
                 .set("border-radius", "16px")
-                .set("padding", "6px 10px 6px 16px") // Adjusted padding for internal button
-                .set("display", "inline-flex") // For internal alignment
+                .set("padding", "6px 10px 6px 16px")
+                .set("display", "inline-flex")
                 .set("align-items", "center")
                 .set("border", "1px solid " + color + (isEmpty ? "30" : "40"))
                 .set("box-shadow", "0 1px 3px rgba(0, 0, 0, 0.1)");
@@ -38,10 +62,6 @@ public class InfoSupport extends HorizontalLayout {
                 .set("font-size", "16px")
                 .set("font-weight", "500");
 
-        // Ensure edit button icon color matches badge color
-        editButton.getStyle().set("color", color);
-
-        // JS hover effect on the badgeLayout
         badgeLayout.getElement().executeJs(
                 "this.addEventListener('mouseover', function() { " +
                         "  this.style.boxShadow = '0 3px 6px rgba(0,0,0,0.15)'; " +
@@ -52,8 +72,13 @@ public class InfoSupport extends HorizontalLayout {
         );
     }
 
+    // Modified this method to remove "label: " for 'Durata' when formatting
     private static String formatBadgeText(String label, String value, String emptyText) {
         if (value != null && !value.trim().isEmpty()) {
+            // Special case for "Durata"
+            if ("Durata".equals(label)) {
+                return value + " min"; // Just "number min"
+            }
             return label + ": " + value;
         } else {
             return label + ": " + emptyText;
@@ -64,43 +89,38 @@ public class InfoSupport extends HorizontalLayout {
         return value == null || value.trim().isEmpty();
     }
 
-    // Metodo interno principale per creare il badge editabile
     private static Component createEditableBadgeInternal(
             Scenario scenario,
             String label,
-            SerializableFunction<Scenario, String> rawValueGetter, // Ottiene il valore grezzo per l'editing
+            SerializableFunction<Scenario, String> rawValueGetter,
             SerializableFunction<Scenario, String> displayValueGetter,
-            SerializableBiConsumer<Scenario, String> valueSetter, // Imposta il valore (gestisce parsing se necessario)
             String emptyText,
             String badgeColor,
-            boolean isNumeric) { // Flag to identify numeric fields for specific save handling
+            ScenarioService scenarioService) {
 
         HorizontalLayout itemContainer = new HorizontalLayout();
         itemContainer.setAlignItems(FlexComponent.Alignment.CENTER);
         itemContainer.getStyle().set("margin", "6px");
 
-        // --- Componenti Modalità Visualizzazione (Badge con bottone di modifica interno) ---
-        HorizontalLayout badgeViewLayout = new HorizontalLayout(); // Container per testo badge e bottone modifica
+        HorizontalLayout badgeViewLayout = new HorizontalLayout();
         badgeViewLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        badgeViewLayout.setSpacing(false); // Spaziatura controllata manualmente o da stili componenti
+        badgeViewLayout.setSpacing(false);
         badgeViewLayout.getStyle().set("cursor", "default");
 
-        Span actualBadgeTextSpan = new Span(); // Span per il testo del badge
+        Icon icon = labelIconMap.containsKey(label) ? labelIconMap.get(label).get() : null;
 
-        Button editButton = new Button(new Icon(VaadinIcon.EDIT));
-        editButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SMALL);
-        editButton.getStyle()
-                .set("margin-left", "8px") // Spazio tra testo e icona
-                .set("padding", "2px") // Rende il bottone più compatto
-                .set("height", "20px")
-                .set("width", "20px")
-                .set("font-size", "12px"); // Icona più piccola
+        if (icon != null) {
+            icon.getStyle().set("margin-right", "8px");
+            icon.addClassName(LumoUtility.TextColor.PRIMARY);
+            badgeViewLayout.add(icon);
+        }
+
+        Span actualBadgeTextSpan = new Span();
+        Button editButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
 
         badgeViewLayout.add(actualBadgeTextSpan, editButton);
-        badgeViewLayout.expand(actualBadgeTextSpan); // Il testo occupa lo spazio disponibile, spingendo il bottone a destra
+        badgeViewLayout.expand(actualBadgeTextSpan);
 
-
-        // --- Componenti Modalità Modifica ---
         TextField editField = FieldGenerator.createTextField(label, null, true);
         editField.getStyle().set("flex-grow", "1");
 
@@ -114,21 +134,18 @@ public class InfoSupport extends HorizontalLayout {
         editControlsLayout.setVisible(false);
         editControlsLayout.setWidthFull();
 
-        // Funzione per aggiornare il testo e lo stile del badge
         Runnable updateBadgeAppearance = () -> {
             String displayValue = displayValueGetter.apply(scenario);
             boolean isEmpty = isValueEmpty(displayValue);
             actualBadgeTextSpan.setText(formatBadgeText(label, displayValue, emptyText));
-            styleBadge(badgeViewLayout, actualBadgeTextSpan, editButton, badgeColor, isEmpty);
+            styleBadge(badgeViewLayout, actualBadgeTextSpan, badgeColor, isEmpty);
         };
 
-        updateBadgeAppearance.run(); // Imposta l'aspetto iniziale
-
+        updateBadgeAppearance.run();
         itemContainer.add(badgeViewLayout, editControlsLayout);
 
-        // --- Listener Eventi ---
         editButton.addClickListener(e -> {
-            badgeViewLayout.setVisible(false); // Nasconde l'intero badge (testo + bottone modifica)
+            badgeViewLayout.setVisible(false);
             editControlsLayout.setVisible(true);
             editField.setValue(rawValueGetter.apply(scenario) != null ? rawValueGetter.apply(scenario) : "");
             editField.focus();
@@ -137,83 +154,349 @@ public class InfoSupport extends HorizontalLayout {
         cancelButton.addClickListener(e -> {
             editControlsLayout.setVisible(false);
             badgeViewLayout.setVisible(true);
-            updateBadgeAppearance.run(); // Ripristina l'aspetto originale
+            updateBadgeAppearance.run();
         });
 
         saveButton.addClickListener(e -> {
-            // Validazione base per campi numerici prima di procedere (anche se non salviamo)
-            if (isNumeric) {
-                try {
-                    String val = editField.getValue();
-                    if (val != null && !val.trim().isEmpty()) {
-                        Double.parseDouble(val.replace(",", ".")); // Tenta il parsing
-                    }
-                } catch (NumberFormatException nfe) {
-                    Notification.show("Formato numerico non valido per " + label + ": '" + editField.getValue() + "'.", 3000, Notification.Position.MIDDLE)
-                            .addThemeVariants(com.vaadin.flow.component.notification.NotificationVariant.LUMO_ERROR);
-                    return; // Rimane in modalità modifica se il formato non è valido
-                }
-            }
+            String newValue = editField.getValue();
+            boolean isEmpty = isValueEmpty(newValue);
+            actualBadgeTextSpan.setText(formatBadgeText(label, newValue, emptyText));
+            styleBadge(badgeViewLayout, actualBadgeTextSpan, badgeColor, isEmpty);
 
-            // --- INIZIO SEZIONE SALVATAGGIO INCOMPLETO ---
-            // La logica di salvataggio effettiva (valueSetter.accept(...)) è rimossa.
-            // L'utente dovrà implementare qui come il valore da editField.getValue()
-            // viene effettivamente salvato nello scenario o altrove.
-            // --- FINE SEZIONE SALVATAGGIO INCOMPLETO ---
-
-            updateBadgeAppearance.run(); // Aggiorna l'aspetto del badge. Mostrerà il valore originale dallo scenario,
-            // dato che il valueSetter non è stato chiamato.
             editControlsLayout.setVisible(false);
             badgeViewLayout.setVisible(true);
 
-            Notification.show("Azione 'Salva' per " + label + " registrata. Implementare la logica di salvataggio.", 3000, Notification.Position.BOTTOM_START);
+            scenarioService.updateSingleField(scenario.getId(), label, newValue);
+
+            Notification.show(label + " aggiornata.", 3000, Notification.Position.BOTTOM_CENTER);
         });
 
         return itemContainer;
     }
 
-    // Wrapper per campi Stringa semplici
     private static Component createStringEditableBadge(Scenario scenario, String label,
                                                        SerializableFunction<Scenario, String> getter,
-                                                       SerializableBiConsumer<Scenario, String> setter,
-                                                       String emptyText, String badgeColor) {
-        return createEditableBadgeInternal(scenario, label, getter, getter, setter, emptyText, badgeColor, false);
+                                                       String emptyText, String badgeColor, ScenarioService scenarioService) {
+        return createEditableBadgeInternal(scenario, label, getter, getter, emptyText, badgeColor, scenarioService);
     }
 
-    // Wrapper per campi Numerici (come Timer)
-    private static Component createNumericEditableBadge(Scenario scenario,
-                                                        String labelText, // Passiamo il label esplicito per il controllo
-                                                        SerializableFunction<Scenario, Number> numericGetter,
-                                                        SerializableBiConsumer<Scenario, Number> numericSetter,
-                                                        String emptyText, String badgeColor) {
+    private static Component createDurationSelectBadge(
+            Scenario scenario,
+            SerializableFunction<Scenario, Number> numericGetter,
+            String emptyText,
+            String badgeColor,
+            ScenarioService scenarioService) {
 
-        SerializableFunction<Scenario, String> rawValueGetter = s -> {
+        String label = "Durata";
+
+        HorizontalLayout itemContainer = new HorizontalLayout();
+        itemContainer.setAlignItems(FlexComponent.Alignment.CENTER);
+        itemContainer.getStyle().set("margin", "6px");
+
+        HorizontalLayout badgeViewLayout = new HorizontalLayout();
+        badgeViewLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        badgeViewLayout.setSpacing(false);
+        badgeViewLayout.getStyle().set("cursor", "default");
+
+        Icon icon = labelIconMap.getOrDefault(label, FontAwesome.Solid.QUESTION_CIRCLE::create).get();
+        if (icon != null) {
+            icon.getStyle().set("margin-right", "8px");
+            icon.addClassName(LumoUtility.TextColor.PRIMARY);
+            badgeViewLayout.add(icon);
+        }
+
+        Span actualBadgeTextSpan = new Span();
+        Button editButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+
+        badgeViewLayout.add(actualBadgeTextSpan, editButton);
+        badgeViewLayout.expand(actualBadgeTextSpan);
+
+        ComboBox<Integer> durationSelect = FieldGenerator.createComboBox("Durata", DURATION_OPTIONS,
+                (scenario.getTimerGenerale() > 0) ? Math.round(scenario.getTimerGenerale()) : null,
+                true);
+
+        Button saveButton = new Button("Salva", new Icon(VaadinIcon.CHECK));
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+
+        Button cancelButton = new Button("Annulla", new Icon(VaadinIcon.CLOSE_SMALL));
+        cancelButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
+
+        HorizontalLayout editControlsLayout = new HorizontalLayout(durationSelect, saveButton, cancelButton);
+        editControlsLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
+        editControlsLayout.setVisible(false);
+        editControlsLayout.setWidthFull();
+
+        // MODIFIED: Formatting for "Durata"
+        SerializableFunction<Scenario, String> displayValueFormatter = s -> {
             Number val = numericGetter.apply(s);
-            return (val != null && val.doubleValue() > 0) ? String.format("%.1f", val.doubleValue()).replace(",", ".") : ""; // Usa. per consistenza editing
+            if (val != null) {
+                int intVal = val.intValue();
+                if (val.doubleValue() == intVal && intVal > 0) {
+                    return String.valueOf(intVal); // Will be formatted by formatBadgeText with " min"
+                } else if (val.doubleValue() > 0) {
+                    return String.valueOf(intVal); // Will be formatted by formatBadgeText with " min"
+                }
+            }
+            return null;
         };
 
-        SerializableFunction<Scenario, String> displayValueGetter = s -> {
-            Number val = numericGetter.apply(s);
-            // Visualizza con "min" ma considera che formatBadgeText aggiungerà il label
-            return (val != null && val.doubleValue() > 0) ? String.format("%.1f", val.doubleValue()) + " " + "min" : null;
+        Runnable updateBadgeAppearance = () -> {
+            String currentDisplayValue = displayValueFormatter.apply(scenario);
+            boolean isEmpty = isValueEmpty(currentDisplayValue);
+            actualBadgeTextSpan.setText(formatBadgeText(label, currentDisplayValue, emptyText));
+            styleBadge(badgeViewLayout, actualBadgeTextSpan, badgeColor, isEmpty);
         };
 
-        // Questo valueSetter non sarà chiamato dal saveButton modificato,
-        // ma lo lasciamo per completezza se si decidesse di riattivare il salvataggio interno.
-        SerializableBiConsumer<Scenario, String> valueSetter = (s, strVal) -> {
-            if (strVal == null || strVal.trim().isEmpty()) {
-                numericSetter.accept(s, 0.0);
+        updateBadgeAppearance.run();
+        itemContainer.add(badgeViewLayout, editControlsLayout);
+
+        editButton.addClickListener(e -> {
+            badgeViewLayout.setVisible(false);
+            editControlsLayout.setVisible(true);
+            Number currentValue = numericGetter.apply(scenario);
+            if (currentValue != null) {
+                int currentIntValue = currentValue.intValue();
+                if (currentValue.doubleValue() == currentIntValue && DURATION_OPTIONS.contains(currentIntValue)) {
+                    durationSelect.setValue(currentIntValue);
+                } else {
+                    durationSelect.clear();
+                }
             } else {
-                double parsedValue = Double.parseDouble(strVal.replace(",", "."));
-                numericSetter.accept(s, parsedValue);
+                durationSelect.clear();
+            }
+            durationSelect.focus();
+        });
+
+        cancelButton.addClickListener(e -> {
+            editControlsLayout.setVisible(false);
+            badgeViewLayout.setVisible(true);
+            updateBadgeAppearance.run();
+        });
+
+        saveButton.addClickListener(e -> {
+            Integer selectedValue = durationSelect.getValue();
+            String valueToSaveAndDisplay = (selectedValue != null) ? String.valueOf(selectedValue) : null;
+
+            // No need to set text here, updateBadgeAppearance.run() will do it
+            // actualBadgeTextSpan.setText(formatBadgeText(label, valueToSaveAndDisplay, emptyText));
+            // styleBadge(badgeViewLayout, actualBadgeTextSpan, badgeColor, isEmpty);
+
+            editControlsLayout.setVisible(false);
+            badgeViewLayout.setVisible(true);
+            scenarioService.updateSingleField(scenario.getId(), label, valueToSaveAndDisplay);
+
+            // Re-run updateBadgeAppearance to display the newly saved value
+            updateBadgeAppearance.run();
+            Notification.show(label + " aggiornata.", 3000, Notification.Position.BOTTOM_CENTER);
+        });
+        return itemContainer;
+    }
+
+
+    private static Component createTipologiaSelectBadge(
+            Scenario scenario,
+            SerializableFunction<Scenario, String> displayValueGetter,
+            String emptyText,
+            String badgeColor,
+            ScenarioService scenarioService) {
+
+        String label = "Tipologia";
+
+        HorizontalLayout itemContainer = new HorizontalLayout();
+        itemContainer.setAlignItems(FlexComponent.Alignment.CENTER);
+        itemContainer.getStyle().set("margin", "6px");
+
+        HorizontalLayout badgeViewLayout = new HorizontalLayout();
+        badgeViewLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        badgeViewLayout.setSpacing(false);
+        badgeViewLayout.getStyle().set("cursor", "default");
+
+        Span actualBadgeTextSpan = new Span();
+        Button editButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+
+        Icon tipologiaIcon = tipologiaIconMap.getOrDefault(displayValueGetter.apply(scenario), FontAwesome.Solid.USERS::create).get();
+        tipologiaIcon.getStyle().set("margin-right", "8px");
+        tipologiaIcon.addClassName(LumoUtility.TextColor.PRIMARY);
+        badgeViewLayout.add(tipologiaIcon);
+
+
+        badgeViewLayout.add(actualBadgeTextSpan, editButton);
+        badgeViewLayout.expand(actualBadgeTextSpan);
+
+        Select<String> selectBox = FieldGenerator.createSelect(label, TIPOLOGIA_OPTIONS, scenario.getTipologia(), true);
+        selectBox.getStyle().set("flex-grow", "1");
+
+        Button saveButton = new Button("Salva", new Icon(VaadinIcon.CHECK));
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+
+        Button cancelButton = new Button("Annulla", new Icon(VaadinIcon.CLOSE_SMALL));
+        cancelButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
+
+        HorizontalLayout editControlsLayout = new HorizontalLayout(selectBox, saveButton, cancelButton);
+        editControlsLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
+        editControlsLayout.setVisible(false);
+        editControlsLayout.setWidthFull();
+
+        Runnable updateBadgeAppearance = () -> {
+            String displayValue = displayValueGetter.apply(scenario);
+            boolean isEmpty = isValueEmpty(displayValue);
+            actualBadgeTextSpan.setText(formatBadgeText(label, displayValue, emptyText));
+            styleBadge(badgeViewLayout, actualBadgeTextSpan, badgeColor, isEmpty);
+
+            Icon currentIconToSet = tipologiaIconMap.getOrDefault(displayValue, FontAwesome.Solid.USERS::create).get();
+            currentIconToSet.getStyle().set("margin-right", "8px");
+            currentIconToSet.addClassName(LumoUtility.TextColor.PRIMARY);
+            if (badgeViewLayout.getComponentCount() > 1 && badgeViewLayout.getComponentAt(0) instanceof Icon) {
+                badgeViewLayout.replace(badgeViewLayout.getComponentAt(0), currentIconToSet);
+            } else {
+                badgeViewLayout.addComponentAsFirst(currentIconToSet);
             }
         };
-        // Passiamo il labelText corretto e isNumeric = true
-        return createEditableBadgeInternal(scenario, labelText, rawValueGetter, displayValueGetter, valueSetter, emptyText, badgeColor, true);
+
+        updateBadgeAppearance.run();
+        itemContainer.add(badgeViewLayout, editControlsLayout);
+
+        editButton.addClickListener(e -> {
+            badgeViewLayout.setVisible(false);
+            editControlsLayout.setVisible(true);
+            String currentTipologia = displayValueGetter.apply(scenario);
+            selectBox.setValue(currentTipologia);
+            selectBox.focus();
+        });
+
+        cancelButton.addClickListener(e -> {
+            editControlsLayout.setVisible(false);
+            badgeViewLayout.setVisible(true);
+            updateBadgeAppearance.run();
+        });
+
+        saveButton.addClickListener(e -> {
+            String newSelectedValue = selectBox.getValue();
+
+            boolean isEmpty = isValueEmpty(newSelectedValue);
+            actualBadgeTextSpan.setText(formatBadgeText(label, newSelectedValue, emptyText));
+            styleBadge(badgeViewLayout, actualBadgeTextSpan, badgeColor, isEmpty);
+
+            Icon currentIconToSet = tipologiaIconMap.getOrDefault(newSelectedValue, FontAwesome.Solid.USERS::create).get();
+            currentIconToSet.getStyle().set("margin-right", "8px");
+            currentIconToSet.addClassName(LumoUtility.TextColor.PRIMARY);
+            if (badgeViewLayout.getComponentCount() > 1 && badgeViewLayout.getComponentAt(0) instanceof Icon) {
+                badgeViewLayout.replace(badgeViewLayout.getComponentAt(0), currentIconToSet);
+            }
+
+            editControlsLayout.setVisible(false);
+            badgeViewLayout.setVisible(true);
+
+            scenarioService.updateSingleField(scenario.getId(), label, newSelectedValue);
+
+            Notification.show(label + " aggiornata.", 3000, Notification.Position.BOTTOM_CENTER);
+        });
+        return itemContainer;
+    }
+
+    private static Component createTargetDialogBadge(
+            Scenario scenario,
+            SerializableFunction<Scenario, String> displayValueGetter,
+            String emptyText,
+            String badgeColor) {
+        String label = "Target";
+
+        if (scenario.getId() < 0) {
+            Span errorSpan = new Span("ID Scenario non disponibile per Target");
+            errorSpan.getStyle().set("color", "red");
+            return errorSpan;
+        }
+
+        HorizontalLayout itemContainer = new HorizontalLayout();
+        itemContainer.setAlignItems(FlexComponent.Alignment.CENTER);
+        itemContainer.getStyle().set("margin", "6px");
+
+        HorizontalLayout badgeViewLayout = new HorizontalLayout();
+        badgeViewLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        badgeViewLayout.setSpacing(false);
+        badgeViewLayout.getStyle().set("cursor", "default");
+
+        Icon icon = labelIconMap.getOrDefault(label, FontAwesome.Solid.QUESTION_CIRCLE::create).get();
+        icon.getStyle().set("margin-right", "8px");
+        icon.addClassName(LumoUtility.TextColor.PRIMARY);
+
+        Span actualBadgeTextSpan = new Span();
+        Button openDialogButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+        openDialogButton.getStyle().set("margin-left", "auto");
+        openDialogButton.getElement().setAttribute("title", "Modifica Target in finestra");
+
+        Runnable updateBadgeAppearance = () -> {
+            String displayValue = displayValueGetter.apply(scenario);
+            boolean isEmpty = isValueEmpty(displayValue);
+            actualBadgeTextSpan.setText(formatBadgeText(label, displayValue, emptyText));
+            styleBadge(badgeViewLayout, actualBadgeTextSpan, badgeColor, isEmpty);
+            if (!(badgeViewLayout.getComponentCount() > 0 && badgeViewLayout.getComponentAt(0) instanceof Icon)) {
+                badgeViewLayout.addComponentAsFirst(icon); // Add icon if not present
+            }
+        };
+
+        updateBadgeAppearance.run();
+
+        badgeViewLayout.add(actualBadgeTextSpan, openDialogButton);
+        badgeViewLayout.expand(actualBadgeTextSpan);
+
+
+        itemContainer.add(badgeViewLayout);
+
+
+        openDialogButton.addClickListener(e -> {
+            String targetId = String.valueOf(scenario.getId());
+            String iframeUrl = "target/" + targetId + "/edit";
+
+            IFrame iframe = new IFrame(iframeUrl);
+            iframe.setWidth("100%");
+            iframe.setHeight("100%");
+            iframe.getStyle().set("border", "none");
+
+            Dialog dialog = new Dialog();
+            dialog.add(iframe);
+
+            dialog.setWidth("80vw");
+            dialog.setHeight("70vh");
+            dialog.setModal(true);
+            dialog.setDraggable(true);
+            dialog.setResizable(true);
+            dialog.setCloseOnEsc(true);
+            dialog.setCloseOnOutsideClick(false);
+
+            HorizontalLayout headerLayout = new HorizontalLayout();
+            Span dialogTitle = new Span("Modifica Target: " + displayValueGetter.apply(scenario));
+            Button closeButton = new Button(new Icon(VaadinIcon.CLOSE_SMALL), event -> dialog.close());
+            closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+            headerLayout.add(dialogTitle, closeButton);
+            headerLayout.setFlexGrow(1, dialogTitle);
+            headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+            headerLayout.setWidthFull();
+            headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+
+            if (dialog.getHeader() != null) {
+                dialog.getHeader().removeAll();
+                dialog.getHeader().add(headerLayout);
+            }
+
+
+            dialog.addOpenedChangeListener(event -> {
+                if (!event.isOpened()) {
+                    updateBadgeAppearance.run();
+                    Notification.show("Finestra Modifica Target chiusa.", 2000, Notification.Position.BOTTOM_START);
+                    UI.getCurrent().getPage().reload();
+                }
+            });
+
+            dialog.open();
+            Notification.show("Apertura finestra per modifica Target...", 2000, Notification.Position.BOTTOM_START);
+        });
+
+        return itemContainer;
     }
 
 
-    public static Component getInfo(Scenario scenario) {
+    public static Component getInfo(Scenario scenario, ScenarioService scenarioService) {
         HorizontalLayout badgesContainer = new HorizontalLayout();
         badgesContainer.setWidthFull();
         badgesContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
@@ -224,24 +507,23 @@ public class InfoSupport extends HorizontalLayout {
         String emptyDefaultText = "N/D";
 
         badgesContainer.add(createStringEditableBadge(scenario, "Paziente",
-                Scenario::getNomePaziente, Scenario::setNomePaziente,
-                emptyDefaultText, badgeColor));
+                Scenario::getNomePaziente,
+                emptyDefaultText, badgeColor, scenarioService));
 
-        badgesContainer.add(createStringEditableBadge(scenario, "Tipologia",
-                Scenario::getTipologia, Scenario::setTipologia,
-                emptyDefaultText, badgeColor));
+        badgesContainer.add(createTipologiaSelectBadge(scenario,
+                Scenario::getTipologia,
+                emptyDefaultText, badgeColor, scenarioService));
 
         badgesContainer.add(createStringEditableBadge(scenario, "Patologia",
-                Scenario::getPatologia, Scenario::setPatologia,
-                emptyDefaultText, badgeColor));
+                Scenario::getPatologia,
+                emptyDefaultText, badgeColor, scenarioService));
 
-        badgesContainer.add(createNumericEditableBadge(scenario, "Durata", // Label esplicito per il campo Durata
+        badgesContainer.add(createDurationSelectBadge(scenario,
                 Scenario::getTimerGenerale,
-                (s, num) -> s.setTimerGenerale((float) num.doubleValue()),
-                emptyDefaultText, badgeColor));
+                emptyDefaultText, badgeColor, scenarioService));
 
-        badgesContainer.add(createStringEditableBadge(scenario, "Target",
-                Scenario::getTarget, Scenario::setTarget,
+        badgesContainer.add(createTargetDialogBadge(scenario,
+                Scenario::getTarget,
                 emptyDefaultText, badgeColor));
 
         return badgesContainer;

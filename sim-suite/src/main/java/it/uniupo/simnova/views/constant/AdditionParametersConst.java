@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * Classe di supporto contenente i parametri aggiuntivi da utilizzare nei vari tempi.
  */
-public class AdditionParametersConst {
+public final class AdditionParametersConst {
     /**
      * Mappa dei parametri aggiuntivi predefiniti.
      * La chiave è il nome del parametro, il valore è la sua descrizione.

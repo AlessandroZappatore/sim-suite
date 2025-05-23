@@ -8,6 +8,7 @@ import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -19,6 +20,9 @@ import it.uniupo.simnova.domain.paziente.EsameFisico;
 import it.uniupo.simnova.domain.common.ParametroAggiuntivo;
 import it.uniupo.simnova.domain.paziente.PazienteT0;
 import it.uniupo.simnova.service.scenario.components.EsameFisicoService;
+import it.uniupo.simnova.service.scenario.components.PazienteT0Service;
+import it.uniupo.simnova.service.scenario.components.PresidiService;
+import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
 import it.uniupo.simnova.views.common.utils.StyleApp;
 import it.uniupo.simnova.views.common.utils.TinyEditor;
 import org.vaadin.tinymce.TinyMce;
@@ -28,7 +32,13 @@ import java.util.Map;
 
 public class PatientT0Support {
 
-    public static VerticalLayout createPatientContent(PazienteT0 paziente, EsameFisico esame, Integer scenarioId, EsameFisicoService esameFisicoService) {
+    public static VerticalLayout createPatientContent(PazienteT0 paziente,
+                                                      EsameFisico esame,
+                                                      Integer scenarioId,
+                                                      EsameFisicoService esameFisicoService,
+                                                      PazienteT0Service pazienteT0Service,
+                                                      PresidiService presidiService,
+                                                      AdvancedScenarioService advancedScenarioService) {
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(false);
         layout.setSpacing(true);
@@ -55,7 +65,7 @@ public class PatientT0Support {
 
             // Usa il nuovo MonitorSupport con l'adattatore
             VitalSignsDataProvider t0DataProvider = new PazienteT0VitalSignsAdapter(paziente);
-            Component vitalSignsMonitor = MonitorSupport.createVitalSignsMonitor(t0DataProvider, scenarioId, true);
+            Component vitalSignsMonitor = MonitorSupport.createVitalSignsMonitor(t0DataProvider, scenarioId, true, presidiService, pazienteT0Service, advancedScenarioService, null);
             patientCard.add(vitalSignsMonitor);
 
             // Accessi venosi e arteriosi
@@ -292,6 +302,8 @@ public class PatientT0Support {
                 editorActions.setVisible(false);
                 contentDisplay.setVisible(true);
                 editButton.setVisible(true);
+                Notification.show("Sezione "+title+" aggiornata.", 3000, Notification.Position.BOTTOM_CENTER);
+
             });
 
             cancelButton.addClickListener(e -> {

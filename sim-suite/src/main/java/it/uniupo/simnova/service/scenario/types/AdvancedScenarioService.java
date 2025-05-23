@@ -11,16 +11,17 @@ import org.springframework.stereotype.Service;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class AdvancedScenarioService {
-    private final ScenarioService scenarioService;
-
     private static final Logger logger = LoggerFactory.getLogger(AdvancedScenarioService.class);
+    private final ScenarioService scenarioService;
 
     public AdvancedScenarioService(ScenarioService scenarioService) {
         this.scenarioService = scenarioService;
     }
+
     public int startAdvancedScenario(String titolo, String nomePaziente, String patologia, String autori, float timerGenerale, String tipologia) {
         // Prima crea lo scenario base
         int scenarioId = scenarioService.startQuickScenario(-1, titolo, nomePaziente, patologia, autori, timerGenerale, tipologia);
@@ -212,7 +213,7 @@ public class AdvancedScenarioService {
         }
     }
 
-    public  List<ParametroAggiuntivo> getParametriAggiuntiviByTempoId(int tempoId, int scenarioId) {
+    public List<ParametroAggiuntivo> getParametriAggiuntiviByTempoId(int tempoId, int scenarioId) {
         final String sql = "SELECT * FROM ParametriAggiuntivi WHERE tempo_id = ? AND scenario_id = ?";
         List<ParametroAggiuntivo> parametri = new ArrayList<>();
 
@@ -322,8 +323,6 @@ public class AdvancedScenarioService {
     }
 
     private int getMaxParamId(Connection conn) throws SQLException {
-        // Example: SELECT MAX(parametri_aggiuntivi_id) FROM ParametriAggiuntivi
-        // Handle case where table is empty (return 0)
         final String sql = "SELECT MAX(parametri_aggiuntivi_id) FROM ParametriAggiuntivi";
         try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             if (rs.next()) {
@@ -333,5 +332,278 @@ public class AdvancedScenarioService {
         }
     }
 
+    public void setAzione(int idTempo, int scenarioId, String newValue) {
+        final String sql = "UPDATE Tempo SET Azione = ? WHERE id_tempo = ? AND id_advanced_scenario = ?";
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
+            stmt.setString(1, newValue);
+            stmt.setInt(2, idTempo);
+            stmt.setInt(3, scenarioId);
+
+            int rowsUpdated = stmt.executeUpdate();
+            if (rowsUpdated > 0) {
+                logger.info("Azione aggiornata con successo per il tempo con ID {} nello scenario con ID {}", idTempo, scenarioId);
+            } else {
+                logger.warn("Nessuna azione aggiornata per il tempo con ID {} nello scenario con ID {}", idTempo, scenarioId);
+            }
+        } catch (SQLException e) {
+            logger.error("Errore durante l'aggiornamento dell'azione per il tempo con ID {} nello scenario con ID {}", idTempo, scenarioId, e);
+        }
+    }
+
+    public void setRuoloGenitore(int idTempo, int scenarioId, String newValue) {
+        final String sql = "UPDATE Tempo SET RuoloGenitore = ? WHERE id_tempo = ? AND id_advanced_scenario = ?";
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, newValue);
+            stmt.setInt(2, idTempo);
+            stmt.setInt(3, scenarioId);
+
+            int rowsUpdated = stmt.executeUpdate();
+            if (rowsUpdated > 0) {
+                logger.info("Ruolo genitore aggiornato con successo per il tempo con ID {} nello scenario con ID {}", idTempo, scenarioId);
+            } else {
+                logger.warn("Nessun ruolo genitore aggiornato per il tempo con ID {} nello scenario con ID {}", idTempo, scenarioId);
+            }
+        } catch (SQLException e) {
+            logger.error("Errore durante l'aggiornamento del ruolo genitore per il tempo con ID {} nello scenario con ID {}", idTempo, scenarioId, e);
+        }
+    }
+
+
+    public void setTransitions(int idTempo, int scenarioId, int newTSi, int newTNo) {
+        final String sql = "UPDATE Tempo SET TSi_id = ?, TNo_id = ? WHERE id_tempo = ? AND id_advanced_scenario = ?";
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, newTSi);
+            stmt.setInt(2, newTNo);
+            stmt.setInt(3, idTempo);
+            stmt.setInt(4, scenarioId);
+
+            int rowsUpdated = stmt.executeUpdate();
+            if (rowsUpdated > 0) {
+                logger.info("Transizioni aggiornate con successo per il tempo con ID {} nello scenario con ID {}", idTempo, scenarioId);
+            } else {
+                logger.warn("Nessuna transizione aggiornata per il tempo con ID {} nello scenario con ID {}", idTempo, scenarioId);
+            }
+        } catch (SQLException e) {
+            logger.error("Errore durante l'aggiornamento delle transizioni per il tempo con ID {} nello scenario con ID {}", idTempo, scenarioId, e);
+        }
+    }
+
+    public void setDettagliAggiuntivi(int idTempo, int scenarioId, String newValue) {
+        final String sql = "UPDATE Tempo SET altri_dettagli = ? WHERE id_tempo = ? AND id_advanced_scenario = ?";
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, newValue);
+            stmt.setInt(2, idTempo);
+            stmt.setInt(3, scenarioId);
+
+            int rowsUpdated = stmt.executeUpdate();
+            if (rowsUpdated > 0) {
+                logger.info("Dettagli aggiuntivi aggiornati con successo per il tempo con ID {} nello scenario con ID {}", idTempo, scenarioId);
+            } else {
+                logger.warn("Nessun dettaglio aggiuntivo aggiornato per il tempo con ID {} nello scenario con ID {}", idTempo, scenarioId);
+            }
+        } catch (SQLException e) {
+            logger.error("Errore durante l'aggiornamento dei dettagli aggiuntivi per il tempo con ID {} nello scenario con ID {}", idTempo, scenarioId, e);
+        }
+    }
+
+    @SuppressWarnings("SqlSourceToSinkFlow")
+    public void saveVitalSign(Integer scenarioId, Integer tempoId, String label, String newValue) {
+        // Mappa delle colonne valide per prevenire SQL injection
+        Map<String, String> colonneLecite = Map.of(
+            "PA", "PA",
+            "FC", "FC",
+            "RR", "RR",
+            "T", "T",
+            "SpO₂", "SpO2",
+            "FiO₂", "FiO2",
+            "Litri O₂", "LitriOssigeno",
+            "EtCO₂", "EtCO2"
+        );
+
+        // Verifica che il parametro sia nella lista delle colonne consentite
+        String colonnaReale = colonneLecite.get(label);
+
+        if (colonnaReale != null) {
+            try (Connection conn = DBConnect.getInstance().getConnection()) {
+                conn.setAutoCommit(false);
+
+                // Caso 1: Aggiornamento di PazienteT0 (tempoId = null)
+                if (tempoId == null) {
+                    // 1A: Aggiorna PazienteT0
+                    String sqlPaziente = "UPDATE PazienteT0 SET " + colonnaReale + " = ? WHERE id_paziente = ?";
+                    try (PreparedStatement stmtPaziente = conn.prepareStatement(sqlPaziente)) {
+                        stmtPaziente.setString(1, newValue);
+                        stmtPaziente.setInt(2, scenarioId);
+                        stmtPaziente.executeUpdate();
+                    }
+
+                    // 1B: Aggiorna anche Tempo con id_tempo = 0 se esiste
+                    String sqlCheckTempo = "SELECT COUNT(*) FROM Tempo WHERE id_advanced_scenario = ? AND id_tempo = 0";
+                    try (PreparedStatement checkStmt = conn.prepareStatement(sqlCheckTempo)) {
+                        checkStmt.setInt(1, scenarioId);
+                        ResultSet rs = checkStmt.executeQuery();
+                        if (rs.next() && rs.getInt(1) > 0) {
+                            String sqlTempoZero = "UPDATE Tempo SET " + colonnaReale + " = ? WHERE id_advanced_scenario = ? AND id_tempo = 0";
+                            try (PreparedStatement stmtTempoZero = conn.prepareStatement(sqlTempoZero)) {
+                                stmtTempoZero.setString(1, newValue);
+                                stmtTempoZero.setInt(2, scenarioId);
+                                stmtTempoZero.executeUpdate();
+                            }
+                        }
+                    }
+
+                    conn.commit();
+                    logger.info("Parametro vitale {} aggiornato con successo per PazienteT0 e Tempo(0) nello scenario con ID {}",
+                            label, scenarioId);
+                }
+                // Caso 2: Aggiornamento di Tempo con id_tempo = 0
+                else if (tempoId == 0) {
+                    // 2A: Aggiorna Tempo con id_tempo = 0
+                    String sqlTempo = "UPDATE Tempo SET " + colonnaReale + " = ? WHERE id_advanced_scenario = ? AND id_tempo = 0";
+                    try (PreparedStatement stmtTempo = conn.prepareStatement(sqlTempo)) {
+                        stmtTempo.setString(1, newValue);
+                        stmtTempo.setInt(2, scenarioId);
+                        stmtTempo.executeUpdate();
+                    }
+
+                    // 2B: Aggiorna anche PazienteT0
+                    String sqlPaziente = "UPDATE PazienteT0 SET " + colonnaReale + " = ? WHERE id_paziente = ?";
+                    try (PreparedStatement stmtPaziente = conn.prepareStatement(sqlPaziente)) {
+                        stmtPaziente.setString(1, newValue);
+                        stmtPaziente.setInt(2, scenarioId);
+                        stmtPaziente.executeUpdate();
+                    }
+
+                    conn.commit();
+                    logger.info("Parametro vitale {} aggiornato con successo per Tempo(0) e PazienteT0 nello scenario con ID {}",
+                            label, scenarioId);
+                }
+                // Caso 3: Aggiornamento di Tempo con id_tempo diverso da 0
+                else {
+                    String sqlTempo = "UPDATE Tempo SET " + colonnaReale + " = ? WHERE id_advanced_scenario = ? AND id_tempo = ?";
+                    try (PreparedStatement stmtTempo = conn.prepareStatement(sqlTempo)) {
+                        stmtTempo.setString(1, newValue);
+                        stmtTempo.setInt(2, scenarioId);
+                        stmtTempo.setInt(3, tempoId);
+
+                        int rowsUpdated = stmtTempo.executeUpdate();
+                        conn.commit();
+
+                        if (rowsUpdated > 0) {
+                            logger.info("Parametro vitale {} aggiornato con successo per il tempo con ID {} nello scenario con ID {}",
+                                    label, tempoId, scenarioId);
+                        } else {
+                            logger.warn("Nessun parametro vitale {} aggiornato per il tempo con ID {} nello scenario con ID {}",
+                                    label, tempoId, scenarioId);
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                logger.error("Errore durante l'aggiornamento del parametro vitale {} per scenarioId={}, tempoId={}",
+                        label, scenarioId, tempoId, e);
+                try {
+                    DBConnect.getInstance().getConnection().rollback();
+                } catch (SQLException ex) {
+                    logger.error("Errore durante il rollback", ex);
+                }
+            } finally {
+                try {
+                    DBConnect.getInstance().getConnection().setAutoCommit(true);
+                } catch (SQLException e) {
+                    logger.error("Errore nel ripristino dell'autocommit", e);
+                }
+            }
+        } else {
+            // Gestione parametri aggiuntivi nella tabella ParametriAggiuntivi
+            if (tempoId == null || tempoId == 0) {
+                tempoId = 0; // Standardizziamo a 0 sia null che zero
+                logger.info("Parametro aggiuntivo {} verrà salvato per tempoId=0 dello scenario {}", label, scenarioId);
+            }
+
+            try (Connection conn = DBConnect.getInstance().getConnection()) {
+                // Verifica se il parametro esiste già
+                String checkSql = "SELECT parametri_aggiuntivi_id FROM ParametriAggiuntivi WHERE tempo_id = ? AND scenario_id = ? AND nome = ?";
+                try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                    checkStmt.setInt(1, tempoId);
+                    checkStmt.setInt(2, scenarioId);
+                    checkStmt.setString(3, label);
+
+                    try (ResultSet rs = checkStmt.executeQuery()) {
+                        if (rs.next()) {
+                            // Aggiorna parametro esistente
+                            int paramId = rs.getInt("parametri_aggiuntivi_id");
+                            String updateSql = "UPDATE ParametriAggiuntivi SET valore = ? WHERE parametri_aggiuntivi_id = ?";
+
+                            try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                                updateStmt.setString(1, newValue);
+                                updateStmt.setInt(2, paramId);
+
+                                int rowsUpdated = updateStmt.executeUpdate();
+                                if (rowsUpdated > 0) {
+                                    logger.info("Parametro aggiuntivo {} aggiornato con successo per il tempo con ID {} nello scenario con ID {}",
+                                            label, tempoId, scenarioId);
+                                } else {
+                                    logger.warn("Nessun parametro aggiuntivo {} aggiornato per il tempo con ID {} nello scenario con ID {}",
+                                            label, tempoId, scenarioId);
+                                }
+                            }
+                        } else {
+                            // Crea un nuovo parametro
+                            int maxId = getMaxParamId(conn) + 1;
+                            String insertSql = "INSERT INTO ParametriAggiuntivi (parametri_aggiuntivi_id, tempo_id, scenario_id, nome, valore, unità_misura) " +
+                                    "VALUES (?, ?, ?, ?, ?, ?)";
+
+                            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                                insertStmt.setInt(1, maxId);
+                                insertStmt.setInt(2, tempoId);
+                                insertStmt.setInt(3, scenarioId);
+                                insertStmt.setString(4, label);
+                                insertStmt.setString(5, newValue);
+                                insertStmt.setString(6, ""); // Unità di misura vuota per default
+
+                                int rowsInserted = insertStmt.executeUpdate();
+                                if (rowsInserted > 0) {
+                                    logger.info("Nuovo parametro aggiuntivo {} creato con successo per il tempo con ID {} nello scenario con ID {}",
+                                            label, tempoId, scenarioId);
+                                } else {
+                                    logger.warn("Impossibile creare il parametro aggiuntivo {} per il tempo con ID {} nello scenario con ID {}",
+                                            label, tempoId, scenarioId);
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                logger.error("Errore durante la gestione del parametro aggiuntivo {} per il tempo con ID {} nello scenario con ID {}",
+                        label, tempoId, scenarioId, e);
+            }
+        }
+    }
+
+    public void deleteTempo (int idTempo, int scenarioId) {
+        final String sql = "DELETE FROM Tempo WHERE id_tempo = ? AND id_advanced_scenario = ?";
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, idTempo);
+            stmt.setInt(2, scenarioId);
+
+            int rowsDeleted = stmt.executeUpdate();
+            if (rowsDeleted > 0) {
+                logger.info("Tempo con ID {} eliminato con successo dallo scenario con ID {}", idTempo, scenarioId);
+            } else {
+                logger.warn("Nessun tempo trovato con ID {} nello scenario con ID {}", idTempo, scenarioId);
+            }
+        } catch (SQLException e) {
+            logger.error("Errore durante l'eliminazione del tempo con ID {} dallo scenario con ID {}", idTempo, scenarioId, e);
+        }
+    }
 }
