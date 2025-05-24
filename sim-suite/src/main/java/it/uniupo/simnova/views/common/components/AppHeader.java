@@ -38,7 +38,7 @@ public class AppHeader extends HorizontalLayout {
 
     private static final Logger logger = LoggerFactory.getLogger(AppHeader.class);
     private static final String CENTER_LOGO_FILENAME = "center_logo.png"; // Nome file standard per il logo del centro
-    private static final String LOGO_URL = "/icons/icon.png";
+    private static final String LOGO_URL = "icons/icon.png";
     private final FileStorageService fileStorageService;
     private final Div centerLogoContainer; // Contenitore dinamico per logo o uploader
     private final Button toggleThemeButton;
@@ -63,9 +63,6 @@ public class AppHeader extends HorizontalLayout {
                 .set("box-shadow", "0 2px 10px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0,0,0,0.1)")
                 .set("padding", "10px"); // Aggiunto padding per il layout
 
-        // --- Sezione Sinistra: Loghi e Titolo ---
-
-        // Logo SIM SUITE
         Image simSuiteLogo = new Image(LOGO_URL, "SIM SUITE Logo");
         simSuiteLogo.setHeight("40px");
         simSuiteLogo.getStyle().set("cursor", "pointer");
@@ -74,7 +71,6 @@ public class AppHeader extends HorizontalLayout {
                 .withText("Torna alla Home")
                 .withPosition(Tooltip.TooltipPosition.BOTTOM);
 
-        // Titolo applicazione
         Div appTitle = new Div();
         appTitle.setText("SIM SUITE");
         appTitle.addClassNames(
@@ -83,13 +79,12 @@ public class AppHeader extends HorizontalLayout {
                 LumoUtility.TextColor.PRIMARY
         );
 
-        // Container per il logo del centro (o l'uploader)
         centerLogoContainer = new Div();
         centerLogoContainer.getStyle()
                 .set("margin-left", LumoUtility.Margin.MEDIUM)
                 .set("display", "flex") // Usa flex per allineare logo e pulsante
-                .set("align-items", "center"); // Allinea verticalmente
-        updateCenterLogoArea(); // Popola inizialmente con logo o uploader
+                .set("align-items", "center");
+        updateCenterLogoArea();
 
         // Mostra popover se il logo centro è assente
         showMissingLogoPopoverIfNeeded();
@@ -98,9 +93,6 @@ public class AppHeader extends HorizontalLayout {
         HorizontalLayout leftSection = new HorizontalLayout(simSuiteLogo, appTitle, centerLogoContainer);
         leftSection.setSpacing(true);
         leftSection.setAlignItems(Alignment.CENTER);
-
-
-        // --- Sezione Destra: Pulsante Tema ---
 
         toggleThemeButton = new Button();
         toggleThemeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -213,9 +205,8 @@ public class AppHeader extends HorizontalLayout {
         cancelButton.addClickListener(e -> notification.close());
         confirmButton.addClickListener(e -> notification.close()); // Chiude anche su conferma
 
-        notification.open(); // Mostra la notifica
+        notification.open();
     }
-
 
     /**
      * Elimina il file del logo del centro e aggiorna l'interfaccia.
@@ -224,13 +215,12 @@ public class AppHeader extends HorizontalLayout {
         try {
             fileStorageService.deleteFile(CENTER_LOGO_FILENAME);
             Notification.show("Logo eliminato con successo.", 2000, Notification.Position.MIDDLE)
-                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS); // Usa tema successo
-            // Aggiorna l'area nell'UI thread
+                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             UI.getCurrent().access(this::updateCenterLogoArea);
         } catch (Exception ex) {
             logger.error("Errore durante l'eliminazione del logo del centro.", ex);
             Notification.show("Errore eliminazione logo: " + ex.getMessage(), 3000, Notification.Position.MIDDLE)
-                    .addThemeVariants(NotificationVariant.LUMO_ERROR); // Usa tema errore
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
         }
     }
 
@@ -240,9 +230,7 @@ public class AppHeader extends HorizontalLayout {
     private void showMissingLogoPopoverIfNeeded() {
         UI.getCurrent().getPage().fetchCurrentURL(currentUrl -> {
             String path = currentUrl.getPath();
-            // Mostra il popover solo se siamo nella home page (URL vuoto o solo "/") e manca il logo
             if ((path.isEmpty() || "/".equals(path)) && !fileStorageService.fileExists(CENTER_LOGO_FILENAME)) {
-                // Esegue nel contesto dell'UI thread
                 UI.getCurrent().access(() -> {
                     Popover popover = new Popover();
                     popover.setOpened(true);
@@ -267,8 +255,8 @@ public class AppHeader extends HorizontalLayout {
      */
     private void checkInitialTheme() {
         UI.getCurrent().getPage().executeJs(
-                "return document.documentElement.getAttribute('theme') || 'light';" // Default to 'light' if not set
-        ).then(String.class, theme -> { // Specify String.class for type safety
+                "return document.documentElement.getAttribute('theme') || 'light';"
+        ).then(String.class, theme -> {
             isDarkMode = "dark".equals(theme);
             updateThemeIcon();
         });
@@ -284,19 +272,17 @@ public class AppHeader extends HorizontalLayout {
 
         String themeToSet = isDarkMode ? "dark" : "light";
 
-        // Set the 'theme' attribute on <html> for Lumo to pick up
         UI.getCurrent().getPage().executeJs(
                 "document.documentElement.setAttribute('theme', $0)",
                 themeToSet
         );
 
-        // Set the 'color-scheme' CSS property for better browser integration
         UI.getCurrent().getPage().executeJs(
                 "document.documentElement.style.setProperty('color-scheme', $0)",
                 themeToSet
         );
 
-        updateThemeIcon(); // Update the button icon
+        updateThemeIcon();
     }
 
     /**
@@ -307,14 +293,13 @@ public class AppHeader extends HorizontalLayout {
     private void updateThemeIcon() {
         Icon icon;
         if (isDarkMode) {
-            icon = VaadinIcon.SUN_O.create(); // In dark mode, button shows sun (to switch to light)
-            icon.setColor("var(--lumo-warning-color)"); // Icon color adapts to theme
+            icon = VaadinIcon.SUN_O.create();
+            icon.setColor("var(--lumo-warning-color)");
         } else {
-            icon = VaadinIcon.MOON_O.create(); // In light mode, button shows moon (to switch to dark)
-            icon.setColor("var(--lumo-contrast)"); // Icon color adapts to theme
+            icon = VaadinIcon.MOON_O.create();
+            icon.setColor("var(--lumo-contrast)");
         }
 
-        // Style the icon. These Lumo CSS variables should adapt to the current theme.
         icon.getStyle()
                 .set("width", "var(--lumo-icon-size-m)")
                 .set("height", "var(--lumo-icon-size-m)");
