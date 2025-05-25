@@ -12,6 +12,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -28,12 +29,10 @@ import java.util.function.Supplier;
 
 
 public class InfoSupport extends HorizontalLayout {
-
     private static final Map<String, Supplier<Icon>> labelIconMap = new HashMap<>();
     private static final Map<String, Supplier<Icon>> tipologiaIconMap = new HashMap<>();
     private static final List<String> TIPOLOGIA_OPTIONS = Arrays.asList("Adulto", "Pediatrico", "Neonatale", "Prematuro");
     private static final List<Integer> DURATION_OPTIONS = List.of(5, 10, 15, 20, 25, 30);
-
 
     static {
         labelIconMap.put("Paziente", FontAwesome.Solid.USER_INJURED::create);
@@ -72,12 +71,10 @@ public class InfoSupport extends HorizontalLayout {
         );
     }
 
-    // Modified this method to remove "label: " for 'Durata' when formatting
     private static String formatBadgeText(String label, String value, String emptyText) {
         if (value != null && !value.trim().isEmpty()) {
-            // Special case for "Durata"
             if ("Durata".equals(label)) {
-                return value + " min"; // Just "number min"
+                return value + " min";
             }
             return label + ": " + value;
         } else {
@@ -168,7 +165,7 @@ public class InfoSupport extends HorizontalLayout {
 
             scenarioService.updateSingleField(scenario.getId(), label, newValue);
 
-            Notification.show(label + " aggiornata.", 3000, Notification.Position.BOTTOM_CENTER);
+            Notification.show(label + " aggiornata.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         });
 
         return itemContainer;
@@ -226,15 +223,15 @@ public class InfoSupport extends HorizontalLayout {
         editControlsLayout.setVisible(false);
         editControlsLayout.setWidthFull();
 
-        // MODIFIED: Formatting for "Durata"
+
         SerializableFunction<Scenario, String> displayValueFormatter = s -> {
             Number val = numericGetter.apply(s);
             if (val != null) {
                 int intVal = val.intValue();
                 if (val.doubleValue() == intVal && intVal > 0) {
-                    return String.valueOf(intVal); // Will be formatted by formatBadgeText with " min"
+                    return String.valueOf(intVal);
                 } else if (val.doubleValue() > 0) {
-                    return String.valueOf(intVal); // Will be formatted by formatBadgeText with " min"
+                    return String.valueOf(intVal);
                 }
             }
             return null;
@@ -277,17 +274,14 @@ public class InfoSupport extends HorizontalLayout {
             Integer selectedValue = durationSelect.getValue();
             String valueToSaveAndDisplay = (selectedValue != null) ? String.valueOf(selectedValue) : null;
 
-            // No need to set text here, updateBadgeAppearance.run() will do it
-            // actualBadgeTextSpan.setText(formatBadgeText(label, valueToSaveAndDisplay, emptyText));
-            // styleBadge(badgeViewLayout, actualBadgeTextSpan, badgeColor, isEmpty);
 
             editControlsLayout.setVisible(false);
             badgeViewLayout.setVisible(true);
             scenarioService.updateSingleField(scenario.getId(), label, valueToSaveAndDisplay);
 
-            // Re-run updateBadgeAppearance to display the newly saved value
+
             updateBadgeAppearance.run();
-            Notification.show(label + " aggiornata.", 3000, Notification.Position.BOTTOM_CENTER);
+            Notification.show(label + " aggiornata.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         });
         return itemContainer;
     }
@@ -389,7 +383,7 @@ public class InfoSupport extends HorizontalLayout {
 
             scenarioService.updateSingleField(scenario.getId(), label, newSelectedValue);
 
-            Notification.show(label + " aggiornata.", 3000, Notification.Position.BOTTOM_CENTER);
+            Notification.show(label + " aggiornata.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         });
         return itemContainer;
     }
@@ -431,7 +425,7 @@ public class InfoSupport extends HorizontalLayout {
             actualBadgeTextSpan.setText(formatBadgeText(label, displayValue, emptyText));
             styleBadge(badgeViewLayout, actualBadgeTextSpan, badgeColor, isEmpty);
             if (!(badgeViewLayout.getComponentCount() > 0 && badgeViewLayout.getComponentAt(0) instanceof Icon)) {
-                badgeViewLayout.addComponentAsFirst(icon); // Add icon if not present
+                badgeViewLayout.addComponentAsFirst(icon);
             }
         };
 

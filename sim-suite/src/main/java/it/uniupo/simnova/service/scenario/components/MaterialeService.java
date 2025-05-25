@@ -123,14 +123,14 @@ public class MaterialeService {
             conn = DBConnect.getInstance().getConnection();
             conn.setAutoCommit(false);
 
-            // Prima rimuovi tutte le associazioni esistenti
+
             final String deleteSQL = "DELETE FROM MaterialeScenario WHERE id_scenario = ?";
             try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSQL)) {
                 deleteStmt.setInt(1, scenarioId);
                 deleteStmt.executeUpdate();
             }
 
-            // Poi inserisci le nuove associazioni
+
             if (!idsMateriali.isEmpty()) {
                 final String insertSQL = "INSERT INTO MaterialeScenario (id_scenario, id_materiale) VALUES (?, ?)";
                 try (PreparedStatement insertStmt = conn.prepareStatement(insertSQL)) {
@@ -179,14 +179,14 @@ public class MaterialeService {
             conn = DBConnect.getInstance().getConnection();
             conn.setAutoCommit(false);
 
-            // Prima rimuovi tutte le associazioni con gli scenari
+
             final String deleteAssociazioniSQL = "DELETE FROM MaterialeScenario WHERE id_materiale = ?";
             try (PreparedStatement deleteAssociazioniStmt = conn.prepareStatement(deleteAssociazioniSQL)) {
                 deleteAssociazioniStmt.setInt(1, idMateriale);
                 deleteAssociazioniStmt.executeUpdate();
             }
 
-            // Poi elimina il materiale
+
             final String deleteMaterialeSQL = "DELETE FROM Materiale WHERE id_materiale = ?";
             try (PreparedStatement deleteMaterialeStmt = conn.prepareStatement(deleteMaterialeSQL)) {
                 deleteMaterialeStmt.setInt(1, idMateriale);

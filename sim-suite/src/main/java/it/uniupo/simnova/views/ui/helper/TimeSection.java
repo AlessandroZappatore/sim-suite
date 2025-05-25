@@ -121,35 +121,35 @@ public class TimeSection {
     public TimeSection(int timeNumber, ScenarioService scenarioService, List<TimeSection> timeSections, VerticalLayout timeSectionsContainer, Integer scenarioId) {
         this.timeNumber = timeNumber;
 
-        // Layout principale della sezione
+
         layout = new VerticalLayout();
-        layout.addClassName(LumoUtility.Padding.MEDIUM); // Padding interno
-        layout.addClassName(LumoUtility.Border.ALL); // Bordo su tutti i lati
-        layout.addClassName(LumoUtility.BorderColor.CONTRAST_10); // Colore bordo leggero
-        layout.addClassName(LumoUtility.BorderRadius.MEDIUM); // Angoli arrotondati
+        layout.addClassName(LumoUtility.Padding.MEDIUM);
+        layout.addClassName(LumoUtility.Border.ALL);
+        layout.addClassName(LumoUtility.BorderColor.CONTRAST_10);
+        layout.addClassName(LumoUtility.BorderRadius.MEDIUM);
         layout.setPadding(true);
-        layout.setSpacing(false); // Spaziatura gestita dai margini interni
+        layout.setSpacing(false);
         layout.getStyle().set("border-left", "4px solid " + getBorderColor(timeNumber));
 
-        // Titolo della sezione (es. "Tempo T1")
+
         Paragraph sectionTitle = new Paragraph("Tempo T" + timeNumber);
         sectionTitle.addClassNames(LumoUtility.FontWeight.BOLD, LumoUtility.FontSize.LARGE, LumoUtility.Margin.Bottom.MEDIUM);
 
-        // Selettore Timer
+
         HorizontalLayout timerLayout = FieldGenerator.createTimerPickerWithPresets(
                 "Timer associato a T" + timeNumber + " (opzionale)"
         );
-        timerPicker = (TimePicker) timerLayout.getComponentAt(0); // Prendi il TimePicker
+        timerPicker = (TimePicker) timerLayout.getComponentAt(0);
 
-        // Form Layout per i parametri vitali base
+
         medicalParamsForm = new FormLayout();
         medicalParamsForm.setResponsiveSteps(
-                new FormLayout.ResponsiveStep("0", 1), // 1 colonna su schermi piccoli
-                new FormLayout.ResponsiveStep("500px", 2)  // 2 colonne da 500px in su
+                new FormLayout.ResponsiveStep("0", 1),
+                new FormLayout.ResponsiveStep("500px", 2)
         );
         medicalParamsForm.setWidthFull();
 
-        // Creazione campi parametri base usando FieldGenerator
+
         paField = FieldGenerator.createTextField("PA (Sist/Diast)", "es. 120/80", true);
         paField.setSuffixComponent(new Paragraph("mmHg"));
         paField.getStyle().set("max-width", "320px");
@@ -162,22 +162,22 @@ public class TimeSection {
         litriO2Field = FieldGenerator.createMedicalField("Litri O₂", "(es. 5)", false, "L/min");
         etco2Field = FieldGenerator.createMedicalField("EtCO₂", "(es. 35)", true, "mmHg");
 
-        // Aggiunta campi al FormLayout
+
         medicalParamsForm.add(paField, fcField, rrField, tField, spo2Field, fio2Field, litriO2Field, etco2Field);
         medicalParamsForm.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
 
 
-        // Container per i parametri aggiuntivi (verrà popolato dinamicamente)
+
         customParamsContainer = new VerticalLayout();
         customParamsContainer.setWidthFull();
         customParamsContainer.setPadding(false);
-        customParamsContainer.setSpacing(false); // Spazio tra i parametri aggiuntivi
+        customParamsContainer.setSpacing(false);
 
-        // Divisore orizzontale
+
         Hr divider = new Hr();
         divider.addClassName(LumoUtility.Margin.Vertical.MEDIUM);
 
-        // Titolo per la sezione Azione/Transizioni
+
         Paragraph actionTitle = new Paragraph(timeNumber == 0 ?
                 "DETTAGLI INIZIALI T0" : "AZIONE E TRANSIZIONI PER T" + timeNumber);
         actionTitle.addClassNames(LumoUtility.FontWeight.SEMIBOLD, LumoUtility.FontSize.MEDIUM, LumoUtility.Margin.Bottom.MEDIUM);
@@ -187,16 +187,16 @@ public class TimeSection {
                 "Es. Somministrare farmaco X, Rilevare parametro Y, Domanda al paziente...",
                 false
         );
-        // Container per i campi TSi / TNo
+
         HorizontalLayout timeSelectionContainer = new HorizontalLayout();
         timeSelectionContainer.setWidthFull();
-        timeSelectionContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER); // Centra il FormLayout interno
+        timeSelectionContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
-        // FormLayout per TSi / TNo
+
         HorizontalLayout timeSelectionLayout = new HorizontalLayout();
         timeSelectionLayout.setWidthFull();
         timeSelectionLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
-        timeSelectionLayout.setAlignItems(FlexComponent.Alignment.BASELINE); // Allinea i componenti sulla stessa linea di base
+        timeSelectionLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
         timeSelectionLayout.setSpacing(true);
 
         timeIfYesField = FieldGenerator.createTimeNavigationField(
@@ -211,7 +211,7 @@ public class TimeSection {
                 true
         );
 
-        // Aggiungi i campi direttamente al layout orizzontale
+
         timeSelectionLayout.add(timeIfYesField, timeIfNoField);
         timeSelectionContainer.add(timeSelectionLayout);
         timeSelectionContainer.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
@@ -222,13 +222,13 @@ public class TimeSection {
                 false
         );
 
-        // Pulsante per rimuovere la sezione (visibile per T1, T2...)
+
         Button removeButton = new Button("Rimuovi T" + timeNumber, new Icon(VaadinIcon.TRASH));
-        removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY); // Stile errore leggero
+        removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
         removeButton.addClickListener(event -> {
             timeSections.remove(this);
             timeSectionsContainer.remove(layout);
-            Notification.show("Tempo T" + timeNumber + " rimosso.", 2000, Notification.Position.BOTTOM_START).addThemeVariants(NotificationVariant.LUMO_CONTRAST);
+            Notification.show("Tempo T" + timeNumber + " rimosso.", 2000, Notification.Position.BOTTOM_START).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         });
 
         ruoloGenitoreArea = FieldGenerator.createTextArea(
@@ -237,17 +237,17 @@ public class TimeSection {
                 false
         );
 
-        // Aggiunta di tutti i componenti al layout principale della sezione
+
         layout.add(sectionTitle, timerLayout, medicalParamsForm, customParamsContainer, divider,
                 actionTitle, actionDetailsArea, timeSelectionContainer,
                 additionalDetailsArea);
         if (scenarioService.isPediatric(scenarioId)) {
             layout.add(ruoloGenitoreArea);
         }
-        // Aggiunge il pulsante Rimuovi solo se non è T0 (verrà nascosto se necessario)
+
         if (timeNumber > 0) {
             layout.add(removeButton);
-            layout.setHorizontalComponentAlignment(FlexComponent.Alignment.END, removeButton); // Allinea a destra
+            layout.setHorizontalComponentAlignment(FlexComponent.Alignment.END, removeButton);
         }
     }
 
@@ -293,7 +293,7 @@ public class TimeSection {
      * Nasconde il pulsante "Rimuovi Tempo". Usato solitamente per la sezione T0.
      */
     public void hideRemoveButton() {
-        // Cerca il pulsante nel layout e lo nasconde se esiste
+
         layout.getChildren().filter(Button.class::isInstance)
                 .map(Button.class::cast)
                 .filter(button -> button.getText().startsWith("Rimuovi T"))
@@ -312,33 +312,33 @@ public class TimeSection {
      * @param unit  l'unità di misura (stringa) da associare a questo parametro per il salvataggio.
      */
     public void addCustomParameter(String key, String label, String unit) {
-        // Controlla se un parametro con questa chiave esiste già per evitare duplicati
+
         if (!customParameters.containsKey(key)) {
-            // Usa FieldGenerator per creare un campo numerico con unità di misura
+
             NumberField field = FieldGenerator.createMedicalField(label, "", false, unit);
 
-            // Memorizza il campo nella mappa dei parametri
+
             customParameters.put(key, field);
 
-            // Memorizza l'unità di misura nella mappa delle unità
+
             if (unit != null) {
                 customParameterUnits.put(key, unit);
             }
 
-            // Pulsante per rimuovere questo specifico parametro aggiuntivo
+
             Button removeParamButton = new Button(new Icon(VaadinIcon.TRASH));
             removeParamButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
             removeParamButton.getElement().setAttribute("aria-label", "Rimuovi " + label);
             removeParamButton.setTooltipText("Rimuovi " + label);
             removeParamButton.addClassName(LumoUtility.Margin.Left.SMALL);
 
-            // Layout orizzontale per contenere il campo e il pulsante di rimozione
+
             HorizontalLayout paramLayout = new HorizontalLayout(field, removeParamButton);
             paramLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
             paramLayout.setWidthFull();
             paramLayout.setFlexGrow(1, field);
 
-            // Azione del pulsante di rimozione
+
             removeParamButton.addClickListener(e -> {
                 HorizontalLayout layoutToRemove = customParameterLayouts.get(key);
                 if (layoutToRemove != null) {
@@ -349,9 +349,9 @@ public class TimeSection {
                 }
             });
 
-            // Memorizza il layout orizzontale
+
             customParameterLayouts.put(key, paramLayout);
-            // Aggiunge il layout del parametro al container
+
             customParamsContainer.add(paramLayout);
         } else {
             logger.warn("Tentativo di aggiungere un parametro con chiave duplicata: {}", key);
@@ -367,7 +367,7 @@ public class TimeSection {
      * @return un oggetto {@link Tempo} pronto per essere salvato.
      */
     public Tempo prepareDataForSave() {
-        // Recupera valori dai campi base, gestendo valori null o vuoti
+
         LocalTime time = timerPicker.getValue();
         String pa = paField.getValue() != null ? paField.getValue().trim() : "";
         Integer fc = fcField.getValue() != null ? fcField.getValue().intValue() : null;
@@ -385,7 +385,7 @@ public class TimeSection {
         String additionalDetails = additionalDetailsArea.getValue() != null ? additionalDetailsArea.getValue().trim() : "";
         long timerSeconds = (time != null) ? time.toSecondOfDay() : 0L;
         String ruoloGenitoreArea = this.ruoloGenitoreArea.getValue() != null ? this.ruoloGenitoreArea.getValue().trim() : "";
-        // Raccoglie i parametri aggiuntivi come List<ParametroAggiuntivo>
+
         List<ParametroAggiuntivo> additionalParamsList = new ArrayList<>();
         customParameters.forEach((key, field) -> {
             double value = field.getValue() != null ? field.getValue() : 0.0;
@@ -393,11 +393,11 @@ public class TimeSection {
             String paramNameForDb;
 
             if (key.startsWith(CUSTOM_PARAMETER_KEY)) {
-                // Parametro Custom
+
                 paramNameForDb = key.substring(CUSTOM_PARAMETER_KEY.length() + 1).replace('_', ' ');
                 unit = customParameterUnits.getOrDefault(key, "");
             } else {
-                // Parametro Predefinito
+
                 paramNameForDb = key;
                 unit = customParameterUnits.get(key);
                 if (unit == null) {
@@ -421,10 +421,10 @@ public class TimeSection {
             ));
         });
 
-        // Crea e restituisce l'oggetto Tempo con tutti i dati raccolti
+
         Tempo tempo = new Tempo(
-                timeNumber,          // idTempo
-                0,                   // advancedScenario (verrà impostato dal servizio)
+                timeNumber,
+                0,
                 pa.isEmpty() ? null : pa,
                 fc,
                 rr,
@@ -454,7 +454,7 @@ public class TimeSection {
     public void setPaValue(String value) {
         paField.setValue(value != null ? value : "");
         paField.setReadOnly(true);
-        paField.getStyle().set("background-color", "var(--lumo-contrast-5pct)"); // Sfondo leggermente grigio
+        paField.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
     }
 
     /**
@@ -462,7 +462,7 @@ public class TimeSection {
      *
      * @param value il valore da impostare (può essere null).
      */
-    public void setFcValue(Integer value) { // Usa Integer per gestire null
+    public void setFcValue(Integer value) {
         fcField.setValue(Optional.ofNullable(value).map(Double::valueOf).orElse(null));
         fcField.setReadOnly(true);
         fcField.getStyle().set("background-color", "var(--lumo-contrast-5pct)");

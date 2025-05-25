@@ -34,23 +34,23 @@ public class ExecutionView extends Composite<VerticalLayout> {
      * @param fileStorageService servizio per la gestione dei file, utilizzato dall'header
      */
     public ExecutionView(FileStorageService fileStorageService) {
-        // Layout principale della pagina
+
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
-        // Header dell'applicazione
+
         AppHeader header = new AppHeader(fileStorageService);
 
-        // Pulsante per tornare alla home
+
         Button backButton = StyleApp.getBackButton();
         backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("")));
 
-        // Header personalizzato con pulsante e header
+
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
-        // Layout del contenuto centrale
+
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
-        // Sezione con titolo, sottotitolo e icona
+
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "SIM ECECUTION",
                 "Funzionalità non implementata",
@@ -60,10 +60,10 @@ public class ExecutionView extends Composite<VerticalLayout> {
 
         contentLayout.add(headerSection);
 
-        // Footer della pagina
+
         HorizontalLayout footerSection = StyleApp.getFooterLayout(null);
 
-        // Composizione finale del layout
+
         mainLayout.add(customHeader, contentLayout, footerSection);
     }
 }
@@ -78,5 +78,5 @@ public class ExecutionView extends Composite<VerticalLayout> {
  *    - Utilizzare il componente text editor già disponibile (@TinyEditor in views.utils)
  *
  * 3. Per il timer dei vari tempi:
- *    - Si può utilizzare un addon di Vaadin (https://vaadin.com/directory/component/simple-timer-addon)
+ *    - Si può utilizzare un addon di Vaadin (https:
  */

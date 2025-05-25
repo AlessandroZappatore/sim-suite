@@ -55,7 +55,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors; // Added
+import java.util.stream.Collectors;
 
 import static it.uniupo.simnova.views.ui.helper.support.SanitizedFileName.sanitizeFileName;
 
@@ -194,7 +194,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                 false
         );
         searchPatientType.setClearButtonVisible(true);
-        searchPatientType.addValueChangeListener(e -> applyFiltersAndRefreshGrid()); // Added listener
+        searchPatientType.addValueChangeListener(e -> applyFiltersAndRefreshGrid());
 
         searchTitolo = FieldGenerator.createTextField(
                 "Filtra per Titolo",
@@ -235,7 +235,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
 
         resetButton = new Button("Reset Filtri", new Icon(VaadinIcon.CLOSE_CIRCLE_O));
         resetButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        resetButton.getStyle().set("margin-top", "auto"); // Allinea verticalmente con i campi FieldGenerator
+        resetButton.getStyle().set("margin-top", "auto");
         resetButton.addClickListener(e -> {
             searchPatientType.setValue("Tutti");
             searchTitolo.clear();
@@ -253,7 +253,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
     private void applyFiltersAndRefreshGrid() {
         if (detached.get()) return;
 
-        String tipologiaPatientFilter = searchPatientType.getValue() != null ? searchPatientType.getValue() : "Tutti"; // Corrected filter variable
+        String tipologiaPatientFilter = searchPatientType.getValue() != null ? searchPatientType.getValue() : "Tutti";
         String titoloFilter = searchTitolo.getValue().trim().toLowerCase();
         String autoriFilter = searchAutori.getValue().trim().toLowerCase();
         String tipoFilter = searchTipo.getValue() != null ? searchTipo.getValue() : "Tutti";
@@ -264,7 +264,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                     if ("Tutti".equals(tipologiaPatientFilter)) {
                         return true;
                     }
-                    String actualPatientType = scenario.getTipologia(); // Use getTipologia for patient type
+                    String actualPatientType = scenario.getTipologia();
                     return actualPatientType != null && actualPatientType.equalsIgnoreCase(tipologiaPatientFilter);
                 })
                 .filter(scenario -> titoloFilter.isEmpty() || (scenario.getTitolo() != null && scenario.getTitolo().toLowerCase().contains(titoloFilter)))
@@ -286,8 +286,8 @@ public class ScenariosListView extends Composite<VerticalLayout> {
 
     private void configureGrid() {
         scenariosGrid.setWidthFull();
-        scenariosGrid.addClassName(LumoUtility.BorderRadius.MEDIUM); // Angoli arrotondati per la griglia
-        scenariosGrid.addClassName(LumoUtility.BoxShadow.SMALL);   // Ombra leggera
+        scenariosGrid.addClassName(LumoUtility.BorderRadius.MEDIUM);
+        scenariosGrid.addClassName(LumoUtility.BoxShadow.SMALL);
         scenariosGrid.getStyle().set("min-height", "400px");
 
         scenariosGrid.addColumn(new ComponentRenderer<>(scenario -> {
@@ -468,7 +468,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                     actions.setSpacing(false);
                     actions.setMargin(false);
                     actions.setPadding(false);
-                    actions.setJustifyContentMode(FlexComponent.JustifyContentMode.START); // Allinea a sinistra
+                    actions.setJustifyContentMode(FlexComponent.JustifyContentMode.START);
 
                     Button pdfButton = new Button(FontAwesome.Regular.FILE_PDF.create());
                     pdfButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE);
@@ -496,8 +496,8 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                     actions.add(pdfButton, simButton, deleteButton);
                     return actions;
                 }).setHeader("Azioni")
-                .setFlexGrow(0) // Non far crescere questa colonna
-                .setWidth("120px"); // Larghezza fissa per le azioni
+                .setFlexGrow(0)
+                .setWidth("120px");
 
 
         scenariosGrid.addItemClickListener(event -> {
@@ -512,8 +512,8 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         paginationControls.setWidthFull();
         paginationControls.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         paginationControls.setAlignItems(FlexComponent.Alignment.CENTER);
-        paginationControls.setSpacing(true); // Usa LumoUtility.Gap se vuoi più controllo
-        paginationControls.setPadding(true); // Usa LumoUtility.Padding se vuoi più controllo
+        paginationControls.setSpacing(true);
+        paginationControls.setPadding(true);
 
         Button firstPageButton = new Button(new Icon(VaadinIcon.ANGLE_DOUBLE_LEFT));
         Button prevPageButton = new Button(new Icon(VaadinIcon.ANGLE_LEFT));
@@ -581,10 +581,10 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         getUI().ifPresent(ui -> ui.access(() -> {
             boolean hasPrev = currentPage > 0;
             boolean hasNext = currentPage < totalPages - 1;
-            ((Button) paginationControls.getComponentAt(0)).setEnabled(hasPrev); // First
-            ((Button) paginationControls.getComponentAt(1)).setEnabled(hasPrev); // Prev
-            ((Button) paginationControls.getComponentAt(3)).setEnabled(hasNext); // Next
-            ((Button) paginationControls.getComponentAt(4)).setEnabled(hasNext); // Last
+            ((Button) paginationControls.getComponentAt(0)).setEnabled(hasPrev);
+            ((Button) paginationControls.getComponentAt(1)).setEnabled(hasPrev);
+            ((Button) paginationControls.getComponentAt(3)).setEnabled(hasNext);
+            ((Button) paginationControls.getComponentAt(4)).setEnabled(hasNext);
             paginationControls.setVisible(true);
         }));
     }
@@ -619,7 +619,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
 
         VerticalLayout layout = new VerticalLayout();
         layout.setSpacing(true);
-        layout.setPadding(false); // Padding gestito dal Dialog
+        layout.setPadding(false);
 
         Checkbox descChk = new Checkbox("Descrizione", true);
         Checkbox briefingChk = new Checkbox("Briefing", true);
@@ -850,8 +850,8 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         if (detached.get() || scenario == null) return;
 
         Dialog confirmDialog = new Dialog();
-        confirmDialog.setCloseOnEsc(false); // Impedisci la chiusura con ESC se si vuole forzare una scelta
-        confirmDialog.setCloseOnOutsideClick(false); // Impedisci la chiusura cliccando fuori
+        confirmDialog.setCloseOnEsc(false);
+        confirmDialog.setCloseOnOutsideClick(false);
         confirmDialog.setHeaderTitle("Conferma Eliminazione");
 
         VerticalLayout dialogLayout = new VerticalLayout();
@@ -879,7 +879,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
             }
             confirmDialog.close();
         });
-        confirmButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY); // Stile forte per azione distruttiva
+        confirmButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
 
         Button cancelButton = new Button("Annulla", event -> confirmDialog.close());
         cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);

@@ -95,13 +95,13 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
-        // 2. CONTENUTO PRINCIPALE
+
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
         contentLayout.add(headerSection);
         setupExamSections(contentLayout);
 
-        // 3. FOOTER
+
         Button nextButton = StyleApp.getNextButton();
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
@@ -110,7 +110,7 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
         VerticalLayout scrollLayout = new VerticalLayout(scrollToTopButton, scrollDownButton);
 
         mainLayout.add(scrollLayout);
-        // Aggiunta componenti al layout principale
+
         mainLayout.add(customHeader, contentLayout, footerLayout);
 
         backButton.addClickListener(e ->
@@ -126,134 +126,134 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
      * @param contentLayout layout a cui aggiungere le sezioni
      */
     private void setupExamSections(VerticalLayout contentLayout) {
-    VerticalLayout examSectionsLayout = new VerticalLayout();
-    examSectionsLayout.setWidthFull();
-    examSectionsLayout.setSpacing(true);
-    examSectionsLayout.setPadding(false);
+        VerticalLayout examSectionsLayout = new VerticalLayout();
+        examSectionsLayout.setWidthFull();
+        examSectionsLayout.setSpacing(true);
+        examSectionsLayout.setPadding(false);
 
-    // Definizione delle sezioni dell'esame fisico con colori per categorie
-    String[][] sections = {
-            {"Generale", "Stato generale, livello di coscienza, etc.", "#4285F4"},
-            {"Pupille", "Dimensione, reattività, simmetria", "#4285F4"},
-            {"Collo", "Esame del collo, tiroide, linfonodi", "#0F9D58"},
-            {"Torace", "Ispezione, palpazione, percussione, auscultazione", "#0F9D58"},
-            {"Cuore", "Frequenza, ritmo, soffi", "#0F9D58"},
-            {"Addome", "Ispezione, palpazione, dolorabilità, organomegalie", "#DB4437"},
-            {"Retto", "Esame rettale se indicato", "#DB4437"},
-            {"Cute", "Colorito, turgore, lesioni", "#F4B400"},
-            {"Estremità", "Edemi, pulsazioni periferiche", "#F4B400"},
-            {"Neurologico", "Stato mentale, nervi cranici, forza, sensibilità", "#673AB7"},
-            {"FAST", "Focused Assessment with Sonography for Trauma", "#673AB7"}
-    };
 
-    // Creazione delle aree di testo per ogni sezione
-    for (String[] section : sections) {
-        String sectionName = section[0];
-        String sectionDesc = section[1];
-        String sectionColor = section[2];
+        String[][] sections = {
+                {"Generale", "Stato generale, livello di coscienza, etc.", "#4285F4"},
+                {"Pupille", "Dimensione, reattività, simmetria", "#4285F4"},
+                {"Collo", "Esame del collo, tiroide, linfonodi", "#0F9D58"},
+                {"Torace", "Ispezione, palpazione, percussione, auscultazione", "#0F9D58"},
+                {"Cuore", "Frequenza, ritmo, soffi", "#0F9D58"},
+                {"Addome", "Ispezione, palpazione, dolorabilità, organomegalie", "#DB4437"},
+                {"Retto", "Esame rettale se indicato", "#DB4437"},
+                {"Cute", "Colorito, turgore, lesioni", "#F4B400"},
+                {"Estremità", "Edemi, pulsazioni periferiche", "#F4B400"},
+                {"Neurologico", "Stato mentale, nervi cranici, forza, sensibilità", "#673AB7"},
+                {"FAST", "Focused Assessment with Sonography for Trauma", "#673AB7"}
+        };
 
-        // Layout per la sezione completa
-        VerticalLayout sectionLayout = new VerticalLayout();
-        sectionLayout.setWidthFull();
-        sectionLayout.setPadding(true);
-        sectionLayout.setSpacing(false);
-        sectionLayout.getStyle()
-                .set("background", "var(--lumo-base-color)")
-                .set("border-radius", "12px")
-                .set("margin-bottom", "1.5rem")
-                .set("border-left", "4px solid " + sectionColor)
-                .set("box-shadow", "0 2px 10px rgba(0, 0, 0, 0.05)");
 
-        // Layout per il titolo e descrizione
-        HorizontalLayout headerLayout = new HorizontalLayout();
-        headerLayout.setWidthFull();
-        headerLayout.setPadding(false);
-        headerLayout.setSpacing(true);
-        headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        for (String[] section : sections) {
+            String sectionName = section[0];
+            String sectionDesc = section[1];
+            String sectionColor = section[2];
 
-        // Utilizzo delle icone da getSectionIcon invece delle lettere
-        Icon sectionIcon = getSectionIcon(sectionName);
-        Div iconCircle = new Div();
-        iconCircle.add(sectionIcon);
-        iconCircle.getStyle()
-                .set("background-color", sectionColor)
-                .set("color", "white")
-                .set("border-radius", "50%")
-                .set("width", "36px")
-                .set("height", "36px")
-                .set("display", "flex")
-                .set("align-items", "center")
-                .set("justify-content", "center")
-                .set("margin-right", "12px");
 
-        // Imposta le dimensioni dell'icona
-        sectionIcon.getStyle()
-                .set("color", "white")
-                .set("width", "20px")
-                .set("height", "20px");
+            VerticalLayout sectionLayout = new VerticalLayout();
+            sectionLayout.setWidthFull();
+            sectionLayout.setPadding(true);
+            sectionLayout.setSpacing(false);
+            sectionLayout.getStyle()
+                    .set("background", "var(--lumo-base-color)")
+                    .set("border-radius", "12px")
+                    .set("margin-bottom", "1.5rem")
+                    .set("border-left", "4px solid " + sectionColor)
+                    .set("box-shadow", "0 2px 10px rgba(0, 0, 0, 0.05)");
 
-        // Layout per titolo e descrizione
-        VerticalLayout titleDescLayout = new VerticalLayout();
-        titleDescLayout.setPadding(false);
-        titleDescLayout.setSpacing(false);
 
-        // Titolo migliorato
-        H3 sectionTitle = new H3(sectionName);
-        sectionTitle.getStyle()
-                .set("margin", "0")
-                .set("font-size", "18px")
-                .set("color", sectionColor)
-                .set("font-weight", "600");
+            HorizontalLayout headerLayout = new HorizontalLayout();
+            headerLayout.setWidthFull();
+            headerLayout.setPadding(false);
+            headerLayout.setSpacing(true);
+            headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        // Descrizione migliorata
-        Paragraph sectionDescription = new Paragraph(sectionDesc);
-        sectionDescription.getStyle()
-                .set("margin", "0")
-                .set("color", "var(--lumo-secondary-text-color)")
-                .set("font-size", "14px")
-                .set("font-weight", "400");
 
-        titleDescLayout.add(sectionTitle, sectionDescription);
-        headerLayout.add(iconCircle, titleDescLayout);
+            Icon sectionIcon = getSectionIcon(sectionName);
+            Div iconCircle = new Div();
+            iconCircle.add(sectionIcon);
+            iconCircle.getStyle()
+                    .set("background-color", sectionColor)
+                    .set("color", "white")
+                    .set("border-radius", "50%")
+                    .set("width", "36px")
+                    .set("height", "36px")
+                    .set("display", "flex")
+                    .set("align-items", "center")
+                    .set("justify-content", "center")
+                    .set("margin-right", "12px");
 
-        // Editor con bordo abbinato al colore della sezione
-        TinyMce editor = TinyEditor.getEditor();
-        editor.getStyle()
-                .set("margin-top", "12px")
-                .set("border", "1px solid " + sectionColor + "30")
-                .set("border-radius", "8px");
 
-        examSections.put(sectionName, editor);
+            sectionIcon.getStyle()
+                    .set("color", "white")
+                    .set("width", "20px")
+                    .set("height", "20px");
 
-        sectionLayout.add(headerLayout, editor);
-        examSectionsLayout.add(sectionLayout);
+
+            VerticalLayout titleDescLayout = new VerticalLayout();
+            titleDescLayout.setPadding(false);
+            titleDescLayout.setSpacing(false);
+
+
+            H3 sectionTitle = new H3(sectionName);
+            sectionTitle.getStyle()
+                    .set("margin", "0")
+                    .set("font-size", "18px")
+                    .set("color", sectionColor)
+                    .set("font-weight", "600");
+
+
+            Paragraph sectionDescription = new Paragraph(sectionDesc);
+            sectionDescription.getStyle()
+                    .set("margin", "0")
+                    .set("color", "var(--lumo-secondary-text-color)")
+                    .set("font-size", "14px")
+                    .set("font-weight", "400");
+
+            titleDescLayout.add(sectionTitle, sectionDescription);
+            headerLayout.add(iconCircle, titleDescLayout);
+
+
+            TinyMce editor = TinyEditor.getEditor();
+            editor.getStyle()
+                    .set("margin-top", "12px")
+                    .set("border", "1px solid " + sectionColor + "30")
+                    .set("border-radius", "8px");
+
+            examSections.put(sectionName, editor);
+
+            sectionLayout.add(headerLayout, editor);
+            examSectionsLayout.add(sectionLayout);
+        }
+
+        contentLayout.add(examSectionsLayout);
     }
 
-    contentLayout.add(examSectionsLayout);
-}
-
-/**
- * Restituisce l'icona corrispondente alla sezione dell'esame fisico
- *
- * @param sectionTitle il nome della sezione
- * @return l'icona corrispondente
- */
-private static Icon getSectionIcon(String sectionTitle) {
-    return switch (sectionTitle) {
-        case "Generale" -> new Icon(VaadinIcon.CLIPBOARD_PULSE);
-        case "Pupille" -> new Icon(VaadinIcon.EYE);
-        case "Collo" -> new Icon(VaadinIcon.USER);
-        case "Torace" -> FontAwesome.Solid.LUNGS.create();
-        case "Cuore" -> new Icon(VaadinIcon.HEART);
-        case "Addome" -> FontAwesome.Solid.A.create();
-        case "Retto" -> FontAwesome.Solid.POOP.create();
-        case "Cute" -> FontAwesome.Solid.HAND_DOTS.create();
-        case "Estremità" -> FontAwesome.Solid.HANDS.create();
-        case "Neurologico" -> FontAwesome.Solid.BRAIN.create();
-        case "FAST" -> new Icon(VaadinIcon.AMBULANCE);
-        default -> new Icon(VaadinIcon.INFO);
-    };
-}
+    /**
+     * Restituisce l'icona corrispondente alla sezione dell'esame fisico
+     *
+     * @param sectionTitle il nome della sezione
+     * @return l'icona corrispondente
+     */
+    private static Icon getSectionIcon(String sectionTitle) {
+        return switch (sectionTitle) {
+            case "Generale" -> new Icon(VaadinIcon.CLIPBOARD_PULSE);
+            case "Pupille" -> new Icon(VaadinIcon.EYE);
+            case "Collo" -> new Icon(VaadinIcon.USER);
+            case "Torace" -> FontAwesome.Solid.LUNGS.create();
+            case "Cuore" -> new Icon(VaadinIcon.HEART);
+            case "Addome" -> FontAwesome.Solid.A.create();
+            case "Retto" -> FontAwesome.Solid.POOP.create();
+            case "Cute" -> FontAwesome.Solid.HAND_DOTS.create();
+            case "Estremità" -> FontAwesome.Solid.HANDS.create();
+            case "Neurologico" -> FontAwesome.Solid.BRAIN.create();
+            case "FAST" -> new Icon(VaadinIcon.AMBULANCE);
+            default -> new Icon(VaadinIcon.INFO);
+        };
+    }
     /**
      * Gestisce il parametro ricevuto dall'URL (ID scenario).
      *
@@ -326,7 +326,7 @@ private static Icon getSectionIcon(String sectionTitle) {
                         return;
                     }
 
-                    // Navigazione differenziata in base al tipo di scenario
+
                     String scenarioType = scenarioService.getScenarioType(scenarioId);
                     if ("Quick Scenario".equals(scenarioType)) {
                         ui.navigate("scenari/" + scenarioId);

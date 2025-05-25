@@ -41,10 +41,8 @@ public class Application implements AppShellConfigurator {
      * @param args argomenti della riga di comando
      */
     public static void main(String[] args) {
-        // Inizializza il database manualmente
         initializeDatabase();
 
-        // Avvia l'applicazione Spring Boot
         SpringApplication.run(Application.class, args);
     }
 
@@ -71,17 +69,17 @@ public class Application implements AppShellConfigurator {
      */
     @Override
     public void configurePage(AppShellSettings settings) {
-        // Imposta il viewport per la pagina
+
         settings.setViewport("width=device-width, initial-scale=1");
-        // Imposta il titolo della pagina
+
         settings.setPageTitle("Sim Suite");
-        // Imposta le dimensioni del corpo della pagina
+
         settings.setBodySize("100vw", "100vh");
-        // Aggiunge un meta tag per l'autore
+
         settings.addMetaTag("author", "Alessandro Zappatore");
-        // Aggiunge un'icona di favicon
+
         settings.addFavIcon("icon", "icons/favicon.ico", "256x256");
-        // Aggiunge un collegamento per l'icona di favicon
+
         settings.addLink("shortcut icon", "icons/favicon.ico");
     }
 }

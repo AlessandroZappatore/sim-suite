@@ -16,7 +16,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.html.IFrame;
 import it.uniupo.simnova.service.scenario.ScenarioService;
-import it.uniupo.simnova.service.scenario.components.MaterialeService; // Import MaterialeService
+import it.uniupo.simnova.service.scenario.components.MaterialeService;
 import it.uniupo.simnova.views.common.utils.StyleApp;
 import it.uniupo.simnova.views.common.utils.TinyEditor;
 import org.vaadin.tinymce.TinyMce;
@@ -24,28 +24,13 @@ import org.vaadin.tinymce.TinyMce;
 import java.util.List;
 
 public class GeneralSupport extends HorizontalLayout {
-
-    // Removed the constructor because it's only used for static methods.
-    // If you plan to make GeneralSupport non-static, you'd re-add it for dependency injection.
-
-    /**
-     * Creates the general overview content for the scenario using pre-loaded data.
-     *
-     * @param scenario            The main Scenario object, already loaded.
-     * @param isPediatricScenario true if the scenario is pediatric (result of scenarioService.isPediatric).
-     * @param infoGenitore        String with information from parents, if applicable and available (can be null).
-     * @param azioniChiave        List of key actions.
-     * @param scenarioService     Scenario service to update scenario details.
-     * @param materialeService    MaterialeService to fetch updated materials data. // Added MaterialeService
-     * @return A VerticalLayout containing the general overview.
-     */
     public static VerticalLayout createOverviewContentWithData(
             Scenario scenario,
             boolean isPediatricScenario,
             String infoGenitore,
             List<String> azioniChiave,
             ScenarioService scenarioService,
-            MaterialeService materialeService) { // Added MaterialeService here
+            MaterialeService materialeService) {
 
         VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setPadding(true);
@@ -75,7 +60,6 @@ public class GeneralSupport extends HorizontalLayout {
         cardContentLayout.setSpacing(false);
         cardContentLayout.setWidthFull();
 
-        // Use the passed data directly and the 'scenario' object properties
         addInfoItemIfNotEmpty(scenario.getId(), cardContentLayout, "Descrizione", scenario.getDescrizione(), VaadinIcon.PENCIL, true, scenarioService);
         addInfoItemIfNotEmpty(scenario.getId(), cardContentLayout, "Briefing", scenario.getBriefing(), VaadinIcon.GROUP, scenarioService);
 
@@ -89,26 +73,13 @@ public class GeneralSupport extends HorizontalLayout {
         addInfoItemIfNotEmpty(scenario.getId(), cardContentLayout, "Moulage", scenario.getMoulage(), VaadinIcon.EYE, scenarioService);
         addInfoItemIfNotEmpty(scenario.getId(), cardContentLayout, "Liquidi e dosi farmaci", scenario.getLiquidi(), VaadinIcon.DROP, scenarioService);
 
-        // Special handling for "Materiale necessario" to open an iframe and self-refresh
-        addMaterialeNecessarioItem(scenario.getId(), cardContentLayout, materialeService); // Pass MaterialeService
+        addMaterialeNecessarioItem(scenario.getId(), cardContentLayout, materialeService);
 
         card.add(cardContentLayout);
         mainLayout.add(card);
         return mainLayout;
     }
 
-    /**
-     * Adds an informational item only if the content is not empty.
-     * Adds a divider (Hr) before every item except the first.
-     * Includes inline editing functionality.
-     *
-     * @param container       VerticalLayout container where the item is added
-     * @param title           title of the information
-     * @param content         content of the information
-     * @param iconType        icon to use
-     * @param isFirstItem     true if it's the first item, to avoid adding an Hr before it
-     * @param scenarioService The scenario service for updating information.
-     */
     private static void addInfoItemIfNotEmpty(Integer scenarioId, VerticalLayout container, String title, String content, VaadinIcon iconType, boolean isFirstItem, ScenarioService scenarioService) {
         if (!isFirstItem && container.getComponentCount() > 0) {
             Hr divider = new Hr();
@@ -247,14 +218,6 @@ public class GeneralSupport extends HorizontalLayout {
         }
     }
 
-    /**
-     * Special method to add the "Materiale necessario" item with an iframe for editing.
-     * Includes a close button for the iframe and triggers a self-refresh on close.
-     *
-     * @param scenarioId       The ID of the scenario.
-     * @param container        VerticalLayout container where the item is added.
-     * @param materialeService MaterialeService to fetch updated materials data.
-     */
     private static void addMaterialeNecessarioItem(Integer scenarioId, VerticalLayout container, MaterialeService materialeService) {
         if (container.getComponentCount() > 0) {
             Hr divider = new Hr();
@@ -296,7 +259,6 @@ public class GeneralSupport extends HorizontalLayout {
         headerRow.add(titleGroup, editButton);
         itemLayout.add(headerRow);
 
-        // This Div will display the materials content
         Div contentDisplay = new Div();
         contentDisplay.getStyle()
                 .set("font-family", "var(--lumo-font-family)")
@@ -307,7 +269,6 @@ public class GeneralSupport extends HorizontalLayout {
                 .set("width", "100%")
                 .set("box-sizing", "border-box");
 
-        // Helper method to update the displayed content
         Runnable updateContentDisplay = () -> {
             String updatedContent = materialeService.toStringAllMaterialsByScenarioId(scenarioId);
             if (updatedContent == null || updatedContent.trim().isEmpty()) {
@@ -320,8 +281,7 @@ public class GeneralSupport extends HorizontalLayout {
             }
         };
 
-        // Set initial content
-        updateContentDisplay.run(); // Call it once to set the initial content
+        updateContentDisplay.run();
 
         itemLayout.add(contentDisplay);
 
@@ -353,7 +313,6 @@ public class GeneralSupport extends HorizontalLayout {
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         });
 
-        // Logic for the close button: Now it calls the internal update method
         closeIframeButton.addClickListener(e -> {
             iframe.setVisible(false);
             closeIframeButton.setVisible(false);
@@ -361,7 +320,6 @@ public class GeneralSupport extends HorizontalLayout {
             contentDisplay.setVisible(true);
             editButton.setVisible(true);
 
-            // Re-fetch and update the displayed content for materials
             updateContentDisplay.run();
 
             Notification.show("Editor materiali chiuso e contenuto aggiornato.", 3000, Notification.Position.BOTTOM_CENTER)

@@ -64,18 +64,18 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
         this.scenarioService = scenarioService;
         this.patientSimulatedScenarioService = patientSimulatedScenarioService;
 
-        // Configurazione del layout principale con altezza piena e senza spazi interni
+
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
-        // 1. HEADER con pulsante indietro e header dell'applicazione
+
         AppHeader header = new AppHeader(fileStorageService);
 
         Button backButton = StyleApp.getBackButton();
 
-        // Layout orizzontale per l'header personalizzato
+
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
-        // Crea la sezione dell'intestazione
+
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "Sceneggiatura",
                 "Inserisci la sceneggiatura dettagliata dello scenario corrente, includendo azioni, dialoghi ed eventi chiave",
@@ -84,31 +84,31 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
         );
 
 
-        // 2. CONTENUTO PRINCIPALE con area di testo per la sceneggiatura
+
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
         sceneggiaturaEditor = TinyEditor.getEditor();
 
         contentLayout.add(headerSection, sceneggiaturaEditor);
 
-        // 3. FOOTER con pulsante avanti e crediti
+
         Button nextButton = StyleApp.getNextButton();
 
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
-        // Aggiunta di tutti i componenti al layout principale
+
         mainLayout.add(
                 customHeader,
                 contentLayout,
                 footerLayout
         );
 
-        // Gestione degli eventi dei pulsanti
+
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("tempi/" + scenarioId + "/edit")));
 
         nextButton.addClickListener(e -> {
-            // Validazione dell'input
+
             if (sceneggiaturaEditor.getValue().trim().isEmpty()) {
                 Notification.show("Inserisci la sceneggiatura per lo scenario", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
                 return;
@@ -126,7 +126,7 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
         try {
-            // Validazione dell'ID scenario
+
             if (parameter == null || parameter.trim().isEmpty()) {
                 throw new NumberFormatException();
             }
@@ -136,14 +136,14 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
                 throw new NumberFormatException();
             }
 
-            // Verifica che sia uno scenario di tipo PatientSimulated
+
             String scenarioType = scenarioService.getScenarioType(scenarioId);
             if (!"Patient Simulated Scenario".equals(scenarioType)) {
                 event.rerouteToError(NotFoundException.class, "Questa funzionalità è disponibile solo per Patient Simulated Scenario");
                 return;
             }
 
-            // Caricamento della sceneggiatura esistente se presente
+
             loadExistingSceneggiatura();
         } catch (NumberFormatException e) {
             logger.error("ID scenario non valido: {}", parameter, e);
@@ -168,13 +168,13 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
      */
     private void saveSceneggiaturaAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {
-            // Mostra una progress bar durante l'operazione
+
             ProgressBar progressBar = new ProgressBar();
             progressBar.setIndeterminate(true);
             getContent().add(progressBar);
 
             try {
-                // Salvataggio della sceneggiatura tramite il service
+
                 boolean success = patientSimulatedScenarioService.updateScenarioSceneggiatura(
                         scenarioId, sceneggiaturaEditor.getValue()
                 );
@@ -183,7 +183,7 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
                     getContent().remove(progressBar);
                     if (success) {
                         logger.info("Sceneggiatura salvata con successo per lo scenario con ID: {}", scenarioId);
-                        ui.navigate("scenari/" + scenarioId); // Navigazione alla view successiva
+                        ui.navigate("scenari/" + scenarioId);
                     } else {
                         Notification.show("Errore durante il salvataggio della sceneggiatura", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         logger.error("Errore durante il salvataggio della sceneggiatura per lo scenario con ID: {}", scenarioId);

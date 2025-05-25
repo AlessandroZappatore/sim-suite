@@ -121,7 +121,7 @@ public class ScenarioService {
      */
     public int startQuickScenario(Integer scenarioId, String titolo, String nomePaziente, String patologia, String autori, float timerGenerale, String tipologia) {
         try (Connection conn = DBConnect.getInstance().getConnection()) {
-            // Se l'ID è fornito e lo scenario esiste, esegui un update
+
             if (scenarioId != null && existScenario(scenarioId)) {
                 final String updateSql = "UPDATE Scenario SET titolo=?, nome_paziente=?, patologia=?, autori=?, timer_generale=?, tipologia_paziente=? WHERE id_scenario=?";
 
@@ -144,7 +144,7 @@ public class ScenarioService {
                     }
                 }
             } else {
-                // Altrimenti, esegui un insert
+
                 final String insertSql = "INSERT INTO Scenario (titolo, nome_paziente, patologia, autori, timer_generale, tipologia_paziente) VALUES (?,?,?,?,?,?)";
 
                 try (PreparedStatement stmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
@@ -279,22 +279,22 @@ public class ScenarioService {
      * @return il tipo di scenario come stringa
      */
     public String getScenarioType(int idScenario) {
-        // Controlla se è uno Scenario base (presente solo nella tabella Scenario)
+
         if (isPresentInTable(idScenario, "Scenario") &&
                 !isPresentInTable(idScenario, "AdvancedScenario")) {
             return "Quick Scenario";
         }
 
-        // Controlla se è un AdvancedScenario (presente in Scenario e AdvancedScenario)
+
         if (isPresentInTable(idScenario, "AdvancedScenario")) {
-            // Verifica se è un PatientSimulatedScenario
+
             if (isPresentInTable(idScenario, "PatientSimulatedScenario")) {
                 return "Patient Simulated Scenario";
             }
             return "Advanced Scenario";
         }
 
-        // Se non è presente in nessuna tabella
+
         return "ScenarioNotFound";
     }
 
@@ -308,7 +308,6 @@ public class ScenarioService {
     public boolean isPresentInTable(int id, String tableName) {
         String sql = "SELECT 1 FROM " + tableName + " WHERE ";
 
-        // Costruisce la query in base al nome della tabella
         switch (tableName) {
             case "Scenario":
                 sql += "id_scenario = ?";
@@ -324,7 +323,7 @@ public class ScenarioService {
                 return false;
         }
 
-        //noinspection SqlSourceToSinkFlow
+
         try (Connection conn = DBConnect.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -332,7 +331,7 @@ public class ScenarioService {
             ResultSet rs = stmt.executeQuery();
             boolean exists = rs.next();
             logger.info("Presenza dell'ID {} nella tabella {}: {}", id, tableName, exists);
-            return exists; // Restituisce true se c'è almeno un risultato
+            return exists;
 
         } catch (SQLException e) {
             logger.error("Errore durante la verifica della presenza dell'ID {} nella tabella {}", id, tableName, e);
@@ -353,7 +352,7 @@ public class ScenarioService {
 
             stmt.setInt(1, scenarioId);
             ResultSet rs = stmt.executeQuery();
-            boolean exists = rs.next(); // Restituisce true se c'è almeno un risultato
+            boolean exists = rs.next();
             logger.info("Presenza dello scenario con ID {}: {}", scenarioId, exists);
             return exists;
 

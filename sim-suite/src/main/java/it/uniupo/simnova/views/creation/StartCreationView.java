@@ -40,7 +40,7 @@ import java.util.Optional;
  * </p>
  *
  * @author Alessandro Zappatore
- * @version 1.1 // Version updated to reflect changes
+ * @version 1.1
  */
 @PageTitle("StartCreation")
 @Route("startCreation")
@@ -103,13 +103,13 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         this.advancedScenarioService = advancedScenarioService;
         this.patientSimulatedScenarioService = patientSimulatedScenarioService;
 
-        // Configurazione layout principale
+
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
-        // 1. HEADER
+
         AppHeader header = new AppHeader(fileStorageService);
 
-        // Pulsante indietro
+
         Button backButton = StyleApp.getBackButton();
 
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
@@ -121,12 +121,12 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
-        // 2. CONTENUTO PRINCIPALE
+
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
-        // --- Campi del form con icone ---
 
-        // Titolo Scenario
+
+
         scenarioTitle = FieldGenerator.createTextField(
                 "TITOLO SCENARIO",
                 "Inserisci il titolo dello scenario",
@@ -138,7 +138,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         scenarioTitleLayout.getStyle().set("max-width", "500px");
         scenarioTitleLayout.getStyle().set("margin", "0 auto");
 
-        // Nome Paziente
+
         patientName = FieldGenerator.createTextField(
                 "NOME PAZIENTE",
                 "Inserisci il nome del paziente",
@@ -150,7 +150,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         patientNameLayout.getStyle().set("max-width", "500px");
         patientNameLayout.getStyle().set("margin", "0 auto");
 
-        // Patologia
+
         pathology = FieldGenerator.createTextField(
                 "PATOLOGIA/MALATTIA",
                 "Inserisci la patologia",
@@ -162,7 +162,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         pathologyLayout.getStyle().set("max-width", "500px");
         pathologyLayout.getStyle().set("margin", "0 auto");
 
-        // Autore
+
         authorField = FieldGenerator.createTextField(
                 "AUTORE",
                 "Inserisci il tuo nome",
@@ -174,7 +174,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         authorLayout.getStyle().set("max-width", "500px");
         authorLayout.getStyle().set("margin", "0 auto");
 
-        // Durata
+
         List<Integer> durations = List.of(5, 10, 15, 20, 25, 30);
         durationField = FieldGenerator.createComboBox(
                 "DURATA SIMULAZIONE (minuti)",
@@ -188,7 +188,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         durationLayout.getStyle().set("max-width", "500px");
         durationLayout.getStyle().set("margin", "0 auto");
 
-        // Tipo Scenario
+
         List<String> scenarioTypes = List.of("Adulto", "Pediatrico", "Neonatale", "Prematuro");
         typeField = FieldGenerator.createSelect(
                 "TIPO SCENARIO",
@@ -207,23 +207,23 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         scenarioTypeIcon[0].getStyle().set("margin-right", "10px");
         scenarioTypeIcon[0].setSize("24px");
 
-        // Icona a sinistra del ComboBox
+
         HorizontalLayout typeFieldWithIcon = new HorizontalLayout(scenarioTypeIcon[0], typeField);
-        typeFieldWithIcon.setAlignItems(FlexComponent.Alignment.BASELINE); // Allineamento baseline
+        typeFieldWithIcon.setAlignItems(FlexComponent.Alignment.BASELINE);
         typeFieldWithIcon.setWidthFull();
         typeFieldWithIcon.getStyle().set("max-width", "500px");
         typeFieldWithIcon.getStyle().set("margin", "0 auto");
-        typeFieldWithIcon.expand(typeField); // Fa espandere il ComboBox
+        typeFieldWithIcon.expand(typeField);
 
         typeField.addValueChangeListener(event -> {
             Icon newIcon = iconMap.getOrDefault(event.getValue(), FontAwesome.Solid.QUESTION.create());
-            newIcon.getStyle().set("margin-right", "10px"); // Aggiornato a margin-right
+            newIcon.getStyle().set("margin-right", "10px");
             newIcon.setSize("24px");
             int iconIndex = typeFieldWithIcon.indexOf(scenarioTypeIcon[0]);
             if (iconIndex != -1) {
                 typeFieldWithIcon.replace(scenarioTypeIcon[0], newIcon);
             } else {
-                // This case should ideally not be reached if scenarioTypeIcon[0] is always in the layout
+
                 typeFieldWithIcon.addComponentAsFirst(newIcon);
             }
             scenarioTypeIcon[0] = newIcon;
@@ -241,18 +241,18 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
 
         contentLayout.setHorizontalComponentAlignment(FlexComponent.Alignment.CENTER);
 
-        // 3. FOOTER con pulsanti e crediti
+
         Button nextButton = StyleApp.getNextButton();
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
-        // Aggiunta di tutti i componenti al layout principale
+
         mainLayout.add(
                 customHeader,
                 contentLayout,
                 footerLayout
         );
 
-        // Listener per i pulsanti
+
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("creation")));
 
@@ -270,14 +270,14 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
      * @param field The field component.
      * @return A HorizontalLayout containing the icon and field.
      */
-    private HorizontalLayout createFieldWithIconLayout(Icon icon, Component field) { // Changed FlexComponent to Component
-        icon.setSize("24px"); // Standard size for these new icons
-        icon.getStyle().set("margin-right", "8px"); // Spacing between icon and field
+    private HorizontalLayout createFieldWithIconLayout(Icon icon, Component field) {
+        icon.setSize("24px");
+        icon.getStyle().set("margin-right", "8px");
 
         HorizontalLayout layout = new HorizontalLayout(icon, field);
         layout.setAlignItems(FlexComponent.Alignment.BASELINE);
-        layout.setWidthFull(); // Make the layout take full width
-        layout.expand(field); // Make the field expand to take available space
+        layout.setWidthFull();
+        layout.expand(field);
         return layout;
     }
 
@@ -293,8 +293,8 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         if (parameter != null) {
             this.scenarioType = parameter.toLowerCase();
         } else {
-            // Default o gestione errore
-            this.scenarioType = "quickscenario"; // Mantieni il default originale
+
+            this.scenarioType = "quickscenario";
         }
     }
 
@@ -320,7 +320,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
 
         if (durationField.isEmpty())
             isValid = ValidationError.showErrorAndReturnFalse(durationField, "Compila il campo DURATA SIMULAZIONE");
-        else if (durationField.getValue() == null || durationField.getValue() <= 0) // Durata deve essere positiva
+        else if (durationField.getValue() == null || durationField.getValue() <= 0)
             isValid = ValidationError.showErrorAndReturnFalse(durationField, "Inserisci una durata valida (maggiore di 0)");
 
         if (typeField.isEmpty())
@@ -379,7 +379,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
                 logger.info("ID scenario creato: {}", scenarioId);
 
                 if (scenarioId > 0) {
-                    logger.info("Navigando a target/{}", scenarioId); // Modificato da descrizione a target
+                    logger.info("Navigando a target/{}", scenarioId);
                     ui.navigate("target/" + scenarioId);
                 } else {
                     Notification.show("Errore durante il salvataggio dello scenario (ID non valido)",
@@ -393,4 +393,3 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         });
     }
 }
-

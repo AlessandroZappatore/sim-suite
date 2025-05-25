@@ -42,7 +42,7 @@ public class ErrorView extends Composite<VerticalLayout>
      * @param fileStorageService servizio per la gestione dei file, utilizzato dall'header
      */
     public ErrorView(FileStorageService fileStorageService) {
-        // Header dell'applicazione
+
         AppHeader header = new AppHeader(fileStorageService);
         header.getElement().getStyle()
                 .set("position", "fixed")
@@ -50,7 +50,7 @@ public class ErrorView extends Composite<VerticalLayout>
                 .set("width", "100%")
                 .set("z-index", "1000");
 
-        // Contenitore principale
+
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.getStyle()
                 .set("min-height", "100vh")
@@ -59,7 +59,7 @@ public class ErrorView extends Composite<VerticalLayout>
                 .set("margin", "0")
                 .set("padding", "0");
 
-        // Logo
+
         Image logo = new Image("icons/404logo.png", "404 logo");
         logo.setWidth("280px");
         logo.setHeight("280px");
@@ -68,11 +68,11 @@ public class ErrorView extends Composite<VerticalLayout>
                 .set("filter", "drop-shadow(0 4px 8px rgba(0,0,0,0.1))")
                 .set("animation", "float 3s ease-in-out infinite");
 
-        // CSS per l'animazione
+
         logo.getElement().executeJs("document.head.insertAdjacentHTML('beforeend', " +
                 "'<style>@keyframes float {0%, 100% {transform: translateY(0);} 50% {transform: translateY(-10px);}}</style>')");
 
-        // Titolo
+
         H1 title = new H1("Ops! Pagina non trovata");
         title.addClassNames(
                 LumoUtility.TextAlignment.CENTER,
@@ -84,7 +84,7 @@ public class ErrorView extends Composite<VerticalLayout>
                 .set("text-shadow", "1px 1px 2px rgba(0,0,0,0.1)")
                 .set("margin", "5px 0 10px 0");
 
-        // Messaggio di errore
+
         message = new Paragraph("Sembra che la pagina che stai cercando non esista o sia stata spostata.");
         message.addClassNames(
                 LumoUtility.TextAlignment.CENTER,
@@ -95,7 +95,7 @@ public class ErrorView extends Composite<VerticalLayout>
                 .set("max-width", "500px")
                 .set("margin", "5px auto 20px");
 
-        // Bottone
+
         Button homeButton = new Button("Torna alla Home");
         homeButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         homeButton.getStyle()
@@ -108,7 +108,7 @@ public class ErrorView extends Composite<VerticalLayout>
 
         homeButton.addClickListener(e -> homeButton.getUI().ifPresent(ui -> ui.navigate("")));
 
-        // Layout del contenuto
+
         contentLayout.setSizeFull();
         contentLayout.setPadding(false);
         contentLayout.setSpacing(false);
@@ -116,7 +116,7 @@ public class ErrorView extends Composite<VerticalLayout>
         contentLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         contentLayout.add(logo, title, message, homeButton);
 
-        // Layout principale
+
         getContent().removeAll();
         getContent().setSizeFull();
         getContent().setPadding(false);

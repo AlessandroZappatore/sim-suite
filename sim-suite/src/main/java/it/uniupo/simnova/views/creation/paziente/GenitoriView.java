@@ -60,39 +60,39 @@ public class GenitoriView extends Composite<VerticalLayout> implements HasUrlPar
     public GenitoriView(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
 
-        // Configurazione del layout principale
+
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
-        // 1. HEADER con pulsante indietro e titolo
+
         AppHeader header = new AppHeader(fileStorageService);
 
         Button backButton = StyleApp.getBackButton();
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
-        // Crea la sezione dell'intestazione
+
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "Informazioni per i Genitori",
                 "Definisci ciò che i genitori del paziente riferiranno durante la simulazione",
                 VaadinIcon.FAMILY.create(),
                 "var(--lumo-primary-color)"
         );
-        // 2. CONTENUTO PRINCIPALE con area di testo
+
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
         genitoriEditor = TinyEditor.getEditor();
 
         contentLayout.add(headerSection, genitoriEditor);
 
-        // 3. FOOTER con pulsanti e crediti
+
         Button nextButton = StyleApp.getNextButton();
 
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
-        // Aggiunta componenti al layout principale
+
         mainLayout.add(customHeader, contentLayout, footerLayout);
 
-        // Gestione eventi
+
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("briefing/" + scenarioId)));
 
@@ -117,14 +117,14 @@ public class GenitoriView extends Composite<VerticalLayout> implements HasUrlPar
                 throw new NumberFormatException();
             }
 
-            // Controlla se lo scenario è pediatrico
+
             if (!scenarioService.isPediatric(scenarioId)) {
-                // Reindirizza direttamente a pattoaula se non è pediatrico
+
                 event.rerouteTo("pattoaula/" + scenarioId);
                 return;
             }
 
-            // Carica le informazioni solo se è uno scenario pediatrico
+
             loadExistingGenitoriInfo();
         } catch (NumberFormatException e) {
             logger.error("ID scenario non valido: {}", parameter, e);

@@ -51,21 +51,21 @@ public class AzioneChiaveService {
 
         try {
             conn = DBConnect.getInstance().getConnection();
-            conn.setAutoCommit(false); // Inizia la transazione
+            conn.setAutoCommit(false);
 
             List<Integer> idAzioniFinali = new ArrayList<>();
             if (nomiAzioniDaSalvare != null) {
                 for (String nomeAzione : nomiAzioniDaSalvare) {
                     if (nomeAzione == null || nomeAzione.trim().isEmpty()) {
-                        continue; // Salta nomi di azione vuoti o null
+                        continue;
                     }
-                    // Ottiene l'ID dell'azione chiave, creandola se non esiste
+
                     Integer idAzione = getOrCreateAzioneChiaveId(conn, nomeAzione.trim());
                     idAzioniFinali.add(idAzione);
                 }
             }
 
-            // 2. Cancella le associazioni esistenti per questo scenario dalla tabella AzioneScenario
+
             final String deleteSql = "DELETE FROM AzioneScenario WHERE id_scenario = ?";
             try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSql)) {
                 deleteStmt.setInt(1, scenarioId);
@@ -73,23 +73,23 @@ public class AzioneChiaveService {
                 logger.info("Rimosse {} associazioni azione-scenario esistenti per scenario ID: {}", deletedRows, scenarioId);
             }
 
-            // 3. Inserisci le nuove associazioni nella tabella AzioneScenario
+
             if (!idAzioniFinali.isEmpty()) {
                 final String insertSql = "INSERT INTO AzioneScenario (id_scenario, id_azione) VALUES (?, ?)";
                 try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
                     for (Integer idAzione : idAzioniFinali) {
                         insertStmt.setInt(1, scenarioId);
                         insertStmt.setInt(2, idAzione);
-                        insertStmt.addBatch(); // Aggiunge l'operazione al batch
+                        insertStmt.addBatch();
                     }
-                    int[] batchResult = insertStmt.executeBatch(); // Esegue tutte le operazioni nel batch
+                    int[] batchResult = insertStmt.executeBatch();
                     logger.info("Inserite {} nuove associazioni azione-scenario per scenario ID: {}", batchResult.length, scenarioId);
                 }
             } else {
                 logger.info("Nessuna nuova azione chiave da associare per lo scenario ID: {}. Tutte le associazioni precedenti sono state rimosse.", scenarioId);
             }
 
-            conn.commit(); // Conferma la transazione
+            conn.commit();
             success = true;
             logger.info("Azioni chiave per lo scenario ID {} aggiornate con successo.", scenarioId);
 
@@ -97,7 +97,7 @@ public class AzioneChiaveService {
             logger.error("Errore SQL durante l'aggiornamento delle azioni chiave per lo scenario ID {}: {}", scenarioId, e.getMessage(), e);
             if (conn != null) {
                 try {
-                    conn.rollback(); // Annulla la transazione in caso di errore
+                    conn.rollback();
                     logger.warn("Rollback della transazione eseguito per lo scenario ID {}", scenarioId);
                 } catch (SQLException ex) {
                     logger.error("Errore durante il rollback della transazione per lo scenario ID {}: {}", scenarioId, ex.getMessage(), ex);
@@ -106,8 +106,8 @@ public class AzioneChiaveService {
         } finally {
             if (conn != null) {
                 try {
-                    conn.setAutoCommit(true); // Ripristina la modalità auto-commit
-                    conn.close(); // Chiudi la connessione
+                    conn.setAutoCommit(true);
+                    conn.close();
                 } catch (SQLException e) {
                     logger.error("Errore durante la chiusura della connessione per lo scenario ID {}: {}", scenarioId, e.getMessage(), e);
                 }
@@ -117,17 +117,17 @@ public class AzioneChiaveService {
     }
 
     private Integer getOrCreateAzioneChiaveId(Connection conn, String nomeAzione) throws SQLException {
-        // Primo, verifica se l'azione chiave esiste già
+
         final String selectSql = "SELECT id_azione FROM AzioniChiave WHERE nome = ?";
         try (PreparedStatement selectStmt = conn.prepareStatement(selectSql)) {
             selectStmt.setString(1, nomeAzione);
             ResultSet rs = selectStmt.executeQuery();
             if (rs.next()) {
-                return rs.getInt("id_azione"); // Restituisce l'ID esistente
+                return rs.getInt("id_azione");
             }
         }
 
-        // Se non esiste, inseriscila nella tabella AzioniChiave
+
         final String insertSql = "INSERT INTO AzioniChiave (nome) VALUES (?)";
         try (PreparedStatement insertStmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
             insertStmt.setString(1, nomeAzione);
@@ -137,7 +137,7 @@ public class AzioneChiaveService {
                 try (ResultSet generatedKeys = insertStmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         logger.info("Creata nuova AzioneChiave '{}' con ID: {}", nomeAzione, generatedKeys.getInt(1));
-                        return generatedKeys.getInt(1); // Restituisce il nuovo ID generato
+                        return generatedKeys.getInt(1);
                     } else {
                         throw new SQLException("Creazione AzioneChiave fallita per '" + nomeAzione + "', nessun ID ottenuto.");
                     }
@@ -147,6 +147,4 @@ public class AzioneChiaveService {
             }
         }
     }
-
-
 }

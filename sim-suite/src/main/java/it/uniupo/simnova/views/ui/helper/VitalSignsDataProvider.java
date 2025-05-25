@@ -4,7 +4,7 @@ import it.uniupo.simnova.domain.common.ParametroAggiuntivo;
 
 import java.util.List;
 
-// Interfaccia per fornire i dati dei parametri vitali al monitor
+
 public interface VitalSignsDataProvider {
     String getPA();
 
@@ -22,7 +22,7 @@ public interface VitalSignsDataProvider {
 
     Integer getEtCO2();
 
-    String getAdditionalMonitorText(); // Per testo aggiuntivo come PazienteT0.getMonitor()
+    String getAdditionalMonitorText();
 
-    List<ParametroAggiuntivo> getAdditionalParameters(); // Nuovo metodo
+    List<ParametroAggiuntivo> getAdditionalParameters();
 }

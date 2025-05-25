@@ -17,9 +17,9 @@ public class UnZipScenarioService {
     public static final String MEDIA_FOLDER_PREFIX = "esami/";
 
     /**
-         * Contiene i dati estratti da un file ZIP dello scenario.
-         */
-        public record UnzippedScenarioData(byte[] scenarioJson, Map<String, byte[]> mediaFiles) {
+     * Contiene i dati estratti da un file ZIP dello scenario.
+     */
+    public record UnzippedScenarioData(byte[] scenarioJson, Map<String, byte[]> mediaFiles) {
     }
 
     /**

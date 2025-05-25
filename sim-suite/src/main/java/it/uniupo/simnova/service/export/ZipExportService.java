@@ -65,28 +65,28 @@ public class ZipExportService {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              ZipOutputStream zipOut = new ZipOutputStream(baos)) {
 
-            // Aggiunge il file JSON dello scenario allo ZIP
+
             byte[] jsonBytes = jsonExportService.exportScenarioToJSON(scenarioId);
             ZipEntry jsonEntry = new ZipEntry("scenario.json");
             zipOut.putNextEntry(jsonEntry);
             zipOut.write(jsonBytes);
             zipOut.closeEntry();
 
-            // Recupera la lista dei file multimediali associati allo scenario
+
             List<String> mediaFiles = MediaHelper.getMediaFilesForScenario(scenarioId);
             if (!mediaFiles.isEmpty()) {
-                // Crea una directory per gli allegati multimediali all'interno dello ZIP
+
                 zipOut.putNextEntry(new ZipEntry("esami/"));
                 zipOut.closeEntry();
 
-                // Per ogni file multimediale trovato
+
                 for (String filename : mediaFiles) {
                     try {
-                        // Costruisce il percorso assoluto del file
+
                         Path imagePath = Paths.get(fileStorageService.getMediaDirectory().toString(), filename);
-                        // Verifica che il file esista fisicamente
+
                         if (Files.exists(imagePath)) {
-                            // Legge il contenuto del file e lo aggiunge allo ZIP
+
                             byte[] imageBytes = Files.readAllBytes(imagePath);
                             ZipEntry imageEntry = new ZipEntry("esami/" + filename);
                             zipOut.putNextEntry(imageEntry);
@@ -94,15 +94,15 @@ public class ZipExportService {
                             zipOut.closeEntry();
                         }
                     } catch (IOException e) {
-                        // Logga eventuali errori nell'aggiunta dei file multimediali
+
                         logger.error("Errore nell'aggiungere l'immagine {} allo ZIP", filename, e);
                     }
                 }
             }
-            // Finalizza e svuota lo stream ZIP
+
             zipOut.finish();
             zipOut.flush();
-            // Restituisce il contenuto dello ZIP come array di byte
+
             return baos.toByteArray();
         }
     }
@@ -148,28 +148,28 @@ public class ZipExportService {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              ZipOutputStream zipOut = new ZipOutputStream(baos)) {
 
-            // Aggiunge il file PDF dello scenario allo ZIP
+
             byte[] pdfBytes = pdfExportService.exportScenarioToPdf(scenarioId, desc, brief, infoGen, patto, azioni, obiettivi, moula, liqui, matNec, param, acces, fisic, esam, time, scen);
             ZipEntry pdfEntry = new ZipEntry("scenario.pdf");
             zipOut.putNextEntry(pdfEntry);
             zipOut.write(pdfBytes);
             zipOut.closeEntry();
 
-            // Recupera la lista dei file multimediali associati allo scenario
+
             List<String> mediaFiles = MediaHelper.getMediaFilesForScenario(scenarioId);
             if (!mediaFiles.isEmpty()) {
-                // Crea una directory per gli allegati multimediali all'interno dello ZIP
+
                 zipOut.putNextEntry(new ZipEntry("esami/"));
                 zipOut.closeEntry();
 
-                // Per ogni file multimediale trovato
+
                 for (String filename : mediaFiles) {
                     try {
-                        // Costruisce il percorso assoluto del file
+
                         Path imagePath = Paths.get(fileStorageService.getMediaDirectory().toString(), filename);
-                        // Verifica che il file esista fisicamente
+
                         if (Files.exists(imagePath)) {
-                            // Legge il contenuto del file e lo aggiunge allo ZIP
+
                             byte[] imageBytes = Files.readAllBytes(imagePath);
                             ZipEntry imageEntry = new ZipEntry("esami/" + filename);
                             zipOut.putNextEntry(imageEntry);
@@ -177,15 +177,15 @@ public class ZipExportService {
                             zipOut.closeEntry();
                         }
                     } catch (IOException e) {
-                        // Logga eventuali errori nell'aggiunta dei file multimediali
+
                         logger.error("Errore nell'aggiungere l'immagine {} allo ZIP", filename, e);
                     }
                 }
             }
-            // Finalizza e svuota lo stream ZIP
+
             zipOut.finish();
             zipOut.flush();
-            // Restituisce il contenuto dello ZIP come array di byte
+
             return baos.toByteArray();
         }
     }

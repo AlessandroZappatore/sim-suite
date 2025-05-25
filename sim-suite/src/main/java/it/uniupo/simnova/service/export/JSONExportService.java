@@ -99,54 +99,54 @@ public class JSONExportService implements Serializable {
      * @return Array di byte contenente il JSON serializzato.
      */
     public byte[] exportScenarioToJSON(Integer scenarioId) {
-        // Recupera lo scenario e il tipo associato
+
         Scenario scenario = scenarioService.getScenarioById(scenarioId);
         String scenarioType = scenarioService.getScenarioType(scenarioId);
 
-        // Mappa che conterrà tutti i dati da esportare
+
         Map<String, Object> exportData = new HashMap<>();
         exportData.put("scenario", scenario);
         exportData.put("tipo", scenarioType);
 
-        // Recupera e aggiunge gli esami e referti associati allo scenario
+
         var esamiReferti = esameRefertoService.getEsamiRefertiByScenarioId(scenarioId);
         exportData.put("esamiReferti", esamiReferti);
 
-        // Recupera e aggiunge i dati del paziente T0
+
         var pazienteT0 = pazienteT0Service.getPazienteT0ById(scenarioId);
         exportData.put("pazienteT0", pazienteT0);
 
-        // Recupera e aggiunge i materiali necessari
+
         var materialeNecessario = materialeService.getMaterialiByScenarioId(scenarioId);
         exportData.put("materialeNecessario", materialeNecessario);
 
-        // Recupera e aggiunge l'esame fisico
+
         var esameFisico = esameFisicoService.getEsameFisicoById(scenarioId);
         exportData.put("esameFisico", esameFisico);
 
-        // Recupera e aggiunge le azioni chiave
+
         var azioniChiave = azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenarioId);
         exportData.put("azioniChiave", azioniChiave);
 
-        // Recupera e aggiunge i presidi
+
         var presidi = PresidiService.getPresidiByScenarioId(scenarioId);
         exportData.put("presidi", presidi);
 
-        // Se lo scenario è avanzato o simulato, aggiunge i tempi
+
         if (scenarioType.equals("Advanced Scenario") || scenarioType.equals("Patient Simulated Scenario")) {
             var tempi = advancedScenarioService.getTempiByScenarioId(scenarioId);
             exportData.put("tempi", tempi);
         }
-        // Se lo scenario è simulato con paziente, aggiunge la sceneggiatura
+
         if (scenarioType.equals("Patient Simulated Scenario")) {
             var sceneggiatura = patientSimulatedScenarioService.getSceneggiatura(scenarioId);
             exportData.put("sceneggiatura", sceneggiatura);
         }
 
-        // Serializza la mappa in formato JSON
+
         String json = gson.toJson(exportData);
 
-        // Restituisce il JSON come array di byte in UTF-8
+
         return json.getBytes(StandardCharsets.UTF_8);
     }
 }

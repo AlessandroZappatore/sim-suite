@@ -62,7 +62,7 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
 
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
-        // 1. HEADER con pulsante indietro e titolo
+
         AppHeader header = new AppHeader(fileStorageService);
 
         Button backButton = StyleApp.getBackButton();
@@ -77,31 +77,31 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
 
-        // 2. CONTENUTO PRINCIPALE con area di testo
+
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
         briefingEditor = TinyEditor.getEditor();
         contentLayout.add(headerSection, briefingEditor);
 
-        // 3. FOOTER con pulsanti e crediti
+
         Button nextButton = StyleApp.getNextButton();
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
-        // Aggiunta componenti al layout principale
+
         mainLayout.add(customHeader, contentLayout, footerLayout);
 
-        // Gestione eventi
+
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("descrizione/" + scenarioId)));
 
         nextButton.addClickListener(e -> {
-            // Verifica se il contenuto è vuoto o contiene solo spazi bianchi/HTML vuoto
+
             String content = briefingEditor.getValue();
             boolean isEmpty = content == null || content.trim().isEmpty() ||
                     content.trim().equals("<p><br></p>") || content.trim().equals("<p></p>");
 
             if (isEmpty) {
-                // Se è vuoto, mostra il dialog di conferma
+
                 StyleApp.createConfirmDialog(
                         "Descrizione vuota",
                         "Sei sicuro di voler continuare senza una descrizione?",
@@ -110,7 +110,7 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
                         () -> saveBriefingAndNavigate(nextButton.getUI())
                 );
             } else {
-                // Se c'è contenuto, procedi direttamente
+
                 saveBriefingAndNavigate(nextButton.getUI());
             }
         });

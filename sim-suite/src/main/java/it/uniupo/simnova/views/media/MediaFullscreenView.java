@@ -58,7 +58,7 @@ public class MediaFullscreenView extends VerticalLayout implements HasUrlParamet
      */
     private void createView() {
         removeAll();
-        // Contenuto principale
+
         Component mediaContent = createMediaContent();
 
         add(mediaContent);
@@ -72,20 +72,20 @@ public class MediaFullscreenView extends VerticalLayout implements HasUrlParamet
      */
     private Component createMediaContent() {
         String fileExtension;
-        // Assicurati che ci sia un punto prima di cercare l'estensione
+
         int lastDotIndex = filename.lastIndexOf(".");
         if (lastDotIndex != -1 && lastDotIndex < filename.length() - 1) {
             fileExtension = filename.substring(lastDotIndex + 1).toLowerCase();
         } else {
-            // Gestisce il caso in cui non c'è estensione o il punto è l'ultimo carattere
+
             logger.warn("Impossibile determinare l'estensione del file: {}", filename);
             return new Div(new Text("Impossibile determinare il tipo di file: " + filename));
         }
 
-        // Il percorso deve essere relativo alla radice del contesto web,
-        // dato che Spring Boot serve i file da 'uploads' alla radice.
-        String mediaPath = "/" + filename; // Percorso relativo alla radice
-        System.out.println("Tentativo di accesso a: " + mediaPath); // Debug
+
+
+        String mediaPath = "/" + filename;
+        System.out.println("Tentativo di accesso a: " + mediaPath);
 
         switch (fileExtension) {
             case "jpg", "jpeg", "png", "gif", "webp":
@@ -108,7 +108,7 @@ public class MediaFullscreenView extends VerticalLayout implements HasUrlParamet
                 video.setSrc(mediaPath);
                 video.setControls(true);
                 video.setSizeFull();
-                video.getElement().setAttribute("autoplay", true); // Considera se l'autoplay è desiderato
+                video.getElement().setAttribute("autoplay", true);
                 return video;
 
             case "mp3", "wav", "ogg":
@@ -126,7 +126,7 @@ public class MediaFullscreenView extends VerticalLayout implements HasUrlParamet
                 return audio;
 
             default:
-                // Aggiungi un logger per il formato non supportato
+
                 logger.warn("Formato file non supportato: {}", filename);
                 return new Div(new Text("Formato file non supportato: " + filename));
         }

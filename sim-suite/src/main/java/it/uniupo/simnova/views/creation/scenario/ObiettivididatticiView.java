@@ -60,19 +60,19 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> implements
     public ObiettivididatticiView(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
 
-        // Configurazione layout principale
+
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
-        // 1. HEADER
+
         AppHeader header = new AppHeader(fileStorageService);
 
-        // Pulsante indietro
+
         Button backButton = StyleApp.getBackButton();
 
-        // Container per header personalizzato
+
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
-        // Crea la sezione dell'intestazione
+
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "Obiettivi Didattici",
                 "Definisci gli obiettivi di apprendimento per la simulazione",
@@ -80,37 +80,37 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> implements
                 "var(--lumo-primary-color)"
         );
 
-        // 2. CONTENUTO PRINCIPALE
+
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
         obiettiviEditor = TinyEditor.getEditor();
 
         contentLayout.add(headerSection, obiettiviEditor);
 
-        // 3. FOOTER con pulsanti e crediti
+
         Button nextButton = StyleApp.getNextButton();
 
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
-        // Aggiunta di tutti i componenti al layout principale
+
         mainLayout.add(
                 customHeader,
                 contentLayout,
                 footerLayout
         );
 
-        // Listener per i pulsanti
+
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("azionechiave/" + scenarioId)));
 
         nextButton.addClickListener(e -> {
-            // Verifica se il contenuto è vuoto o contiene solo spazi bianchi/HTML vuoto
+
             String content = obiettiviEditor.getValue();
             boolean isEmpty = content == null || content.trim().isEmpty() ||
                     content.trim().equals("<p><br></p>") || content.trim().equals("<p></p>");
 
             if (isEmpty) {
-                // Se è vuoto, mostra il dialog di conferma
+
                 StyleApp.createConfirmDialog(
                         "Descrizione vuota",
                         "Sei sicuro di voler continuare senza una descrizione?",
@@ -119,7 +119,7 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> implements
                         () -> saveObiettiviAndNavigate(nextButton.getUI())
                 );
             } else {
-                // Se c'è contenuto, procedi direttamente
+
                 saveObiettiviAndNavigate(nextButton.getUI());
             }
         });

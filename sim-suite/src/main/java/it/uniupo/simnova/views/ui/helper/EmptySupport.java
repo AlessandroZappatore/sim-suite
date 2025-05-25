@@ -18,7 +18,6 @@ public class EmptySupport extends HorizontalLayout {
      * @return Un Div contenente l'avviso formattato
      */
     public static Div createErrorContent(String errorMessage) {
-        // Contenitore principale
         Div emptyContainer = new Div();
         emptyContainer.addClassName("empty-state-container");
         emptyContainer.getStyle()
@@ -33,13 +32,11 @@ public class EmptySupport extends HorizontalLayout {
                 .set("margin-right", "auto")
                 .set("margin-left", "auto");
 
-        // Definizione dell'animazione CSS
         emptyContainer.getElement().executeJs(
                 "document.head.insertAdjacentHTML('beforeend', " +
                         "'<style>@keyframes fadeIn {from {opacity: 0;} to {opacity: 1;}}</style>');"
         );
 
-        // Effetto hover
         emptyContainer.getElement().executeJs(
                 "this.addEventListener('mouseover', function() {" +
                         "  this.style.transform = 'scale(1.01)';" +
@@ -51,14 +48,12 @@ public class EmptySupport extends HorizontalLayout {
                         "});"
         );
 
-        // Layout verticale per organizzare gli elementi
         VerticalLayout content = new VerticalLayout();
         content.setPadding(false);
         content.setSpacing(true);
         content.setAlignItems(FlexComponent.Alignment.CENTER);
         content.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
-        // Icona più moderna con decorazione
         Div iconContainer = new Div();
         iconContainer.getStyle()
                 .set("background-color", "var(--lumo-contrast-10pct)")
@@ -78,7 +73,6 @@ public class EmptySupport extends HorizontalLayout {
 
         iconContainer.add(infoIcon);
 
-        // Messaggio più strutturato
         H4 title = new H4("Contenuto non disponibile");
         title.addClassNames(
                 LumoUtility.TextColor.SECONDARY,

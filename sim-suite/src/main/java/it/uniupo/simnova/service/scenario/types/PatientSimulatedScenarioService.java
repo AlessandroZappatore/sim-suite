@@ -25,7 +25,7 @@ public class PatientSimulatedScenarioService {
     }
 
     public int startPatientSimulatedScenario(String titolo, String nomePaziente, String patologia, String autori, float timerGenerale, String tipologia) {
-        // Prima crea lo scenario avanzato
+
         int scenarioId = advancedScenarioService.startAdvancedScenario(titolo, nomePaziente, patologia, autori, timerGenerale, tipologia);
 
         if (scenarioId > 0) {
@@ -36,7 +36,7 @@ public class PatientSimulatedScenarioService {
 
                 stmt.setInt(1, scenarioId);
                 stmt.setInt(2, scenarioId);
-                stmt.setString(3, ""); // Sceneggiatura vuota inizialmente
+                stmt.setString(3, "");
 
                 stmt.executeUpdate();
                 logger.info("Scenario simulato per pazienti creato con ID: {}", scenarioId);
@@ -79,7 +79,7 @@ public class PatientSimulatedScenarioService {
                         rs.getString("target"),
                         rs.getString("info_genitore"),
                         rs.getInt("id_advanced_scenario"),
-                        new ArrayList<>(), // Tempi vuoti inizialmente
+                        new ArrayList<>(),
                         rs.getInt("id_patient_simulated_scenario"),
                         rs.getInt("id_advanced_scenario"),
                         rs.getString("sceneggiatura")

@@ -34,9 +34,9 @@ public class DialogSupport {
         uploadDialog.setHeaderTitle("Importa Nuovo Scenario da ZIP");
 
         VerticalLayout dialogLayout = new VerticalLayout();
-        dialogLayout.setPadding(false); // Il padding è gestito dal Dialog
+        dialogLayout.setPadding(false);
         dialogLayout.setSpacing(true);
-        dialogLayout.setAlignItems(FlexComponent.Alignment.STRETCH); // Stretch per l'upload
+        dialogLayout.setAlignItems(FlexComponent.Alignment.STRETCH);
 
         H4 title = new H4("Carica un file ZIP per importare un nuovo scenario");
         title.getStyle().set("margin-top", "0");
@@ -60,7 +60,7 @@ public class DialogSupport {
         Button cancelButton = new Button("Annulla", e -> uploadDialog.close());
         cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
-        uploadDialog.getFooter().add(cancelButton); // Aggiungi pulsanti al footer del Dialog
+        uploadDialog.getFooter().add(cancelButton);
 
         uploadDialog.open();
 
@@ -75,7 +75,7 @@ public class DialogSupport {
                 if (ui == null || detached.get()) return;
 
                 Notification loadingNotification = new Notification("Importazione scenario in corso...", 0, Notification.Position.MIDDLE);
-                loadingNotification.addThemeVariants(NotificationVariant.LUMO_PRIMARY); // Stile moderno
+                loadingNotification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
                 loadingNotification.open();
 
                 executorService.submit(() -> {

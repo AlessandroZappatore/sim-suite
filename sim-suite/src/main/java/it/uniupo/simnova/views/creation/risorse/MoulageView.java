@@ -61,18 +61,18 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
     public MoulageView(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
 
-        // Configurazione del layout principale con altezza piena e senza spazi interni
+
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
-        // 1. HEADER con pulsante indietro e header dell'applicazione
+
         AppHeader header = new AppHeader(fileStorageService);
 
         Button backButton = StyleApp.getBackButton();
 
-        // Layout orizzontale per l'header personalizzato
+
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
-        // Crea la sezione dell'intestazione
+
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "Moulage",
                 "Inserisci la descrizione del trucco da applicare al manichino/paziente simulato",
@@ -80,37 +80,37 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
                 "var(--lumo-primary-color)"
         );
 
-        // 2. CONTENUTO PRINCIPALE con area di testo per il moulage
+
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
         moulageEditor = TinyEditor.getEditor();
 
         contentLayout.add(headerSection, moulageEditor);
 
-        // 3. FOOTER con pulsante avanti e crediti
+
         Button nextButton = StyleApp.getNextButton();
 
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
-        // Aggiunta di tutti i componenti al layout principale
+
         mainLayout.add(
                 customHeader,
                 contentLayout,
                 footerLayout
         );
 
-        // Gestione degli eventi dei pulsanti
+
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("esamiReferti/" + scenarioId)));
 
         nextButton.addClickListener(e -> {
-            // Verifica se il contenuto è vuoto o contiene solo spazi bianchi/HTML vuoto
+
             String content = moulageEditor.getValue();
             boolean isEmpty = content == null || content.trim().isEmpty() ||
                     content.trim().equals("<p><br></p>") || content.trim().equals("<p></p>");
 
             if (isEmpty) {
-                // Se è vuoto, mostra il dialog di conferma
+
                 StyleApp.createConfirmDialog(
                         "Descrizione vuota",
                         "Sei sicuro di voler continuare senza una descrizione?",
@@ -119,7 +119,7 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
                         () -> saveMoulageAndNavigate(nextButton.getUI())
                 );
             } else {
-                // Se c'è contenuto, procedi direttamente
+
                 saveMoulageAndNavigate(nextButton.getUI());
             }
         });
@@ -167,13 +167,13 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
      */
     private void saveMoulageAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {
-            // Mostra una progress bar durante l'operazione
+
             ProgressBar progressBar = new ProgressBar();
             progressBar.setIndeterminate(true);
             getContent().add(progressBar);
 
             try {
-                // Salvataggio del moulage tramite il service
+
                 boolean success = scenarioService.updateScenarioMoulage(
                         scenarioId, moulageEditor.getValue()
                 );
@@ -181,7 +181,7 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
                     if (success) {
-                        ui.navigate("liquidi/" + scenarioId); // Navigazione alla view successiva
+                        ui.navigate("liquidi/" + scenarioId);
                     } else {
                         Notification.show("Errore durante il salvataggio del moulage", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         logger.error("Errore durante il salvataggio del moulage per lo scenario con ID: {}", scenarioId);

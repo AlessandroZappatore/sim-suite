@@ -123,17 +123,17 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         this.scenarioService = scenarioService;
         this.presidiService = presidiService;
         this.pazienteT0Service = pazienteT0Service;
-        // Configurazione layout principale
+
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
-        // 1. HEADER con pulsante indietro
+
         AppHeader header = new AppHeader(fileStorageService);
 
         Button backButton = StyleApp.getBackButton();
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
-        // 2. CONTENUTO PRINCIPALE
+
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
@@ -145,7 +145,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         );
 
 
-        // Campi parametri vitali
+
         paField = FieldGenerator.createTextField(
                 "PA (mmHg)",
                 "(es. 120/80)",
@@ -187,14 +187,14 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                 true
         );
 
-        // Container per accessi venosi
+
         venosiContainer = new VerticalLayout();
         venosiContainer.setWidthFull();
         venosiContainer.setSpacing(true);
         venosiContainer.setPadding(false);
         venosiContainer.setVisible(false);
 
-        // Container per accessi arteriosi
+
         arteriosiContainer = new VerticalLayout();
         arteriosiContainer.setWidthFull();
         arteriosiContainer.setSpacing(true);
@@ -204,16 +204,15 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         Button addVenosiButton;
         Button addArteriosiButton;
 
-        addVenosiButton = new Button("Aggiungi accesso venoso", new Icon(VaadinIcon.PLUS));
-        addVenosiButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        addVenosiButton.addClassName(LumoUtility.Margin.Top.SMALL);
-        addVenosiButton.setVisible(false); // Inizialmente nascosto
+        addVenosiButton = StyleApp.getButton("Aggiungi accesso venoso",
+                VaadinIcon.PLUS, ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
+        addVenosiButton.setVisible(false);
         addVenosiButton.addClickListener(e -> addAccessoVenoso());
 
         addArteriosiButton = new Button("Aggiungi accesso arterioso", new Icon(VaadinIcon.PLUS));
         addArteriosiButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addArteriosiButton.addClassName(LumoUtility.Margin.Top.SMALL);
-        addArteriosiButton.setVisible(false); // Inizialmente nascosto
+        addArteriosiButton.setVisible(false);
         addArteriosiButton.addClickListener(e -> addAccessoArterioso());
 
         Checkbox venosiCheckbox = FieldGenerator.createCheckbox(
@@ -221,7 +220,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         );
         venosiCheckbox.addValueChangeListener(e -> {
             venosiContainer.setVisible(e.getValue());
-            addVenosiButton.setVisible(e.getValue()); // Mostra/nascondi il pulsante
+            addVenosiButton.setVisible(e.getValue());
             if (!e.getValue()) {
                 venosiAccessi.clear();
                 venosiContainer.removeAll();
@@ -233,14 +232,14 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         );
         arteriosiCheckbox.addValueChangeListener(e -> {
             arteriosiContainer.setVisible(e.getValue());
-            addArteriosiButton.setVisible(e.getValue()); // Mostra/nascondi il pulsante
+            addArteriosiButton.setVisible(e.getValue());
             if (!e.getValue()) {
                 arteriosiAccessi.clear();
                 arteriosiContainer.removeAll();
             }
         });
 
-        // Area testo per monitor
+
         monitorArea = FieldGenerator.createTextArea(
                 "Monitoraggio",
                 "Specificare dettagli ECG o altri parametri...",
@@ -255,7 +254,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                 false
         );
 
-        // Aggiunta componenti al layout
+
         contentLayout.add(
                 headerSection,
                 paField, fcField, rrField, tempField, spo2Field, fio2Field, litrio2Field, etco2Field,
@@ -264,18 +263,18 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                 monitorArea, presidiField
         );
 
-        // 3. FOOTER con pulsanti e crediti
+
         Button nextButton = StyleApp.getNextButton();
 
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
-        // Aggiunta di tutti i componenti al layout principale
+
         mainLayout.add(
                 customHeader,
                 contentLayout,
                 footerLayout
         );
 
-        // Listener per i pulsanti
+
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("liquidi/" + scenarioId)));
 
@@ -314,7 +313,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
      * Aggiunge un accesso venoso al layout e alla lista degli accessi.
      */
     private void addAccessoVenoso() {
-        AccessoComponent accesso = new AccessoComponent("Venoso");
+        AccessoComponent accesso = new AccessoComponent("Venoso", true);
         venosiAccessi.add(accesso);
         venosiContainer.add(accesso);
     }
@@ -323,7 +322,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
      * Aggiunge un accesso arterioso al layout e alla lista degli accessi.
      */
     private void addAccessoArterioso() {
-        AccessoComponent accesso = new AccessoComponent("Arterioso");
+        AccessoComponent accesso = new AccessoComponent("Arterioso", true);
         arteriosiAccessi.add(accesso);
         arteriosiContainer.add(accesso);
     }
@@ -363,7 +362,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
             getContent().add(progressBar);
 
             try {
-                // Raccoglie gli accessi venosi e arteriosi direttamente dagli AccessoComponent
+
                 List<Accesso> venosi = new ArrayList<>();
                 for (AccessoComponent comp : venosiAccessi) {
                     venosi.add(comp.getAccesso());
@@ -373,7 +372,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                 for (AccessoComponent comp : arteriosiAccessi) {
                     arteriosi.add(comp.getAccesso());
                 }
-                // Salva nel database
+
                 boolean success = pazienteT0Service.savePazienteT0(
                         scenarioId,
                         paField.getValue(),

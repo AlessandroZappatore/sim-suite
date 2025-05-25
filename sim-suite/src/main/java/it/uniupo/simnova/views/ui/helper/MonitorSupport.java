@@ -9,6 +9,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.button.Button;
@@ -21,6 +22,8 @@ import it.uniupo.simnova.service.scenario.components.PazienteT0Service;
 import it.uniupo.simnova.service.scenario.components.PresidiService;
 import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
 import it.uniupo.simnova.views.common.utils.StyleApp;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
@@ -28,15 +31,13 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MonitorSupport {
-
-    // Lista di colori per i parametri aggiuntivi
+    private static final Logger logger = LoggerFactory.getLogger(MonitorSupport.class);
     private static final List<String> ADDITIONAL_PARAM_COLORS = List.of(
             "var(--lumo-contrast-70pct)",
             "var(--lumo-shade-50pct)",
             "var(--lumo-tertiary-color)"
     );
 
-    // CSS per l'animazione di lampeggiamento
     private static final String FLASH_ANIMATION_CSS =
             "@keyframes flash-outline-anim {" +
                     "  0% { outline: 2px solid transparent; outline-offset: 0px; }" +
@@ -45,18 +46,15 @@ public class MonitorSupport {
                     "} " +
                     ".flash-alert-box {" +
                     "  animation: flash-outline-anim 1.2s infinite;" +
-                    "  border-color: var(--lumo-error-color) !important;" + // Mantieni il bordo rosso
+                    "  border-color: var(--lumo-error-color) !important;" +
                     "}";
 
-    // Flag per assicurare che il CSS sia iniettato una sola volta per pagina/UI
     private static final String FLASH_STYLE_ID = "global-flash-alert-style";
 
-    // Metodo helper per convertire a Double, gestendo null
     private static Double toDouble(Number number) {
         return number == null ? null : number.doubleValue();
     }
 
-    // Metodo helper per formattare il display value, gestendo null
     private static String formatDisplayValue(Number number, @SuppressWarnings("SameParameterValue") String format) {
         if (number == null) return "-";
         if (number instanceof Double || number instanceof Float) {
@@ -146,7 +144,7 @@ public class MonitorSupport {
 
         final String NULL_DISPLAY_VALUE = "-";
 
-        // PA
+
         if (dataProvider.getPA() != null && !dataProvider.getPA().isEmpty()) {
             vitalSignsLayout.add(createVitalSignBox("PA", dataProvider.getPA(), "mmHg",
                     "var(--lumo-primary-color)", null, null, null, null, null, advancedScenarioService, scenarioId, tempoId));
@@ -154,7 +152,7 @@ public class MonitorSupport {
             vitalSignsLayout.add(createVitalSignBox("PA", NULL_DISPLAY_VALUE, "mmHg",
                     "var(--lumo-secondary-text-color)", null, null, null, null, null, advancedScenarioService, scenarioId, tempoId));
         }
-        // FC
+
         final Double FC_CRITICAL_LOW = 40.0;
         final Double FC_CRITICAL_HIGH = 130.0;
         final Double FC_WARNING_LOW = 50.0;
@@ -163,7 +161,7 @@ public class MonitorSupport {
                 formatDisplayValue(dataProvider.getFC()), "bpm",
                 "var(--lumo-primary-color)", toDouble(dataProvider.getFC()),
                 FC_CRITICAL_LOW, FC_CRITICAL_HIGH, FC_WARNING_LOW, FC_WARNING_HIGH, advancedScenarioService, scenarioId, tempoId));
-        // T
+
         if (dataProvider.getT() != null && dataProvider.getT() > -50) {
             final double MIN_CRITICAL_TEMP = 35.0;
             final double MAX_CRITICAL_TEMP = 39.0;
@@ -178,7 +176,7 @@ public class MonitorSupport {
                     "var(--lumo-secondary-text-color)", null,
                     null, null, null, null, advancedScenarioService, scenarioId, tempoId));
         }
-        // RR
+
         final Double RR_CRITICAL_LOW = 10.0;
         final Double RR_CRITICAL_HIGH = 30.0;
         final Double RR_WARNING_LOW = 12.0;
@@ -187,7 +185,7 @@ public class MonitorSupport {
                 formatDisplayValue(dataProvider.getRR()), "rpm",
                 "var(--lumo-tertiary-color)", toDouble(dataProvider.getRR()),
                 RR_CRITICAL_LOW, RR_CRITICAL_HIGH, RR_WARNING_LOW, RR_WARNING_HIGH, advancedScenarioService, scenarioId, tempoId));
-        // SpO2
+
         final Double SPO2_CRITICAL_LOW = 90.0;
         final Double SPO2_WARNING_LOW = 94.0;
         vitalSignsLayout.add(createVitalSignBox("SpO₂",
@@ -195,19 +193,19 @@ public class MonitorSupport {
                 "var(--lumo-contrast)", toDouble(dataProvider.getSpO2()),
                 SPO2_CRITICAL_LOW, null, SPO2_WARNING_LOW, null, advancedScenarioService, scenarioId, tempoId));
 
-        // FiO2
+
         vitalSignsLayout.add(createVitalSignBox("FiO₂",
                 formatDisplayValue(dataProvider.getFiO2()), "%",
                 "var(--lumo-primary-color-50pct)", toDouble(dataProvider.getFiO2()),
                 null, null, null, null, advancedScenarioService, scenarioId, tempoId));
 
-        // Litri O2
+
         vitalSignsLayout.add(createVitalSignBox("Litri O₂",
                 formatDisplayValue(dataProvider.getLitriO2()), "Litri/m",
                 "var(--lumo-contrast-70pct)", toDouble(dataProvider.getLitriO2()),
                 null, null, null, null, advancedScenarioService, scenarioId, tempoId));
 
-        // EtCO2
+
         final Double ETCO2_CRITICAL_LOW = 25.0;
         final Double ETCO2_CRITICAL_HIGH = 60.0;
         final Double ETCO2_WARNING_LOW = 35.0;
@@ -216,7 +214,7 @@ public class MonitorSupport {
                 formatDisplayValue(dataProvider.getEtCO2()), "mmHg",
                 "var(--lumo-warning-color)", toDouble(dataProvider.getEtCO2()),
                 ETCO2_CRITICAL_LOW, ETCO2_CRITICAL_HIGH, ETCO2_WARNING_LOW, ETCO2_WARNING_HIGH, advancedScenarioService, scenarioId, tempoId));
-        // Parametri aggiuntivi
+
         List<ParametroAggiuntivo> additionalParams = dataProvider.getAdditionalParameters();
         if (additionalParams != null && !additionalParams.isEmpty()) {
             AtomicInteger colorIndex = new AtomicInteger(0);
@@ -231,7 +229,7 @@ public class MonitorSupport {
         }
         monitorContainer.add(monitorHeader, vitalSignsLayout);
 
-        // Sezione Monitoraggio (Testo aggiuntivo)
+
         String additionalText = dataProvider.getAdditionalMonitorText();
         if (additionalText != null && !additionalText.isEmpty()) {
             Div monitorTextContainer = new Div();
@@ -280,15 +278,12 @@ public class MonitorSupport {
                     .set("line-height", "1.5");
             monitorTextContainer.add(monitorTextHeader, monitorText);
 
-            // TextArea per modifica
             TextArea monitorTextArea = new TextArea();
             monitorTextArea.setWidthFull();
             monitorTextArea.setVisible(false);
             monitorTextArea.setValue(additionalText);
-            Button saveMonitorButton = new Button("Salva");
-            saveMonitorButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
-            Button cancelMonitorButton = new Button("Annulla");
-            cancelMonitorButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+            Button saveMonitorButton = StyleApp.getButton("Salva", VaadinIcon.CHECK, ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color");
+            Button cancelMonitorButton = StyleApp.getButton("Annulla", VaadinIcon.CLOSE, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color");
             HorizontalLayout monitorActions = new HorizontalLayout(saveMonitorButton, cancelMonitorButton);
             monitorActions.setVisible(false);
             monitorTextContainer.add(monitorTextArea, monitorActions);
@@ -308,7 +303,7 @@ public class MonitorSupport {
                 monitorTextArea.setVisible(false);
                 monitorActions.setVisible(false);
                 editMonitorButton.setVisible(true);
-                Notification.show("Monitoraggio aggiornato.", 3000, Notification.Position.BOTTOM_CENTER);
+                Notification.show("Monitoraggio aggiornato.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             });
             cancelMonitorButton.addClickListener(e -> {
                 monitorTextArea.setVisible(false);
@@ -397,17 +392,14 @@ public class MonitorSupport {
             }
             presidiInnerContainer.add(presidiHeader, presidiItemsDiv);
 
-            // MultiSelectComboBox per modifica
             List<String> allPresidi = PresidiService.getAllPresidi();
             MultiSelectComboBox<String> presidiComboBox = new MultiSelectComboBox<>();
             presidiComboBox.setItems(allPresidi);
             presidiComboBox.setWidthFull();
             presidiComboBox.setVisible(false);
             presidiComboBox.setValue(Set.copyOf(presidiList));
-            Button savePresidiButton = new Button("Salva");
-            savePresidiButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
-            Button cancelPresidiButton = new Button("Annulla");
-            cancelPresidiButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+            Button savePresidiButton = StyleApp.getButton("Salva", VaadinIcon.CHECK, ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color");
+            Button cancelPresidiButton = StyleApp.getButton("Annulla", VaadinIcon.CLOSE, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color");
             HorizontalLayout presidiActions = new HorizontalLayout(savePresidiButton, cancelPresidiButton);
             presidiActions.setVisible(false);
             presidiInnerContainer.add(presidiComboBox, presidiActions);
@@ -439,7 +431,7 @@ public class MonitorSupport {
                 presidiComboBox.setVisible(false);
                 presidiActions.setVisible(false);
                 editPresidiButton.setVisible(true);
-                Notification.show("Presidi aggiornati.", 3000, Notification.Position.BOTTOM_CENTER);
+                Notification.show("Presidi aggiornati.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             });
             cancelPresidiButton.addClickListener(e -> {
                 presidiComboBox.setVisible(false);
@@ -518,11 +510,10 @@ public class MonitorSupport {
         }
 
         Span unitSpan = new Span(unit);
-        // Caratterizzazione "spenta" per FiO₂ e Litri O₂ se valore 0
         if (("FiO₂".equals(label) || "Litri O₂".equals(label)) && numericValue != null && numericValue == 0.0) {
             box.getStyle()
-                .set("background-color", "#f3f3f3")
-                .set("border", "1.5px dashed #bbb");
+                    .set("background-color", "#var(--lumo-contrast-40pct)")
+                    .set("border", "1.5px dashed #bbb");
             valueSpan.getStyle().set("color", "#bbb");
             unitSpan.getStyle().set("color", "#bbb");
             labelSpan.getStyle().set("color", "#bbb");
@@ -540,7 +531,6 @@ public class MonitorSupport {
                 .set("font-size", "12px")
                 .set("color", "var(--lumo-tertiary-text-color)");
 
-        // Elementi per la modifica
         TextField valueEditField = new TextField();
         valueEditField.setVisible(false);
         valueEditField.setWidthFull();
@@ -551,16 +541,28 @@ public class MonitorSupport {
         editButton.getStyle().set("margin-left", "auto").set("align-self", "flex-start");
 
 
-        Button saveButton = new Button("Salva");
-        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
-        Button cancelButton = new Button("Annulla");
-        cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+        Button saveButton = StyleApp.getButton("Salva", null, ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color");
+        Button cancelButton = StyleApp.getButton("Annulla", null, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color");
+
+        saveButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        cancelButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+
+        saveButton.getStyle()
+                .set("padding-left", "var(--lumo-space-s)")
+                .set("padding-right", "var(--lumo-space-s)")
+                .set("min-width", "auto");
+        cancelButton.getStyle()
+                .set("padding-left", "var(--lumo-space-s)")
+                .set("padding-right", "var(--lumo-space-s)")
+                .set("min-width", "auto");
+
         HorizontalLayout editActions = new HorizontalLayout(saveButton, cancelButton);
         editActions.setVisible(false);
         editActions.setSpacing(true);
-        editActions.getStyle().set("margin-top", "var(--lumo-space-xs)");
+        editActions.getStyle()
+                .set("margin-top", "var(--lumo-space-xs)")
+                .set("justify-content", "center");
 
-        // Layout per label e pulsante modifica
         HorizontalLayout labelAndEditButtonLayout = new HorizontalLayout(labelSpan, editButton);
         labelAndEditButtonLayout.setWidthFull();
         labelAndEditButtonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
@@ -572,26 +574,59 @@ public class MonitorSupport {
 
         editButton.addClickListener(e -> {
             valueSpan.setVisible(false);
-            unitSpan.setVisible(false); // Nasconde anche l'unità durante la modifica del valore puro
-            valueEditField.setValue(valueSpan.getText()); // Pre-popola con il valore attuale
+            unitSpan.setVisible(false);
+            valueEditField.setValue(valueSpan.getText());
             valueEditField.setVisible(true);
             editActions.setVisible(true);
             editButton.setVisible(false);
-            labelAndEditButtonLayout.remove(editButton); // Rimuove temporaneamente per evitare disallineamenti
+            labelAndEditButtonLayout.remove(editButton);
         });
 
         saveButton.addClickListener(e -> {
             String newValue = valueEditField.getValue();
-            valueSpan.setText(newValue);
+            switch (label) {
+                case "PA" -> {
+                    if (!newValue.matches("^\\s*\\d+\\s*/\\s*\\d+\\s*$")) {
+                        Notification.show("Formato PA non valido. Usa 'sistolica/diastolica'.", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        return;
+                    }
+                    valueSpan.setText(newValue);
+                }
+                case "FC", "RR", "EtCO₂" -> {
+                    try {
+                        double doubleValue = Double.parseDouble(newValue.replace(",", "."));
+                        if (doubleValue < 0) {
+                            Notification.show("Il valore di " + label + " deve essere un numero positivo.", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                            return;
+                        }
+                        valueSpan.setText(newValue);
+                    } catch (NumberFormatException ex) {
+                        Notification.show("Il valore di " + label + "deve essere un numero valido.", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        return;
+                    }
+                }
+                case "SpO₂", "FiO₂", "Litri O₂" -> {
+                    try {
+                        int spo2Value = Integer.parseInt(newValue.trim());
+                        if (spo2Value < 0 || spo2Value > 100) {
+                            Notification.show("Il valore di " + label + " deve essere compreso tra 0 e 100.", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                            return;
+                        }
+                        valueSpan.setText(newValue);
+                    } catch (NumberFormatException ex) {
+                        Notification.show("Il valore di " + label + " deve essere un numero intero.", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        return;
+                    }
+                }
+                default -> valueSpan.setText(newValue);
+            }
             advancedScenarioService.saveVitalSign(scenarioId, tempoId, label, newValue);
-            // Ricalcolo stato e stile
             Double newNumericValue = null;
             try {
                 newNumericValue = Double.parseDouble(newValue.replace(",", "."));
             } catch (Exception ex) {
-                // Non numerico, nessun controllo
+                logger.error("Errore durante il parsing del valore numerico per il parametro {}: {}", label, ex.getMessage());
             }
-            // Reset stile
             box.getClassNames().remove("flash-alert-box");
             box.getStyle().remove("border-color");
             String newColor = defaultNormalColor;
@@ -620,7 +655,7 @@ public class MonitorSupport {
             editActions.setVisible(false);
             labelAndEditButtonLayout.add(editButton);
             editButton.setVisible(true);
-            Notification.show(label+" aggiornata.", 3000, Notification.Position.BOTTOM_CENTER);
+            Notification.show(label + " aggiornata.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         });
 
         cancelButton.addClickListener(e -> {
@@ -628,10 +663,9 @@ public class MonitorSupport {
             unitSpan.setVisible(true);
             valueEditField.setVisible(false);
             editActions.setVisible(false);
-            labelAndEditButtonLayout.add(editButton); // Riaggiunge il pulsante edit
+            labelAndEditButtonLayout.add(editButton);
             editButton.setVisible(true);
         });
         return box;
     }
 }
-

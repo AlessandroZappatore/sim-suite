@@ -172,10 +172,16 @@ public class StyleApp extends HorizontalLayout {
     }
 
     public static Button getButton(String label, VaadinIcon icon, ButtonVariant variant, String iconColor) {
-        Button editButton = new Button(label, new Icon(icon));
-        editButton.addThemeVariants(variant);
-        editButton.setMaxWidth("250px");
-        editButton.getStyle()
+        Button newButton;
+        if (icon != null) {
+            newButton = new Button(label, new Icon(icon));
+        } else {
+            newButton = new Button(label);
+        }
+
+        newButton.addThemeVariants(variant);
+        newButton.setMaxWidth("280px");
+        newButton.getStyle()
                 .set("border-radius", "30px")
                 .set("font-weight", "600")
                 .set("transition", "all 0.2s ease")
@@ -184,7 +190,7 @@ public class StyleApp extends HorizontalLayout {
                 .set("border", "1px solid var(" + iconColor + "-50pct)")
                 .set("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.05)");
 
-        editButton.getElement().executeJs(
+        newButton.getElement().executeJs(
                 "this.addEventListener('mouseover', function() { " +
                         "  this.style.backgroundColor = 'var(" + iconColor + "-20pct)'; " +
                         "  this.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)'; " +
@@ -195,8 +201,8 @@ public class StyleApp extends HorizontalLayout {
                         "});"
         );
 
-        editButton.addClassName("hover-effect");
-        return editButton;
+        newButton.addClassName("hover-effect");
+        return newButton;
     }
 
     public static VerticalLayout getMainLayout(VerticalLayout content) {

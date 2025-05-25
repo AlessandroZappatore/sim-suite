@@ -1,7 +1,7 @@
 package it.uniupo.simnova.service.storage;
 
 import it.uniupo.simnova.service.scenario.helper.MediaHelper;
-import jakarta.annotation.PostConstruct; // Import corretto per @PostConstruct
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,7 +25,7 @@ public class FileStorageService {
      * @param mediaDir Il percorso della directory di archiviazione, iniettato da Spring.
      */
     public FileStorageService(@Value("${storage.media-dir}") String mediaDir) {
-        // Risolve il percorso assoluto e normalizza per sicurezza
+
         this.rootLocation = Paths.get(mediaDir).toAbsolutePath().normalize();
         logger.info("Percorso di archiviazione configurato: {}", this.rootLocation);
     }
@@ -43,30 +43,30 @@ public class FileStorageService {
         String baseName = filename;
         int lastDotIndex = filename.lastIndexOf('.');
 
-        if (lastDotIndex >= 0) { // Gestisce file con estensione
-            extension = filename.substring(lastDotIndex); // Include il punto
+        if (lastDotIndex >= 0) {
+            extension = filename.substring(lastDotIndex);
             baseName = filename.substring(0, lastDotIndex);
         }
 
-        // Sanitizza il nome base
+
         String sanitizedBaseName = baseName.replaceAll("[^a-zA-Z0-9_-]", "_");
-        // Rimuovi eventuali underscore multipli
+
         sanitizedBaseName = sanitizedBaseName.replaceAll("_+", "_");
-        // Rimuovi eventuali underscore all'inizio o alla fine
+
         sanitizedBaseName = sanitizedBaseName.replaceAll("^_|_$", "");
 
-        // Sanitizza l'estensione (se presente)
+
         String sanitizedExtension = extension;
         if (!extension.isEmpty()) {
             sanitizedExtension = extension.replaceAll("[^a-zA-Z0-9.]", "");
         }
 
-        // Se il nome base è stato completamente rimosso, usa un valore predefinito
+
         if (sanitizedBaseName.isEmpty()) {
             sanitizedBaseName = "file";
         }
 
-        // Costruisci il nome file finale
+
         return sanitizedBaseName + sanitizedExtension;
     }
 
@@ -98,25 +98,25 @@ public class FileStorageService {
         try {
             if (file == null || filename == null || filename.isBlank()) {
                 logger.warn("Input non valido per storeFile: file, nome file o idScenario mancanti.");
-                return null; // Ritorna null per input non validi
+                return null;
             }
             String sanitizedFilename = getSanitizedFilename(filename);
-            // Risolve il percorso completo del file di destinazione
+
             Path destinationFile = this.rootLocation.resolve(sanitizedFilename).normalize();
 
-            // Controllo di sicurezza: verifica che il file sia salvato DENTRO la rootLocation
+
             if (!destinationFile.getParent().equals(this.rootLocation)) {
                 logger.error("Tentativo di memorizzare il file fuori dalla directory consentita: {}", destinationFile);
                 throw new RuntimeException("Cannot store file outside current directory");
             }
 
-            // Copia il file, sostituendo quello esistente se presente
+
             Files.copy(file, destinationFile, StandardCopyOption.REPLACE_EXISTING);
             logger.info("File memorizzato con successo: {}", sanitizedFilename);
-            return sanitizedFilename; // Ritorna il nome del file come salvato
+            return sanitizedFilename;
         } catch (IOException e) {
             logger.error("Errore durante la memorizzazione del file {} (sanitized: {})", filename, getSanitizedFilename(filename), e);
-            // Rilancia come RuntimeException per segnalare l'errore al chiamante
+
             throw new RuntimeException("Failed to store file " + filename, e);
         }
     }
@@ -132,7 +132,7 @@ public class FileStorageService {
             return;
         }
         for (String filename : filenames) {
-            // Chiama deleteFile per ogni file nella lista
+
             deleteFile(filename);
         }
     }
@@ -149,7 +149,7 @@ public class FileStorageService {
             return;
         }
 
-        // Verifica se il file è utilizzato in altri scenari
+
         if (MediaHelper.isFileInUse(filename)) {
             logger.info("File {} non eliminato perché è utilizzato in altri scenari", filename);
             return;
@@ -158,10 +158,10 @@ public class FileStorageService {
         try {
             Path filePath = this.rootLocation.resolve(filename).normalize();
 
-            // Controllo di sicurezza: verifica che il file sia DENTRO la rootLocation
+
             if (!filePath.getParent().equals(this.rootLocation)) {
                 logger.error("Tentativo di eliminare il file fuori dalla directory consentita: {}", filePath);
-                return; // Non procedere se il percorso è sospetto
+                return;
             }
 
             boolean deleted = Files.deleteIfExists(filePath);
@@ -171,7 +171,7 @@ public class FileStorageService {
                 logger.warn("File non trovato per l'eliminazione: {}", filename);
             }
         } catch (IOException e) {
-            // Logga l'errore ma non rilancia eccezioni per non bloccare eliminazioni multiple
+
             logger.error("Errore durante l'eliminazione del file {}", filename, e);
         }
     }
@@ -199,7 +199,7 @@ public class FileStorageService {
     public void store(InputStream inputStream, String centerLogoFilename) {
         try {
             Path destinationFile = rootLocation.resolve(centerLogoFilename).normalize();
-            // Controllo di sicurezza: verifica che il file sia salvato DENTRO la rootLocation
+
             if (!destinationFile.getParent().equals(rootLocation)) {
                 logger.error("Tentativo di memorizzare il file fuori dalla directory consentita: {}", destinationFile);
                 throw new RuntimeException("Cannot store file outside current directory");
@@ -215,7 +215,7 @@ public class FileStorageService {
     public InputStream readFile(String centerLogoFilename) {
         try {
             Path filePath = rootLocation.resolve(centerLogoFilename).normalize();
-            // Controllo di sicurezza: verifica che il file sia DENTRO la rootLocation
+
             if (!filePath.getParent().equals(rootLocation)) {
                 logger.error("Tentativo di leggere il file fuori dalla directory consentita: {}", filePath);
                 throw new RuntimeException("Cannot read file outside current directory");
@@ -233,7 +233,7 @@ public class FileStorageService {
             for (Path path : directoryStream) {
                 if (Files.isRegularFile(path)) {
                     String filename = path.getFileName().toString();
-                    // Esclude center_logo.png dalla lista dei file
+
                     if (!filename.equals("center_logo.png")) {
                         files.add(filename);
                     }

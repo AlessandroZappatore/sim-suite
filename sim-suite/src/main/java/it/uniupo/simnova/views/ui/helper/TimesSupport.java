@@ -6,6 +6,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -14,7 +15,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.dialog.Dialog; // Import Dialog
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.domain.common.ParametroAggiuntivo;
 import it.uniupo.simnova.domain.common.Tempo;
@@ -136,7 +137,7 @@ public class TimesSupport {
                             "this.addEventListener('mouseout', function() { this.style.boxShadow = 'var(--lumo-box-shadow-xs)'; });"
             );
 
-            // Time Title and Delete Button Container
+
             HorizontalLayout headerLayout = new HorizontalLayout();
             headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
             headerLayout.setWidthFull();
@@ -166,7 +167,7 @@ public class TimesSupport {
                 confirmDeleteButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
                 confirmDeleteButton.addClickListener(confirmEvent -> {
                     advancedScenarioService.deleteTempo(tempo.getIdTempo(), scenarioId);
-                    Notification.show("Tempo T" + tempo.getIdTempo() + " eliminato con successo. Ricaricare la pagina per aggiornare la timeline.", 5000, Notification.Position.BOTTOM_CENTER);
+                    Notification.show("Tempo T" + tempo.getIdTempo() + " eliminato con successo. Ricaricare la pagina per aggiornare la timeline.", 5000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     confirmDialog.close();
                     UI.getCurrent().getPage().reload();
                 });
@@ -184,7 +185,7 @@ public class TimesSupport {
             headerLayout.add(leftSpacer, timeTitle, rightSpacer, deleteButton);
             headerLayout.setWidthFull();
             headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-            timeCard.add(headerLayout); // Add the header layout to the timeCard
+            timeCard.add(headerLayout);
 
             List<ParametroAggiuntivo> parametriAggiuntivi = advancedScenarioService.getParametriAggiuntiviByTempoId(tempo.getIdTempo(), scenarioId);
             VitalSignsDataProvider tempoDataProvider = new TempoVitalSignsAdapter(tempo, parametriAggiuntivi);
@@ -200,7 +201,7 @@ public class TimesSupport {
             detailsAndActionsContainer.setAlignItems(FlexComponent.Alignment.CENTER);
 
 
-            // --- Azione Section ---
+
             if (tempo.getAzione() != null && !tempo.getAzione().isEmpty()) {
                 Div azioneSection = createStyledSectionContainer(AZIONE_BORDER_COLOR);
                 Button editAzioneButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
@@ -221,7 +222,7 @@ public class TimesSupport {
                 azioneTextArea.getStyle().set("min-height", "100px");
                 azioneTextArea.setVisible(false);
 
-                // Holder per il layout Salva/Annulla
+
                 final AtomicReference<HorizontalLayout> azioneSaveCancelLayoutRef = new AtomicReference<>();
 
                 Runnable saveAzioneRunnable = () -> {
@@ -234,7 +235,7 @@ public class TimesSupport {
                         azioneSaveCancelLayoutRef.get().setVisible(false);
                     }
                     editAzioneButton.setVisible(true);
-                    Notification.show("Azione aggiornata.", 3000, Notification.Position.BOTTOM_CENTER);
+                    Notification.show("Azione aggiornata.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 };
 
                 Runnable cancelAzioneRunnable = () -> {
@@ -245,11 +246,10 @@ public class TimesSupport {
                         azioneSaveCancelLayoutRef.get().setVisible(false);
                     }
                     editAzioneButton.setVisible(true);
-                    Notification.show("Modifica azione annullata.", 3000, Notification.Position.BOTTOM_CENTER);
                 };
 
                 HorizontalLayout currentAzioneSaveCancelLayout = createSaveCancelButtons(saveAzioneRunnable, cancelAzioneRunnable);
-                azioneSaveCancelLayoutRef.set(currentAzioneSaveCancelLayout); // Imposta il riferimento
+                azioneSaveCancelLayoutRef.set(currentAzioneSaveCancelLayout);
                 currentAzioneSaveCancelLayout.setVisible(false);
                 azioneContentWrapper.add(azioneTextArea, currentAzioneSaveCancelLayout);
                 azioneSection.add(azioneContentWrapper);
@@ -263,7 +263,7 @@ public class TimesSupport {
                     editAzioneButton.setVisible(false);
                 });
 
-                // --- Transitions subsection ---
+
                 if (tempo.getTSi() >= 0 || tempo.getTNo() > 0) {
                     Hr transitionSeparator = new Hr();
                     transitionSeparator.getStyle().set("margin-top", "var(--lumo-space-m)").set("margin-bottom", "var(--lumo-space-s)");
@@ -330,7 +330,7 @@ public class TimesSupport {
                     editTransitionsForm.setWidthFull();
                     editTransitionsForm.setVisible(false);
 
-                    // Holder per il layout Salva/Annulla delle transizioni
+
                     final AtomicReference<HorizontalLayout> transitionsSaveCancelRef = new AtomicReference<>();
 
                     Runnable saveTransitionsRunnable = () -> {
@@ -344,7 +344,7 @@ public class TimesSupport {
                             transitionsSaveCancelRef.get().setVisible(false);
                         }
                         editTransitionsButton.setVisible(true);
-                        Notification.show("Transizioni aggiornate (T" + newTSi + ", T" + newTNo + "). Ricaricare per vedere i tag aggiornati.", 5000, Notification.Position.BOTTOM_CENTER);
+                        Notification.show("Transizioni aggiornate (T" + newTSi + ", T" + newTNo + "). Ricaricare per vedere i tag aggiornati.", 5000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                     };
 
                     Runnable cancelTransitionsRunnable = () -> {
@@ -357,7 +357,6 @@ public class TimesSupport {
                             transitionsSaveCancelRef.get().setVisible(false);
                         }
                         editTransitionsButton.setVisible(true);
-                        Notification.show("Modifica transizioni annullata.", 3000, Notification.Position.BOTTOM_CENTER);
                     };
 
                     HorizontalLayout currentTransitionsSaveCancelLayout = createSaveCancelButtons(saveTransitionsRunnable, cancelTransitionsRunnable);
@@ -371,7 +370,7 @@ public class TimesSupport {
                         transitionsLayout.setVisible(false);
                         noTransitionsDefinedMsg.setVisible(false);
                         editTransitionsForm.setVisible(true);
-                        if(transitionsSaveCancelRef.get() != null) {
+                        if (transitionsSaveCancelRef.get() != null) {
                             transitionsSaveCancelRef.get().setVisible(true);
                         }
                         editTransitionsButton.setVisible(false);
@@ -380,7 +379,7 @@ public class TimesSupport {
                 detailsAndActionsContainer.add(azioneSection);
             }
 
-            // --- Altri Dettagli Section ---
+
             if (tempo.getAltriDettagli() != null && !tempo.getAltriDettagli().isEmpty()) {
                 Div dettagliSection = createStyledSectionContainer(DETTAGLI_BORDER_COLOR);
                 Button editDettagliButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
@@ -401,7 +400,7 @@ public class TimesSupport {
                 dettagliTextArea.getStyle().set("min-height", "80px");
                 dettagliTextArea.setVisible(false);
 
-                // Holder per il layout Salva/Annulla
+
                 final AtomicReference<HorizontalLayout> dettagliSaveCancelLayoutRef = new AtomicReference<>();
 
                 Runnable saveDettagliRunnable = () -> {
@@ -414,7 +413,7 @@ public class TimesSupport {
                         dettagliSaveCancelLayoutRef.get().setVisible(false);
                     }
                     editDettagliButton.setVisible(true);
-                    Notification.show("Dettagli aggiuntivi aggiornati.", 3000, Notification.Position.BOTTOM_CENTER);
+                    Notification.show("Dettagli aggiuntivi aggiornati.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 };
 
                 Runnable cancelDettagliRunnable = () -> {
@@ -425,7 +424,6 @@ public class TimesSupport {
                         dettagliSaveCancelLayoutRef.get().setVisible(false);
                     }
                     editDettagliButton.setVisible(true);
-                    Notification.show("Modifica dettagli annullata.", 3000, Notification.Position.BOTTOM_CENTER);
                 };
 
                 HorizontalLayout currentDettagliSaveCancelLayout = createSaveCancelButtons(saveDettagliRunnable, cancelDettagliRunnable);
@@ -445,7 +443,7 @@ public class TimesSupport {
                 detailsAndActionsContainer.add(dettagliSection);
             }
 
-            // --- Ruolo Genitore Section ---
+
             if (tempo.getRuoloGenitore() != null && !tempo.getRuoloGenitore().isEmpty()) {
                 Div ruoloSection = createStyledSectionContainer(RUOLO_BORDER_COLOR);
                 Button editRuoloButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
@@ -466,7 +464,7 @@ public class TimesSupport {
                 ruoloTextArea.getStyle().set("min-height", "80px");
                 ruoloTextArea.setVisible(false);
 
-                // Holder per il layout Salva/Annulla
+
                 final AtomicReference<HorizontalLayout> ruoloSaveCancelLayoutRef = new AtomicReference<>();
 
                 Runnable saveRuoloRunnable = () -> {
@@ -479,7 +477,7 @@ public class TimesSupport {
                         ruoloSaveCancelLayoutRef.get().setVisible(false);
                     }
                     editRuoloButton.setVisible(true);
-                    Notification.show("Ruolo genitore aggiornato.", 3000, Notification.Position.BOTTOM_CENTER);
+                    Notification.show("Ruolo genitore aggiornato.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 };
 
                 Runnable cancelRuoloRunnable = () -> {
@@ -490,7 +488,6 @@ public class TimesSupport {
                         ruoloSaveCancelLayoutRef.get().setVisible(false);
                     }
                     editRuoloButton.setVisible(true);
-                    Notification.show("Modifica ruolo annullata.", 3000, Notification.Position.BOTTOM_CENTER);
                 };
 
                 HorizontalLayout currentRuoloSaveCancelLayout = createSaveCancelButtons(saveRuoloRunnable, cancelRuoloRunnable);

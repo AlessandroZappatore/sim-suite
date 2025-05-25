@@ -100,13 +100,13 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
-        // 1. HEADER con pulsante indietro
+
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
-        // 2. CONTENUTO PRINCIPALE con righe degli esami
+
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
@@ -127,7 +127,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
         contentLayout.add(headerSection, rowsContainer, addButton);
 
-        // 3. FOOTER con pulsante avanti
+
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
         mainLayout.add(customHeader, contentLayout, footerLayout);
@@ -152,35 +152,35 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                 throw new NumberFormatException("Scenario ID è richiesto");
             }
 
-            // Dividi il parametro usando '/' come separatore
-            String[] parts = parameter.split("/");
-            String scenarioIdStr = parts[0]; // Il primo elemento è l'ID dello scenario
 
-            // Verifica e imposta l'ID scenario
+            String[] parts = parameter.split("/");
+            String scenarioIdStr = parts[0];
+
+
             this.scenarioId = Integer.parseInt(scenarioIdStr);
             if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
                 logger.warn("Scenario ID non valido o non esistente: {}", scenarioId);
                 throw new NumberFormatException("Scenario ID non valido");
             }
 
-            // Imposta la modalità se presente come secondo elemento
+
             mode = parts.length > 1 && "edit".equals(parts[1]) ? "edit" : "create";
 
             logger.info("Scenario ID impostato a: {}, Mode: {}", this.scenarioId, mode);
 
-            // Modifica la visibilità dell'header e dei crediti
+
             VerticalLayout mainLayout = getContent();
 
-            // Gestione dell'header (il primo HorizontalLayout)
+
             mainLayout.getChildren()
                     .filter(component -> component instanceof HorizontalLayout)
                     .findFirst()
                     .ifPresent(header -> header.setVisible(!"edit".equals(mode)));
 
-            // Gestione del footer con i crediti (l'ultimo HorizontalLayout)
+
             mainLayout.getChildren()
                     .filter(component -> component instanceof HorizontalLayout)
-                    .reduce((first, second) -> second) // Prendi l'ultimo elemento
+                    .reduce((first, second) -> second)
                     .ifPresent(footer -> {
                         HorizontalLayout footerLayout = (HorizontalLayout) footer;
                         footerLayout.getChildren()
@@ -188,7 +188,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                                 .forEach(credits -> credits.setVisible(!"edit".equals(mode)));
                     });
 
-            // Inizializza la vista in base alla modalità
+
             if ("edit".equals(mode)) {
                 logger.info("Modalità EDIT: caricamento dati esistenti per scenario {}", this.scenarioId);
                 nextButton.setText("Salva");
@@ -215,14 +215,14 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
         if (existingData == null || existingData.isEmpty()) {
             logger.warn("Nessun dato esistente trovato per scenario {} in modalità edit. Aggiungo una riga vuota.", this.scenarioId);
-            addNewRow(); // Aggiungi una riga vuota se non ci sono dati da modificare
+            addNewRow();
         } else {
-            // Rimuovi eventuali righe pre-esistenti (se addNewRow fosse chiamata prima)
+
             rowsContainer.removeAll();
             formRows.clear();
-            rowCount = 1; // Resetta il contatore
+            rowCount = 1;
 
-            // Per ogni dato esistente, crea e popola una riga del form
+
             for (EsameReferto data : existingData) {
                 populateRow(data);
             }
@@ -237,7 +237,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         FormRow newRow = new FormRow(rowCount++, fileStorageService);
         formRows.add(newRow);
 
-        // Crea container per la riga con bordo e pulsante di eliminazione
+
         VerticalLayout rowContainer = new VerticalLayout();
         rowContainer.addClassName(LumoUtility.Padding.MEDIUM);
         rowContainer.addClassName(LumoUtility.Border.ALL);
@@ -249,10 +249,10 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                 .set("background", "var(--lumo-base-color)")
                 .set("border-radius", "var(--lumo-border-radius-l)")
                 .set("margin-bottom", "var(--lumo-space-l)")
-                .set("border-left", "6px solid " + getBorderColor(rowCount))  // Colore dinamico
+                .set("border-left", "6px solid " + getBorderColor(rowCount))
                 .set("box-shadow", "var(--lumo-box-shadow-s)");
 
-        // Header della riga con titolo e pulsante elimina
+
         HorizontalLayout rowHeader = new HorizontalLayout();
         rowHeader.setWidthFull();
         rowHeader.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -264,7 +264,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             formRows.remove(newRow);
             rowsContainer.remove(rowContainer);
             if (formRows.isEmpty()) {
-                addNewRow(); // Mantieni almeno una riga
+                addNewRow();
             }
         });
 
@@ -287,7 +287,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         FormRow existingRow = new FormRow(rowCount++, fileStorageService);
         formRows.add(existingRow);
 
-        // Logica per determinare se l'esame era custom o selezionato
+
         boolean isCustom = !ALLLABSEXAMS.contains(data.getTipo()) && !ALLINSTREXAMS.contains(data.getTipo());
 
         if (isCustom) {
@@ -297,11 +297,11 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             existingRow.examTypeGroup.setValue("Seleziona da elenco");
             existingRow.selectedExamField.setValue(data.getTipo() != null ? data.getTipo() : "");
         }
-        existingRow.updateExamFieldVisibility(); // Aggiorna visibilità campi
+        existingRow.updateExamFieldVisibility();
 
         existingRow.getReportField().setValue(data.getRefertoTestuale() != null ? data.getRefertoTestuale() : "");
 
-        // Gestione file esistente per i media
+
         if (data.getMedia() != null && !data.getMedia().isEmpty()) {
             existingRow.mediaSourceGroup.setValue("Seleziona da esistenti");
             existingRow.selectedMediaField.setValue(data.getMedia());
@@ -309,7 +309,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             existingRow.updateMediaFieldVisibility();
         }
 
-        // Aggiungi la riga al container (simile a addNewRow)
+
         VerticalLayout rowContainer = new VerticalLayout();
         rowContainer.addClassName(LumoUtility.Padding.MEDIUM);
         rowContainer.addClassName(LumoUtility.Border.ALL);
@@ -329,7 +329,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             formRows.remove(existingRow);
             rowsContainer.remove(rowContainer);
             if (formRows.isEmpty()) {
-                addNewRow(); // Mantieni almeno una riga
+                addNewRow();
             }
         });
 
@@ -358,9 +358,9 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                     String selectedExam = row.getSelectedExam();
                     String reportText = row.getReportField().getValue();
 
-                    // Controlla la fonte del media (nuovo upload o esistente)
+
                     if ("Carica nuovo file".equals(row.mediaSourceGroup.getValue())) {
-                        // Gestione upload file
+
                         if (row.getUpload().getReceiver() instanceof MemoryBuffer buffer) {
                             if (buffer.getFileName() != null && !buffer.getFileName().isEmpty()) {
                                 try (InputStream fileData = buffer.getInputStream()) {
@@ -370,14 +370,14 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                             }
                         }
                     } else {
-                        // Usa il media esistente selezionato
+
                         fileName = row.getSelectedMedia();
                         if (fileName != null && !fileName.isEmpty()) {
                             hasValidData = true;
                         }
                     }
 
-                    // Verifica se ci sono dati validi nell'esame o nel referto testuale
+
                     if ((selectedExam != null && !selectedExam.trim().isEmpty()) ||
                             (reportText != null && !reportText.trim().isEmpty())) {
                         hasValidData = true;
@@ -393,7 +393,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                     esamiReferti.add(esameReferto);
                 }
 
-                // Salva i dati solo se ci sono contenuti validi
+
                 if (hasValidData) {
                     boolean success = esameRefertoService.saveEsamiReferti(scenarioId, esamiReferti);
                     if (success) {
@@ -404,11 +404,11 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                     logger.info("Nessun dato significativo da salvare per gli esami e referti dello scenario {}", scenarioId);
                 }
 
-                // Verifica la modalità: se è "edit" rimani nella pagina attuale,
-                // altrimenti naviga alla pagina successiva
+
+
                 boolean isEditMode = "edit".equals(mode);
                 if (!isEditMode) {
-                    // Naviga alla prossima vista solo se NON è in modalità edit
+
                     ui.navigate("moulage/" + scenarioId);
                 }
 

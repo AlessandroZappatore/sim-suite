@@ -60,13 +60,13 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
     public DescrizioneView(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
 
-        // Configurazione layout principale
+
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
-        // 1. HEADER con pulsante indietro e titolo
+
         AppHeader header = new AppHeader(fileStorageService);
 
-        // Modernizzare il pulsante indietro
+
         Button backButton = StyleApp.getBackButton();
 
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
@@ -78,32 +78,32 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
-        // 2. CONTENUTO PRINCIPALE con area di testo
+
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
         descriptionEditor = TinyEditor.getEditor();
 
         contentLayout.add(headerSection, descriptionEditor);
 
-        // 3. FOOTER con pulsanti e crediti
+
         Button nextButton = StyleApp.getNextButton();
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
-        // Aggiunta componenti al layout principale
+
         mainLayout.add(customHeader, contentLayout, footerLayout);
 
-        // Gestione eventi
+
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("target/" + scenarioId)));
 
         nextButton.addClickListener(e -> {
-            // Verifica se il contenuto è vuoto o contiene solo spazi bianchi/HTML vuoto
+
             String content = descriptionEditor.getValue();
             boolean isEmpty = content == null || content.trim().isEmpty() ||
                     content.trim().equals("<p><br></p>") || content.trim().equals("<p></p>");
 
             if (isEmpty) {
-                // Se è vuoto, mostra il dialog di conferma
+
                 StyleApp.createConfirmDialog(
                         "Descrizione vuota",
                         "Sei sicuro di voler continuare senza una descrizione?",
@@ -112,7 +112,7 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
                         () -> saveDescriptionAndNavigate(nextButton.getUI())
                 );
             } else {
-                // Se c'è contenuto, procedi direttamente
+
                 saveDescriptionAndNavigate(nextButton.getUI());
             }
         });
@@ -165,7 +165,7 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
             getContent().add(progressBar);
 
             try {
-                // Salva la descrizione, anche se vuota
+
                 boolean success = scenarioService.updateScenarioDescription(
                         scenarioId, descriptionEditor.getValue()
                 );

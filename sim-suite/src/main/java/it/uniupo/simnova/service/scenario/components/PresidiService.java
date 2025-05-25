@@ -67,14 +67,14 @@ public class PresidiService {
         boolean success = true;
 
         try (Connection conn = DBConnect.getInstance().getConnection()) {
-            // Prima elimina tutte le associazioni esistenti per questo scenario
+
             final String deleteSQL = "DELETE FROM PresidioScenario WHERE id_scenario = ?";
             try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSQL)) {
                 deleteStmt.setInt(1, scenarioId);
                 deleteStmt.executeUpdate();
             }
 
-            // Poi inserisci le nuove associazioni
+
             final String insertSQL = "INSERT INTO PresidioScenario (id_presidio, id_scenario) VALUES (?, ?)";
             try (PreparedStatement insertStmt = conn.prepareStatement(insertSQL)) {
                 for (String presidio : value) {

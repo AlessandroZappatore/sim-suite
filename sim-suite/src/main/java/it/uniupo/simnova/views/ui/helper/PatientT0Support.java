@@ -51,11 +51,9 @@ public class PatientT0Support {
             Component vitalSignsMonitor = MonitorSupport.createVitalSignsMonitor(t0DataProvider, scenarioId, true, presidiService, pazienteT0Service, advancedScenarioService, null);
             patientCard.add(vitalSignsMonitor);
 
-            // Accessi venosi e arteriosi
+
             Div accessCard = AccessSupport.getAccessoCard(pazienteT0Service, scenarioId);
-            if( accessCard != null ) {
-                patientCard.add(accessCard);
-            }
+            patientCard.add(accessCard);
 
             layout.add(patientCard);
         } else {
@@ -63,14 +61,14 @@ public class PatientT0Support {
             layout.add(noDataCard);
         }
 
-        // Sezione Esame Fisico
+
         Div examCard = PhysicalExamSupport.getExamCard(esame, esameFisicoService, scenarioId);
         if(examCard != null) layout.add(examCard);
 
         return layout;
     }
 
-    // Adattatore da PazienteT0 a VitalSignsDataProvider
+
     private record PazienteT0VitalSignsAdapter(PazienteT0 paziente) implements VitalSignsDataProvider {
 
         @Override

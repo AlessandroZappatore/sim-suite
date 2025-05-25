@@ -18,7 +18,7 @@ import it.uniupo.simnova.service.scenario.components.AzioneChiaveService;
 import it.uniupo.simnova.service.storage.FileStorageService;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.views.common.components.AppHeader;
-import it.uniupo.simnova.views.common.utils.FieldGenerator; // Assumendo che questo crei TextField standard
+import it.uniupo.simnova.views.common.utils.FieldGenerator;
 import it.uniupo.simnova.views.common.utils.StyleApp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,15 +78,15 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
         this.scenarioService = scenarioService;
         this.azioneChiaveService = azioneChiaveService;
 
-        // Configurazione layout principale
+
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
-        // 1. HEADER con pulsante indietro e titolo
-        AppHeader header = new AppHeader(fileStorageService); // fileStorageService passato all'header
+
+        AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
-        // 2. CONTENUTO PRINCIPALE con azioni chiave dinamiche
+
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
@@ -96,43 +96,43 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
                 "var(--lumo-primary-color)"
         );
 
-        // Container per le azioni chiave
+
         actionFieldsContainer = new VerticalLayout();
         actionFieldsContainer.setWidthFull();
         actionFieldsContainer.setPadding(false);
-        actionFieldsContainer.setSpacing(true); // Mantieni la spaziatura se desiderato
+        actionFieldsContainer.setSpacing(true);
 
-        // Pulsante per aggiungere nuove azioni chiave
+
         Button addButton = new Button("Aggiungi azione chiave", new Icon(VaadinIcon.PLUS_CIRCLE));
         addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addButton.getStyle().set("margin-top", "var(--lumo-space-m)");
-        addButton.addClickListener(e -> addNewActionField("")); // Aggiunge un campo vuoto
+        addButton.addClickListener(e -> addNewActionField(""));
 
         contentLayout.add(headerSection, actionFieldsContainer, addButton);
 
-        // 3. FOOTER con pulsanti
+
         Button nextButton = StyleApp.getNextButton();
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
         mainLayout.add(customHeader, contentLayout, footerLayout);
 
-        // Gestione eventi
+
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("pattoaula/" + scenarioId)));
 
         nextButton.addClickListener(e -> {
-            // Verifica se il contenuto è vuoto o contiene solo spazi bianchi/HTML vuoto
+
             List<String> content = actionFields.stream()
                     .map(TextField::getValue)
-                    .map(String::trim) // Rimuove spazi bianchi
-                    .filter(value -> !value.isEmpty()) // Filtra valori nulli o vuoti
-                    .distinct() // Rimuove duplicati se necessario (opzionale, dipende dai requisiti)
+                    .map(String::trim)
+                    .filter(value -> !value.isEmpty())
+                    .distinct()
                     .collect(Collectors.toList());
 
             boolean isEmpty = content.isEmpty();
 
             if (isEmpty) {
-                // Se è vuoto, mostra il dialog di conferma
+
                 StyleApp.createConfirmDialog(
                         "Descrizione vuota",
                         "Sei sicuro di voler continuare senza una descrizione?",
@@ -141,7 +141,7 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
                         () -> saveAzioniChiaveAndNavigate(nextButton.getUI(), content)
                 );
             } else {
-                // Se c'è contenuto, procedi direttamente
+
                 saveAzioniChiaveAndNavigate(nextButton.getUI(), content);
             }
         });    }
@@ -154,27 +154,27 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
     private void addNewActionField(String initialValue) {
         HorizontalLayout fieldLayout = new HorizontalLayout();
         fieldLayout.setWidthFull();
-        fieldLayout.setSpacing(true); // Spaziatura tra TextField e bottone Rimuovi
-        fieldLayout.setAlignItems(FlexComponent.Alignment.CENTER); // Allinea alla baseline per un aspetto migliore
+        fieldLayout.setSpacing(true);
+        fieldLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
         TextField actionField = FieldGenerator.createTextField("Azione Chiave #" + size++,
                 "Inserisci un'azione chiave",
                 false);
         actionField.setValue(initialValue != null ? initialValue : "");
 
-        // AGGIUNTO: Aggiungi il campo alla lista actionFields
+
         actionFields.add(actionField);
 
         Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
         removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_ICON);
-        removeButton.setAriaLabel("Rimuovi azione");// Per accessibilità
+        removeButton.setAriaLabel("Rimuovi azione");
         removeButton.addClickListener(e -> {
             actionFields.remove(actionField);
             actionFieldsContainer.remove(fieldLayout);
             size--;
         });
 
-        fieldLayout.addAndExpand(actionField); // actionField occupa lo spazio disponibile
+        fieldLayout.addAndExpand(actionField);
         fieldLayout.add(removeButton);
         actionFieldsContainer.add(fieldLayout);
     }
@@ -189,15 +189,15 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
         try {
             if (parameter == null || parameter.trim().isEmpty()) {
-                // Se nessun ID è fornito, potrebbe essere un nuovo scenario o un errore.
-                // Decidi come gestire questo caso. Qui reindirizzo a una pagina di errore.
+
+
                 logger.warn("ID scenario non fornito nell'URL.");
                 event.rerouteToError(NotFoundException.class, "ID scenario non fornito.");
                 return;
             }
 
             this.scenarioId = Integer.parseInt(parameter);
-            if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) { // Assumendo che existScenario esista
+            if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
                 logger.warn("Tentativo di accesso a scenario non esistente o ID non valido: {}", scenarioId);
                 event.rerouteToError(NotFoundException.class, "Scenario con ID " + scenarioId + " non trovato.");
                 return;
@@ -208,7 +208,7 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
         } catch (NumberFormatException e) {
             logger.error("ID scenario non valido ricevuto come parametro: {}", parameter, e);
             event.rerouteToError(NotFoundException.class, "Formato ID scenario non valido: " + parameter);
-        } catch (Exception e) { // Catch generico per altri errori imprevisti durante il setup
+        } catch (Exception e) {
             logger.error("Errore imprevisto durante l'impostazione dei parametri per scenario ID: {}", parameter, e);
             event.rerouteToError(NotFoundException.class, "Errore durante il caricamento della pagina.");
         }
@@ -218,10 +218,10 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
      * Carica le azioni chiave esistenti per lo scenario corrente dal servizio.
      */
     private void loadExistingAzioniChiave() {
-        actionFields.clear(); // Pulisci i campi esistenti prima di caricarne di nuovi
-        actionFieldsContainer.removeAll(); // Rimuovi i componenti UI esistenti
+        actionFields.clear();
+        actionFieldsContainer.removeAll();
 
-        // Assumiamo che scenarioService.getNomiAzioniChiaveByScenarioId restituisca List<String>
+
         List<String> nomiAzioni = azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenarioId);
 
         if (nomiAzioni != null && !nomiAzioni.isEmpty()) {
@@ -232,8 +232,8 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
             }
         }
 
-        // Se non ci sono azioni chiave caricate (o se la lista era vuota/null),
-        // aggiungiamo un campo vuoto per iniziare.
+
+
         if (actionFields.isEmpty()) {
             addNewActionField("");
         }
@@ -249,7 +249,7 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
             ProgressBar progressBar = new ProgressBar();
             progressBar.setIndeterminate(true);
             getContent().add(progressBar);
-            // Raccoglie i valori dai TextField
+
 
             try {
                 boolean success = azioneChiaveService.updateAzioniChiaveForScenario(scenarioId, nomiAzioniDaSalvare);
@@ -257,7 +257,7 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
                     if (success) {
-                        ui.navigate("obiettivididattici/" + scenarioId); // Naviga alla pagina successiva
+                        ui.navigate("obiettivididattici/" + scenarioId);
                     } else {
                         Notification.show("Errore durante il salvataggio delle azioni chiave.", 5000, Notification.Position.MIDDLE)
                                 .addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -267,10 +267,8 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
             } catch (Exception e) {
                 getContent().remove(progressBar);
                 logger.error("Errore durante il salvataggio delle azioni chiave per scenario ID: {}", scenarioId, e);
-                ui.accessSynchronously(() -> { // Aggiorna l'UI nel thread dell'UI
-                    Notification.show("Errore critico: " + e.getMessage(), 5000, Notification.Position.MIDDLE)
-                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
-                });
+                ui.accessSynchronously(() -> Notification.show("Errore critico: " + e.getMessage(), 5000, Notification.Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR));
             }
         });
     }

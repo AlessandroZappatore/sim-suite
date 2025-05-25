@@ -60,19 +60,19 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
     public LiquidiView(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
 
-        // Configurazione layout principale
+
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
-        // 1. HEADER
+
         AppHeader header = new AppHeader(fileStorageService);
 
-        // Pulsante indietro
+
         Button backButton = StyleApp.getBackButton();
 
-        // Container per header personalizzato
+
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
-        // Crea la sezione dell'intestazione
+
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "Liquidi e dosi farmaci",
                 "Inserisci i liquidi e dosi farmaci disponibili all'inizio della simulazione (T0)",
@@ -80,37 +80,37 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
                 "var(--lumo-primary-color)"
         );
 
-        // 2. CONTENUTO PRINCIPALE
+
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
         liquidiEditor = TinyEditor.getEditor();
 
         contentLayout.add(headerSection, liquidiEditor);
 
-        // 3. FOOTER con pulsanti e crediti
+
         Button nextButton = StyleApp.getNextButton();
 
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
-        // Aggiunta di tutti i componenti al layout principale
+
         mainLayout.add(
                 customHeader,
                 contentLayout,
                 footerLayout
         );
 
-        // Listener per i pulsanti
+
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("moulage/" + scenarioId)));
 
         nextButton.addClickListener(e -> {
-            // Verifica se il contenuto è vuoto o contiene solo spazi bianchi/HTML vuoto
+
             String content = liquidiEditor.getValue();
             boolean isEmpty = content == null || content.trim().isEmpty() ||
                     content.trim().equals("<p><br></p>") || content.trim().equals("<p></p>");
 
             if (isEmpty) {
-                // Se è vuoto, mostra il dialog di conferma
+
                 StyleApp.createConfirmDialog(
                         "Descrizione vuota",
                         "Sei sicuro di voler continuare senza una descrizione?",
@@ -119,7 +119,7 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
                         () -> saveLiquidiAndNavigate(nextButton.getUI())
                 );
             } else {
-                // Se c'è contenuto, procedi direttamente
+
                 saveLiquidiAndNavigate(nextButton.getUI());
             }
         });

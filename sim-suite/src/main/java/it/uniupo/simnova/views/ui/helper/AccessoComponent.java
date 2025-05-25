@@ -38,12 +38,11 @@ public class AccessoComponent extends HorizontalLayout {
      *
      * @param tipo il tipo di accesso (venoso o arterioso)
      */
-    public AccessoComponent(String tipo) {
-        setWidthFull();
+    public AccessoComponent(String tipo, boolean hasDelete) {
         setAlignItems(Alignment.BASELINE);
         setSpacing(true);
+        getStyle().set("flex-wrap", "wrap");
 
-        // Inizializza l'oggetto Accesso con valori di default
         this.accesso = new Accesso(0, "", "", "", 0);
 
         tipoSelect = FieldGenerator.createSelect(
@@ -58,6 +57,12 @@ public class AccessoComponent extends HorizontalLayout {
                     "Radiale", "Femorale", "Omerale", "Brachiale", "Ascellare", "Pedidia", "Altro"
             );
         }
+        tipoSelect.setWidth(null);
+        tipoSelect.getStyle()
+                .set("flex-grow", "1")
+                .set("flex-shrink", "1")
+                .set("flex-basis", "220px")
+                .set("min-width", "180px");
 
         tipoSelect.addValueChangeListener(e -> {
             if (e.getValue() != null) {
@@ -70,6 +75,12 @@ public class AccessoComponent extends HorizontalLayout {
                 "(es. avambraccio, collo, torace)",
                 true
         );
+        posizioneField.setWidth(null);
+        posizioneField.getStyle()
+                .set("flex-grow", "1")
+                .set("flex-shrink", "1")
+                .set("flex-basis", "200px")
+                .set("min-width", "180px");
         posizioneField.addValueChangeListener(e -> accesso.setPosizione(e.getValue()));
 
         latoSelect = FieldGenerator.createSelect(
@@ -78,6 +89,12 @@ public class AccessoComponent extends HorizontalLayout {
                 null,
                 true
         );
+        latoSelect.setWidth(null);
+        latoSelect.getStyle()
+                .set("flex-grow", "1")
+                .set("flex-shrink", "1")
+                .set("flex-basis", "100px")
+                .set("min-width", "90px");
         latoSelect.addValueChangeListener(e -> accesso.setLato(e.getValue()));
 
         misuraSelect = FieldGenerator.createSelect(
@@ -86,6 +103,12 @@ public class AccessoComponent extends HorizontalLayout {
                 null,
                 true
         );
+        misuraSelect.setWidth(null);
+        misuraSelect.getStyle()
+                .set("flex-grow", "1")
+                .set("flex-shrink", "1")
+                .set("flex-basis", "140px")
+                .set("min-width", "120px");
         misuraSelect.addValueChangeListener(e -> accesso.setMisura(e.getValue()));
 
         Button removeButton = StyleApp.getButton(
@@ -94,16 +117,20 @@ public class AccessoComponent extends HorizontalLayout {
                 ButtonVariant.LUMO_ERROR,
                 "var(--lumo-error-color)"
         );
+        removeButton.getStyle()
+                .set("flex-grow", "0")
+                .set("flex-shrink", "0")
+                .set("align-self", "flex-end");
         removeButton.addClickListener(e -> removeSelf());
 
-        add(tipoSelect, posizioneField, latoSelect, misuraSelect, removeButton);
+        add(tipoSelect, posizioneField, latoSelect, misuraSelect);
+        if (hasDelete) add(removeButton);
     }
 
     /**
      * Rimuove il componente di accesso dalla vista e dalla lista appropriata.
      */
     private void removeSelf() {
-        // Rimozione visiva (codice esistente)
         Optional<Component> parentOpt = getParent();
         parentOpt.ifPresent(parent -> {
             if (parent instanceof VerticalLayout container) {
@@ -119,7 +146,6 @@ public class AccessoComponent extends HorizontalLayout {
      * @return l'oggetto Accesso con i dati correnti
      */
     public Accesso getAccesso() {
-        // Assicurati che i valori siano aggiornati prima di restituire l'oggetto
         accesso.setTipologia(tipoSelect.getValue());
         accesso.setPosizione(posizioneField.getValue());
         accesso.setLato(latoSelect.getValue());

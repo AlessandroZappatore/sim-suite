@@ -92,12 +92,12 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         materialiDisponibiliGrid = new Grid<>();
         materialiDisponibiliGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
         materialiDisponibiliGrid.setAllRowsVisible(true);
-        materialiDisponibiliGrid.addColumn(Materiale::getNome).setHeader("Materiale disponibile").setFlexGrow(1); // Lascia flexGrow qui
-        materialiDisponibiliGrid.addColumn(Materiale::getDescrizione).setHeader("Descrizione").setFlexGrow(2); // Lascia flexGrow qui
+        materialiDisponibiliGrid.addColumn(Materiale::getNome).setHeader("Materiale disponibile").setFlexGrow(1);
+        materialiDisponibiliGrid.addColumn(Materiale::getDescrizione).setHeader("Descrizione").setFlexGrow(2);
         materialiDisponibiliGrid.addColumn(
                         new ComponentRenderer<>(materiale -> {
                             Div buttonContainer = new Div();
-                            boolean isSelected = materialiSelezionati.stream().anyMatch(m -> m.getId().equals(materiale.getId())); // Controllo più sicuro per ID
+                            boolean isSelected = materialiSelezionati.stream().anyMatch(m -> m.getId().equals(materiale.getId()));
                             if (!isSelected) {
                                 Button addButton = new Button(new Icon(VaadinIcon.PLUS));
                                 addButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
@@ -112,8 +112,8 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                             return buttonContainer;
                         })
                 ).setHeader("Aggiungi")
-                .setWidth("90px") // Larghezza fissa
-                .setFlexGrow(0); // Non deve espandersi
+                .setWidth("90px")
+                .setFlexGrow(0);
 
         materialiDisponibiliGrid.addColumn(
                         new ComponentRenderer<>(materiale -> {
@@ -123,49 +123,49 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                             return deleteButton;
                         })
                 ).setHeader("Elimina")
-                .setWidth("90px") // Larghezza fissa
-                .setFlexGrow(0); // Non deve espandersi
+                .setWidth("90px")
+                .setFlexGrow(0);
 
         materialiSelezionatiGrid = new Grid<>();
         materialiSelezionatiGrid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
         materialiSelezionatiGrid.setAllRowsVisible(true);
-        materialiSelezionatiGrid.addColumn(Materiale::getNome).setHeader("Materiale selezionato").setFlexGrow(1); // Lascia flexGrow qui
-        materialiSelezionatiGrid.addColumn(Materiale::getDescrizione).setHeader("Descrizione").setFlexGrow(2); // Lascia flexGrow qui
+        materialiSelezionatiGrid.addColumn(Materiale::getNome).setHeader("Materiale selezionato").setFlexGrow(1);
+        materialiSelezionatiGrid.addColumn(Materiale::getDescrizione).setHeader("Descrizione").setFlexGrow(2);
         materialiSelezionatiGrid.addColumn(
                         new ComponentRenderer<>(materiale -> {
                             Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
                             removeButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
                             removeButton.addClickListener(e -> {
-                                materialiSelezionati.removeIf(m -> m.getId().equals(materiale.getId())); // Rimuovi per ID
+                                materialiSelezionati.removeIf(m -> m.getId().equals(materiale.getId()));
                                 aggiornaGrids();
                             });
                             return removeButton;
                         })
                 ).setHeader("Rimuovi")
-                .setWidth("90px") // Larghezza fissa
-                .setFlexGrow(0); // Non deve espandersi
+                .setWidth("90px")
+                .setFlexGrow(0);
 
 
-        // Layout per le due griglie
+
         HorizontalLayout gridsLayout = new HorizontalLayout();
         gridsLayout.setWidthFull();
         gridsLayout.setSpacing(true);
-        gridsLayout.setAlignItems(FlexComponent.Alignment.START); // Allinea le griglie all'inizio verticalmente
+        gridsLayout.setAlignItems(FlexComponent.Alignment.START);
 
         VerticalLayout disponibiliLayout = getLayout();
-        setupMaterialiDisponibiliLayout(disponibiliLayout); // Setup con search etc.
+        setupMaterialiDisponibiliLayout(disponibiliLayout);
 
         VerticalLayout selezionatiLayout = getLayout();
 
         HorizontalLayout titleSelezionatiLayout = new HorizontalLayout(new Paragraph("Materiali selezionati:"));
-        titleSelezionatiLayout.setHeight("40px"); // Stessa altezza del titolo dei disponibili
+        titleSelezionatiLayout.setHeight("40px");
         titleSelezionatiLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         titleSelezionatiLayout.setPadding(false);
         titleSelezionatiLayout.setMargin(false);
 
         Div spacer = new Div();
-        spacer.setHeight("52px"); // Stesso spazio che occupa actionsLayout
-        spacer.getStyle().set("visibility", "hidden"); // Lo rendiamo invisibile
+        spacer.setHeight("52px");
+        spacer.getStyle().set("visibility", "hidden");
 
         selezionatiLayout.add(
                 titleSelezionatiLayout,
@@ -199,33 +199,33 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
             }
 
             String[] parts = parameter.split("/");
-            String scenarioIdStr = parts[0]; // Il primo elemento è l'ID dello scenario
+            String scenarioIdStr = parts[0];
 
-            // Verifica e imposta l'ID scenario
+
             this.scenarioId = Integer.parseInt(scenarioIdStr.trim());
             if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
                 logger.warn("ID Scenario non valido o non esistente: {}", scenarioId);
                 throw new NumberFormatException("ID Scenario non valido");
             }
 
-            // Imposta la modalità se presente come secondo elemento
+
             mode = parts.length > 1 && "edit".equals(parts[1]) ? "edit" : "create";
 
             logger.info("Scenario ID impostato a: {}, Mode: {}", this.scenarioId, mode);
 
-            // Modifica la visibilità dell'header e dei crediti
+
             VerticalLayout mainLayout = getContent();
 
-            // Nasconde il pulsante Indietro, l'header e i credits in modalità "edit"
+
             mainLayout.getChildren().forEach(component -> {
                 if (component instanceof HorizontalLayout layout) {
 
-                    // Gestione dell'header (il primo HorizontalLayout)
+
                     if (layout.getComponentAt(1) instanceof AppHeader) {
                         layout.setVisible(!"edit".equals(mode));
                     }
 
-                    // Gestione del footer (l'ultimo HorizontalLayout con i credits)
+
                     if (layout.getComponentCount() > 1 &&
                             layout.getComponentAt(0) instanceof CreditsComponent) {
                         if ("edit".equals(mode)) {
@@ -263,16 +263,16 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
     }
 
     private void aggiornaGrids() {
-        // Usa gli ID per un confronto affidabile
+
         Set<Integer> idsSelezionati = materialiSelezionati.stream()
                 .map(Materiale::getId)
                 .collect(Collectors.toSet());
 
         List<Materiale> materialiDisponibiliNonSelezionati = tuttiMateriali.stream()
-                .filter(m -> m.getId() != null && !idsSelezionati.contains(m.getId())) // Aggiunto controllo m.getId() != null
+                .filter(m -> m.getId() != null && !idsSelezionati.contains(m.getId()))
                 .collect(Collectors.toList());
 
-        // Applica filtro ricerca se attivo
+
         String searchTerm = (searchField != null) ? searchField.getValue() : null;
         if (searchTerm != null && !searchTerm.trim().isEmpty()) {
             String term = searchTerm.toLowerCase().trim();
@@ -282,9 +282,9 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                     .collect(Collectors.toList());
         }
 
-        // Imposta i dati nelle griglie (usa copie difensive se necessario, ma qui va bene)
+
         materialiDisponibiliGrid.setItems(materialiDisponibiliNonSelezionati);
-        materialiSelezionatiGrid.setItems(new ArrayList<>(materialiSelezionati)); // Usa una copia per sicurezza
+        materialiSelezionatiGrid.setItems(new ArrayList<>(materialiSelezionati));
     }
 
 
@@ -299,15 +299,15 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         addNewMaterialButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         addNewMaterialButton.addClickListener(e -> showNuovoMaterialeDialog());
 
-        // Layout per ricerca e bottone nuovo materiale
+
         HorizontalLayout actionsLayout = new HorizontalLayout(searchField, addNewMaterialButton);
         actionsLayout.setWidthFull();
         actionsLayout.setPadding(false);
         actionsLayout.setSpacing(true);
 
-        // Paragrafo in un layout separato con altezza fissa per garantire allineamento
+
         HorizontalLayout titleLayout = new HorizontalLayout(new Paragraph("Materiali disponibili:"));
-        titleLayout.setHeight("40px"); // Altezza fissa per garantire allineamento
+        titleLayout.setHeight("40px");
         titleLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         titleLayout.setPadding(false);
         titleLayout.setMargin(false);
@@ -352,9 +352,9 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                 );
 
                 Materiale savedMateriale = materialeService.saveMateriale(nuovoMateriale);
-                if (savedMateriale != null && savedMateriale.getId() != null) { // Controlla anche l'ID di ritorno
+                if (savedMateriale != null && savedMateriale.getId() != null) {
                     tuttiMateriali.add(savedMateriale);
-                    materialiSelezionati.add(savedMateriale); // Aggiungi direttamente ai selezionati
+                    materialiSelezionati.add(savedMateriale);
                     aggiornaGrids();
                     dialog.close();
                     Notification.show("Materiale aggiunto e selezionato", 3000, Notification.Position.BOTTOM_START)
@@ -374,7 +374,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
         cancelButton.addClickListener(e -> dialog.close());
 
         HorizontalLayout buttonLayout = new HorizontalLayout(cancelButton, saveButton);
-        buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END); // Allinea a destra
+        buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
 
         dialogLayout.add(nomeField, descrizioneField, buttonLayout);
         dialog.add(dialogLayout);
@@ -411,9 +411,9 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                         Notification.show("Materiali salvati.", 2000, Notification.Position.BOTTOM_START)
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
-                        // Verifica la modalità: se edit rimane nella pagina attuale, altrimenti naviga
+
                         if (!"edit".equals(mode)) {
-                            // Naviga alla pagina successiva solo se NON è in modalità edit
+
                             ui.navigate("esamiReferti/" + scenarioId + "/create");
                         }
                     } else {
@@ -471,8 +471,8 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
     }
 
     private void deleteMateriale(Materiale materiale) {
-        if (materiale == null || materiale.getId() == null) return; // Check aggiunto
-        Integer materialeId = materiale.getId(); // Salva l'ID
+        if (materiale == null || materiale.getId() == null) return;
+        Integer materialeId = materiale.getId();
 
         try {
             boolean success = materialeService.deleteMateriale(materialeId);
@@ -480,7 +480,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                 tuttiMateriali.removeIf(m -> materialeId.equals(m.getId()));
                 materialiSelezionati.removeIf(m -> materialeId.equals(m.getId()));
 
-                aggiornaGrids(); // Aggiorna la UI
+                aggiornaGrids();
 
                 Notification.show("Materiale \"" + materiale.getNome() + "\" eliminato.",
                                 3000, Notification.Position.BOTTOM_START)
@@ -489,7 +489,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                 String nomeMateriale = (materiale.getNome() != null) ? materiale.getNome() : "ID " + materialeId;
                 Notification.show("Impossibile eliminare il materiale \"" + nomeMateriale + "\". Potrebbe essere in uso.",
                                 4000, Notification.Position.MIDDLE)
-                        .addThemeVariants(NotificationVariant.LUMO_WARNING); // Warning invece di Error se è un fallimento atteso
+                        .addThemeVariants(NotificationVariant.LUMO_WARNING);
             }
         } catch (Exception ex) {
             String nomeMateriale = (materiale.getNome() != null) ? materiale.getNome() : "ID " + materialeId;

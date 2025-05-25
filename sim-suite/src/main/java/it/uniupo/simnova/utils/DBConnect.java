@@ -36,7 +36,7 @@ public class DBConnect {
     private DBConnect() {
         System.out.println(DB_URL);
         try {
-            // Carica esplicitamente il driver JDBC di SQLite
+
             Class.forName("org.sqlite.JDBC");
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("Driver SQLite non trovato", e);

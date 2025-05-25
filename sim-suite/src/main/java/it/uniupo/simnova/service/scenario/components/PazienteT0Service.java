@@ -338,4 +338,37 @@ public class PazienteT0Service {
         }
     }
 
+    public void addAccesso(int scenarioId, Accesso accesso, boolean isVenoso) {
+        final String insertAccessoSql = "INSERT INTO Accesso (tipologia, posizione, lato, misura) VALUES (?, ?, ?, ?)";
+        final String insertRelSql = isVenoso ?
+                "INSERT INTO AccessoVenoso (paziente_t0_id, accesso_id) VALUES (?, ?)" :
+                "INSERT INTO AccessoArterioso (paziente_t0_id, accesso_id) VALUES (?, ?)";
+
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmtAccesso = conn.prepareStatement(insertAccessoSql, Statement.RETURN_GENERATED_KEYS);
+             PreparedStatement stmtRel = conn.prepareStatement(insertRelSql)) {
+
+            // Inserisci accesso
+            stmtAccesso.setString(1, accesso.getTipologia());
+            stmtAccesso.setString(2, accesso.getPosizione());
+            stmtAccesso.setString(3, accesso.getLato());
+            stmtAccesso.setInt(4, accesso.getMisura());
+            stmtAccesso.executeUpdate();
+
+            try (ResultSet rs = stmtAccesso.getGeneratedKeys()) {
+                if (rs.next()) {
+                    int accessoId = rs.getInt(1);
+                    // Inserisci relazione
+                    stmtRel.setInt(1, scenarioId);
+                    stmtRel.setInt(2, accessoId);
+                    stmtRel.executeUpdate();
+                    logger.info("Accesso {} con ID {} aggiunto per lo scenario con ID {}", isVenoso ? "venoso" : "arterioso", accessoId, scenarioId);
+                } else {
+                    logger.warn("Impossibile ottenere l'ID generato per l'accesso");
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Errore durante l'aggiunta dell'accesso {} per lo scenario con ID {}", isVenoso ? "venoso" : "arterioso", scenarioId, e);
+        }
+    }
 }

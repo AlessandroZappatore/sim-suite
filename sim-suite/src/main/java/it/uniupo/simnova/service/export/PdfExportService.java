@@ -176,7 +176,7 @@ public class PdfExportService {
 
         currentContentStream = new PDPageContentStream(document, currentPage);
 
-        // Se è la prima pagina aggiunge i loghi
+
         if (pageNumber == 1) {
 
             float simLogoWidth = 40;
@@ -271,56 +271,56 @@ public class PdfExportService {
                                       boolean esam,
                                       boolean time,
                                       boolean scen) throws IOException {
-        // Inizializzazione delle variabili statiche per la generazione del PDF
+
         document = null;
         currentContentStream = null;
         pageNumber = 1;
 
         try {
-            // Creazione di un nuovo documento PDF
+
             document = new PDDocument();
 
-            // Caricamento dei font personalizzati
+
             FONTREGULAR = loadFont(document, "/fonts/LiberationSans-Regular.ttf");
             FONTBOLD = loadFont(document, "/fonts/LiberationSans-Bold.ttf");
             FONTITALIC = loadFont(document, "/fonts/LiberationSans-Italic.ttf");
             FONTBOLDITALIC = loadFont(document, "/fonts/LiberationSans-BoldItalic.ttf");
 
-            // Caricamento dei loghi
+
             logo = loadLogo(document);
             centerLogo = loadCenterLogo(document, fileStorageService);
 
-            // Inizializzazione della prima pagina
+
             initNewPage();
 
-            // Recupero dello scenario dal database tramite il servizio
+
             Scenario scenario = scenarioService.getScenarioById(scenarioId);
             logger.info("Recuperato scenario: {}", scenario.getTitolo());
 
-            // Creazione dell'intestazione dello scenario
+
             createScenarioHeader(scenario);
-            // Creazione della descrizione e delle sezioni opzionali
+
             createScenarioDescription(scenario, desc, brief, infoGen, patto, azioni, obiettivi, moula, liqui, matNec, scenarioService, materialeService, azioneChiaveService);
-            // Creazione della sezione pazienti
+
             createPatientSection(scenarioId, param, acces, fisic, pazienteT0Service, esameFisicoService);
-            // Creazione della sezione esami
+
             createExamsSection(scenarioId, esam, esameRefertoService);
 
-            // Determinazione del tipo di scenario per eventuali sezioni aggiuntive
+
             String scenarioType = scenarioService.getScenarioType(scenarioId);
             if (scenarioType != null && (scenarioType.equals("Advanced Scenario") ||
                     scenarioType.equals("Patient Simulated Scenario")) && time) {
-                // Creazione della timeline per scenari avanzati o simulati
+
                 createTimelineSection(scenario, advancedScenarioService, scenarioService);
                 logger.info("Timeline creata");
             }
 
             if (scenarioType != null && scenarioType.equals("Patient Simulated Scenario")) {
-                // Creazione della sceneggiatura per scenari simulati
+
                 createSceneggiaturaSection(scenario, scen, patientSimulatedScenarioService);
             }
 
-            // Chiusura dello stream di contenuto se ancora aperto
+
             if (currentContentStream != null) {
                 try {
                     currentContentStream.close();
@@ -330,17 +330,17 @@ public class PdfExportService {
                 }
             }
 
-            // Scrittura del documento PDF su un array di byte
+
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             document.save(outputStream);
             logger.info("PDF salvato con successo");
             return outputStream.toByteArray();
         } catch (Exception e) {
-            // Gestione degli errori durante la generazione del PDF
+
             logger.error("Errore nella generazione del PDF", e);
             throw new IOException("Generazione PDF fallita: " + e.getMessage(), e);
         } finally {
-            // Chiusura delle risorse in ogni caso
+
             if (currentContentStream != null) {
                 try {
                     currentContentStream.close();

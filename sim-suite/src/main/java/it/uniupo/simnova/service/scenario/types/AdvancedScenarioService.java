@@ -23,7 +23,7 @@ public class AdvancedScenarioService {
     }
 
     public int startAdvancedScenario(String titolo, String nomePaziente, String patologia, String autori, float timerGenerale, String tipologia) {
-        // Prima crea lo scenario base
+
         int scenarioId = scenarioService.startQuickScenario(-1, titolo, nomePaziente, patologia, autori, timerGenerale, tipologia);
 
         if (scenarioId > 0) {
@@ -74,7 +74,7 @@ public class AdvancedScenarioService {
                         rs.getString("ruoloGenitore")
                 );
 
-                // Recupera i parametri aggiuntivi per questo tempo
+
                 int tempoId = tempo.getIdTempo();
                 List<ParametroAggiuntivo> parametriAggiuntivi = getParametriAggiuntiviByTempoId(tempoId, scenarioId);
                 tempo.setParametriAggiuntivi(parametriAggiuntivi);
@@ -92,9 +92,9 @@ public class AdvancedScenarioService {
         Connection conn = null;
         try {
             conn = DBConnect.getInstance().getConnection();
-            conn.setAutoCommit(false); // Disabilita l'autocommit
+            conn.setAutoCommit(false);
 
-            // Prima elimina i tempi esistenti per questo scenario
+
             if (!deleteTempi(conn, scenarioId)) {
                 conn.rollback();
                 logger.warn("Rollback: impossibile eliminare i tempi esistenti per lo scenario con ID {}", scenarioId);
@@ -106,7 +106,7 @@ public class AdvancedScenarioService {
 
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 for (Tempo tempo : tempi) {
-                    // Validazione parametri vitali
+
                     Integer fc = tempo.getFC();
                     Integer rr = tempo.getRR();
                     Integer spo2 = tempo.getSpO2();
@@ -156,7 +156,7 @@ public class AdvancedScenarioService {
                     stmt.setString(3, pa);
                     stmt.setObject(4, fc);
                     stmt.setObject(5, rr);
-                    stmt.setDouble(6, Math.round(tempo.getT() * 10) / 10.0); // Tronca temperatura a 1 decimale
+                    stmt.setDouble(6, Math.round(tempo.getT() * 10) / 10.0);
                     stmt.setObject(7, spo2);
                     stmt.setObject(8, fio2);
                     stmt.setObject(9, litrio2);
@@ -181,14 +181,14 @@ public class AdvancedScenarioService {
                 }
             }
 
-            // Salva anche i parametri aggiuntivi
+
             if (!saveParametriAggiuntivi(conn, scenarioId, tempi)) {
                 conn.rollback();
                 logger.warn("Rollback: impossibile salvare i parametri aggiuntivi per lo scenario con ID {}", scenarioId);
                 return false;
             }
 
-            conn.commit(); // Conferma la transazione
+            conn.commit();
             logger.info("Tempi salvati con successo per lo scenario con ID {}", scenarioId);
             return true;
         } catch (SQLException e) {
@@ -250,7 +250,7 @@ public class AdvancedScenarioService {
     }
 
     private boolean saveParametriAggiuntivi(Connection conn, int scenarioId, List<Tempo> tempi) throws SQLException {
-        // Controlla se ci sono parametri aggiuntivi da salvare
+
         final String sql = "INSERT INTO ParametriAggiuntivi (parametri_aggiuntivi_id, tempo_id, scenario_id, nome, valore, unità_misura) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
 
@@ -263,11 +263,11 @@ public class AdvancedScenarioService {
                     for (ParametroAggiuntivo param : parametri) {
                         stmt.setInt(1, paramId++);
 
-                        stmt.setInt(2, tempo.getIdTempo()); // tempo_id
-                        stmt.setInt(3, scenarioId); // scenario_id
-                        stmt.setString(4, param.getNome()); // nome (base name)
-                        stmt.setDouble(5, Double.parseDouble(param.getValore())); // valore
-                        stmt.setString(6, param.getUnitaMisura()); // unità_misura
+                        stmt.setInt(2, tempo.getIdTempo());
+                        stmt.setInt(3, scenarioId);
+                        stmt.setString(4, param.getNome());
+                        stmt.setDouble(5, Double.parseDouble(param.getValore()));
+                        stmt.setString(6, param.getUnitaMisura());
 
                         stmt.addBatch();
                     }
@@ -301,12 +301,12 @@ public class AdvancedScenarioService {
     }
 
     public boolean deleteTempi(Connection conn, int scenarioId) throws SQLException {
-        // Prima elimina i parametri aggiuntivi
+
         if (!deleteParametriAggiuntivi(conn, scenarioId)) {
             return false;
         }
 
-        // Poi elimina i tempi
+
         final String sql = "DELETE FROM Tempo WHERE id_advanced_scenario = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, scenarioId);
@@ -326,7 +326,7 @@ public class AdvancedScenarioService {
         final String sql = "SELECT MAX(parametri_aggiuntivi_id) FROM ParametriAggiuntivi";
         try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
             if (rs.next()) {
-                return rs.getInt(1); // Returns 0 if table is empty and MAX returns NULL
+                return rs.getInt(1);
             }
             return 0;
         }
@@ -416,28 +416,28 @@ public class AdvancedScenarioService {
 
     @SuppressWarnings("SqlSourceToSinkFlow")
     public void saveVitalSign(Integer scenarioId, Integer tempoId, String label, String newValue) {
-        // Mappa delle colonne valide per prevenire SQL injection
+
         Map<String, String> colonneLecite = Map.of(
-            "PA", "PA",
-            "FC", "FC",
-            "RR", "RR",
-            "T", "T",
-            "SpO₂", "SpO2",
-            "FiO₂", "FiO2",
-            "Litri O₂", "LitriOssigeno",
-            "EtCO₂", "EtCO2"
+                "PA", "PA",
+                "FC", "FC",
+                "RR", "RR",
+                "T", "T",
+                "SpO₂", "SpO2",
+                "FiO₂", "FiO2",
+                "Litri O₂", "LitriOssigeno",
+                "EtCO₂", "EtCO2"
         );
 
-        // Verifica che il parametro sia nella lista delle colonne consentite
+
         String colonnaReale = colonneLecite.get(label);
 
         if (colonnaReale != null) {
             try (Connection conn = DBConnect.getInstance().getConnection()) {
                 conn.setAutoCommit(false);
 
-                // Caso 1: Aggiornamento di PazienteT0 (tempoId = null)
+
                 if (tempoId == null) {
-                    // 1A: Aggiorna PazienteT0
+
                     String sqlPaziente = "UPDATE PazienteT0 SET " + colonnaReale + " = ? WHERE id_paziente = ?";
                     try (PreparedStatement stmtPaziente = conn.prepareStatement(sqlPaziente)) {
                         stmtPaziente.setString(1, newValue);
@@ -445,7 +445,7 @@ public class AdvancedScenarioService {
                         stmtPaziente.executeUpdate();
                     }
 
-                    // 1B: Aggiorna anche Tempo con id_tempo = 0 se esiste
+
                     String sqlCheckTempo = "SELECT COUNT(*) FROM Tempo WHERE id_advanced_scenario = ? AND id_tempo = 0";
                     try (PreparedStatement checkStmt = conn.prepareStatement(sqlCheckTempo)) {
                         checkStmt.setInt(1, scenarioId);
@@ -464,9 +464,9 @@ public class AdvancedScenarioService {
                     logger.info("Parametro vitale {} aggiornato con successo per PazienteT0 e Tempo(0) nello scenario con ID {}",
                             label, scenarioId);
                 }
-                // Caso 2: Aggiornamento di Tempo con id_tempo = 0
+
                 else if (tempoId == 0) {
-                    // 2A: Aggiorna Tempo con id_tempo = 0
+
                     String sqlTempo = "UPDATE Tempo SET " + colonnaReale + " = ? WHERE id_advanced_scenario = ? AND id_tempo = 0";
                     try (PreparedStatement stmtTempo = conn.prepareStatement(sqlTempo)) {
                         stmtTempo.setString(1, newValue);
@@ -474,7 +474,7 @@ public class AdvancedScenarioService {
                         stmtTempo.executeUpdate();
                     }
 
-                    // 2B: Aggiorna anche PazienteT0
+
                     String sqlPaziente = "UPDATE PazienteT0 SET " + colonnaReale + " = ? WHERE id_paziente = ?";
                     try (PreparedStatement stmtPaziente = conn.prepareStatement(sqlPaziente)) {
                         stmtPaziente.setString(1, newValue);
@@ -486,7 +486,7 @@ public class AdvancedScenarioService {
                     logger.info("Parametro vitale {} aggiornato con successo per Tempo(0) e PazienteT0 nello scenario con ID {}",
                             label, scenarioId);
                 }
-                // Caso 3: Aggiornamento di Tempo con id_tempo diverso da 0
+
                 else {
                     String sqlTempo = "UPDATE Tempo SET " + colonnaReale + " = ? WHERE id_advanced_scenario = ? AND id_tempo = ?";
                     try (PreparedStatement stmtTempo = conn.prepareStatement(sqlTempo)) {
@@ -522,14 +522,14 @@ public class AdvancedScenarioService {
                 }
             }
         } else {
-            // Gestione parametri aggiuntivi nella tabella ParametriAggiuntivi
+
             if (tempoId == null || tempoId == 0) {
-                tempoId = 0; // Standardizziamo a 0 sia null che zero
+                tempoId = 0;
                 logger.info("Parametro aggiuntivo {} verrà salvato per tempoId=0 dello scenario {}", label, scenarioId);
             }
 
             try (Connection conn = DBConnect.getInstance().getConnection()) {
-                // Verifica se il parametro esiste già
+
                 String checkSql = "SELECT parametri_aggiuntivi_id FROM ParametriAggiuntivi WHERE tempo_id = ? AND scenario_id = ? AND nome = ?";
                 try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
                     checkStmt.setInt(1, tempoId);
@@ -538,7 +538,7 @@ public class AdvancedScenarioService {
 
                     try (ResultSet rs = checkStmt.executeQuery()) {
                         if (rs.next()) {
-                            // Aggiorna parametro esistente
+
                             int paramId = rs.getInt("parametri_aggiuntivi_id");
                             String updateSql = "UPDATE ParametriAggiuntivi SET valore = ? WHERE parametri_aggiuntivi_id = ?";
 
@@ -556,7 +556,7 @@ public class AdvancedScenarioService {
                                 }
                             }
                         } else {
-                            // Crea un nuovo parametro
+
                             int maxId = getMaxParamId(conn) + 1;
                             String insertSql = "INSERT INTO ParametriAggiuntivi (parametri_aggiuntivi_id, tempo_id, scenario_id, nome, valore, unità_misura) " +
                                     "VALUES (?, ?, ?, ?, ?, ?)";
@@ -567,7 +567,7 @@ public class AdvancedScenarioService {
                                 insertStmt.setInt(3, scenarioId);
                                 insertStmt.setString(4, label);
                                 insertStmt.setString(5, newValue);
-                                insertStmt.setString(6, ""); // Unità di misura vuota per default
+                                insertStmt.setString(6, "");
 
                                 int rowsInserted = insertStmt.executeUpdate();
                                 if (rowsInserted > 0) {

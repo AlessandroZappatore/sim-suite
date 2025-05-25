@@ -40,7 +40,7 @@ public class CreationView extends Composite<VerticalLayout> {
      * Costruttore che inizializza l'interfaccia per la selezione del tipo di scenario.
      */
     public CreationView(FileStorageService fileStorageService) {
-        // Header dell'applicazione
+
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
 
@@ -55,7 +55,7 @@ public class CreationView extends Composite<VerticalLayout> {
 
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
-        // Creazione dei pulsanti per i diversi tipi di scenario
+
         Button quickScenarioButton = createScenarioButton(
                 "Quick Scenario",
                 VaadinIcon.BOLT.create(),
@@ -84,10 +84,10 @@ public class CreationView extends Composite<VerticalLayout> {
                 "Accedi alla libreria degli scenari creati"
         );
 
-        // Configurazione pulsante indietro
+
         backButton.addClickListener(e -> backButton.getUI().ifPresent(ui -> ui.navigate("")));
 
-        // Gestori degli eventi per i pulsanti
+
         quickScenarioButton.addClickListener(e ->
                 quickScenarioButton.getUI().ifPresent(ui -> ui.navigate("startCreation/quickScenario")));
         advancedScenarioButton.addClickListener(e ->
@@ -97,7 +97,7 @@ public class CreationView extends Composite<VerticalLayout> {
         visualizzaScenari.addClickListener(e ->
                 visualizzaScenari.getUI().ifPresent(ui -> ui.navigate("scenari")));
 
-        // Contenitore principale
+
         Div contentContainer = new Div();
         contentContainer.addClassName("scenario-container");
         contentContainer.getStyle()
@@ -106,7 +106,7 @@ public class CreationView extends Composite<VerticalLayout> {
                 .set("padding", "1rem")
                 .set("height", "100%");
 
-        // Aggiunta pulsanti al contenitore
+
         contentContainer.add(
                 quickScenarioButton,
                 advancedScenarioButton,
@@ -116,7 +116,7 @@ public class CreationView extends Composite<VerticalLayout> {
 
         contentLayout.add(headerSection, contentContainer);
 
-        // Configurazione layout principale
+
         VerticalLayout layout = getContent();
         layout.addClassName("creation-view");
         layout.setPadding(false);
@@ -124,16 +124,16 @@ public class CreationView extends Composite<VerticalLayout> {
         layout.setSizeFull();
         layout.setAlignItems(FlexComponent.Alignment.CENTER);
         layout.getStyle().set("min-height", "100vh");
-        layout.getStyle().set("position", "relative"); // Necessario per posizionamento assoluto dei figli
+        layout.getStyle().set("position", "relative");
 
-        // Aggiunta componenti al layout
+
         layout.add(customHeader, contentLayout);
 
-        // Stili CSS personalizzati per la gestione responsive
+
         layout.getElement().getStyle().set("--short-desc-display", "none");
         layout.getElement().getStyle().set("--long-desc-display", "block");
         layout.getElement().getStyle().set("background-color", "var(--lumo-contrast-5pct)");
-        // Media queries per la visualizzazione responsive
+
         layout.getElement().executeJs("""
                     const style = document.createElement('style');
                     style.textContent = `
@@ -178,20 +178,20 @@ public class CreationView extends Composite<VerticalLayout> {
         Div content = new Div();
         content.addClassName("button-content");
 
-        // Icona
+
 
         buttonIcon.setSize("24px");
         buttonIcon.getStyle().set("margin-right", "0.5rem");
         buttonIcon.addClassName("buttonIcon");
 
-        // Titolo
+
         Span titleSpan = new Span(title);
         titleSpan.getStyle()
                 .set("font-weight", "600")
                 .set("font-size", "1.2rem");
         titleSpan.addClassName("titleSpan");
 
-        // Descrizione breve (mobile)
+
         Span shortDescSpan = new Span(shortDesc);
         shortDescSpan.addClassNames(
                 LumoUtility.FontSize.SMALL,
@@ -204,7 +204,7 @@ public class CreationView extends Composite<VerticalLayout> {
                 .set("margin-top", "0.5rem")
                 .set("text-align", "center");
 
-        // Descrizione estesa (desktop)
+
         Span longDescSpan = new Span(longDesc);
         longDescSpan.addClassNames(
                 LumoUtility.FontSize.SMALL,
@@ -234,7 +234,7 @@ public class CreationView extends Composite<VerticalLayout> {
                 .set("height", "auto")
                 .set("min-height", "80px");
 
-        // Effetto hover
+
         button.addClickListener(e -> button.getStyle().set("transform", "translateY(2px)"));
 
         return button;

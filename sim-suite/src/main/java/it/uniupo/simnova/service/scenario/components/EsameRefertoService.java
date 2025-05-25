@@ -93,7 +93,7 @@ public class EsameRefertoService {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, scenarioId);
-            boolean result = stmt.executeUpdate() >= 0; // Ritorna true anche se non c'era nulla da cancellare
+            boolean result = stmt.executeUpdate() >= 0;
             if (result) {
                 logger.info("Referti esami eliminati con successo per lo scenario con ID {}", scenarioId);
             } else {
@@ -107,16 +107,16 @@ public class EsameRefertoService {
     }
 
     public void deleteEsameReferto(int idEsameReferto, int scenarioId) {
-        // Prima ottiene il riferimento al media associato all'esame
+
         String mediaFilename = getMediaFilenameByEsameId(idEsameReferto, scenarioId);
 
-        // Elimina il file media se esiste
+
         if (mediaFilename != null && !mediaFilename.isEmpty()) {
             fileStorageService.deleteFile(mediaFilename);
             logger.info("File media {} dell'esame con ID {} eliminato", mediaFilename, idEsameReferto);
         }
 
-        // Procede con l'eliminazione del record dal database
+
         final String sql = "DELETE FROM EsameReferto WHERE id_esame = ? AND id_scenario = ?";
 
         try (Connection conn = DBConnect.getInstance().getConnection();
@@ -153,11 +153,9 @@ public class EsameRefertoService {
             }
         } catch (SQLException e) {
             logger.error("Errore durante il recupero del media per l'esame con ID {} dello scenario {}",
-                        idEsame, scenarioId, e);
+                    idEsame, scenarioId, e);
         }
 
         return null;
     }
-
-
 }

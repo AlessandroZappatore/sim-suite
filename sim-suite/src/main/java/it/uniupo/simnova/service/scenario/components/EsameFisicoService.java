@@ -54,7 +54,7 @@ public class EsameFisicoService {
     }
 
     public boolean addEsameFisico(int scenarioId, Map<String, String> examData) {
-        // Verifica se esiste già
+
         boolean exists = getEsameFisicoById(scenarioId) != null;
 
         final String sql = exists ?
@@ -108,16 +108,16 @@ public class EsameFisicoService {
             return;
         }
 
-        // Verifica che l'esame fisico esista
+
         if (getEsameFisicoById(scenarioId) == null) {
             logger.warn("Nessun esame fisico trovato con ID {}", scenarioId);
             return;
         }
 
-        // Creazione della query dinamica con il nome colonna come parametro
+
         final String sql = "UPDATE EsameFisico SET " + name + "=? WHERE id_esame_fisico=?";
 
-        //noinspection SqlSourceToSinkFlow
+
         try (Connection conn = DBConnect.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 

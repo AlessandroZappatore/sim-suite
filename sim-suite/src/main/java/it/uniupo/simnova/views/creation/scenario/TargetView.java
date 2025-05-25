@@ -59,13 +59,13 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
     private final Checkbox mediciSpecialistiInternaChk = new Checkbox(SPEC_INTERNA);
     private final Checkbox mediciSpecialistiCardiologiaChk = new Checkbox(SPEC_CARDIOLOGIA);
     private final Checkbox mediciSpecialistiDisastriChk = new Checkbox(SPEC_DISASTRI);
-    private final Checkbox mediciSpecialistiAltroChk = new Checkbox(ALTRO); // Checkbox "Altro"
+    private final Checkbox mediciSpecialistiAltroChk = new Checkbox(ALTRO);
     private final TextField mediciSpecialistiAltroField = new TextField();
     private final RadioButtonGroup<Integer> studentiMedicinaYearRadio = new RadioButtonGroup<>();
     private final RadioButtonGroup<Integer> studentiInfermieristicaYearRadio = new RadioButtonGroup<>();
     private final Checkbox infSpecAnestesiaChk = new Checkbox(SPEC_ANESTESIA);
     private final Checkbox infSpecCureIntenseChk = new Checkbox(SPEC_CURE_INTENSE);
-    private final Checkbox infSpecCureUrgentiChk = new Checkbox(SPEC_INF_CURE_URGENTI); // Specifica per infermieri
+    private final Checkbox infSpecCureUrgentiChk = new Checkbox(SPEC_INF_CURE_URGENTI);
     private final RadioButtonGroup<Integer> studentiOdontoiatriaYearRadio = new RadioButtonGroup<>();
     private final TextField altroField = new TextField();
     private final Button nextButton = StyleApp.getNextButton();
@@ -75,7 +75,7 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
 
     public TargetView(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
-        // Configurazione layout principale
+
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
         AppHeader header = new AppHeader(fileStorageService);
@@ -152,7 +152,7 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
         return layout;
     }
 
-    // Helper per nascondere tutti i layout condizionali
+
     private void hideAllConditionalLayouts() {
         mediciAssistentiOptionsLayout.setVisible(false);
         mediciSpecialistiOptionsLayout.setVisible(false);
@@ -173,12 +173,12 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
         );
         targetRadioGroup.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
         targetRadioGroup.setWidthFull();
-        targetRadioGroup.setRequired(true); // Campo primario richiesto
+        targetRadioGroup.setRequired(true);
         targetRadioGroup.setRequiredIndicatorVisible(true);
     }
 
     private void setupMediciAssistentiOptions() {
-        // Layout interno per l'opzione anno
+
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(false);
         layout.setSpacing(true);
@@ -190,7 +190,7 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
         radioLayout.setSpacing(true);
 
         mediciAssistentiYearRadio.setItems(1, 2, 3, 4, 5, 6);
-        mediciAssistentiYearRadio.setRequired(true); // Richiesto SE Medici Assistenti è selezionato
+        mediciAssistentiYearRadio.setRequired(true);
 
         layout.add(label, radioLayout);
         mediciAssistentiOptionsLayout.add(layout);
@@ -204,10 +204,10 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
         HorizontalLayout row3 = new HorizontalLayout(mediciSpecialistiInternaChk, mediciSpecialistiCardiologiaChk, mediciSpecialistiDisastriChk);
 
         HorizontalLayout row4 = new HorizontalLayout();
-        row4.setAlignItems(FlexComponent.Alignment.BASELINE); // Allinea checkbox e textfield
+        row4.setAlignItems(FlexComponent.Alignment.BASELINE);
         mediciSpecialistiAltroField.setPlaceholder("Specifica");
-        mediciSpecialistiAltroField.setWidth("200px"); // Adatta larghezza
-        mediciSpecialistiAltroField.setEnabled(false); // Disabilitato inizialmente
+        mediciSpecialistiAltroField.setWidth("200px");
+        mediciSpecialistiAltroField.setEnabled(false);
         row4.add(mediciSpecialistiAltroChk, mediciSpecialistiAltroField);
 
         mediciSpecialistiOptionsLayout.add(label, row1, row2, row3, row4);
@@ -290,7 +290,7 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
         targetRadioGroup.addValueChangeListener(event -> {
             String selectedItem = event.getValue();
             updateConditionalLayoutsVisibility(selectedItem);
-            // Aggiorna lo stato required dei campi interni (necessario per validazione manuale)
+
             updateFieldsRequiredStatus(selectedItem);
         });
     }
@@ -410,7 +410,7 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
                 if (!isEditMode) {
-                    // Naviga alla prossima vista solo se NON è in modalità edit
+
                     ui.ifPresent(theUI -> theUI.navigate("descrizione/" + scenarioId));
                 }
             } else {
@@ -565,7 +565,7 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
 
         resetAllFields();
 
-        // Estrai il target principale (prima di qualsiasi parentesi o due punti)
+
         String mainTarget;
         if (targetString.contains("(")) {
             mainTarget = targetString.substring(0, targetString.indexOf("(")).trim();
@@ -578,13 +578,13 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
         targetRadioGroup.setValue(mainTarget);
 
         try {
-            // Estrai dettagli tra parentesi se esistono
+
             boolean hasParentheses = targetString.contains("(") && targetString.contains(")");
             String detailsInParentheses = "";
             if (hasParentheses) {
                 detailsInParentheses = targetString.substring(
-                    targetString.indexOf("(") + 1,
-                    targetString.lastIndexOf(")")
+                        targetString.indexOf("(") + 1,
+                        targetString.lastIndexOf(")")
                 );
             }
 
@@ -675,7 +675,7 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
             }
         } catch (Exception e) {
             logger.error("Errore durante il parsing dei dettagli della stringa target '{}': {}",
-                        targetString, e.getMessage(), e);
+                    targetString, e.getMessage(), e);
             resetAllFields();
             targetRadioGroup.clear();
             return;

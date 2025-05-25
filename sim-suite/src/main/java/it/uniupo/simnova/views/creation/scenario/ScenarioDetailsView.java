@@ -46,7 +46,7 @@ import static it.uniupo.simnova.views.ui.helper.TabsSupport.createTabWithIcon;
  * </p>
  *
  * @author Alessandro Zappatore
- * @version 1.5 // Version incremented to reflect changes
+ * @version 1.5
  */
 @SuppressWarnings("ThisExpressionReferencesGlobalObjectJS")
 @PageTitle("Dettagli Scenario")
@@ -79,11 +79,9 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      */
     private Scenario scenario;
 
-    // Components for displaying title and authors
     private H2 titleDisplay;
     private Paragraph authorsDisplay;
 
-    // Components for editing title and authors
     private TextField titleEdit;
     private TextField authorsEdit;
     private HorizontalLayout editButtonsLayout;
@@ -157,15 +155,11 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         if (scenarioId == null) {
-            // Questa condizione dovrebbe essere già gestita da setParameter,
-            // ma è una sicurezza aggiuntiva.
             Notification.show("ID scenario non specificato.", 3000, Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
-            UI.getCurrent().navigate("scenari"); // O una pagina di errore generica
+            UI.getCurrent().navigate("scenari");
             return;
         }
-        // Carica lo scenario qui per assicurarsi che sia disponibile per initView
-        // e per gestire il caso in cui lo scenario non esista più (raro se setParameter funziona bene)
         this.scenario = scenarioService.getScenarioById(scenarioId);
         if (this.scenario == null) {
             logger.error("Scenario non trovato con ID: {} durante beforeEnter", scenarioId);
@@ -180,12 +174,9 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * Crea e aggiunge i componenti alla vista.
      */
     private void initView() {
-        // L'oggetto 'scenario' è già stato caricato in beforeEnter e assegnato a this.scenario
-
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
         AppHeader header = new AppHeader(fileStorageService);
 
-        // 1. HEADER
         Button backButton = StyleApp.getBackButton();
         backButton.addClickListener(e -> UI.getCurrent().navigate("scenari"));
 
@@ -197,7 +188,6 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
-        // 2. CONTENUTO PRINCIPALE (con tabs)
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
         Div titleContainer = new Div();
@@ -216,7 +206,6 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                         "this.addEventListener('mouseout', function() { this.style.boxShadow = 'var(--lumo-box-shadow-xs)'; });"
         );
 
-        // Titolo e Autori (Display mode)
         titleDisplay = new H2(this.scenario.getTitolo());
         titleDisplay.addClassNames(
                 LumoUtility.TextAlignment.CENTER,
@@ -242,7 +231,6 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                 LumoUtility.FontSize.XLARGE
         );
 
-        // Titolo e Autori (Edit mode)
         titleEdit = FieldGenerator.createTextField("Titolo", "Titolo dello scenario", true);
         titleEdit.setVisible(false);
 
@@ -366,8 +354,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
             enhancedTabs.add(tabSceneggiatura);
         }
 
-        contentContainer.add(infoGeneraliContent); // Impostazione iniziale
-
+        contentContainer.add(infoGeneraliContent);
         enhancedTabs.addSelectedChangeListener(event -> {
             contentContainer.removeAll();
             Component selectedContent = tabsToContent.get(event.getSelectedTab());
@@ -396,22 +383,21 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         mainLayout.add(scrollButtonContainer);
 
 
-        // Add event listeners for editing title and authors
         editTitleAuthorsButton.addClickListener(e -> {
             displayLayout.setVisible(false);
             editTitleAuthorsButton.setVisible(false);
-            editLayout.setVisible(true); // Mostra il layout di edit che contiene i textfield e i bottoni salva/annulla
+            editLayout.setVisible(true);
             saveTitleAuthorsButton.setVisible(true);
             cancelTitleAuthorsButton.setVisible(true);
-            titleEdit.setValue(this.scenario.getTitolo()); // Usa il valore da this.scenario
-            authorsEdit.setValue(this.scenario.getAutori()); // Usa il valore da this.scenario
+            titleEdit.setValue(this.scenario.getTitolo());
+            authorsEdit.setValue(this.scenario.getAutori());
             titleEdit.setVisible(true);
             authorsEdit.setVisible(true);
-            editButtonsLayout.setVisible(true); // Mostra i bottoni Salva/Annulla
+            editButtonsLayout.setVisible(true);
         });
 
         cancelTitleAuthorsButton.addClickListener(e -> {
-            editLayout.setVisible(false); // Nasconde l'intero layout di edit
+            editLayout.setVisible(false);
             displayLayout.setVisible(true);
             editTitleAuthorsButton.setVisible(true);
         });
@@ -433,17 +419,10 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                 return;
             }
 
-
             try {
                 scenarioService.updateScenarioTitleAndAuthors(scenarioId, newTitle, newAuthors);
-
-                // Aggiorna l'oggetto scenario locale
-                // Assicurati che la classe Scenario abbia i metodi setTitolo e setAutori
                 this.scenario.setTitolo(newTitle);
                 this.scenario.setAutori(newAuthors);
-                // Alternativa se Scenario è immutabile o non ha setter:
-                // this.scenario = scenarioService.getScenarioById(scenarioId);
-
 
                 titleDisplay.setText(newTitle);
                 Span updatedBoldAutori = new Span("Autori: ");

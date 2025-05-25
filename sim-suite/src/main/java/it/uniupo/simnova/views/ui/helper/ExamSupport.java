@@ -7,12 +7,13 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.dom.Element;
-import com.vaadin.flow.component.dialog.Dialog; // Import Dialog
-import com.vaadin.flow.component.notification.Notification; // Import Notification
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.notification.Notification;
 import it.uniupo.simnova.domain.paziente.EsameReferto;
 import it.uniupo.simnova.service.scenario.components.EsameRefertoService;
 import org.slf4j.Logger;
@@ -30,7 +31,6 @@ public class ExamSupport {
         layout.setSpacing(true);
         layout.setWidthFull();
 
-        // Ottieni gli esami/referti dal servizio
         if (esami != null && !esami.isEmpty()) {
             for (EsameReferto esame : esami) {
                 Div examCard = new Div();
@@ -46,16 +46,15 @@ public class ExamSupport {
                         .set("margin-left", "auto")
                         .set("margin-right", "auto");
 
-                // Header for title and delete button
                 HorizontalLayout cardHeader = new HorizontalLayout();
                 cardHeader.setWidthFull();
                 cardHeader.setAlignItems(FlexComponent.Alignment.CENTER);
-                cardHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN); // Distribute space
+                cardHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
                 H3 examTitle = new H3(esame.getTipo());
                 examTitle.getStyle()
                         .set("margin-top", "0")
-                        .set("margin-bottom", "0") // Remove bottom margin as it's in a layout now
+                        .set("margin-bottom", "0")
                         .set("color", "var(--lumo-primary-text-color)");
 
                 Button deleteButton = new Button(VaadinIcon.TRASH.create());
@@ -74,9 +73,8 @@ public class ExamSupport {
                     confirmDeleteButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
                     confirmDeleteButton.addClickListener(confirmEvent -> {
                         esameRefertoService.deleteEsameReferto(esame.getIdEsame(), scenarioId);
-                        Notification.show("Esame '" + esame.getTipo() + "' eliminato con successo.", 3000, Notification.Position.BOTTOM_CENTER);
+                        Notification.show("Esame '" + esame.getTipo() + "' eliminato con successo.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                         confirmDialog.close();
-                        // Remove the card directly from the layout for immediate visual update
                         layout.remove(examCard);
                     });
 
@@ -91,14 +89,13 @@ public class ExamSupport {
                 });
 
                 cardHeader.add(examTitle, deleteButton);
-                examCard.add(cardHeader); // Add the header to the exam card
+                examCard.add(cardHeader);
 
                 VerticalLayout examContent = new VerticalLayout();
                 examContent.setPadding(false);
                 examContent.setSpacing(true);
                 examContent.setWidthFull();
 
-                // Anteprima file multimediale
                 if (esame.getMedia() != null && !esame.getMedia().isEmpty()) {
                     examContent.add(createMediaPreview(esame.getMedia()));
                 }
@@ -114,8 +111,8 @@ public class ExamSupport {
                             .set("border-left", "3px solid var(--lumo-primary-color)")
                             .set("width", "90%")
                             .set("box-sizing", "border-box")
-                            .set("margin-left", "auto")    // Aggiunta per centrare
-                            .set("margin-right", "auto");  // Aggiunta per centrare
+                            .set("margin-left", "auto")
+                            .set("margin-right", "auto");
 
                     HorizontalLayout refertoHeader = new HorizontalLayout();
                     refertoHeader.setPadding(false);
@@ -145,7 +142,7 @@ public class ExamSupport {
                     examContent.setAlignItems(FlexComponent.Alignment.CENTER);
                 }
 
-                examCard.add(examContent); // Add the content to the exam card
+                examCard.add(examContent);
                 layout.add(examCard);
             }
         } else {
@@ -173,9 +170,8 @@ public class ExamSupport {
 
         logger.debug("Creazione anteprima media per file: {}, estensione: {}", fileName, fileExtension);
 
-        // Container principale centrato
         Div previewContainer = new Div();
-        previewContainer.setWidthFull(); // Questo imposta width: 100%
+        previewContainer.setWidthFull();
         previewContainer.getStyle()
                 .set("display", "flex")
                 .set("flex-direction", "column")
@@ -186,9 +182,8 @@ public class ExamSupport {
                 .set("padding", "var(--lumo-space-m)")
                 .set("margin", "var(--lumo-space-s) 0")
                 .set("transition", "transform 0.2s ease, box-shadow 0.2s ease")
-                .set("box-sizing", "border-box"); // AGGIUNTO
+                .set("box-sizing", "border-box");
 
-        // Effetto hover
         previewContainer.getElement().executeJs(
                 "this.addEventListener('mouseover', function() { " +
                         " this.style.transform = 'translateY(-2px)'; " +
@@ -200,7 +195,6 @@ public class ExamSupport {
                         "});"
         );
 
-        // Intestazione con tipo file e nome
         HorizontalLayout mediaHeader = new HorizontalLayout();
         mediaHeader.setWidthFull();
         mediaHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
@@ -209,7 +203,6 @@ public class ExamSupport {
         mediaHeader.setSpacing(true);
         mediaHeader.getStyle().set("margin-bottom", "var(--lumo-space-m)");
 
-        // Mostra tipo file e nome file
         Span fileTypeLabel = new Span(fileExtension.toUpperCase());
         fileTypeLabel.getStyle()
                 .set("background-color", getColorForFileType(fileExtension))
@@ -229,17 +222,16 @@ public class ExamSupport {
                 .set("text-overflow", "ellipsis")
                 .set("max-width", "200px");
 
-        // Container per il contenuto media
         Div mediaContentContainer = new Div();
-        mediaContentContainer.setWidthFull(); // Anche qui, 100%
+        mediaContentContainer.setWidthFull();
         mediaContentContainer.getStyle()
                 .set("display", "flex")
                 .set("justify-content", "center")
                 .set("align-items", "center")
                 .set("min-height", "200px")
-                .set("max-width", "800px") // Questo potrebbe limitare il contenuto interno
+                .set("max-width", "800px")
                 .set("margin", "0 auto")
-                .set("box-sizing", "border-box"); // AGGIUNTO per coerenza, anche se qui non ha padding/border diretti.
+                .set("box-sizing", "border-box");
 
         String mediaPath = "/" + fileName;
         logger.debug("Percorso media per anteprima: {}", mediaPath);
@@ -247,7 +239,6 @@ public class ExamSupport {
         Component mediaComponent;
         Icon typeIcon = getIconForFileType(fileExtension);
 
-        // Pulsante per aprire il file a schermo intero
         Button fullscreenButton = new Button("Apri in una nuova pagina", new Icon(VaadinIcon.EXPAND_FULL));
         fullscreenButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         fullscreenButton.getStyle()
@@ -268,7 +259,6 @@ public class ExamSupport {
         fullscreenButton.addClassName("hover-effect");
         fullscreenButton.addClickListener(e -> openFullMedia(fileName));
 
-        // Generazione componente in base al tipo di file
         switch (fileExtension) {
             case "jpg", "jpeg", "png", "gif", "webp":
                 Image image = new Image(mediaPath, fileName);
@@ -288,7 +278,7 @@ public class ExamSupport {
                 pdfPreview.setWidth("100%");
                 pdfPreview.setHeight("500px");
                 pdfPreview.getStyle()
-                        .set("border", "none") // Nessun bordo qui, quindi box-sizing non è strettamente necessario per questo
+                        .set("border", "none")
                         .set("border-radius", "var(--lumo-border-radius-m)")
                         .set("box-shadow", "0 1px 3px rgba(0,0,0,0.1)");
                 mediaComponent = pdfPreview;
@@ -302,7 +292,6 @@ public class ExamSupport {
                         .set("border-radius", "var(--lumo-border-radius-m)")
                         .set("overflow", "hidden")
                         .set("box-shadow", "0 1px 3px rgba(0,0,0,0.1)");
-                // Se videoContainer avesse padding, servirebbe box-sizing
 
                 ExamSupport.NativeVideo video = new ExamSupport.NativeVideo();
                 video.setSrc(mediaPath);
@@ -318,13 +307,13 @@ public class ExamSupport {
                 Div audioContainer = new Div();
                 audioContainer.getStyle()
                         .set("width", "100%")
-                        .set("padding", "var(--lumo-space-m)") // Ha padding e width 100%
+                        .set("padding", "var(--lumo-space-m)")
                         .set("background-color", "var(--lumo-shade-5pct)")
                         .set("border-radius", "var(--lumo-border-radius-m)")
                         .set("display", "flex")
                         .set("flex-direction", "column")
                         .set("align-items", "center")
-                        .set("box-sizing", "border-box"); // AGGIUNTO
+                        .set("box-sizing", "border-box");
 
                 Icon musicIcon = new Icon(VaadinIcon.MUSIC);
                 musicIcon.setSize("3em");
@@ -344,10 +333,10 @@ public class ExamSupport {
             default:
                 Div unknownContainer = new Div();
                 unknownContainer.getStyle()
-                        .set("padding", "var(--lumo-space-l)") // Ha padding
+                        .set("padding", "var(--lumo-space-l)")
                         .set("text-align", "center")
-                        .set("width", "100%") // Assumiamo che debba occupare tutta la larghezza disponibile
-                        .set("box-sizing", "border-box"); // AGGIUNTO
+                        .set("width", "100%")
+                        .set("box-sizing", "border-box");
 
                 Icon fileIcon = new Icon(VaadinIcon.FILE_O);
                 fileIcon.setSize("4em");
@@ -365,14 +354,12 @@ public class ExamSupport {
                 break;
         }
 
-        // Assemblaggio dei componenti
         HorizontalLayout fileInfoLayout = new HorizontalLayout(typeIcon, fileTypeLabel, fileNameLabel);
         fileInfoLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         fileInfoLayout.setSpacing(true);
 
-        mediaHeader.removeAll(); // Clear existing content if any
-        mediaHeader.add(fileInfoLayout); // Add the combined file info
-        // The delete button is not part of the mediaHeader, but the examCardHeader
+        mediaHeader.removeAll();
+        mediaHeader.add(fileInfoLayout);
 
         mediaContentContainer.add(mediaComponent);
 
@@ -384,13 +371,13 @@ public class ExamSupport {
         Div errorContainer = new Div();
         errorContainer.getStyle()
                 .set("width", "100%")
-                .set("padding", "var(--lumo-space-l)") // Ha padding e width 100%
+                .set("padding", "var(--lumo-space-l)")
                 .set("text-align", "center")
                 .set("background-color", "var(--lumo-base-color)")
                 .set("border-radius", "var(--lumo-border-radius-l)")
                 .set("box-shadow", "0 3px 10px rgba(0, 0, 0, 0.08)")
                 .set("margin", "var(--lumo-space-s) 0")
-                .set("box-sizing", "border-box"); // AGGIUNTO
+                .set("box-sizing", "border-box");
 
         Icon errorIcon = new Icon(VaadinIcon.EXCLAMATION_CIRCLE);
         errorIcon.setSize("3em");
@@ -406,9 +393,7 @@ public class ExamSupport {
         return errorContainer;
     }
 
-    // Metodi di supporto
     private static String getShortFileName(String fileName) {
-        // Mostra solo il nome file senza il percorso, limitando la lunghezza
         String shortName = fileName;
         int lastSlash = fileName.lastIndexOf('/');
         if (lastSlash > -1 && lastSlash < fileName.length() - 1) {

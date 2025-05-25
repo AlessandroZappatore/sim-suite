@@ -21,16 +21,16 @@ public class TabsSupport {
 
         HorizontalLayout tabContent = new HorizontalLayout();
         tabContent.setSizeFull();
-        tabContent.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER); // Centra orizzontalmente
-        tabContent.setAlignItems(FlexComponent.Alignment.CENTER); // Centra verticalmente
+        tabContent.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        tabContent.setAlignItems(FlexComponent.Alignment.CENTER);
         tabContent.setSpacing(false);
         tabContent.add(new com.vaadin.flow.component.icon.Icon(iconType), tabText);
         tabContent.getStyle()
                 .set("padding", "var(--lumo-space-s)")
-                .set("text-align", "center"); // Assicura che il testo sia centrato
+                .set("text-align", "center");
 
         Tab tab = new Tab(tabContent);
-        tab.getStyle().set("flex-grow", "1"); // Ogni tab occuperà spazio equamente
+        tab.getStyle().set("flex-grow", "1");
 
         return tab;
     }

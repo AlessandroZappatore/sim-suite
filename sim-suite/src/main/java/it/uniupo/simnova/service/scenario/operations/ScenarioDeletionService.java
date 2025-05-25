@@ -31,10 +31,10 @@ public class ScenarioDeletionService {
             conn = DBConnect.getInstance().getConnection();
             conn.setAutoCommit(false);
 
-            // 1. Ottieni la lista dei file media da eliminare PRIMA di cancellare dal DB
+
             List<String> mediaFiles = MediaHelper.getMediaFilesForScenario(scenarioId);
 
-            // 2. Esegui tutte le operazioni di cancellazione dal DB
+
             deleteAccessi(conn, scenarioId, "AccessoVenoso");
             deleteAccessi(conn, scenarioId, "AccessoArterioso");
             deleteRelatedMaterial(conn, scenarioId);
@@ -49,10 +49,10 @@ public class ScenarioDeletionService {
             deletePazienteT0(conn, scenarioId);
             deleteScenarioPrincipale(conn, scenarioId);
 
-            conn.commit(); // Conferma la transazione
+            conn.commit();
             logger.info("Scenario con ID {} eliminato con successo", scenarioId);
 
-            // 3. Dopo il commit, elimina i file media
+
             fileStorageService.deleteFiles(mediaFiles);
 
             return true;
@@ -78,7 +78,7 @@ public class ScenarioDeletionService {
     }
 
     private void deleteRelatedAzioniChiave(Connection conn, int scenarioId) throws SQLException {
-        // Elimina le associazioni per questo scenario
+
         final String sqlDeleteAzioneScenario = "DELETE FROM AzioneScenario WHERE id_scenario = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sqlDeleteAzioneScenario)) {
             stmt.setInt(1, scenarioId);
@@ -86,11 +86,11 @@ public class ScenarioDeletionService {
             logger.debug("Eliminate {} associazioni azione-scenario per lo scenario {}", count, scenarioId);
         }
 
-        // Elimina le azioni chiave non più associate ad alcuno scenario
+
         final String sqlDeleteOrphanAzioni =
-            "DELETE FROM AzioniChiave WHERE id_azione NOT IN (" +
-            "  SELECT DISTINCT id_azione FROM AzioneScenario" +
-            ")";
+                "DELETE FROM AzioniChiave WHERE id_azione NOT IN (" +
+                        "  SELECT DISTINCT id_azione FROM AzioneScenario" +
+                        ")";
 
         try (PreparedStatement stmt = conn.prepareStatement(sqlDeleteOrphanAzioni)) {
             int count = stmt.executeUpdate();
@@ -131,7 +131,7 @@ public class ScenarioDeletionService {
      * @throws SQLException in caso di errore durante l'esecuzione della query
      */
     private void deleteRelatedAccessi(Connection conn) throws SQLException {
-        // Elimina gli accessi che non sono più referenziati
+
         final String sql = "DELETE FROM Accesso WHERE id_accesso IN (" +
                 "SELECT a.id_accesso FROM Accesso a " +
                 "LEFT JOIN AccessoVenoso av ON a.id_accesso = av.accesso_id " +

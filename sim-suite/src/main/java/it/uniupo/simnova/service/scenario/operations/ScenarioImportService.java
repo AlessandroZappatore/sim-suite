@@ -59,19 +59,19 @@ public class ScenarioImportService {
 
     public boolean createScenarioByJSON(byte[] jsonFile) {
         try {
-            // Converti il JSON in stringa
+
             String jsonString = new String(jsonFile, StandardCharsets.UTF_8);
             Gson gson = new GsonBuilder().create();
 
-            // Parsa il JSON in un oggetto Map per estrarre i dati
+
             Map<String, Object> jsonData = gson.fromJson(jsonString, new TypeToken<Map<String, Object>>() {
             }.getType());
 
-            // Crea lo scenario in base al tipo
+
             String scenarioType = (String) jsonData.get("tipo");
             int creationResult;
 
-            // Common data extraction
+
             Map<String, Object> scenarioData = (Map<String, Object>) jsonData.get("scenario");
             String titolo = (String) scenarioData.get("titolo");
             String nomePaziente = (String) scenarioData.get("nome_paziente");
@@ -139,7 +139,7 @@ public class ScenarioImportService {
                 return false;
             }
 
-            // Crea lo scenario utilizzando il JSON estratto
+
             boolean scenarioCreated = createScenarioByJSON(scenarioJsonBytes);
 
             if (scenarioCreated) {
@@ -237,7 +237,7 @@ public class ScenarioImportService {
         List<String> presidiList = (List<String>) scenarioData.get("presidi");
         Set<String> presidi = presidiList != null ? new HashSet<>(presidiList) : new HashSet<>();
 
-        // Verifica che tutti i presidi esistano nel database
+
         List<String> presidiEsistenti = PresidiService.getAllPresidi();
         Set<String> presidiNonEsistenti = presidi.stream()
                 .filter(p -> !presidiEsistenti.contains(p))
@@ -323,7 +323,7 @@ public class ScenarioImportService {
      * @param jsonData   i dati JSON contenenti le informazioni dello scenario
      */
     private void saveAdvancedScenarioComponents(int scenarioId, Map<String, Object> jsonData) {
-        // Salva tempi (solo per Advanced Scenario)
+
         List<Map<String, Object>> tempiData = (List<Map<String, Object>>) jsonData.get("tempi");
         if (tempiData != null) {
             List<Tempo> tempi = tempiData.stream()

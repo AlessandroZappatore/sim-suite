@@ -39,10 +39,10 @@ public class HomeView extends Composite<VerticalLayout> {
      * @param fileStorageService servizio per la gestione dei file, utilizzato dall'header
      */
     public HomeView(FileStorageService fileStorageService) {
-        // Header dell'applicazione
+
         AppHeader header = new AppHeader(fileStorageService);
 
-        // Titoli
+
         H1 title = new H1("SIM SUITE");
         title.addClassName(LumoUtility.TextAlignment.CENTER);
         title.addClassNames(
@@ -62,7 +62,7 @@ public class HomeView extends Composite<VerticalLayout> {
                 LumoUtility.Margin.Bottom.XLARGE
         );
 
-        // Container per i bottoni
+
         Div buttonContainer = new Div();
         buttonContainer.setWidth("min(90%, 600px)");
         buttonContainer.getStyle()
@@ -70,18 +70,18 @@ public class HomeView extends Composite<VerticalLayout> {
                 .set("gap", "1.5rem")
                 .set("margin", "0 auto");
 
-        // Bottoni principali
+
         Button creationButton = createMainButton("SIM CREATION", "vaadin:cogs");
         Button executionButton = createMainButton("SIM EXECUTION", "vaadin:play");
 
 
-       // ====================================
-       // @@ ATTENZIONE: Da rimuovere quando si implementa la funzionalità di esecuzione @@
-       // ====================================
-       executionButton.setEnabled(false);
-       executionButton.setTooltipText("Funzionalità non implementata");
 
-        // Aggiungi azioni ai bottoni
+
+
+        executionButton.setEnabled(false);
+        executionButton.setTooltipText("Funzionalità non implementata");
+
+
         creationButton.addClickListener(e ->
                 creationButton.getUI().ifPresent(ui -> ui.navigate("creation")));
         executionButton.addClickListener(e ->
@@ -89,7 +89,7 @@ public class HomeView extends Composite<VerticalLayout> {
 
         buttonContainer.add(creationButton, executionButton);
 
-        // Configurazione del layout principale
+
         getContent().addClassName("home-view");
         getContent().setSizeFull();
         getContent().setPadding(false);
@@ -97,7 +97,7 @@ public class HomeView extends Composite<VerticalLayout> {
         getContent().setAlignItems(FlexComponent.Alignment.CENTER);
         getContent().setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         getContent().getStyle().set("padding", "2rem");
-        getContent().getStyle().set("position", "relative"); // Necessario per posizionamento assoluto dei figli
+        getContent().getStyle().set("position", "relative");
 
         CreditsComponent credits = new CreditsComponent();
         credits.getStyle()
@@ -107,7 +107,7 @@ public class HomeView extends Composite<VerticalLayout> {
                 .set("z-index", "10");
         credits.addClassName(LumoUtility.Border.TOP);
         credits.getStyle().set("border-color", "var(--lumo-contrast-10pct)");
-        // Aggiunta dei componenti al layout
+
         getContent().add(header, title, subtitle, buttonContainer, credits);
         getContent().getStyle().set("background-color", "var(--lumo-contrast-5pct)");
     }
@@ -133,7 +133,7 @@ public class HomeView extends Composite<VerticalLayout> {
                 .set("color", "white")
                 .set("border", "none");
 
-        // Effetto hover
+
         button.getElement().getThemeList().add("primary");
         button.addClickListener(e -> button.getStyle().set("transform", "translateY(2px)"));
 
