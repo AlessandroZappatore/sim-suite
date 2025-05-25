@@ -36,7 +36,6 @@ import java.util.Optional;
  */
 @PageTitle("Sceneggiatura")
 @Route(value = "sceneggiatura")
-@Menu(order = 15)
 public class SceneggiaturaView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     /**
      * Servizio per la gestione degli scenari.

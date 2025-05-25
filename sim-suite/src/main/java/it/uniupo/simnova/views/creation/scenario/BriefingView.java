@@ -34,7 +34,6 @@ import java.util.Optional;
  */
 @PageTitle("Briefing")
 @Route(value = "briefing")
-@Menu(order = 4)
 public class BriefingView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     /**
      * Servizio per la gestione degli scenari.

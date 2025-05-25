@@ -313,4 +313,29 @@ public class PazienteT0Service {
         }
     }
 
+    public void deleteAccesso(int scenarioId, int accessoId, boolean isVenoso) {
+        final String deleteAccessoSql = "DELETE FROM Accesso WHERE id_accesso=?";
+        final String deleteRelSql = isVenoso ?
+                "DELETE FROM AccessoVenoso WHERE paziente_t0_id=? AND accesso_id=?" :
+                "DELETE FROM AccessoArterioso WHERE paziente_t0_id=? AND accesso_id=?";
+
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmtRel = conn.prepareStatement(deleteRelSql);
+             PreparedStatement stmtAccesso = conn.prepareStatement(deleteAccessoSql)) {
+
+            // Elimina relazione
+            stmtRel.setInt(1, scenarioId);
+            stmtRel.setInt(2, accessoId);
+            stmtRel.executeUpdate();
+
+            // Elimina accesso
+            stmtAccesso.setInt(1, accessoId);
+            stmtAccesso.executeUpdate();
+
+            logger.info("Accesso {} con ID {} eliminato per lo scenario con ID {}", isVenoso ? "venoso" : "arterioso", accessoId, scenarioId);
+        } catch (SQLException e) {
+            logger.error("Errore durante l'eliminazione dell'accesso {} con ID {} per lo scenario con ID {}", isVenoso ? "venoso" : "arterioso", accessoId, scenarioId, e);
+        }
+    }
+
 }

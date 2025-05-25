@@ -25,10 +25,7 @@ import static it.uniupo.simnova.views.constant.CreditConst.*;
  */
 public class CreditsComponent extends VerticalLayout {
 
-    /**
-     * Crea una nuova istanza del componente crediti.
-     * Mostra informazioni su ideatore, sviluppatore, università e versione.
-     */
+
     public CreditsComponent() {
         this.setPadding(false);
         this.setSpacing(false);
@@ -36,7 +33,6 @@ public class CreditsComponent extends VerticalLayout {
         this.setWidthFull();
         this.setAlignItems(FlexComponent.Alignment.START);
 
-        // Titolo sezione crediti
         Paragraph creditsTitle = new Paragraph("Crediti");
         creditsTitle.addClassNames(
                 LumoUtility.FontWeight.BOLD,
@@ -45,29 +41,17 @@ public class CreditsComponent extends VerticalLayout {
         );
         creditsTitle.getStyle().set("margin", "0 0 4px 0");
 
-        // Riga ideatore con nome e link (uses existing helper)
         HorizontalLayout ideatorRow = getRow(VaadinIcon.LIGHTBULB.create());
 
-        // Riga sviluppatore con nome e azione per aprire il popup
         HorizontalLayout developerRow = createDeveloperRow();
 
-        // Riga università con icona (uses existing helper pattern)
         HorizontalLayout universityRow = createUniversityRow();
 
-        // Riga versione e data (uses existing helper pattern)
         HorizontalLayout versionRow = createVersionRow();
 
-
-        // Aggiunta dei componenti al layout principale
         this.add(creditsTitle, ideatorRow, developerRow, universityRow, versionRow);
     }
 
-    /**
-     * Crea una riga standard con icona e Anchor collegato.
-     *
-     * @param icon icona da mostrare nella riga
-     * @return layout orizzontale della riga
-     */
     private static HorizontalLayout getRow(Icon icon) {
         HorizontalLayout row = new HorizontalLayout();
         row.setSpacing(true);
@@ -86,10 +70,6 @@ public class CreditsComponent extends VerticalLayout {
         return row;
     }
 
-    /**
-     * Crea la riga per lo sviluppatore, con nome cliccabile che apre un dialog.
-     * @return layout orizzontale per lo sviluppatore
-     */
     private HorizontalLayout createDeveloperRow() {
         HorizontalLayout row = new HorizontalLayout();
         row.setSpacing(true);
@@ -100,29 +80,24 @@ public class CreditsComponent extends VerticalLayout {
         Icon developerIcon = VaadinIcon.USER.create();
         developerIcon.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
 
-        // Use a Button styled as text/link to be clickable
         Button developerNameButton = new Button("Sviluppatore: Alessandro Zappatore");
         developerNameButton.addClassNames(
                 LumoUtility.TextColor.SECONDARY,
                 LumoUtility.FontSize.XSMALL,
-                LumoUtility.Padding.Right.NONE, // Remove default button padding
+                LumoUtility.Padding.Right.NONE,
                 LumoUtility.Padding.Left.NONE,
                 LumoUtility.Background.TRANSPARENT
         );
 
-        developerNameButton.getStyle().set("cursor", "pointer"); // Indicate it's clickable
+        developerNameButton.getStyle().set("cursor", "pointer");
 
-        // Add click listener to open the dialog
         developerNameButton.addClickListener(e -> openDeveloperInfoDialog());
 
         row.add(developerIcon, developerNameButton);
         return row;
     }
 
-    /**
-     * Crea la riga per l'università con link.
-     * @return layout orizzontale per l'università
-     */
+
     private HorizontalLayout createUniversityRow() {
         HorizontalLayout row = new HorizontalLayout();
         row.setSpacing(true);
@@ -142,10 +117,6 @@ public class CreditsComponent extends VerticalLayout {
         return row;
     }
 
-    /**
-     * Crea la riga per versione e data.
-     * @return layout orizzontale per versione e data
-     */
     private HorizontalLayout createVersionRow() {
         HorizontalLayout row = new HorizontalLayout();
         row.setSpacing(true);
@@ -172,21 +143,16 @@ public class CreditsComponent extends VerticalLayout {
         return row;
     }
 
-    /**
-     * Crea e apre il dialog con i contatti dello sviluppatore.
-     */
     private void openDeveloperInfoDialog() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Contatti Sviluppatore");
 
-        // Create the content for the dialog
         VerticalLayout dialogContent = new VerticalLayout();
         dialogContent.setPadding(false);
-        dialogContent.setSpacing(true); // Space between contact lines
+        dialogContent.setSpacing(true);
         dialogContent.setAlignItems(Alignment.START);
-        dialogContent.setWidthFull(); // Ensure content uses dialog width
+        dialogContent.setWidthFull();
 
-        // Email Row
         HorizontalLayout emailRow = new HorizontalLayout();
         emailRow.setSpacing(true);
         emailRow.setAlignItems(Alignment.CENTER);
@@ -196,7 +162,6 @@ public class CreditsComponent extends VerticalLayout {
         emailLink.addClassNames(LumoUtility.TextColor.SECONDARY, LumoUtility.FontSize.XSMALL);
         emailRow.add(emailIcon, emailLink);
 
-        // GitHub Row
         HorizontalLayout githubRow = new HorizontalLayout();
         githubRow.setSpacing(true);
         githubRow.setAlignItems(Alignment.CENTER);
@@ -208,7 +173,6 @@ public class CreditsComponent extends VerticalLayout {
         githubLink.getElement().setAttribute("rel", "noopener noreferrer");
         githubRow.add(githubIcon, githubLink);
 
-        // Linkedin Row
         HorizontalLayout linkedinRow = new HorizontalLayout();
         linkedinRow.setSpacing(true);
         linkedinRow.setAlignItems(Alignment.CENTER);
@@ -224,9 +188,8 @@ public class CreditsComponent extends VerticalLayout {
 
         dialog.add(dialogContent);
 
-        // Add a close button to the dialog header
         Button closeButton = new Button(new Icon(VaadinIcon.CLOSE), e -> dialog.close());
-        closeButton.addThemeVariants(); // Add default button theme (optional, but common for close)
+        closeButton.addThemeVariants();
         dialog.getHeader().add(closeButton);
 
         dialog.open();

@@ -4,6 +4,9 @@ import java.util.List;
 
 /**
  * Classe di supporto contenente le costanti per gli esami.
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
  */
 public final class ExamConst {
     /**

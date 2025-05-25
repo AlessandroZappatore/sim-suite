@@ -34,7 +34,6 @@ import java.util.Optional;
  */
 @PageTitle("Obiettivi Didattici")
 @Route(value = "obiettivididattici")
-@Menu(order = 7)
 public class ObiettivididatticiView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     /**
      * Logger per la registrazione degli eventi.

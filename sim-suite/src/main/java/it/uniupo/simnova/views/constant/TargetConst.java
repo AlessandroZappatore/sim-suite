@@ -2,6 +2,9 @@ package it.uniupo.simnova.views.constant;
 
 /**
  * Classe di supporto contenente le costanti per i target.
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
  */
 public final class TargetConst {
     // --- Costanti Target Principali ---

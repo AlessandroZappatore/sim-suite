@@ -34,7 +34,6 @@ import java.util.Optional;
  */
 @PageTitle("Informazioni per i Genitori")
 @Route(value = "infoGenitori")
-@Menu(order = 5)
 public class GenitoriView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     /**
      * Servizio per la gestione degli scenari.

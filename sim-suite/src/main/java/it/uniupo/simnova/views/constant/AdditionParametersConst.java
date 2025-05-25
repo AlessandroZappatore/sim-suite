@@ -5,6 +5,9 @@ import java.util.Map;
 
 /**
  * Classe di supporto contenente i parametri aggiuntivi da utilizzare nei vari tempi.
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
  */
 public final class AdditionParametersConst {
     /**
@@ -18,7 +21,6 @@ public final class AdditionParametersConst {
     public static final String CUSTOM_PARAMETER_KEY = "CUSTOM";
 
     static {
-        // Popolamento della mappa dei parametri aggiuntivi predefiniti
         // (Cardiologia / Monitor Multiparametrico)
         ADDITIONAL_PARAMETERS.put("PVC", "Pressione Venosa Centrale (cmH₂O)");
         ADDITIONAL_PARAMETERS.put("QTc", "QT/QTc (ms)");

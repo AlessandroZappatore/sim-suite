@@ -37,7 +37,6 @@ import static it.uniupo.simnova.views.constant.TargetConst.*;
 
 @PageTitle("Target")
 @Route(value = "target")
-@Menu(order = 2)
 public class TargetView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     private static final Logger logger = LoggerFactory.getLogger(TargetView.class);
     private final ScenarioService scenarioService;

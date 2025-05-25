@@ -4,7 +4,6 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
@@ -57,9 +56,9 @@ public class StyleApp extends HorizontalLayout {
         headerSection.setPadding(true);
         headerSection.setSpacing(false);
         headerSection.setWidthFull();
-        headerSection.setAlignItems(FlexComponent.Alignment.CENTER); // Allineamento centrale per tutti gli elementi
+        headerSection.setAlignItems(FlexComponent.Alignment.CENTER);
         headerSection.getStyle()
-                .set("background", "var(--lumo-base-color)") // Already good: uses Lumo variable
+                .set("background", "var(--lumo-base-color)")
                 .set("border-radius", "8px")
                 .set("margin-top", "1rem")
                 .set("margin-bottom", "1rem")
@@ -81,7 +80,7 @@ public class StyleApp extends HorizontalLayout {
                 .set("border-radius", "50%");
 
         headerTitle.getStyle()
-                .set("color", iconColor) // Depends on iconColor parameter
+                .set("color", iconColor)
                 .set("font-weight", "600")
                 .set("letter-spacing", "0.5px")
                 .set("text-align", "center");
@@ -103,7 +102,7 @@ public class StyleApp extends HorizontalLayout {
         subtitleParagraph.addClassName(LumoUtility.Margin.Top.XSMALL);
         subtitleParagraph.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
         subtitleParagraph.getStyle()
-                .set("color", "var(--lumo-secondary-text-color)") // Good: uses Lumo variable
+                .set("color", "var(--lumo-secondary-text-color)")
                 .set("max-width", "750px")
                 .set("text-align", "center")
                 .set("font-weight", "400")
@@ -185,7 +184,6 @@ public class StyleApp extends HorizontalLayout {
                 .set("border", "1px solid var(" + iconColor + "-50pct)")
                 .set("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.05)");
 
-        // Aggiungo effetto hover utilizzando il colore passato come parametro
         editButton.getElement().executeJs(
                 "this.addEventListener('mouseover', function() { " +
                         "  this.style.backgroundColor = 'var(" + iconColor + "-20pct)'; " +
@@ -222,35 +220,6 @@ public class StyleApp extends HorizontalLayout {
                 .set("margin", "0 auto")
                 .set("flex-grow", "1");
         return contentLayout;
-    }
-
-    public static Button getSaveEditButton() {
-        Button saveButton = new Button("Salva Modifiche", new Icon(VaadinIcon.CHECK));
-        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        saveButton.setWidth("200px");  // Larghezza adeguata al testo più lungo
-        saveButton.getStyle()
-                .set("border-radius", "30px")
-                .set("font-weight", "600")
-                .set("transition", "transform 0.2s ease")
-                .set("background-color", "var(--lumo-success-color)")
-                .set("color", "var(--lumo-base-color)")
-                .set("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.05)")
-        ;
-
-        // Aggiungo effetto hover
-        saveButton.getElement().executeJs(
-                "this.addEventListener('mouseover', function() { " +
-                        "  this.style.backgroundColor = 'var(--lumo-success-text-color)'; " +
-                        "  this.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)'; " +
-                        "});" +
-                        "this.addEventListener('mouseout', function() { " +
-                        "  this.style.backgroundColor = 'var(--lumo-success-color)'; " +
-                        "  this.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)'; " +
-                        "});"
-        );
-
-        saveButton.addClassName("hover-effect");
-        return saveButton;
     }
 
     public static Button getScrollButton() {
@@ -291,16 +260,6 @@ public class StyleApp extends HorizontalLayout {
         return scrollToBottomButton;
     }
 
-    public static void styleDetailsSummary(Details details) {
-        if (details != null && details.getSummary() != null) {
-            details.getSummary().getStyle()
-                    .set("font-size", "var(--lumo-font-size-xl)")
-                    .set("font-weight", "600")
-                    .set("padding-top", "var(--lumo-space-s)")
-                    .set("padding-bottom", "var(--lumo-space-s)");
-        }
-    }
-
     public static void createConfirmDialog(String title, String message,
                                            String confirmText, String cancelText,
                                            Runnable confirmAction) {
@@ -308,19 +267,16 @@ public class StyleApp extends HorizontalLayout {
         dialog.setCloseOnEsc(true);
         dialog.setCloseOnOutsideClick(false);
 
-        // Intestazione
         H3 titleComponent = new H3(title);
         titleComponent.getStyle()
                 .set("margin-top", "0")
                 .set("margin-bottom", "var(--lumo-space-m)");
 
-        // Messaggio
         Paragraph messageComponent = new Paragraph(message);
         messageComponent.getStyle()
                 .set("color", "var(--lumo-secondary-text-color)")
                 .set("margin-bottom", "var(--lumo-space-l)");
 
-        // Pulsanti
         Button confirmButton = new Button(confirmText);
         confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         confirmButton.getStyle().set("margin-right", "var(--lumo-space-s)");
@@ -339,7 +295,6 @@ public class StyleApp extends HorizontalLayout {
         buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         buttonLayout.setWidthFull();
 
-        // Layout principale
         VerticalLayout mainLayout = new VerticalLayout(titleComponent, messageComponent, buttonLayout);
         mainLayout.setPadding(true);
         mainLayout.setSpacing(true);
@@ -348,5 +303,4 @@ public class StyleApp extends HorizontalLayout {
         dialog.open();
 
     }
-
 }

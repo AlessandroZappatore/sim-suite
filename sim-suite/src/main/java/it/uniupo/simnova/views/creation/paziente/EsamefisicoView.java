@@ -41,7 +41,6 @@ import java.util.Optional;
  */
 @PageTitle("Esame Fisico")
 @Route(value = "esameFisico")
-@Menu(order = 13)
 public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     /**
      * Logger per la registrazione degli eventi.

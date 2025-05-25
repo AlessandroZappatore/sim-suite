@@ -50,7 +50,6 @@ import static it.uniupo.simnova.views.constant.AdditionParametersConst.CUSTOM_PA
  */
 @PageTitle("Tempi")
 @Route("tempi")
-@Menu(order = 14)
 public class TempoView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     /**
      * Logger per la registrazione delle attività e degli errori.

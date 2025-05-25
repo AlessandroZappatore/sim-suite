@@ -34,7 +34,6 @@ import java.util.Optional;
  */
 @PageTitle("Patto d'Aula")
 @Route(value = "pattoaula")
-@Menu(order = 5)
 public class PattoaulaView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     /**
      * Logger per la registrazione degli eventi.

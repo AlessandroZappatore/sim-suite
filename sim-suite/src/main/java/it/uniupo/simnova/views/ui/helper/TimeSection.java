@@ -226,10 +226,8 @@ public class TimeSection {
         Button removeButton = new Button("Rimuovi T" + timeNumber, new Icon(VaadinIcon.TRASH));
         removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY); // Stile errore leggero
         removeButton.addClickListener(event -> {
-            // Logica di rimozione: rimuove dalla lista e dall'UI
             timeSections.remove(this);
             timeSectionsContainer.remove(layout);
-            // Potrebbe essere necessario ri-calcolare timeCount o aggiornare i riferimenti TSi/TNo altrove
             Notification.show("Tempo T" + timeNumber + " rimosso.", 2000, Notification.Position.BOTTOM_START).addThemeVariants(NotificationVariant.LUMO_CONTRAST);
         });
 

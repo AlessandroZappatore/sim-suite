@@ -42,7 +42,6 @@ import java.util.stream.Collectors;
  */
 @PageTitle("Azioni Chiave")
 @Route(value = "azionechiave")
-@Menu(order = 6)
 public class AzionechiaveView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
 
     /**

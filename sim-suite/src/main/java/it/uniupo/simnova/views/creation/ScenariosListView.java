@@ -20,12 +20,11 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
-import com.vaadin.flow.component.textfield.TextField; // Added
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.data.value.ValueChangeMode; // Added
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.*;
-import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.domain.scenario.Scenario;
@@ -67,12 +66,11 @@ import static it.uniupo.simnova.views.ui.helper.support.SanitizedFileName.saniti
  * Implementa la ricerca per Titolo, Autori, Tipo e Patologia con paginazione.
  *
  * @author Alessandro Zappatore
- * @version 1.2 // Updated version for style enhancements
+ * @version 1.2
  */
 @SuppressWarnings({"ThisExpressionReferencesGlobalObjectJS", "JSCheckFunctionSignatures"})
 @PageTitle("Lista Scenari")
 @Route(value = "scenari")
-@Menu(order = 3)
 public class ScenariosListView extends Composite<VerticalLayout> {
     private static final int PAGE_SIZE = 10;
     public final AtomicBoolean detached;
@@ -766,7 +764,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         Notification.show("Generazione del PDF...", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_PRIMARY);
         try {
             StreamResource resource = new StreamResource(
-                    "scenario_" + sanitizeFileName(scenario.getTitolo()) + ".zip",
+                    "Pdf_scenario_" + limitLength(sanitizeFileName(scenario.getTitolo())) + ".zip",
                     () -> {
                         try {
                             byte[] pdfBytes = zipExportService.exportScenarioPdfToZip(
@@ -795,7 +793,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         Notification.show("Generazione dell'archivio ZIP...", 3000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_PRIMARY);
         try {
             StreamResource resource = new StreamResource(
-                    "scenario_" + sanitizeFileName(scenario.getTitolo()) + ".zip",
+                    "Execution_scenario_" + limitLength(sanitizeFileName(scenario.getTitolo())) + ".zip",
                     () -> {
                         try {
                             byte[] zipBytes = zipExportService.exportScenarioToZip(scenario.getId());
@@ -951,5 +949,15 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                 }
             }
         });
+    }
+
+    private String limitLength(String text) {
+        if (text == null) {
+            return "";
+        }
+        if (text.length() <= 30) {
+            return text;
+        }
+        return text.substring(0, 30);
     }
 }

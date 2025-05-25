@@ -47,7 +47,6 @@ import static it.uniupo.simnova.views.constant.ExamConst.ALLLABSEXAMS;
  */
 @PageTitle("Esami e Referti")
 @Route(value = "esamiReferti")
-@Menu(order = 9)
 public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     /**
      * Logger per la registrazione degli eventi.

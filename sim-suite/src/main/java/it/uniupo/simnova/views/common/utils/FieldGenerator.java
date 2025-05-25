@@ -46,7 +46,6 @@ public class FieldGenerator extends HorizontalLayout {
         if (!label.equals("Azione Chiave")) {
             field.getStyle().set("max-width", "500px");
         }
-        // Aggiunge un effetto hover e focus
         field.getElement().getStyle()
                 .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
         field.getElement().executeJs(
@@ -58,14 +57,11 @@ public class FieldGenerator extends HorizontalLayout {
         field.addClassName(LumoUtility.Padding.SMALL);
 
         if (required == null) {
-            // Se required è null, usa il grigio
             field.getStyle().set("border-left", "3px solid var(--lumo-contrast-30pct)");
         } else if (required) {
-            // Se required è true, usa il blu
             field.setRequired(true);
             field.getStyle().set("border-left", "3px solid var(--lumo-primary-color)");
         } else {
-            // Se required è false, usa il verde
             field.getStyle().set("border-left", "3px solid var(--lumo-success-color-50pct)");
         }
 
@@ -90,7 +86,6 @@ public class FieldGenerator extends HorizontalLayout {
                 .set("box-shadow", "var(--lumo-box-shadow-xs)")
                 .set("transition", "box-shadow 0.3s ease-in-out");
 
-        // Aggiunge un effetto hover e focus
         field.getElement().getStyle()
                 .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
         field.getElement().executeJs(
@@ -135,7 +130,6 @@ public class FieldGenerator extends HorizontalLayout {
                 .set("box-shadow", "var(--lumo-box-shadow-xs)")
                 .set("transition", "box-shadow 0.3s ease-in-out");
 
-        // Aggiunge un effetto hover e focus
         comboBox.getElement().getStyle()
                 .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
         comboBox.getElement().executeJs(
@@ -182,7 +176,6 @@ public class FieldGenerator extends HorizontalLayout {
                 .set("box-shadow", "var(--lumo-box-shadow-xs)")
                 .set("transition", "box-shadow 0.3s ease-in-out");
 
-        // Aggiunge un effetto hover e focus
         select.getElement().getStyle()
                 .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
         select.getElement().executeJs(
@@ -244,20 +237,17 @@ public class FieldGenerator extends HorizontalLayout {
     }
 
     public static HorizontalLayout createTimerPickerWithPresets(String label) {
-        // Creo il TimePicker base con lo stesso stile degli altri componenti
         TimePicker timerPicker = new TimePicker(label);
         timerPicker.setStep(Duration.ofSeconds(1));
         timerPicker.setPlaceholder("hh:mm:ss");
         timerPicker.setClearButtonVisible(true);
 
-        // Applico lo stile consistente con gli altri componenti
         timerPicker.getStyle()
                 .set("border-radius", "var(--lumo-border-radius-m)")
                 .set("box-shadow", "var(--lumo-box-shadow-xs)")
                 .set("transition", "box-shadow 0.3s ease-in-out")
-                .set("border-left", "3px solid var(--lumo-success-color-50pct)"); // Bordo verde (non obbligatorio)
+                .set("border-left", "3px solid var(--lumo-success-color-50pct)");
 
-        // Aggiungo effetto hover e focus
         timerPicker.getElement().getStyle()
                 .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
         timerPicker.getElement().executeJs(
@@ -268,39 +258,28 @@ public class FieldGenerator extends HorizontalLayout {
         timerPicker.addClassName(LumoUtility.Margin.Top.LARGE);
         timerPicker.addClassName(LumoUtility.Padding.SMALL);
 
-        // Layout che conterrà TimePicker e pulsanti
         HorizontalLayout timerLayout = new HorizontalLayout();
         timerLayout.setWidthFull();
         timerLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
 
-        // Pulsanti per valori predefiniti
         Button oneMinBtn = new Button("2 min", e -> timerPicker.setValue(LocalTime.of(0, 2, 0)));
         Button fiveMinBtn = new Button("5 min", e -> timerPicker.setValue(LocalTime.of(0, 5, 0)));
         Button tenMinBtn = new Button("10 min", e -> timerPicker.setValue(LocalTime.of(0, 10, 0)));
 
-        // Stile per i pulsanti (più piccoli e meno evidenti)
         for (Button btn : new Button[]{oneMinBtn, fiveMinBtn, tenMinBtn}) {
             btn.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
             btn.getStyle().set("min-width", "60px");
         }
 
-        // Layout pulsanti preimpostati
         HorizontalLayout presetButtons = new HorizontalLayout(oneMinBtn, fiveMinBtn, tenMinBtn);
         presetButtons.setSpacing(true);
 
-        // Aggiunge componenti al layout principale
         timerLayout.add(timerPicker, presetButtons);
         timerLayout.setFlexGrow(1, timerPicker);
 
         return timerLayout;
     }
 
-    /**
-     * Crea e configura una checkbox con stile avanzato.
-     *
-     * @param label Etichetta della checkbox
-     * @return Checkbox configurata con stile migliorato
-     */
     public static Checkbox createCheckbox(String label) {
         Checkbox checkbox = new Checkbox(label);
 
@@ -309,7 +288,6 @@ public class FieldGenerator extends HorizontalLayout {
                 .set("padding", "var(--lumo-space-s)")
                 .set("transition", "opacity 0.3s ease-in-out");
 
-        // Aggiunge un effetto hover
         checkbox.getElement().executeJs(
                 "this.addEventListener('mouseover', function() { this.style.opacity = '0.85'; });" +
                         "this.addEventListener('mouseout', function() { this.style.opacity = '1'; });"
@@ -320,19 +298,11 @@ public class FieldGenerator extends HorizontalLayout {
         return checkbox;
     }
 
-    /**
-     * Crea un campo IntegerField per la navigazione condizionale tra tempi.
-     *
-     * @param label       Etichetta del campo (es. "Se SI, vai a T:")
-     * @param placeholder Placeholder del campo (default: "ID Tempo")
-     * @param required    Indica se il campo è obbligatorio
-     * @return IntegerField configurato per la navigazione tra tempi
-     */
     public static IntegerField createTimeNavigationField(String label, String placeholder, boolean required) {
         IntegerField field = new IntegerField(label);
-        field.setMin(0);                      // Può puntare a T0
-        field.setStepButtonsVisible(true);    // Pulsanti +/-
-        field.setWidth("150px");              // Larghezza fissa
+        field.setMin(0);
+        field.setStepButtonsVisible(true);
+        field.setWidth("150px");
         field.setPlaceholder(placeholder != null ? placeholder : "ID Tempo");
 
         field.getStyle()
@@ -340,7 +310,6 @@ public class FieldGenerator extends HorizontalLayout {
                 .set("box-shadow", "var(--lumo-box-shadow-xs)")
                 .set("transition", "box-shadow 0.3s ease-in-out");
 
-        // Aggiunge un effetto hover e focus
         field.getElement().getStyle()
                 .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
         field.getElement().executeJs(
@@ -372,7 +341,6 @@ public class FieldGenerator extends HorizontalLayout {
                 .set("box-shadow", "var(--lumo-box-shadow-xs)")
                 .set("transition", "box-shadow 0.3s ease-in-out");
 
-        // Aggiunge un effetto hover e focus
         multiSelectComboBox.getElement().getStyle()
                 .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
         multiSelectComboBox.getElement().executeJs(

@@ -34,7 +34,6 @@ import java.util.Optional;
  */
 @PageTitle("Liquidi e dosi farmaci")
 @Route(value = "liquidi")
-@Menu(order = 11)
 public class LiquidiView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     /**
      * Logger per la registrazione degli eventi.

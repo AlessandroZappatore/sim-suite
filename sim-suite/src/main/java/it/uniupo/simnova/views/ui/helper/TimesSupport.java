@@ -19,6 +19,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.domain.common.ParametroAggiuntivo;
 import it.uniupo.simnova.domain.common.Tempo;
 import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
+import it.uniupo.simnova.views.common.utils.StyleApp;
 
 import java.util.Comparator;
 import java.util.List;
@@ -73,13 +74,6 @@ public class TimesSupport {
             titleLayout.setWidthFull();
         }
         return titleLayout;
-    }
-
-    private static Button createEditButton(String ariaLabel) {
-        Button editButton = new Button(VaadinIcon.EDIT.create());
-        editButton.getElement().setAttribute("aria-label", "Modifica " + ariaLabel);
-        editButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
-        return editButton;
     }
 
     private static HorizontalLayout createSaveCancelButtons(Runnable saveAction, Runnable cancelAction) {
@@ -209,7 +203,8 @@ public class TimesSupport {
             // --- Azione Section ---
             if (tempo.getAzione() != null && !tempo.getAzione().isEmpty()) {
                 Div azioneSection = createStyledSectionContainer(AZIONE_BORDER_COLOR);
-                Button editAzioneButton = createEditButton("Azione Principale");
+                Button editAzioneButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+                editAzioneButton.setTooltipText("Modifica Azione per T" + tempo.getIdTempo());
                 HorizontalLayout azioneTitleLayout = createSectionTitle(VaadinIcon.PLAY_CIRCLE_O.create(), "Azione", editAzioneButton);
                 azioneSection.add(azioneTitleLayout);
 
@@ -273,7 +268,8 @@ public class TimesSupport {
                     Hr transitionSeparator = new Hr();
                     transitionSeparator.getStyle().set("margin-top", "var(--lumo-space-m)").set("margin-bottom", "var(--lumo-space-s)");
 
-                    Button editTransitionsButton = createEditButton("Transizioni Se SI/NO");
+                    Button editTransitionsButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+                    editTransitionsButton.setTooltipText("Modifica Transizioni per T" + tempo.getIdTempo());
                     HorizontalLayout transitionsHeaderLayout = new HorizontalLayout();
                     transitionsHeaderLayout.setAlignItems(FlexComponent.Alignment.CENTER);
                     transitionsHeaderLayout.setWidthFull();
@@ -387,7 +383,8 @@ public class TimesSupport {
             // --- Altri Dettagli Section ---
             if (tempo.getAltriDettagli() != null && !tempo.getAltriDettagli().isEmpty()) {
                 Div dettagliSection = createStyledSectionContainer(DETTAGLI_BORDER_COLOR);
-                Button editDettagliButton = createEditButton("Dettagli Aggiuntivi");
+                Button editDettagliButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+                editDettagliButton.setTooltipText("Modifica Dettagli Aggiuntivi per T" + tempo.getIdTempo());
                 HorizontalLayout dettagliTitleLayout = createSectionTitle(VaadinIcon.INFO_CIRCLE_O.create(), "Dettagli Aggiuntivi", editDettagliButton);
                 dettagliSection.add(dettagliTitleLayout);
 
@@ -451,7 +448,8 @@ public class TimesSupport {
             // --- Ruolo Genitore Section ---
             if (tempo.getRuoloGenitore() != null && !tempo.getRuoloGenitore().isEmpty()) {
                 Div ruoloSection = createStyledSectionContainer(RUOLO_BORDER_COLOR);
-                Button editRuoloButton = createEditButton("Ruolo Genitore");
+                Button editRuoloButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+                editRuoloButton.setTooltipText("Modifica Ruolo Genitore per T" + tempo.getIdTempo());
                 HorizontalLayout ruoloTitleLayout = createSectionTitle(FontAwesome.Solid.CHILD_REACHING.create(), "Ruolo Genitore", editRuoloButton);
                 ruoloSection.add(ruoloTitleLayout);
 

@@ -44,7 +44,6 @@ import java.util.Optional;
  */
 @PageTitle("StartCreation")
 @Route("startCreation")
-@Menu(order = 2)
 public class StartCreationView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     /**
      * Logger per la registrazione delle informazioni e degli errori.

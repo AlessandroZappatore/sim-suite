@@ -47,9 +47,7 @@ import java.util.stream.Collectors;
  */
 @PageTitle("Materiale Necessario")
 @Route(value = "materialeNecessario")
-@Menu(order = 8)
 public class MaterialenecessarioView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-    // ... (campi esistenti) ...
     private static final Logger logger = LoggerFactory.getLogger(MaterialenecessarioView.class);
     private final ScenarioService scenarioService;
     private final MaterialeService materialeService;

@@ -34,7 +34,6 @@ import java.util.Optional;
  */
 @PageTitle("Descrizione")
 @Route(value = "descrizione")
-@Menu(order = 3)
 public class DescrizioneView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     /**
      * Logger per la registrazione degli eventi e degli errori.

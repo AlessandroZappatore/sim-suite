@@ -35,7 +35,6 @@ import java.util.Optional;
  */
 @PageTitle("Moulage")
 @Route(value = "moulage")
-@Menu(order = 10)
 public class MoulageView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     /**
      * Logger per la registrazione degli eventi.

@@ -47,7 +47,6 @@ import java.util.Optional;
  */
 @PageTitle("Parametri Paziente T0")
 @Route(value = "pazienteT0")
-@Menu(order = 12)
 public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlParameter<String> {
     /**
      * Logger per la registrazione degli eventi e degli errori.
