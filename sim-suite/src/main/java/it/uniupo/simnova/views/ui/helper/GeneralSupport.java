@@ -1,7 +1,11 @@
 package it.uniupo.simnova.views.ui.helper;
 
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.html.IFrame;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -9,28 +13,30 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.domain.scenario.Scenario;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.html.H5;
-import com.vaadin.flow.component.html.IFrame;
 import it.uniupo.simnova.service.scenario.ScenarioService;
+import it.uniupo.simnova.service.scenario.components.AzioneChiaveService;
 import it.uniupo.simnova.service.scenario.components.MaterialeService;
+
 import it.uniupo.simnova.views.common.utils.StyleApp;
 import it.uniupo.simnova.views.common.utils.TinyEditor;
 import org.vaadin.tinymce.TinyMce;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class GeneralSupport extends HorizontalLayout {
     public static VerticalLayout createOverviewContentWithData(
             Scenario scenario,
             boolean isPediatricScenario,
             String infoGenitore,
-            List<String> azioniChiave,
             ScenarioService scenarioService,
-            MaterialeService materialeService) {
+            MaterialeService materialeService,
+            AzioneChiaveService azioneChiaveService) {
 
         VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setPadding(true);
@@ -68,7 +74,8 @@ public class GeneralSupport extends HorizontalLayout {
         }
 
         addInfoItemIfNotEmpty(scenario.getId(), cardContentLayout, "Patto Aula", scenario.getPattoAula(), VaadinIcon.HANDSHAKE, scenarioService);
-        addAzioniChiaveItem(scenario.getId(), cardContentLayout, azioniChiave, scenarioService);
+
+        addAzioniChiaveItem(scenario.getId(), cardContentLayout, azioneChiaveService);
         addInfoItemIfNotEmpty(scenario.getId(), cardContentLayout, "Obiettivi Didattici", scenario.getObiettivo(), VaadinIcon.BOOK, scenarioService);
         addInfoItemIfNotEmpty(scenario.getId(), cardContentLayout, "Moulage", scenario.getMoulage(), VaadinIcon.EYE, scenarioService);
         addInfoItemIfNotEmpty(scenario.getId(), cardContentLayout, "Liquidi e dosi farmaci", scenario.getLiquidi(), VaadinIcon.DROP, scenarioService);
@@ -158,9 +165,10 @@ public class GeneralSupport extends HorizontalLayout {
             contentDisplay.setVisible(false);
             String currentHtml = contentDisplay.getElement().getProperty("innerHTML");
             String editorValue;
-            if (content == null || content.trim().isEmpty()) {
+            if (content == null || content.trim().isEmpty() || "Sezione vuota".equals(contentDisplay.getText())) {
                 editorValue = "";
             } else {
+
                 editorValue = currentHtml.replace("<br />", "\n").replace("<br>", "\n");
             }
             contentEditor.setValue(editorValue);
@@ -171,29 +179,62 @@ public class GeneralSupport extends HorizontalLayout {
 
         saveButton.addClickListener(e -> {
             String newContent = contentEditor.getValue();
-            if (newContent == null || newContent.trim().isEmpty()) {
-                contentDisplay.setText("Sezione vuota");
-                contentDisplay.getStyle().set("color", "var(--lumo-secondary-text-color)").set("font-style", "italic");
-            } else {
-                contentDisplay.getElement().setProperty("innerHTML", newContent.replace("\n", "<br />"));
-                contentDisplay.getStyle().remove("color");
-                contentDisplay.getStyle().remove("font-style");
-            }
+            boolean success;
+
             switch (title) {
-                case "Descrizione" -> scenarioService.updateScenarioDescription(scenarioId, newContent);
-                case "Briefing" -> scenarioService.updateScenarioBriefing(scenarioId, newContent);
-                case "Informazioni dai genitori" -> scenarioService.updateScenarioGenitoriInfo(scenarioId, newContent);
-                case "Patto Aula" -> scenarioService.updateScenarioPattoAula(scenarioId, newContent);
-                case "Obiettivi Didattici" -> scenarioService.updateScenarioObiettiviDidattici(scenarioId, newContent);
-                case "Moulage" -> scenarioService.updateScenarioMoulage(scenarioId, newContent);
-                case "Liquidi e dosi farmaci" -> scenarioService.updateScenarioLiquidi(scenarioId, newContent);
+                case "Descrizione":
+                    success = scenarioService.updateScenarioDescription(scenarioId, newContent);
+                    break;
+                case "Briefing":
+                    success = scenarioService.updateScenarioBriefing(scenarioId, newContent);
+                    break;
+                case "Informazioni dai genitori":
+                    success = scenarioService.updateScenarioGenitoriInfo(scenarioId, newContent);
+                    break;
+                case "Patto Aula":
+                    success = scenarioService.updateScenarioPattoAula(scenarioId, newContent);
+                    break;
+                case "Obiettivi Didattici":
+                    success = scenarioService.updateScenarioObiettiviDidattici(scenarioId, newContent);
+                    break;
+                case "Moulage":
+                    success = scenarioService.updateScenarioMoulage(scenarioId, newContent);
+                    break;
+                case "Liquidi e dosi farmaci":
+                    success = scenarioService.updateScenarioLiquidi(scenarioId, newContent);
+                    break;
+                default:
+                    Notification.show("Errore: Titolo sezione non riconosciuto.", 3000, Notification.Position.MIDDLE)
+                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
+
+                    contentEditor.setVisible(false);
+                    editorActions.setVisible(false);
+                    contentDisplay.setVisible(true);
+                    editButton.setVisible(true);
+                    return;
             }
+
+            if (success) {
+                if (newContent == null || newContent.trim().isEmpty()) {
+                    contentDisplay.setText("Sezione vuota");
+                    contentDisplay.getStyle().set("color", "var(--lumo-secondary-text-color)").set("font-style", "italic");
+                } else {
+                    contentDisplay.getElement().setProperty("innerHTML", newContent.replace("\n", "<br />"));
+                    contentDisplay.getStyle().remove("color");
+                    contentDisplay.getStyle().remove("font-style");
+                }
+                Notification.show("Sezione '" + title + "' aggiornata.", 3000, Notification.Position.BOTTOM_CENTER)
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            } else {
+                Notification.show("Errore durante l'aggiornamento della sezione '" + title + "'.", 3000, Notification.Position.BOTTOM_CENTER)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+
+            }
+
             contentEditor.setVisible(false);
             editorActions.setVisible(false);
             contentDisplay.setVisible(true);
             editButton.setVisible(true);
-            Notification.show("Sezione " + title + " aggiornata.", 3000, Notification.Position.BOTTOM_CENTER)
-                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         });
 
         cancelButton.addClickListener(e -> {
@@ -206,19 +247,208 @@ public class GeneralSupport extends HorizontalLayout {
         container.add(itemLayout);
     }
 
-    private static void addAzioniChiaveItem(Integer scenarioId, VerticalLayout container, List<String> azioniChiave, ScenarioService scenarioService) {
-        if (azioniChiave != null && !azioniChiave.isEmpty()) {
-            StringBuilder content = new StringBuilder();
-            for (String azione : azioniChiave) {
-                content.append("• ").append(azione).append("\n");
-            }
-            addInfoItemIfNotEmpty(scenarioId, container, "Azioni Chiave", content.toString(), VaadinIcon.KEY, false, scenarioService);
-        } else {
-            addInfoItemIfNotEmpty(scenarioId, container, "Azioni Chiave", null, VaadinIcon.KEY, false, scenarioService);
+    private static void addAzioniChiaveItem(
+            Integer scenarioId,
+            VerticalLayout container,
+            AzioneChiaveService azioneChiaveService
+    ) {
+        final String TITLE = "Azioni Chiave";
+        final VaadinIcon ICON_TYPE = VaadinIcon.KEY;
+
+        if (container.getComponentCount() > 0) {
+            Hr divider = new Hr();
+            divider.getStyle()
+                    .set("margin-top", "var(--lumo-space-s)")
+                    .set("margin-bottom", "var(--lumo-space-s)")
+                    .set("border-color", "var(--lumo-contrast-10pct)");
+            container.add(divider);
         }
+
+        VerticalLayout itemLayout = new VerticalLayout();
+        itemLayout.setPadding(false);
+        itemLayout.setSpacing(false);
+        itemLayout.setWidthFull();
+
+        HorizontalLayout headerRow = new HorizontalLayout();
+        headerRow.setWidthFull();
+        headerRow.setAlignItems(FlexComponent.Alignment.CENTER);
+        headerRow.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+
+        HorizontalLayout titleGroup = new HorizontalLayout();
+        titleGroup.setAlignItems(FlexComponent.Alignment.CENTER);
+        Icon icon = new Icon(ICON_TYPE);
+        icon.addClassName(LumoUtility.TextColor.PRIMARY);
+        icon.getStyle()
+                .set("background-color", "var(--lumo-primary-color-10pct)")
+                .set("padding", "var(--lumo-space-s)")
+                .set("border-radius", "var(--lumo-border-radius-l)")
+                .set("font-size", "var(--lumo-icon-size-m)")
+                .set("margin-right", "var(--lumo-space-xs)");
+        H5 titleLabel = new H5(TITLE);
+        titleLabel.addClassNames(LumoUtility.Margin.NONE, LumoUtility.TextColor.PRIMARY);
+        titleLabel.getStyle().set("font-weight", "600");
+        titleGroup.add(icon, titleLabel);
+
+        Button editButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+        editButton.setTooltipText("Modifica " + TITLE);
+        headerRow.add(titleGroup, editButton);
+        itemLayout.add(headerRow);
+
+        Div contentDisplay = new Div();
+        contentDisplay.getStyle()
+                .set("font-family", "var(--lumo-font-family)")
+                .set("line-height", "var(--lumo-line-height-m)")
+                .set("color", "var(--lumo-body-text-color)")
+                .set("white-space", "pre-wrap")
+                .set("padding", "var(--lumo-space-xs) 0 var(--lumo-space-s) calc(var(--lumo-icon-size-m) + var(--lumo-space-m))")
+                .set("width", "100%")
+                .set("box-sizing", "border-box");
+
+        VerticalLayout editorLayout = new VerticalLayout();
+        editorLayout.setPadding(false);
+        editorLayout.setSpacing(true);
+        editorLayout.setWidthFull();
+        editorLayout.setVisible(false);
+        editorLayout.getStyle().set("padding-left", "calc(var(--lumo-icon-size-m) + var(--lumo-space-m))");
+
+        VerticalLayout actionFieldsContainer = new VerticalLayout();
+        actionFieldsContainer.setWidthFull();
+        actionFieldsContainer.setPadding(false);
+        actionFieldsContainer.setSpacing(true);
+
+        List<TextField> actionFieldsList = new ArrayList<>();
+        AtomicInteger actionCounter = new AtomicInteger(1);
+
+        Button addActionButton = new Button("Aggiungi azione chiave", new Icon(VaadinIcon.PLUS_CIRCLE));
+        addActionButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+        addActionButton.getStyle().set("margin-top", "var(--lumo-space-s)");
+        addActionButton.addClickListener(e ->
+                addNewActionFieldToEditorLayout(actionFieldsContainer, actionFieldsList, "", actionCounter, azioneChiaveService, scenarioId)
+        );
+
+        editorLayout.add(actionFieldsContainer, addActionButton);
+
+        Button saveButton = new Button("Salva");
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+        Button cancelButton = new Button("Annulla");
+        cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+        HorizontalLayout editorActions = new HorizontalLayout(saveButton, cancelButton);
+        editorActions.setVisible(false);
+        editorActions.getStyle().set("margin-top", "var(--lumo-space-s)");
+
+        Runnable loadAndDisplayCurrentAzioni = () -> {
+            List<String> currentAzioni = azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenarioId);
+            if (currentAzioni == null || currentAzioni.isEmpty()) {
+                contentDisplay.setText("Sezione vuota");
+                contentDisplay.getStyle().set("color", "var(--lumo-secondary-text-color)").set("font-style", "italic");
+            } else {
+                String textContent = currentAzioni.stream()
+                        .map(azione -> "• " + azione)
+                        .collect(Collectors.joining("\n"));
+                contentDisplay.getElement().setProperty("innerHTML", textContent.replace("\n", "<br />"));
+                contentDisplay.getStyle().remove("color");
+                contentDisplay.getStyle().remove("font-style");
+            }
+        };
+
+        loadAndDisplayCurrentAzioni.run();
+        itemLayout.add(contentDisplay, editorLayout, editorActions);
+
+        editButton.addClickListener(e -> {
+            contentDisplay.setVisible(false);
+            editButton.setVisible(false);
+
+            actionFieldsContainer.removeAll();
+            actionFieldsList.clear();
+            actionCounter.set(1);
+
+            List<String> currentAzioni = azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenarioId);
+            if (currentAzioni != null && !currentAzioni.isEmpty()) {
+                currentAzioni.forEach(azione ->
+                        addNewActionFieldToEditorLayout(actionFieldsContainer, actionFieldsList, azione, actionCounter, azioneChiaveService, scenarioId)
+                );
+            }
+
+            if (actionFieldsList.isEmpty()) {
+                addNewActionFieldToEditorLayout(actionFieldsContainer, actionFieldsList, "", actionCounter, azioneChiaveService, scenarioId);
+            }
+
+            editorLayout.setVisible(true);
+            editorActions.setVisible(true);
+        });
+
+        saveButton.addClickListener(e -> {
+            List<String> newActionValues = actionFieldsList.stream()
+                    .map(TextField::getValue)
+                    .map(String::trim)
+                    .filter(value -> !value.isEmpty())
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            boolean success = azioneChiaveService.updateAzioniChiaveForScenario(scenarioId, newActionValues);
+
+            if (success) {
+                loadAndDisplayCurrentAzioni.run();
+                Notification.show(TITLE + " aggiornate.", 3000, Notification.Position.BOTTOM_CENTER)
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            } else {
+                Notification.show("Errore durante il salvataggio di " + TITLE + ".", 3000, Notification.Position.BOTTOM_CENTER)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+
+            editorLayout.setVisible(false);
+            editorActions.setVisible(false);
+            contentDisplay.setVisible(true);
+            editButton.setVisible(true);
+        });
+
+        cancelButton.addClickListener(e -> {
+            editorLayout.setVisible(false);
+            editorActions.setVisible(false);
+            contentDisplay.setVisible(true);
+            editButton.setVisible(true);
+        });
+
+        container.add(itemLayout);
+    }
+
+    private static void addNewActionFieldToEditorLayout(
+            VerticalLayout actionFieldsContainer,
+            List<TextField> actionFieldsList,
+            String initialValue,
+            AtomicInteger actionCounterReference,
+            AzioneChiaveService azioneChiaveService,
+            Integer scenarioId
+    ) {
+        HorizontalLayout fieldLayout = new HorizontalLayout();
+        fieldLayout.setWidthFull();
+        fieldLayout.setSpacing(true);
+        fieldLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
+
+        TextField actionField = new TextField();
+        actionField.setLabel("Azione Chiave #" + actionCounterReference.getAndIncrement());
+        actionField.setPlaceholder("Inserisci un'azione chiave");
+        actionField.setValue(initialValue != null ? initialValue.trim() : "");
+        actionField.setWidthFull();
+
+        actionFieldsList.add(actionField);
+
+        Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
+        removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL);
+        removeButton.setAriaLabel("Rimuovi azione");
+        removeButton.addClickListener(ev -> {
+            actionFieldsList.remove(actionField);
+            actionFieldsContainer.remove(fieldLayout);
+            azioneChiaveService.deleteAzioneChiaveByName(scenarioId, actionField.getValue().trim());
+        });
+
+        fieldLayout.addAndExpand(actionField);
+        fieldLayout.add(removeButton);
+        actionFieldsContainer.add(fieldLayout);
     }
 
     private static void addMaterialeNecessarioItem(Integer scenarioId, VerticalLayout container, MaterialeService materialeService) {
+
         if (container.getComponentCount() > 0) {
             Hr divider = new Hr();
             divider.getStyle()
@@ -282,7 +512,6 @@ public class GeneralSupport extends HorizontalLayout {
         };
 
         updateContentDisplay.run();
-
         itemLayout.add(contentDisplay);
 
         IFrame iframe = new IFrame();
@@ -319,13 +548,10 @@ public class GeneralSupport extends HorizontalLayout {
             iframeControls.setVisible(false);
             contentDisplay.setVisible(true);
             editButton.setVisible(true);
-
             updateContentDisplay.run();
-
             Notification.show("Editor materiali chiuso e contenuto aggiornato.", 3000, Notification.Position.BOTTOM_CENTER)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         });
-
         container.add(itemLayout);
     }
 

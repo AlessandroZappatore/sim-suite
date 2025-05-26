@@ -106,7 +106,7 @@ public class EsameRefertoService {
         }
     }
 
-    public void deleteEsameReferto(int idEsameReferto, int scenarioId) {
+    public boolean deleteEsameReferto(int idEsameReferto, int scenarioId) {
 
         String mediaFilename = getMediaFilenameByEsameId(idEsameReferto, scenarioId);
 
@@ -126,9 +126,11 @@ public class EsameRefertoService {
             stmt.setInt(2, scenarioId);
             stmt.executeUpdate();
             logger.info("Referto esame con ID {} eliminato con successo per lo scenario con ID {}", idEsameReferto, scenarioId);
+            return true;
         } catch (SQLException e) {
             logger.error("Errore durante l'eliminazione del referto esame con ID {} per lo scenario con ID {}", idEsameReferto, scenarioId, e);
         }
+        return false;
     }
 
     /**
@@ -157,5 +159,53 @@ public class EsameRefertoService {
         }
 
         return null;
+    }
+
+    public boolean updateMedia(int idEsame, Integer scenarioId, String newMediaFileName) {
+        final String sql = "UPDATE EsameReferto SET media = ? WHERE id_esame = ? AND id_scenario = ?";
+
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, newMediaFileName);
+            stmt.setInt(2, idEsame);
+            stmt.setInt(3, scenarioId);
+            int rowsAffected = stmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                logger.info("Media aggiornato con successo per l'esame con ID {} nello scenario con ID {}", idEsame, scenarioId);
+                return true;
+            } else {
+                logger.warn("Nessun media aggiornato per l'esame con ID {} nello scenario con ID {}", idEsame, scenarioId);
+                return false;
+            }
+        } catch (SQLException e) {
+            logger.error("Errore durante l'aggiornamento del media per l'esame con ID {} nello scenario con ID {}", idEsame, scenarioId, e);
+            return false;
+        }
+    }
+
+    public boolean updateRefertoTestuale(int idEsame, Integer scenarioId, String nuovoReferto) {
+        final String sql = "UPDATE EsameReferto SET referto_testuale = ? WHERE id_esame = ? AND id_scenario = ?";
+
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, nuovoReferto);
+            stmt.setInt(2, idEsame);
+            stmt.setInt(3, scenarioId);
+            int rowsAffected = stmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                logger.info("Referto testuale aggiornato con successo per l'esame con ID {} nello scenario con ID {}", idEsame, scenarioId);
+                return true;
+            } else {
+                logger.warn("Nessun referto testuale aggiornato per l'esame con ID {} nello scenario con ID {}", idEsame, scenarioId);
+                return false;
+            }
+        } catch (SQLException e) {
+            logger.error("Errore durante l'aggiornamento del referto testuale per l'esame con ID {} nello scenario con ID {}", idEsame, scenarioId, e);
+            return false;
+        }
     }
 }

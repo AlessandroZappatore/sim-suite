@@ -38,72 +38,70 @@ public class PhysicalExamSupport {
      * @return un Div contenente la card dell'esame fisico, o null se l'esame è vuoto
      */
     public static Div getExamCard(EsameFisico esame, EsameFisicoService esameFisicoService, Integer scenarioId) {
-        if (esame != null) {
-            Div examCard = new Div();
-            examCard.addClassName("info-card");
-            examCard.getStyle()
-                    .set("background-color", "var(--lumo-base-color)")
-                    .set("border-radius", "var(--lumo-border-radius-l)")
-                    .set("box-shadow", "var(--lumo-box-shadow-xs)")
-                    .set("padding", "var(--lumo-space-m)")
-                    .set("transition", "box-shadow 0.3s ease-in-out")
-                    .set("width", "80%")
-                    .set("max-width", "800px");
+        if (esame == null) esameFisicoService.addEsameFisico(scenarioId, null);
+        esame = esameFisicoService.getEsameFisicoById(scenarioId);
+        Div examCard = new Div();
+        examCard.addClassName("info-card");
+        examCard.getStyle()
+                .set("background-color", "var(--lumo-base-color)")
+                .set("border-radius", "var(--lumo-border-radius-l)")
+                .set("box-shadow", "var(--lumo-box-shadow-xs)")
+                .set("padding", "var(--lumo-space-m)")
+                .set("transition", "box-shadow 0.3s ease-in-out")
+                .set("width", "80%")
+                .set("max-width", "800px");
 
-            examCard.getElement().executeJs(
-                    "this.addEventListener('mouseover', function() { this.style.boxShadow = 'var(--lumo-box-shadow-s)'; });" +
-                            "this.addEventListener('mouseout', function() { this.style.boxShadow = 'var(--lumo-box-shadow-xs)'; });"
-            );
+        examCard.getElement().executeJs(
+                "this.addEventListener('mouseover', function() { this.style.boxShadow = 'var(--lumo-box-shadow-s)'; });" +
+                        "this.addEventListener('mouseout', function() { this.style.boxShadow = 'var(--lumo-box-shadow-xs)'; });"
+        );
 
-            HorizontalLayout examTitleLayout = new HorizontalLayout();
-            examTitleLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-            examTitleLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
-            examTitleLayout.setWidthFull();
-            examTitleLayout.setSpacing(true);
+        HorizontalLayout examTitleLayout = new HorizontalLayout();
+        examTitleLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        examTitleLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        examTitleLayout.setWidthFull();
+        examTitleLayout.setSpacing(true);
 
-            Icon examIcon = new Icon(VaadinIcon.STETHOSCOPE);
-            examIcon.getStyle()
-                    .set("color", "var(--lumo-primary-color)")
-                    .set("background-color", "var(--lumo-primary-color-10pct)")
-                    .set("padding", "var(--lumo-space-xs)")
-                    .set("border-radius", "50%");
+        Icon examIcon = new Icon(VaadinIcon.STETHOSCOPE);
+        examIcon.getStyle()
+                .set("color", "var(--lumo-primary-color)")
+                .set("background-color", "var(--lumo-primary-color-10pct)")
+                .set("padding", "var(--lumo-space-xs)")
+                .set("border-radius", "50%");
 
-            H3 examTitle = new H3("Esame Fisico");
-            examTitle.getStyle()
-                    .set("margin", "0")
-                    .set("font-weight", "600")
-                    .set("color", "var(--lumo-primary-text-color)");
+        H3 examTitle = new H3("Esame Fisico");
+        examTitle.getStyle()
+                .set("margin", "0")
+                .set("font-weight", "600")
+                .set("color", "var(--lumo-primary-text-color)");
 
-            examTitleLayout.add(examIcon, examTitle);
-            examCard.add(examTitleLayout);
+        examTitleLayout.add(examIcon, examTitle);
+        examCard.add(examTitleLayout);
 
-            Map<String, String> sections = esame.getSections();
-            VerticalLayout examLayout = new VerticalLayout();
-            examLayout.setPadding(false);
-            examLayout.setSpacing(true);
-            examLayout.getStyle().set("margin-top", "var(--lumo-space-m)");
-            examLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        Map<String, String> sections = esame.getSections();
+        VerticalLayout examLayout = new VerticalLayout();
+        examLayout.setPadding(false);
+        examLayout.setSpacing(true);
+        examLayout.getStyle().set("margin-top", "var(--lumo-space-m)");
+        examLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-            addSection(examLayout, "Generale", sections.get("Generale"), esameFisicoService, scenarioId);
-            addSection(examLayout, "Pupille", sections.get("Pupille"), esameFisicoService, scenarioId);
-            addSection(examLayout, "Collo", sections.get("Collo"), esameFisicoService, scenarioId);
-            addSection(examLayout, "Torace", sections.get("Torace"), esameFisicoService, scenarioId);
-            addSection(examLayout, "Cuore", sections.get("Cuore"), esameFisicoService, scenarioId);
-            addSection(examLayout, "Addome", sections.get("Addome"), esameFisicoService, scenarioId);
-            addSection(examLayout, "Retto", sections.get("Retto"), esameFisicoService, scenarioId);
-            addSection(examLayout, "Cute", sections.get("Cute"), esameFisicoService, scenarioId);
-            addSection(examLayout, "Estremità", sections.get("Estremità"), esameFisicoService, scenarioId);
-            addSection(examLayout, "Neurologico", sections.get("Neurologico"), esameFisicoService, scenarioId);
-            addSection(examLayout, "FAST", sections.get("FAST"), esameFisicoService, scenarioId);
+        addSection(examLayout, "Generale", sections.get("Generale"), esameFisicoService, scenarioId);
+        addSection(examLayout, "Pupille", sections.get("Pupille"), esameFisicoService, scenarioId);
+        addSection(examLayout, "Collo", sections.get("Collo"), esameFisicoService, scenarioId);
+        addSection(examLayout, "Torace", sections.get("Torace"), esameFisicoService, scenarioId);
+        addSection(examLayout, "Cuore", sections.get("Cuore"), esameFisicoService, scenarioId);
+        addSection(examLayout, "Addome", sections.get("Addome"), esameFisicoService, scenarioId);
+        addSection(examLayout, "Retto", sections.get("Retto"), esameFisicoService, scenarioId);
+        addSection(examLayout, "Cute", sections.get("Cute"), esameFisicoService, scenarioId);
+        addSection(examLayout, "Estremità", sections.get("Estremità"), esameFisicoService, scenarioId);
+        addSection(examLayout, "Neurologico", sections.get("Neurologico"), esameFisicoService, scenarioId);
+        addSection(examLayout, "FAST", sections.get("FAST"), esameFisicoService, scenarioId);
 
-            if (examLayout.getComponentCount() > 0) {
-                examCard.add(examLayout);
-            }
-
-            return examCard;
+        if (examLayout.getComponentCount() > 0) {
+            examCard.add(examLayout);
         }
 
-        return null;
+        return examCard;
     }
 
     /**

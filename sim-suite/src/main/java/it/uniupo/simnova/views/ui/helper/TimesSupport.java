@@ -106,7 +106,8 @@ public class TimesSupport {
 
     public static VerticalLayout createTimelineContent(List<Tempo> tempi,
                                                        int scenarioId,
-                                                       AdvancedScenarioService advancedScenarioService) {
+                                                       AdvancedScenarioService advancedScenarioService,
+                                                       boolean isPediatric) {
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(false);
         layout.setSpacing(true);
@@ -201,250 +202,254 @@ public class TimesSupport {
             detailsAndActionsContainer.setAlignItems(FlexComponent.Alignment.CENTER);
 
 
+            Div azioneSection = createStyledSectionContainer(AZIONE_BORDER_COLOR);
+            Button editAzioneButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+            editAzioneButton.setTooltipText("Modifica Azione per T" + tempo.getIdTempo());
+            HorizontalLayout azioneTitleLayout = createSectionTitle(VaadinIcon.PLAY_CIRCLE_O.create(), "Azione", editAzioneButton);
+            azioneSection.add(azioneTitleLayout);
 
-            if (tempo.getAzione() != null && !tempo.getAzione().isEmpty()) {
-                Div azioneSection = createStyledSectionContainer(AZIONE_BORDER_COLOR);
-                Button editAzioneButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
-                editAzioneButton.setTooltipText("Modifica Azione per T" + tempo.getIdTempo());
-                HorizontalLayout azioneTitleLayout = createSectionTitle(VaadinIcon.PLAY_CIRCLE_O.create(), "Azione", editAzioneButton);
-                azioneSection.add(azioneTitleLayout);
+            Div azioneContentWrapper = new Div();
+            azioneContentWrapper.setWidthFull();
+            String azioneText = tempo.getAzione();
+            if( azioneText == null || azioneText.isEmpty()) {
+                azioneText = "Nessuna azione definita.";
+            }
+            Paragraph azioneParagraph = new Paragraph(azioneText);
+            azioneParagraph.addClassName(LumoUtility.TextColor.SECONDARY);
+            azioneParagraph.getStyle().set("white-space", "pre-wrap").set("line-height", "var(--lumo-line-height-l)");
+            azioneContentWrapper.add(azioneParagraph);
 
-                Div azioneContentWrapper = new Div();
-                azioneContentWrapper.setWidthFull();
-                Paragraph azioneParagraph = new Paragraph(tempo.getAzione());
-                azioneParagraph.addClassName(LumoUtility.TextColor.SECONDARY);
-                azioneParagraph.getStyle().set("white-space", "pre-wrap").set("line-height", "var(--lumo-line-height-l)");
-                azioneContentWrapper.add(azioneParagraph);
+            TextArea azioneTextArea = new TextArea("Testo Azione");
+            azioneTextArea.setValue(tempo.getAzione());
+            azioneTextArea.setWidthFull();
+            azioneTextArea.getStyle().set("min-height", "100px");
+            azioneTextArea.setVisible(false);
 
-                TextArea azioneTextArea = new TextArea("Testo Azione");
-                azioneTextArea.setValue(tempo.getAzione());
-                azioneTextArea.setWidthFull();
-                azioneTextArea.getStyle().set("min-height", "100px");
+
+            final AtomicReference<HorizontalLayout> azioneSaveCancelLayoutRef = new AtomicReference<>();
+
+            Runnable saveAzioneRunnable = () -> {
+                String newValue = azioneTextArea.getValue();
+                advancedScenarioService.setAzione(tempo.getIdTempo(), scenarioId, newValue);
+                azioneParagraph.setText(newValue);
+                azioneParagraph.setVisible(true);
                 azioneTextArea.setVisible(false);
-
-
-                final AtomicReference<HorizontalLayout> azioneSaveCancelLayoutRef = new AtomicReference<>();
-
-                Runnable saveAzioneRunnable = () -> {
-                    String newValue = azioneTextArea.getValue();
-                    advancedScenarioService.setAzione(tempo.getIdTempo(), scenarioId, newValue);
-                    azioneParagraph.setText(newValue);
-                    azioneParagraph.setVisible(true);
-                    azioneTextArea.setVisible(false);
-                    if (azioneSaveCancelLayoutRef.get() != null) {
-                        azioneSaveCancelLayoutRef.get().setVisible(false);
-                    }
-                    editAzioneButton.setVisible(true);
-                    Notification.show("Azione aggiornata.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                };
-
-                Runnable cancelAzioneRunnable = () -> {
-                    azioneTextArea.setValue(azioneParagraph.getText());
-                    azioneParagraph.setVisible(true);
-                    azioneTextArea.setVisible(false);
-                    if (azioneSaveCancelLayoutRef.get() != null) {
-                        azioneSaveCancelLayoutRef.get().setVisible(false);
-                    }
-                    editAzioneButton.setVisible(true);
-                };
-
-                HorizontalLayout currentAzioneSaveCancelLayout = createSaveCancelButtons(saveAzioneRunnable, cancelAzioneRunnable);
-                azioneSaveCancelLayoutRef.set(currentAzioneSaveCancelLayout);
-                currentAzioneSaveCancelLayout.setVisible(false);
-                azioneContentWrapper.add(azioneTextArea, currentAzioneSaveCancelLayout);
-                azioneSection.add(azioneContentWrapper);
-
-                editAzioneButton.addClickListener(e -> {
-                    azioneParagraph.setVisible(false);
-                    azioneTextArea.setVisible(true);
-                    if (azioneSaveCancelLayoutRef.get() != null) {
-                        azioneSaveCancelLayoutRef.get().setVisible(true);
-                    }
-                    editAzioneButton.setVisible(false);
-                });
-
-
-                if (tempo.getTSi() >= 0 || tempo.getTNo() > 0) {
-                    Hr transitionSeparator = new Hr();
-                    transitionSeparator.getStyle().set("margin-top", "var(--lumo-space-m)").set("margin-bottom", "var(--lumo-space-s)");
-
-                    Button editTransitionsButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
-                    editTransitionsButton.setTooltipText("Modifica Transizioni per T" + tempo.getIdTempo());
-                    HorizontalLayout transitionsHeaderLayout = new HorizontalLayout();
-                    transitionsHeaderLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-                    transitionsHeaderLayout.setWidthFull();
-                    transitionsHeaderLayout.getStyle().set("margin-bottom", "var(--lumo-space-xs)");
-                    Span transitionsLabel = new Span("Transizioni Condizionali");
-                    transitionsLabel.getStyle().set("font-weight", "500").set("color", "var(--lumo-body-text-color)").set("font-size", "var(--lumo-font-size-s)");
-                    Div thSpacer = new Div();
-                    thSpacer.getStyle().set("flex-grow", "1");
-                    transitionsHeaderLayout.add(transitionsLabel, thSpacer, editTransitionsButton);
-
-                    azioneSection.add(transitionSeparator, transitionsHeaderLayout);
-
-                    Div viewAndEditTransitionsWrapper = new Div();
-                    viewAndEditTransitionsWrapper.setWidthFull();
-
-                    HorizontalLayout transitionsLayout = new HorizontalLayout();
-                    transitionsLayout.setSpacing(true);
-                    transitionsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
-                    transitionsLayout.setWidthFull();
-
-                    boolean hasSiTransition = tempo.getTSi() >= 0;
-                    boolean hasNoTransition = tempo.getTNo() > 0;
-
-                    if (hasSiTransition) {
-                        transitionsLayout.add(createTransitionTag("Se SI", "T" + tempo.getTSi(), "--lumo-success-color"));
-                    }
-                    if (hasNoTransition) {
-                        transitionsLayout.add(createTransitionTag("Se NO", "T" + tempo.getTNo(), "--lumo-error-color"));
-                    } else if (tempo.getTNo() == 0) {
-                        if (tempo.getTSi() == 0 && !hasSiTransition) {
-                            transitionsLayout.add(createTransitionTag("Se NO", "Fine simulazione", "--lumo-error-color"));
-                        } else if (hasSiTransition && tempo.getTNo() == 0) {
-                            transitionsLayout.add(createTransitionTag("Se NO", "Fine simulazione", "--lumo-error-color"));
-                        } else if (!hasSiTransition && tempo.getTNo() == 0) {
-                            transitionsLayout.add(createTransitionTag("Se NO", "Fine simulazione", "--lumo-error-color"));
-                        }
-                    }
-
-                    Paragraph noTransitionsDefinedMsg = new Paragraph("Nessuna transizione esplicita definita (potrebbe terminare o andare a T0).");
-                    noTransitionsDefinedMsg.getStyle().set("font-size", "var(--lumo-font-size-s)").set("color", "var(--lumo-secondary-text-color)").set("text-align", "center");
-                    noTransitionsDefinedMsg.setVisible(transitionsLayout.getComponentCount() == 0);
-
-                    NumberField tsiNumberField = new NumberField("ID Tempo 'Se SI' (0 per fine/default)");
-                    tsiNumberField.setValue((double) tempo.getTSi());
-                    tsiNumberField.setStepButtonsVisible(true);
-                    tsiNumberField.setMin(0);
-                    tsiNumberField.setWidthFull();
-
-                    NumberField tnoNumberField = new NumberField("ID Tempo 'Se NO' (0 per fine/default)");
-                    tnoNumberField.setValue((double) tempo.getTNo());
-                    tnoNumberField.setStepButtonsVisible(true);
-                    tnoNumberField.setMin(0);
-                    tnoNumberField.setWidthFull();
-
-                    VerticalLayout editTransitionsForm = new VerticalLayout(tsiNumberField, tnoNumberField);
-                    editTransitionsForm.setPadding(false);
-                    editTransitionsForm.setSpacing(true);
-                    editTransitionsForm.setWidthFull();
-                    editTransitionsForm.setVisible(false);
-
-
-                    final AtomicReference<HorizontalLayout> transitionsSaveCancelRef = new AtomicReference<>();
-
-                    Runnable saveTransitionsRunnable = () -> {
-                        int newTSi = tsiNumberField.getValue() != null ? tsiNumberField.getValue().intValue() : tempo.getTSi();
-                        int newTNo = tnoNumberField.getValue() != null ? tnoNumberField.getValue().intValue() : tempo.getTNo();
-                        advancedScenarioService.setTransitions(tempo.getIdTempo(), scenarioId, newTSi, newTNo);
-                        transitionsLayout.setVisible(true);
-                        noTransitionsDefinedMsg.setVisible(transitionsLayout.getComponentCount() == 0);
-                        editTransitionsForm.setVisible(false);
-                        if (transitionsSaveCancelRef.get() != null) {
-                            transitionsSaveCancelRef.get().setVisible(false);
-                        }
-                        editTransitionsButton.setVisible(true);
-                        Notification.show("Transizioni aggiornate (T" + newTSi + ", T" + newTNo + "). Ricaricare per vedere i tag aggiornati.", 5000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                    };
-
-                    Runnable cancelTransitionsRunnable = () -> {
-                        tsiNumberField.setValue((double) tempo.getTSi());
-                        tnoNumberField.setValue((double) tempo.getTNo());
-                        transitionsLayout.setVisible(true);
-                        noTransitionsDefinedMsg.setVisible(transitionsLayout.getComponentCount() == 0);
-                        editTransitionsForm.setVisible(false);
-                        if (transitionsSaveCancelRef.get() != null) {
-                            transitionsSaveCancelRef.get().setVisible(false);
-                        }
-                        editTransitionsButton.setVisible(true);
-                    };
-
-                    HorizontalLayout currentTransitionsSaveCancelLayout = createSaveCancelButtons(saveTransitionsRunnable, cancelTransitionsRunnable);
-                    transitionsSaveCancelRef.set(currentTransitionsSaveCancelLayout);
-                    currentTransitionsSaveCancelLayout.setVisible(false);
-
-                    viewAndEditTransitionsWrapper.add(transitionsLayout, noTransitionsDefinedMsg, editTransitionsForm, currentTransitionsSaveCancelLayout);
-                    azioneSection.add(viewAndEditTransitionsWrapper);
-
-                    editTransitionsButton.addClickListener(e -> {
-                        transitionsLayout.setVisible(false);
-                        noTransitionsDefinedMsg.setVisible(false);
-                        editTransitionsForm.setVisible(true);
-                        if (transitionsSaveCancelRef.get() != null) {
-                            transitionsSaveCancelRef.get().setVisible(true);
-                        }
-                        editTransitionsButton.setVisible(false);
-                    });
+                if (azioneSaveCancelLayoutRef.get() != null) {
+                    azioneSaveCancelLayoutRef.get().setVisible(false);
                 }
-                detailsAndActionsContainer.add(azioneSection);
-            }
+                editAzioneButton.setVisible(true);
+                Notification.show("Azione aggiornata.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            };
+
+            Runnable cancelAzioneRunnable = () -> {
+                azioneTextArea.setValue(azioneParagraph.getText());
+                azioneParagraph.setVisible(true);
+                azioneTextArea.setVisible(false);
+                if (azioneSaveCancelLayoutRef.get() != null) {
+                    azioneSaveCancelLayoutRef.get().setVisible(false);
+                }
+                editAzioneButton.setVisible(true);
+            };
+
+            HorizontalLayout currentAzioneSaveCancelLayout = createSaveCancelButtons(saveAzioneRunnable, cancelAzioneRunnable);
+            azioneSaveCancelLayoutRef.set(currentAzioneSaveCancelLayout);
+            currentAzioneSaveCancelLayout.setVisible(false);
+            azioneContentWrapper.add(azioneTextArea, currentAzioneSaveCancelLayout);
+            azioneSection.add(azioneContentWrapper);
+
+            editAzioneButton.addClickListener(e -> {
+                azioneParagraph.setVisible(false);
+                azioneTextArea.setVisible(true);
+                if (azioneSaveCancelLayoutRef.get() != null) {
+                    azioneSaveCancelLayoutRef.get().setVisible(true);
+                }
+                editAzioneButton.setVisible(false);
+            });
 
 
-            if (tempo.getAltriDettagli() != null && !tempo.getAltriDettagli().isEmpty()) {
-                Div dettagliSection = createStyledSectionContainer(DETTAGLI_BORDER_COLOR);
-                Button editDettagliButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
-                editDettagliButton.setTooltipText("Modifica Dettagli Aggiuntivi per T" + tempo.getIdTempo());
-                HorizontalLayout dettagliTitleLayout = createSectionTitle(VaadinIcon.INFO_CIRCLE_O.create(), "Dettagli Aggiuntivi", editDettagliButton);
-                dettagliSection.add(dettagliTitleLayout);
+            if (tempo.getTSi() >= 0 || tempo.getTNo() > 0) {
+                Hr transitionSeparator = new Hr();
+                transitionSeparator.getStyle().set("margin-top", "var(--lumo-space-m)").set("margin-bottom", "var(--lumo-space-s)");
 
-                Div dettagliContentWrapper = new Div();
-                dettagliContentWrapper.setWidthFull();
-                Paragraph dettagliParagraph = new Paragraph(tempo.getAltriDettagli());
-                dettagliParagraph.addClassName(LumoUtility.TextColor.SECONDARY);
-                dettagliParagraph.getStyle().set("white-space", "pre-wrap").set("line-height", "var(--lumo-line-height-l)");
-                dettagliContentWrapper.add(dettagliParagraph);
+                Button editTransitionsButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+                editTransitionsButton.setTooltipText("Modifica Transizioni per T" + tempo.getIdTempo());
+                HorizontalLayout transitionsHeaderLayout = new HorizontalLayout();
+                transitionsHeaderLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+                transitionsHeaderLayout.setWidthFull();
+                transitionsHeaderLayout.getStyle().set("margin-bottom", "var(--lumo-space-xs)");
+                Span transitionsLabel = new Span("Transizioni Condizionali");
+                transitionsLabel.getStyle().set("font-weight", "500").set("color", "var(--lumo-body-text-color)").set("font-size", "var(--lumo-font-size-s)");
+                Div thSpacer = new Div();
+                thSpacer.getStyle().set("flex-grow", "1");
+                transitionsHeaderLayout.add(transitionsLabel, thSpacer, editTransitionsButton);
 
-                TextArea dettagliTextArea = new TextArea("Testo Dettagli Aggiuntivi");
-                dettagliTextArea.setValue(tempo.getAltriDettagli());
-                dettagliTextArea.setWidthFull();
-                dettagliTextArea.getStyle().set("min-height", "80px");
-                dettagliTextArea.setVisible(false);
+                azioneSection.add(transitionSeparator, transitionsHeaderLayout);
 
+                Div viewAndEditTransitionsWrapper = new Div();
+                viewAndEditTransitionsWrapper.setWidthFull();
 
-                final AtomicReference<HorizontalLayout> dettagliSaveCancelLayoutRef = new AtomicReference<>();
+                HorizontalLayout transitionsLayout = new HorizontalLayout();
+                transitionsLayout.setSpacing(true);
+                transitionsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+                transitionsLayout.setWidthFull();
 
-                Runnable saveDettagliRunnable = () -> {
-                    String newValue = dettagliTextArea.getValue();
-                    advancedScenarioService.setDettagliAggiuntivi(tempo.getIdTempo(), scenarioId, newValue);
-                    dettagliParagraph.setText(newValue);
-                    dettagliParagraph.setVisible(true);
-                    dettagliTextArea.setVisible(false);
-                    if (dettagliSaveCancelLayoutRef.get() != null) {
-                        dettagliSaveCancelLayoutRef.get().setVisible(false);
+                boolean hasSiTransition = tempo.getTSi() >= 0;
+                boolean hasNoTransition = tempo.getTNo() > 0;
+
+                if (hasSiTransition) {
+                    transitionsLayout.add(createTransitionTag("Se SI", "T" + tempo.getTSi(), "--lumo-success-color"));
+                }
+                if (hasNoTransition) {
+                    transitionsLayout.add(createTransitionTag("Se NO", "T" + tempo.getTNo(), "--lumo-error-color"));
+                } else if (tempo.getTNo() == 0) {
+                    if (tempo.getTSi() == 0 && !hasSiTransition) {
+                        transitionsLayout.add(createTransitionTag("Se NO", "Fine simulazione", "--lumo-error-color"));
+                    } else if (hasSiTransition && tempo.getTNo() == 0) {
+                        transitionsLayout.add(createTransitionTag("Se NO", "Fine simulazione", "--lumo-error-color"));
+                    } else if (!hasSiTransition && tempo.getTNo() == 0) {
+                        transitionsLayout.add(createTransitionTag("Se NO", "Fine simulazione", "--lumo-error-color"));
                     }
-                    editDettagliButton.setVisible(true);
-                    Notification.show("Dettagli aggiuntivi aggiornati.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                }
+
+                Paragraph noTransitionsDefinedMsg = new Paragraph("Nessuna transizione esplicita definita (potrebbe terminare o andare a T0).");
+                noTransitionsDefinedMsg.getStyle().set("font-size", "var(--lumo-font-size-s)").set("color", "var(--lumo-secondary-text-color)").set("text-align", "center");
+                noTransitionsDefinedMsg.setVisible(transitionsLayout.getComponentCount() == 0);
+
+                NumberField tsiNumberField = new NumberField("ID Tempo 'Se SI' (0 per fine/default)");
+                tsiNumberField.setValue((double) tempo.getTSi());
+                tsiNumberField.setStepButtonsVisible(true);
+                tsiNumberField.setMin(0);
+                tsiNumberField.setWidthFull();
+
+                NumberField tnoNumberField = new NumberField("ID Tempo 'Se NO' (0 per fine/default)");
+                tnoNumberField.setValue((double) tempo.getTNo());
+                tnoNumberField.setStepButtonsVisible(true);
+                tnoNumberField.setMin(0);
+                tnoNumberField.setWidthFull();
+
+                VerticalLayout editTransitionsForm = new VerticalLayout(tsiNumberField, tnoNumberField);
+                editTransitionsForm.setPadding(false);
+                editTransitionsForm.setSpacing(true);
+                editTransitionsForm.setWidthFull();
+                editTransitionsForm.setVisible(false);
+
+
+                final AtomicReference<HorizontalLayout> transitionsSaveCancelRef = new AtomicReference<>();
+
+                Runnable saveTransitionsRunnable = () -> {
+                    int newTSi = tsiNumberField.getValue() != null ? tsiNumberField.getValue().intValue() : tempo.getTSi();
+                    int newTNo = tnoNumberField.getValue() != null ? tnoNumberField.getValue().intValue() : tempo.getTNo();
+                    advancedScenarioService.setTransitions(tempo.getIdTempo(), scenarioId, newTSi, newTNo);
+                    transitionsLayout.setVisible(true);
+                    noTransitionsDefinedMsg.setVisible(transitionsLayout.getComponentCount() == 0);
+                    editTransitionsForm.setVisible(false);
+                    if (transitionsSaveCancelRef.get() != null) {
+                        transitionsSaveCancelRef.get().setVisible(false);
+                    }
+                    editTransitionsButton.setVisible(true);
+                    Notification.show("Transizioni aggiornate (T" + newTSi + ", T" + newTNo + "). Ricaricare per vedere i tag aggiornati.", 5000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 };
 
-                Runnable cancelDettagliRunnable = () -> {
-                    dettagliTextArea.setValue(dettagliParagraph.getText());
-                    dettagliParagraph.setVisible(true);
-                    dettagliTextArea.setVisible(false);
-                    if (dettagliSaveCancelLayoutRef.get() != null) {
-                        dettagliSaveCancelLayoutRef.get().setVisible(false);
+                Runnable cancelTransitionsRunnable = () -> {
+                    tsiNumberField.setValue((double) tempo.getTSi());
+                    tnoNumberField.setValue((double) tempo.getTNo());
+                    transitionsLayout.setVisible(true);
+                    noTransitionsDefinedMsg.setVisible(transitionsLayout.getComponentCount() == 0);
+                    editTransitionsForm.setVisible(false);
+                    if (transitionsSaveCancelRef.get() != null) {
+                        transitionsSaveCancelRef.get().setVisible(false);
                     }
-                    editDettagliButton.setVisible(true);
+                    editTransitionsButton.setVisible(true);
                 };
 
-                HorizontalLayout currentDettagliSaveCancelLayout = createSaveCancelButtons(saveDettagliRunnable, cancelDettagliRunnable);
-                dettagliSaveCancelLayoutRef.set(currentDettagliSaveCancelLayout);
-                currentDettagliSaveCancelLayout.setVisible(false);
-                dettagliContentWrapper.add(dettagliTextArea, currentDettagliSaveCancelLayout);
-                dettagliSection.add(dettagliContentWrapper);
+                HorizontalLayout currentTransitionsSaveCancelLayout = createSaveCancelButtons(saveTransitionsRunnable, cancelTransitionsRunnable);
+                transitionsSaveCancelRef.set(currentTransitionsSaveCancelLayout);
+                currentTransitionsSaveCancelLayout.setVisible(false);
 
-                editDettagliButton.addClickListener(e -> {
-                    dettagliParagraph.setVisible(false);
-                    dettagliTextArea.setVisible(true);
-                    if (dettagliSaveCancelLayoutRef.get() != null) {
-                        dettagliSaveCancelLayoutRef.get().setVisible(true);
+                viewAndEditTransitionsWrapper.add(transitionsLayout, noTransitionsDefinedMsg, editTransitionsForm, currentTransitionsSaveCancelLayout);
+                azioneSection.add(viewAndEditTransitionsWrapper);
+
+                editTransitionsButton.addClickListener(e -> {
+                    transitionsLayout.setVisible(false);
+                    noTransitionsDefinedMsg.setVisible(false);
+                    editTransitionsForm.setVisible(true);
+                    if (transitionsSaveCancelRef.get() != null) {
+                        transitionsSaveCancelRef.get().setVisible(true);
                     }
-                    editDettagliButton.setVisible(false);
+                    editTransitionsButton.setVisible(false);
                 });
-                detailsAndActionsContainer.add(dettagliSection);
             }
+            detailsAndActionsContainer.add(azioneSection);
 
 
-            if (tempo.getRuoloGenitore() != null && !tempo.getRuoloGenitore().isEmpty()) {
+            Div dettagliSection = createStyledSectionContainer(DETTAGLI_BORDER_COLOR);
+            Button editDettagliButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+            editDettagliButton.setTooltipText("Modifica Dettagli Aggiuntivi per T" + tempo.getIdTempo());
+            HorizontalLayout dettagliTitleLayout = createSectionTitle(VaadinIcon.INFO_CIRCLE_O.create(), "Dettagli Aggiuntivi", editDettagliButton);
+            dettagliSection.add(dettagliTitleLayout);
+
+            Div dettagliContentWrapper = new Div();
+            dettagliContentWrapper.setWidthFull();
+            String dettagliText = tempo.getAltriDettagli();
+            if (dettagliText == null || dettagliText.isEmpty()) {
+                dettagliText = "Nessun dettaglio aggiuntivo definito.";
+            }
+            Paragraph dettagliParagraph = new Paragraph(dettagliText);
+            dettagliParagraph.addClassName(LumoUtility.TextColor.SECONDARY);
+            dettagliParagraph.getStyle().set("white-space", "pre-wrap").set("line-height", "var(--lumo-line-height-l)");
+            dettagliContentWrapper.add(dettagliParagraph);
+
+            TextArea dettagliTextArea = new TextArea("Testo Dettagli Aggiuntivi");
+            String tempDettagli = tempo.getAltriDettagli() != null ? tempo.getAltriDettagli() : "";
+            dettagliTextArea.setValue(tempDettagli);
+            dettagliTextArea.setWidthFull();
+            dettagliTextArea.getStyle().set("min-height", "80px");
+            dettagliTextArea.setVisible(false);
+
+
+            final AtomicReference<HorizontalLayout> dettagliSaveCancelLayoutRef = new AtomicReference<>();
+
+            Runnable saveDettagliRunnable = () -> {
+                String newValue = dettagliTextArea.getValue();
+                advancedScenarioService.setDettagliAggiuntivi(tempo.getIdTempo(), scenarioId, newValue);
+                dettagliParagraph.setText(newValue);
+                dettagliParagraph.setVisible(true);
+                dettagliTextArea.setVisible(false);
+                if (dettagliSaveCancelLayoutRef.get() != null) {
+                    dettagliSaveCancelLayoutRef.get().setVisible(false);
+                }
+                editDettagliButton.setVisible(true);
+                Notification.show("Dettagli aggiuntivi aggiornati.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            };
+
+            Runnable cancelDettagliRunnable = () -> {
+                dettagliTextArea.setValue(dettagliParagraph.getText());
+                dettagliParagraph.setVisible(true);
+                dettagliTextArea.setVisible(false);
+                if (dettagliSaveCancelLayoutRef.get() != null) {
+                    dettagliSaveCancelLayoutRef.get().setVisible(false);
+                }
+                editDettagliButton.setVisible(true);
+            };
+
+            HorizontalLayout currentDettagliSaveCancelLayout = createSaveCancelButtons(saveDettagliRunnable, cancelDettagliRunnable);
+            dettagliSaveCancelLayoutRef.set(currentDettagliSaveCancelLayout);
+            currentDettagliSaveCancelLayout.setVisible(false);
+            dettagliContentWrapper.add(dettagliTextArea, currentDettagliSaveCancelLayout);
+            dettagliSection.add(dettagliContentWrapper);
+
+            editDettagliButton.addClickListener(e -> {
+                dettagliParagraph.setVisible(false);
+                dettagliTextArea.setVisible(true);
+                if (dettagliSaveCancelLayoutRef.get() != null) {
+                    dettagliSaveCancelLayoutRef.get().setVisible(true);
+                }
+                editDettagliButton.setVisible(false);
+            });
+            detailsAndActionsContainer.add(dettagliSection);
+
+
+            if (isPediatric) {
                 Div ruoloSection = createStyledSectionContainer(RUOLO_BORDER_COLOR);
                 Button editRuoloButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
                 editRuoloButton.setTooltipText("Modifica Ruolo Genitore per T" + tempo.getIdTempo());
@@ -453,7 +458,11 @@ public class TimesSupport {
 
                 Div ruoloContentWrapper = new Div();
                 ruoloContentWrapper.setWidthFull();
-                Paragraph ruoloParagraph = new Paragraph(tempo.getRuoloGenitore());
+                String ruoloText = tempo.getRuoloGenitore();
+                if (ruoloText == null || ruoloText.isEmpty()) {
+                    ruoloText = "Nessun ruolo genitore definito.";
+                }
+                Paragraph ruoloParagraph = new Paragraph(ruoloText);
                 ruoloParagraph.addClassName(LumoUtility.TextColor.SECONDARY);
                 ruoloParagraph.getStyle().set("white-space", "pre-wrap").set("line-height", "var(--lumo-line-height-l)");
                 ruoloContentWrapper.add(ruoloParagraph);
@@ -514,6 +523,17 @@ public class TimesSupport {
             cardWrapper.setPadding(false);
             layout.add(cardWrapper);
         }
+        HorizontalLayout buttonContainer = new HorizontalLayout();
+        buttonContainer.setWidthFull();
+        buttonContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+
+        Button addNewTimesButton = StyleApp.getButton("Aggiungi Nuovi Tempi", VaadinIcon.PLUS, ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
+        addNewTimesButton.addThemeVariants(ButtonVariant.LUMO_LARGE);
+        addNewTimesButton.getStyle().set("background-color", "var(--lumo-success-color");
+        addNewTimesButton.addClickListener(ev -> UI.getCurrent().navigate("tempi/" + scenarioId + "/edit"));
+
+        buttonContainer.add(addNewTimesButton);
+        layout.add(buttonContainer);
         return layout;
     }
 

@@ -4,27 +4,42 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.IFrame;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.notification.Notification;
 import it.uniupo.simnova.domain.paziente.EsameReferto;
 import it.uniupo.simnova.service.scenario.components.EsameRefertoService;
+import it.uniupo.simnova.service.storage.FileStorageService;
+import it.uniupo.simnova.views.common.utils.StyleApp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 import java.util.List;
+import java.util.ArrayList;
 
 public class ExamSupport {
     private static final Logger logger = LoggerFactory.getLogger(ExamSupport.class);
 
-    public static VerticalLayout createExamsContent(EsameRefertoService esameRefertoService, Integer scenarioId){
+    public static VerticalLayout createExamsContent(EsameRefertoService esameRefertoService, FileStorageService fileStorageService, Integer scenarioId) {
         List<EsameReferto> esami = esameRefertoService.getEsamiRefertiByScenarioId(scenarioId);
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(false);
@@ -55,7 +70,19 @@ public class ExamSupport {
                 examTitle.getStyle()
                         .set("margin-top", "0")
                         .set("margin-bottom", "0")
-                        .set("color", "var(--lumo-primary-text-color)");
+                        .set("color", "var(--lumo-primary-text-color)")
+                        .set("flex-grow", "1");
+
+
+                Button editMediaButton = StyleApp.getButton("Modifica Media", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+                editMediaButton.setTooltipText("Modifica file multimediale per " + esame.getTipo());
+                editMediaButton.getElement().setAttribute("aria-label", "Modifica file multimediale per " + esame.getTipo());
+
+                HorizontalLayout titleAndEditMedia = new HorizontalLayout(examTitle, editMediaButton);
+                titleAndEditMedia.setAlignItems(FlexComponent.Alignment.CENTER);
+                titleAndEditMedia.setSpacing(true);
+                titleAndEditMedia.getStyle().set("flex-grow", "1");
+
 
                 Button deleteButton = new Button(VaadinIcon.TRASH.create());
                 deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
@@ -72,10 +99,14 @@ public class ExamSupport {
                     Button confirmDeleteButton = new Button("Elimina", VaadinIcon.TRASH.create());
                     confirmDeleteButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
                     confirmDeleteButton.addClickListener(confirmEvent -> {
-                        esameRefertoService.deleteEsameReferto(esame.getIdEsame(), scenarioId);
-                        Notification.show("Esame '" + esame.getTipo() + "' eliminato con successo.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        boolean deleted = esameRefertoService.deleteEsameReferto(esame.getIdEsame(), scenarioId);
+                        if (deleted) {
+                            Notification.show("Esame '" + esame.getTipo() + "' eliminato con successo.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                            layout.remove(examCard);
+                        } else {
+                            Notification.show("Errore durante l'eliminazione dell'esame.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        }
                         confirmDialog.close();
-                        layout.remove(examCard);
                     });
 
                     Button cancelDeleteButton = new Button("Annulla");
@@ -88,76 +119,326 @@ public class ExamSupport {
                     confirmDialog.open();
                 });
 
-                cardHeader.add(examTitle, deleteButton);
+                cardHeader.add(titleAndEditMedia, deleteButton);
                 examCard.add(cardHeader);
+
+
+                VerticalLayout mediaSectionContainer = new VerticalLayout();
+                mediaSectionContainer.setPadding(false);
+                mediaSectionContainer.setSpacing(true);
+                mediaSectionContainer.setWidthFull();
+
+
+                Div mediaPreviewWrapper = new Div();
+                mediaPreviewWrapper.setWidthFull();
+                if (esame.getMedia() != null && !esame.getMedia().isEmpty()) {
+                    mediaPreviewWrapper.add(createMediaPreview(esame.getMedia()));
+                }
+                mediaSectionContainer.add(mediaPreviewWrapper);
+
+
+                VerticalLayout mediaEditLayout = new VerticalLayout();
+                mediaEditLayout.setPadding(false);
+                mediaEditLayout.setSpacing(true);
+                mediaEditLayout.setVisible(false);
+                mediaEditLayout.getStyle().set("border", "1px dashed var(--lumo-contrast-20pct)").set("padding", "var(--lumo-space-s)");
+
+
+                RadioButtonGroup<String> mediaSourceGroupEdit = new RadioButtonGroup<>();
+                mediaSourceGroupEdit.setLabel("Sorgente Media");
+                mediaSourceGroupEdit.setItems("Carica nuovo file", "Seleziona da esistenti");
+
+                MemoryBuffer bufferEdit = new MemoryBuffer();
+                Upload uploadMediaEdit = new Upload(bufferEdit);
+                uploadMediaEdit.setAcceptedFileTypes("image/*", "video/*", "audio/*", ".pdf");
+                uploadMediaEdit.setMaxFiles(1);
+                uploadMediaEdit.setVisible(false);
+
+                ComboBox<String> selectExistingMediaEdit = new ComboBox<>("Seleziona Media Esistente");
+                selectExistingMediaEdit.setWidthFull();
+
+                try {
+                    List<String> availableFiles = fileStorageService.getAllFiles();
+                    if (availableFiles != null) {
+                        selectExistingMediaEdit.setItems(availableFiles);
+                    } else {
+                        selectExistingMediaEdit.setItems(new ArrayList<>());
+                        logger.warn("No available files found from FileStorageService for scenario {}", scenarioId);
+                    }
+                } catch (Exception ex) {
+                    logger.error("Error fetching available files for media editing", ex);
+                    selectExistingMediaEdit.setItems(new ArrayList<>());
+                }
+                selectExistingMediaEdit.setVisible(false);
+
+                mediaSourceGroupEdit.addValueChangeListener(event -> {
+                    String value = event.getValue();
+                    uploadMediaEdit.setVisible("Carica nuovo file".equals(value));
+                    selectExistingMediaEdit.setVisible("Seleziona da esistenti".equals(value));
+                });
+
+
+                if (esame.getMedia() != null && !esame.getMedia().isEmpty()) {
+                    mediaSourceGroupEdit.setValue("Seleziona da esistenti");
+                    selectExistingMediaEdit.setValue(esame.getMedia());
+                } else {
+                    mediaSourceGroupEdit.setValue("Carica nuovo file");
+                }
+
+
+                Button saveMediaButton = StyleApp.getButton("Salva Media", VaadinIcon.CHECK, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+                Button cancelMediaButton = StyleApp.getButton("Annulla", VaadinIcon.CLOSE, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color)");
+
+                HorizontalLayout mediaEditActions = new HorizontalLayout(saveMediaButton, cancelMediaButton);
+                mediaEditActions.setSpacing(true);
+
+                mediaEditLayout.add(mediaSourceGroupEdit, uploadMediaEdit, selectExistingMediaEdit, mediaEditActions);
+                mediaSectionContainer.add(mediaEditLayout);
+
+
+                editMediaButton.addClickListener(ev -> {
+                    mediaPreviewWrapper.setVisible(false);
+                    editMediaButton.setVisible(false);
+                    mediaEditLayout.setVisible(true);
+
+                    try {
+                        List<String> availableFiles = fileStorageService.getAllFiles();
+                        if (availableFiles != null) {
+                            selectExistingMediaEdit.setItems(availableFiles);
+                            if (esame.getMedia() != null && !esame.getMedia().isEmpty() && availableFiles.contains(esame.getMedia())) {
+                                selectExistingMediaEdit.setValue(esame.getMedia());
+                                mediaSourceGroupEdit.setValue("Seleziona da esistenti");
+                            } else if (esame.getMedia() != null && !esame.getMedia().isEmpty()) {
+
+
+                                logger.warn("Current media '{}' for exam '{}' not in available files list. Defaulting to upload.", esame.getMedia(), esame.getTipo());
+                                mediaSourceGroupEdit.setValue("Carica nuovo file");
+                                selectExistingMediaEdit.clear();
+                            } else {
+                                mediaSourceGroupEdit.setValue("Carica nuovo file");
+                            }
+                        } else {
+                            selectExistingMediaEdit.setItems(new ArrayList<>());
+                            mediaSourceGroupEdit.setValue("Carica nuovo file");
+                        }
+                    } catch (Exception ex) {
+                        logger.error("Error re-fetching available files for media editing", ex);
+                        selectExistingMediaEdit.setItems(new ArrayList<>());
+                        mediaSourceGroupEdit.setValue("Carica nuovo file");
+                    }
+                    mediaSourceGroupEdit.getOptionalValue().ifPresentOrElse(
+                            currentValue -> {
+                                uploadMediaEdit.setVisible("Carica nuovo file".equals(currentValue));
+                                selectExistingMediaEdit.setVisible("Seleziona da esistenti".equals(currentValue));
+                            },
+                            () -> {
+                                mediaSourceGroupEdit.setValue("Carica nuovo file");
+                                uploadMediaEdit.setVisible(true);
+                                selectExistingMediaEdit.setVisible(false);
+                            }
+                    );
+                });
+
+                cancelMediaButton.addClickListener(ev -> {
+                    mediaEditLayout.setVisible(false);
+                    mediaPreviewWrapper.setVisible(true);
+                    editMediaButton.setVisible(true);
+                    uploadMediaEdit.getElement().executeJs("this.files=[]");
+                });
+
+                saveMediaButton.addClickListener(ev -> {
+                    String newMediaFileName;
+                    boolean success = false;
+
+                    if ("Carica nuovo file".equals(mediaSourceGroupEdit.getValue())) {
+                        if (bufferEdit.getFileName() != null && !bufferEdit.getFileName().isEmpty()) {
+                            try (InputStream fileData = bufferEdit.getInputStream()) {
+                                newMediaFileName = fileStorageService.storeFile(fileData, bufferEdit.getFileName());
+                                logger.info("Nuovo file caricato: {}", newMediaFileName);
+                            } catch (Exception ex) {
+                                logger.error("Errore durante il salvataggio del file caricato", ex);
+                                Notification.show("Errore salvataggio file: " + ex.getMessage(), 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                                return;
+                            }
+                        } else {
+                            Notification.show("Nessun file selezionato per il caricamento.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_WARNING);
+                            return;
+                        }
+                    } else {
+                        newMediaFileName = selectExistingMediaEdit.getValue();
+                        if (newMediaFileName == null || newMediaFileName.trim().isEmpty()) {
+                            Notification.show("Nessun file esistente selezionato.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_WARNING);
+                            return;
+                        }
+                        logger.info("File esistente selezionato: {}", newMediaFileName);
+                    }
+
+                    if (newMediaFileName != null && !newMediaFileName.isEmpty()) {
+
+                        success = esameRefertoService.updateMedia(esame.getIdEsame(), scenarioId, newMediaFileName);
+                        if (success) {
+                            esame.setMedia(newMediaFileName);
+                            mediaPreviewWrapper.removeAll();
+                            mediaPreviewWrapper.add(createMediaPreview(newMediaFileName));
+                            Notification.show("Media aggiornato con successo.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        } else {
+                            Notification.show("Errore durante l'aggiornamento del media.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        }
+                    } else if (!"Carica nuovo file".equals(mediaSourceGroupEdit.getValue()) && esame.getMedia() != null && !esame.getMedia().isEmpty()) {
+
+
+                        success = esameRefertoService.updateMedia(esame.getIdEsame(), scenarioId, null);
+                        if (success) {
+                            esame.setMedia(null);
+                            mediaPreviewWrapper.removeAll();
+                            Notification.show("Media rimosso con successo.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        } else {
+                            Notification.show("Errore durante la rimozione del media.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        }
+                    }
+
+
+                    if (success || (newMediaFileName == null && !"Carica nuovo file".equals(mediaSourceGroupEdit.getValue()))) {
+                        mediaEditLayout.setVisible(false);
+                        mediaPreviewWrapper.setVisible(true);
+                        editMediaButton.setVisible(true);
+                        uploadMediaEdit.getElement().executeJs("this.files=[]");
+                    }
+                });
+
 
                 VerticalLayout examContent = new VerticalLayout();
                 examContent.setPadding(false);
                 examContent.setSpacing(true);
                 examContent.setWidthFull();
 
-                if (esame.getMedia() != null && !esame.getMedia().isEmpty()) {
-                    examContent.add(createMediaPreview(esame.getMedia()));
+
+                Div refertoDisplayContainer = new Div();
+                refertoDisplayContainer.setWidthFull();
+
+                Div refertoContainer = new Div();
+                refertoContainer.getStyle()
+                        .set("background-color", "var(--lumo-shade-5pct)")
+                        .set("border-radius", "var(--lumo-border-radius-m)")
+                        .set("padding", "var(--lumo-space-m)")
+                        .set("margin-top", "var(--lumo-space-m)")
+                        .set("border-left", "3px solid var(--lumo-primary-color)")
+                        .set("width", "90%")
+                        .set("box-sizing", "border-box")
+                        .set("margin-left", "auto")
+                        .set("margin-right", "auto");
+
+
+                HorizontalLayout refertoHeader = new HorizontalLayout();
+                refertoHeader.setPadding(false);
+                refertoHeader.setSpacing(true);
+                refertoHeader.setAlignItems(FlexComponent.Alignment.CENTER);
+                refertoHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+
+                Icon refertoIcon = new Icon(VaadinIcon.FILE_TEXT);
+                refertoIcon.getStyle().set("color", "var(--lumo-primary-color)");
+
+                H4 refertoTitle = new H4("Referto");
+                refertoTitle.getStyle().set("margin", "0").set("color", "var(--lumo-primary-color)");
+
+                HorizontalLayout refertoTitleLayout = new HorizontalLayout(refertoIcon, refertoTitle);
+                refertoTitleLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+                refertoTitleLayout.setSpacing(true);
+
+                Button editRefertoButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+                editRefertoButton.setTooltipText("Modifica Referto");
+
+                refertoHeader.add(refertoTitleLayout, editRefertoButton);
+
+                String refertoTestuale = esame.getRefertoTestuale();
+                if( refertoTestuale == null || refertoTestuale.isEmpty()) {
+                    refertoTestuale = "Nessun referto disponibile.";
                 }
+                Paragraph refertoText = new Paragraph(refertoTestuale);
+                refertoText.getStyle()
+                        .set("margin", "var(--lumo-space-s) 0 0 0")
+                        .set("color", "var(--lumo-body-text-color)")
+                        .set("white-space", "pre-wrap")
+                        .set("box-sizing", "border-box");
+
+                refertoContainer.add(refertoHeader, refertoText);
+                refertoDisplayContainer.add(refertoContainer);
 
 
-                if (esame.getRefertoTestuale() != null && !esame.getRefertoTestuale().isEmpty()) {
-                    Div refertoContainer = new Div();
-                    refertoContainer.getStyle()
-                            .set("background-color", "var(--lumo-shade-5pct)")
-                            .set("border-radius", "var(--lumo-border-radius-m)")
-                            .set("padding", "var(--lumo-space-m)")
-                            .set("margin-top", "var(--lumo-space-m)")
-                            .set("border-left", "3px solid var(--lumo-primary-color)")
-                            .set("width", "90%")
-                            .set("box-sizing", "border-box")
-                            .set("margin-left", "auto")
-                            .set("margin-right", "auto");
+                VerticalLayout refertoEditLayout = new VerticalLayout();
+                refertoEditLayout.setWidth("90%");
+                refertoEditLayout.getStyle()
+                        .set("margin-left", "auto")
+                        .set("margin-right", "auto")
+                        .set("margin-top", "var(--lumo-space-m)");
+                refertoEditLayout.setPadding(false);
+                refertoEditLayout.setSpacing(true);
+                refertoEditLayout.setVisible(false);
 
-                    HorizontalLayout refertoHeader = new HorizontalLayout();
-                    refertoHeader.setPadding(false);
-                    refertoHeader.setSpacing(true);
-                    refertoHeader.setAlignItems(FlexComponent.Alignment.CENTER);
 
-                    Icon refertoIcon = new Icon(VaadinIcon.FILE_TEXT);
-                    refertoIcon.getStyle().set("color", "var(--lumo-primary-color)");
+                TextArea editRefertoArea = new TextArea("Modifica Referto");
+                editRefertoArea.setWidthFull();
+                editRefertoArea.setMinHeight("150px");
+                editRefertoArea.setValue(esame.getRefertoTestuale());
 
-                    H4 refertoTitle = new H4("Referto");
-                    refertoTitle.getStyle()
-                            .set("margin", "0")
-                            .set("color", "var(--lumo-primary-color)");
+                Button saveRefertoButton = StyleApp.getButton("Salva Referto", VaadinIcon.CHECK, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+                Button cancelRefertoButton = StyleApp.getButton("Annulla", VaadinIcon.CLOSE, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color)");
+                HorizontalLayout refertoEditActions = new HorizontalLayout(saveRefertoButton, cancelRefertoButton);
+                refertoEditActions.setSpacing(true);
 
-                    refertoHeader.add(refertoIcon, refertoTitle);
+                refertoEditLayout.add(editRefertoArea, refertoEditActions);
 
-                    Paragraph refertoText = new Paragraph(esame.getRefertoTestuale());
-                    refertoText.getStyle()
-                            .set("margin", "var(--lumo-space-s) 0 0 0")
-                            .set("color", "var(--lumo-body-text-color)")
-                            .set("white-space", "pre-wrap")
-                            .set("box-sizing", "border-box");
+                editRefertoButton.addClickListener(ev -> {
+                    refertoDisplayContainer.setVisible(false);
+                    refertoEditLayout.setVisible(true);
+                    editRefertoArea.setValue(esame.getRefertoTestuale());
+                });
 
-                    refertoContainer.add(refertoHeader, refertoText);
-                    examContent.add(refertoContainer);
+                cancelRefertoButton.addClickListener(ev -> {
+                    refertoEditLayout.setVisible(false);
+                    refertoDisplayContainer.setVisible(true);
+                });
 
-                    examContent.setAlignItems(FlexComponent.Alignment.CENTER);
-                }
+                saveRefertoButton.addClickListener(ev -> {
+                    String nuovoReferto = editRefertoArea.getValue();
 
-                examCard.add(examContent);
+                    boolean updated = esameRefertoService.updateRefertoTestuale(esame.getIdEsame(), scenarioId, nuovoReferto);
+                    if (updated) {
+                        esame.setRefertoTestuale(nuovoReferto);
+                        refertoText.setText(nuovoReferto);
+                        Notification.show("Referto aggiornato con successo.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        refertoEditLayout.setVisible(false);
+                        refertoDisplayContainer.setVisible(true);
+                    } else {
+                        Notification.show("Errore durante l'aggiornamento del referto.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
+                });
+
+                examContent.add(refertoDisplayContainer, refertoEditLayout);
+                examContent.setAlignItems(FlexComponent.Alignment.CENTER);
+                examCard.add(mediaSectionContainer, examContent);
+
                 layout.add(examCard);
             }
         } else {
             Div errorDiv = EmptySupport.createErrorContent("Nessun esame disponibile");
             layout.add(errorDiv);
         }
+        HorizontalLayout buttonContainer = new HorizontalLayout();
+        buttonContainer.setWidthFull();
+        buttonContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+
+        Button addNewExamButton = StyleApp.getButton("Aggiungi Nuovo Esame", VaadinIcon.PLUS, ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
+        addNewExamButton.addThemeVariants(ButtonVariant.LUMO_LARGE);
+        addNewExamButton.getStyle().set("background-color", "var(--lumo-success-color");
+        addNewExamButton.addClickListener(ev -> UI.getCurrent().navigate("esamiReferti/" + scenarioId + "/edit"));
+
+        buttonContainer.add(addNewExamButton);
+        layout.add(buttonContainer);
         return layout;
     }
 
-    /**
-     * Crea un'anteprima per i file multimediali.
-     *
-     * @param fileName nome del file
-     * @return il componente di anteprima
-     */
+
     private static Component createMediaPreview(String fileName) {
         String fileExtension;
         int lastDotIndex = fileName.lastIndexOf(".");

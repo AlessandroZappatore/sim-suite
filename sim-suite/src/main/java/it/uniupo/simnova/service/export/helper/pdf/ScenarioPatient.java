@@ -144,29 +144,35 @@ public class ScenarioPatient {
         // Esame fisico
         EsameFisico esame = esameFisicoService.getEsameFisicoById(scenarioId);
         if (esame != null && esame.getSections() != null && !esame.getSections().isEmpty() && fisic) {
-            checkForNewPage(LEADING * 3); // Spazio stimato per drawSubsection
-            drawSubsection("Esame Fisico");
+            // Verifica se tutte le sezioni sono vuote
+            boolean allSectionsEmpty = esame.getSections().values().stream()
+                .allMatch(value -> value == null || value.trim().isEmpty());
 
-            Map<String, String> sections = esame.getSections();
+            if (!allSectionsEmpty) {
+                checkForNewPage(LEADING * 3); // Spazio stimato per drawSubsection
+                drawSubsection("Esame Fisico");
 
-            for (Map.Entry<String, String> entry : sections.entrySet()) {
-                String key = entry.getKey();
-                String value = entry.getValue();
+                Map<String, String> sections = esame.getSections();
 
-                // Solo se chiave e valore sono valorizzati
-                if (key != null && !key.trim().isEmpty() && value != null && !value.trim().isEmpty()) {
-                    checkForNewPage(LEADING * 4);
+                for (Map.Entry<String, String> entry : sections.entrySet()) {
+                    String key = entry.getKey();
+                    String value = entry.getValue();
 
-                    // Titolo della sottosezione (es. "Torace:")
-                    drawWrappedText(FONTBOLD, BODY_FONT_SIZE, MARGIN + 20, key + ":");
+                    // Solo se chiave e valore sono valorizzati
+                    if (key != null && !key.trim().isEmpty() && value != null && !value.trim().isEmpty()) {
+                        checkForNewPage(LEADING * 4);
 
-                    // Testo formattato della sezione (può contenere HTML)
-                    renderHtmlWithFormatting(value, MARGIN + 40);
+                        // Titolo della sottosezione (es. "Torace:")
+                        drawWrappedText(FONTBOLD, BODY_FONT_SIZE, MARGIN + 20, key + ":");
 
-                    PdfExportService.currentYPosition -= LEADING; // Spazio tra le entry
+                        // Testo formattato della sezione (può contenere HTML)
+                        renderHtmlWithFormatting(value, MARGIN + 40);
+
+                        PdfExportService.currentYPosition -= LEADING; // Spazio tra le entry
+                    }
                 }
+                PdfExportService.currentYPosition -= LEADING; // Spazio dopo la sezione
             }
-            PdfExportService.currentYPosition -= LEADING; // Spazio dopo la sezione
         }
 
         logger.info("Patient section creata con page break granulare e vitali riga per riga.");

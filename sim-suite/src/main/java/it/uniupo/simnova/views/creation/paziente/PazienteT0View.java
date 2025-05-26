@@ -24,6 +24,7 @@ import it.uniupo.simnova.service.storage.FileStorageService;
 import it.uniupo.simnova.service.scenario.components.PresidiService;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.views.common.components.AppHeader;
+import it.uniupo.simnova.views.common.components.CreditsComponent;
 import it.uniupo.simnova.views.common.utils.FieldGenerator;
 import it.uniupo.simnova.views.common.utils.StyleApp;
 import it.uniupo.simnova.views.common.utils.ValidationError;
@@ -53,16 +54,27 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
      */
     private static final Logger logger = LoggerFactory.getLogger(PazienteT0View.class);
     /**
+     * Lista per memorizzare gli accessi venosi.
+     */
+    private static final List<AccessoComponent> venosiAccessi = new ArrayList<>();
+    /**
+     * Lista per memorizzare gli accessi arteriosi.
+     */
+    private static final List<AccessoComponent> arteriosiAccessi = new ArrayList<>();
+    /**
+     * Container per gli accessi venosi.
+     */
+    private static VerticalLayout venosiContainer = null;
+    /**
+     * Container per gli accessi arteriosi.
+     */
+    private static VerticalLayout arteriosiContainer = null;
+    /**
      * Servizio per la gestione degli scenari.
      */
     private final ScenarioService scenarioService;
     private final PresidiService presidiService;
     private final PazienteT0Service pazienteT0Service;
-    /**
-     * ID dello scenario corrente.
-     */
-    private Integer scenarioId;
-
     /**
      * Campi per i parametri vitali principali.
      */
@@ -83,9 +95,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
      * Campo per la saturazione di ossigeno (SpO₂).
      */
     private final NumberField spo2Field;
-
     private final NumberField fio2Field;
-
     private final NumberField litrio2Field;
     /**
      * Campo per la pressione parziale di anidride carbonica (EtCO₂).
@@ -95,24 +105,13 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
      * Area di testo per il monitoraggio.
      */
     private final TextArea monitorArea;
-
     private final MultiSelectComboBox<String> presidiField;
+    private final Button nextButton;
     /**
-     * Container per gli accessi venosi.
+     * ID dello scenario corrente.
      */
-    private static VerticalLayout venosiContainer = null;
-    /**
-     * Container per gli accessi arteriosi.
-     */
-    private static VerticalLayout arteriosiContainer = null;
-    /**
-     * Lista per memorizzare gli accessi venosi.
-     */
-    private static final List<AccessoComponent> venosiAccessi = new ArrayList<>();
-    /**
-     * Lista per memorizzare gli accessi arteriosi.
-     */
-    private static final List<AccessoComponent> arteriosiAccessi = new ArrayList<>();
+    private Integer scenarioId;
+    private String mode;
 
     /**
      * Costruttore che inizializza l'interfaccia utente.
@@ -143,7 +142,6 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                 "var(--lumo-primary-color)"
 
         );
-
 
 
         paField = FieldGenerator.createTextField(
@@ -264,7 +262,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         );
 
 
-        Button nextButton = StyleApp.getNextButton();
+        nextButton = StyleApp.getNextButton();
 
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
@@ -293,19 +291,58 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
      * @param parameter l'ID dello scenario come stringa
      */
     @Override
-    public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
+    public void setParameter(BeforeEvent event, @WildcardParameter String parameter) {
         try {
             if (parameter == null || parameter.trim().isEmpty()) {
-                throw new NumberFormatException();
+                logger.warn("Parametro mancante nell'URL.");
+                throw new NumberFormatException("ID Scenario è richiesto");
             }
 
-            this.scenarioId = Integer.parseInt(parameter);
+
+            String[] parts = parameter.split("/");
+            String scenarioIdStr = parts[0];
+
+
+            this.scenarioId = Integer.parseInt(scenarioIdStr.trim());
             if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
-                throw new NumberFormatException();
+                logger.warn("ID Scenario non valido o non esistente: {}", scenarioId);
+                throw new NumberFormatException("ID Scenario non valido");
+            }
+
+            mode = parts.length > 1 && "edit".equals(parts[1]) ? "edit" : "create";
+
+            logger.info("Scenario ID impostato a: {}, Mode: {}", this.scenarioId, mode);
+
+
+            VerticalLayout mainLayout = getContent();
+
+
+            mainLayout.getChildren()
+                    .filter(component -> component instanceof HorizontalLayout)
+                    .findFirst()
+                    .ifPresent(headerLayout -> headerLayout.setVisible(!"edit".equals(mode)));
+
+
+            mainLayout.getChildren()
+                    .filter(component -> component instanceof HorizontalLayout)
+                    .reduce((first, second) -> second)
+                    .ifPresent(footerLayout -> footerLayout.getChildren()
+                            .filter(component -> component instanceof CreditsComponent)
+                            .forEach(credits -> credits.setVisible(!"edit".equals(mode))));
+
+
+            if ("edit".equals(mode)) {
+                logger.info("Modalità EDIT: caricamento dati Tempi esistenti per scenario {}", this.scenarioId);
+                nextButton.setText("Salva");
+                nextButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+                nextButton.setIcon(new Icon(VaadinIcon.CHECK));
+                nextButton.setIconAfterText(false);
+            } else {
+                logger.info("Modalità CREATE: caricamento dati iniziali T0 e preparazione per nuovi tempi per scenario {}", this.scenarioId);
             }
         } catch (NumberFormatException e) {
-            logger.error("ID scenario non valido: {}", parameter, e);
-            event.rerouteToError(NotFoundException.class, "ID scenario " + scenarioId + " non valido");
+            logger.error("Errore nel parsing o validazione dell'ID Scenario: '{}'", parameter, e);
+            event.rerouteToError(NotFoundException.class, "ID scenario non valido o mancante.");
         }
     }
 
@@ -393,7 +430,15 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
                     if (success && successPresidi) {
-                        ui.navigate("esameFisico/" + scenarioId);
+                        if (!mode.equals("edit")) {
+                            Notification.show("Dati T0 salvati con successo",
+                                    3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                            ui.navigate("esameFisico/" + scenarioId);
+                        } else {
+                            Notification.show("Dati T0 aggiornati con successo",
+                                    3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                            ui.navigate("scenari/" + scenarioId);
+                        }
                     } else {
                         Notification.show("Errore durante il salvataggio dei dati",
                                 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);

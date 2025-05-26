@@ -2,6 +2,11 @@ package it.uniupo.simnova.views.ui.helper;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H4;
@@ -12,11 +17,9 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import it.uniupo.simnova.domain.common.ParametroAggiuntivo;
 import it.uniupo.simnova.service.scenario.components.PazienteT0Service;
 import it.uniupo.simnova.service.scenario.components.PresidiService;
@@ -25,10 +28,12 @@ import it.uniupo.simnova.views.common.utils.StyleApp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 public class MonitorSupport {
     private static final Logger logger = LoggerFactory.getLogger(MonitorSupport.class);
@@ -50,13 +55,15 @@ public class MonitorSupport {
                     "}";
 
     private static final String FLASH_STYLE_ID = "global-flash-alert-style";
+    private static final String NULL_DISPLAY_VALUE = "-";
+
 
     private static Double toDouble(Number number) {
         return number == null ? null : number.doubleValue();
     }
 
     private static String formatDisplayValue(Number number, @SuppressWarnings("SameParameterValue") String format) {
-        if (number == null) return "-";
+        if (number == null) return NULL_DISPLAY_VALUE;
         if (number instanceof Double || number instanceof Float) {
             return String.format(format, number.doubleValue());
         }
@@ -64,7 +71,7 @@ public class MonitorSupport {
     }
 
     private static String formatDisplayValue(Number number) {
-        if (number == null) return "-";
+        if (number == null) return NULL_DISPLAY_VALUE;
         return String.valueOf(number);
     }
 
@@ -114,6 +121,7 @@ public class MonitorSupport {
                 .set("font-weight", "600");
 
         Div statusLed = new Div();
+
         statusLed.getStyle()
                 .set("width", "12px")
                 .set("height", "12px")
@@ -142,15 +150,13 @@ public class MonitorSupport {
         vitalSignsLayout.getStyle().set("flex-wrap", "wrap");
         vitalSignsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
-        final String NULL_DISPLAY_VALUE = "-";
-
 
         if (dataProvider.getPA() != null && !dataProvider.getPA().isEmpty()) {
             vitalSignsLayout.add(createVitalSignBox("PA", dataProvider.getPA(), "mmHg",
-                    "var(--lumo-primary-color)", null, null, null, null, null, advancedScenarioService, scenarioId, tempoId));
+                    "var(--lumo-primary-color)", null, null, null, null, null, advancedScenarioService, scenarioId, tempoId, null));
         } else {
             vitalSignsLayout.add(createVitalSignBox("PA", NULL_DISPLAY_VALUE, "mmHg",
-                    "var(--lumo-secondary-text-color)", null, null, null, null, null, advancedScenarioService, scenarioId, tempoId));
+                    "var(--lumo-secondary-text-color)", null, null, null, null, null, advancedScenarioService, scenarioId, tempoId, null));
         }
 
         final Double FC_CRITICAL_LOW = 40.0;
@@ -160,7 +166,7 @@ public class MonitorSupport {
         vitalSignsLayout.add(createVitalSignBox("FC",
                 formatDisplayValue(dataProvider.getFC()), "bpm",
                 "var(--lumo-primary-color)", toDouble(dataProvider.getFC()),
-                FC_CRITICAL_LOW, FC_CRITICAL_HIGH, FC_WARNING_LOW, FC_WARNING_HIGH, advancedScenarioService, scenarioId, tempoId));
+                FC_CRITICAL_LOW, FC_CRITICAL_HIGH, FC_WARNING_LOW, FC_WARNING_HIGH, advancedScenarioService, scenarioId, tempoId, null));
 
         if (dataProvider.getT() != null && dataProvider.getT() > -50) {
             final double MIN_CRITICAL_TEMP = 35.0;
@@ -170,11 +176,11 @@ public class MonitorSupport {
             vitalSignsLayout.add(createVitalSignBox("T",
                     formatDisplayValue(dataProvider.getT(), "%.1f"), "°C",
                     "var(--lumo-success-color)", toDouble(dataProvider.getT()),
-                    MIN_CRITICAL_TEMP, MAX_CRITICAL_TEMP, MIN_WARNING_TEMP, MAX_WARNING_TEMP, advancedScenarioService, scenarioId, tempoId));
+                    MIN_CRITICAL_TEMP, MAX_CRITICAL_TEMP, MIN_WARNING_TEMP, MAX_WARNING_TEMP, advancedScenarioService, scenarioId, tempoId, null));
         } else {
             vitalSignsLayout.add(createVitalSignBox("T", NULL_DISPLAY_VALUE, "°C",
                     "var(--lumo-secondary-text-color)", null,
-                    null, null, null, null, advancedScenarioService, scenarioId, tempoId));
+                    null, null, null, null, advancedScenarioService, scenarioId, tempoId, null));
         }
 
         final Double RR_CRITICAL_LOW = 10.0;
@@ -184,26 +190,26 @@ public class MonitorSupport {
         vitalSignsLayout.add(createVitalSignBox("RR",
                 formatDisplayValue(dataProvider.getRR()), "rpm",
                 "var(--lumo-tertiary-color)", toDouble(dataProvider.getRR()),
-                RR_CRITICAL_LOW, RR_CRITICAL_HIGH, RR_WARNING_LOW, RR_WARNING_HIGH, advancedScenarioService, scenarioId, tempoId));
+                RR_CRITICAL_LOW, RR_CRITICAL_HIGH, RR_WARNING_LOW, RR_WARNING_HIGH, advancedScenarioService, scenarioId, tempoId, null));
 
         final Double SPO2_CRITICAL_LOW = 90.0;
         final Double SPO2_WARNING_LOW = 94.0;
         vitalSignsLayout.add(createVitalSignBox("SpO₂",
                 formatDisplayValue(dataProvider.getSpO2()), "%",
                 "var(--lumo-contrast)", toDouble(dataProvider.getSpO2()),
-                SPO2_CRITICAL_LOW, null, SPO2_WARNING_LOW, null, advancedScenarioService, scenarioId, tempoId));
+                SPO2_CRITICAL_LOW, null, SPO2_WARNING_LOW, null, advancedScenarioService, scenarioId, tempoId, null));
 
 
         vitalSignsLayout.add(createVitalSignBox("FiO₂",
                 formatDisplayValue(dataProvider.getFiO2()), "%",
                 "var(--lumo-primary-color-50pct)", toDouble(dataProvider.getFiO2()),
-                null, null, null, null, advancedScenarioService, scenarioId, tempoId));
+                null, null, null, null, advancedScenarioService, scenarioId, tempoId, null));
 
 
         vitalSignsLayout.add(createVitalSignBox("Litri O₂",
                 formatDisplayValue(dataProvider.getLitriO2()), "Litri/m",
                 "var(--lumo-contrast-70pct)", toDouble(dataProvider.getLitriO2()),
-                null, null, null, null, advancedScenarioService, scenarioId, tempoId));
+                null, null, null, null, advancedScenarioService, scenarioId, tempoId, null));
 
 
         final Double ETCO2_CRITICAL_LOW = 25.0;
@@ -213,21 +219,81 @@ public class MonitorSupport {
         vitalSignsLayout.add(createVitalSignBox("EtCO₂",
                 formatDisplayValue(dataProvider.getEtCO2()), "mmHg",
                 "var(--lumo-warning-color)", toDouble(dataProvider.getEtCO2()),
-                ETCO2_CRITICAL_LOW, ETCO2_CRITICAL_HIGH, ETCO2_WARNING_LOW, ETCO2_WARNING_HIGH, advancedScenarioService, scenarioId, tempoId));
+                ETCO2_CRITICAL_LOW, ETCO2_CRITICAL_HIGH, ETCO2_WARNING_LOW, ETCO2_WARNING_HIGH, advancedScenarioService, scenarioId, tempoId, null));
 
-        List<ParametroAggiuntivo> additionalParams = dataProvider.getAdditionalParameters();
-        if (additionalParams != null && !additionalParams.isEmpty()) {
+
+        List<ParametroAggiuntivo> additionalParamsList = dataProvider.getAdditionalParameters();
+        if (additionalParamsList == null) {
+            additionalParamsList = new ArrayList<>();
+
+
+        }
+
+
+        final List<ParametroAggiuntivo> finalAdditionalParamsList = additionalParamsList;
+
+        if (!finalAdditionalParamsList.isEmpty()) {
             AtomicInteger colorIndex = new AtomicInteger(0);
-            for (ParametroAggiuntivo param : additionalParams) {
+            for (ParametroAggiuntivo param : finalAdditionalParamsList) {
                 String label = param.getNome();
+
                 String value = param.getValore() != null ? param.getValore() : NULL_DISPLAY_VALUE;
                 String unit = param.getUnitaMisura() != null ? param.getUnitaMisura() : "";
+
                 String color = ADDITIONAL_PARAM_COLORS.get(colorIndex.getAndIncrement() % ADDITIONAL_PARAM_COLORS.size());
-                vitalSignsLayout.add(createVitalSignBox(label, value, unit, color,
-                        null, null, null, null, null, advancedScenarioService, scenarioId, tempoId));
+
+                final Div[] boxHolder = new Div[1];
+
+                Runnable onDelete = () -> {
+                    ConfirmDialog confirmDialog = new ConfirmDialog(
+                            "Conferma Eliminazione",
+                            "Sei sicuro di voler eliminare il parametro aggiuntivo '" + param.getNome() + "'?",
+                            "Elimina", event -> {
+                        try {
+                            advancedScenarioService.deleteAdditionalParam(scenarioId, tempoId, param.getNome());
+                            if (boxHolder[0] != null) {
+                                vitalSignsLayout.remove(boxHolder[0]);
+                            }
+                            finalAdditionalParamsList.remove(param);
+                            Notification.show("Parametro '" + param.getNome() + "' eliminato.", 3000, Notification.Position.BOTTOM_CENTER)
+                                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        } catch (Exception ex) {
+                            logger.error("Errore eliminazione parametro aggiuntivo '{}': {}", param.getNome(), ex.getMessage());
+                            Notification.show("Errore eliminazione: " + ex.getMessage(), 3000, Notification.Position.BOTTOM_CENTER)
+                                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        }
+                    },
+                            "Annulla", event -> {
+                    }
+                    );
+                    confirmDialog.setConfirmButtonTheme("error primary");
+                    confirmDialog.open();
+                };
+
+                Div paramBox = createVitalSignBox(label, value, unit, color,
+                        null, null, null, null, null,
+                        advancedScenarioService, scenarioId, tempoId,
+                        onDelete
+                );
+                boxHolder[0] = paramBox;
+                vitalSignsLayout.add(paramBox);
             }
         }
         monitorContainer.add(monitorHeader, vitalSignsLayout);
+
+
+        Button addParamButton = new Button("Aggiungi Parametro", VaadinIcon.PLUS_CIRCLE_O.create());
+        addParamButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+        addParamButton.getStyle().set("margin-top", "var(--lumo-space-m)").set("margin-left", "auto").set("margin-right", "auto").set("display", "block");
+
+        addParamButton.addClickListener(e -> showAddAdditionalParamDialog(
+                scenarioId,
+                tempoId,
+                advancedScenarioService,
+                finalAdditionalParamsList,
+                vitalSignsLayout
+        ));
+        monitorContainer.add(addParamButton);
 
 
         String additionalText = dataProvider.getAdditionalMonitorText();
@@ -288,14 +354,14 @@ public class MonitorSupport {
             monitorActions.setVisible(false);
             monitorTextContainer.add(monitorTextArea, monitorActions);
 
-            editMonitorButton.addClickListener(e -> {
+            editMonitorButton.addClickListener(ev -> {
                 monitorText.setVisible(false);
                 monitorTextArea.setValue(monitorText.getText());
                 monitorTextArea.setVisible(true);
                 monitorActions.setVisible(true);
                 editMonitorButton.setVisible(false);
             });
-            saveMonitorButton.addClickListener(e -> {
+            saveMonitorButton.addClickListener(ev -> {
                 String newText = monitorTextArea.getValue();
                 monitorText.setText(newText);
                 pazienteT0Service.saveMonitor(scenarioId, newText);
@@ -305,7 +371,7 @@ public class MonitorSupport {
                 editMonitorButton.setVisible(true);
                 Notification.show("Monitoraggio aggiornato.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             });
-            cancelMonitorButton.addClickListener(e -> {
+            cancelMonitorButton.addClickListener(ev -> {
                 monitorTextArea.setVisible(false);
                 monitorActions.setVisible(false);
                 monitorText.setVisible(true);
@@ -318,6 +384,7 @@ public class MonitorSupport {
                     .set("padding-right", "var(--lumo-space-xs)");
             monitorContainer.add(textWrapper);
         }
+
 
         List<String> presidiList = PresidiService.getPresidiByScenarioId(scenarioId);
         if (isT0) {
@@ -404,13 +471,13 @@ public class MonitorSupport {
             presidiActions.setVisible(false);
             presidiInnerContainer.add(presidiComboBox, presidiActions);
 
-            editPresidiButton.addClickListener(e -> {
+            editPresidiButton.addClickListener(ev -> {
                 presidiItemsDiv.setVisible(false);
                 presidiComboBox.setVisible(true);
                 presidiActions.setVisible(true);
                 editPresidiButton.setVisible(false);
             });
-            savePresidiButton.addClickListener(e -> {
+            savePresidiButton.addClickListener(ev -> {
                 Set<String> newPresidi = presidiComboBox.getValue();
                 presidiItemsDiv.removeAll();
                 for (String presidio : newPresidi) {
@@ -433,7 +500,7 @@ public class MonitorSupport {
                 editPresidiButton.setVisible(true);
                 Notification.show("Presidi aggiornati.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             });
-            cancelPresidiButton.addClickListener(e -> {
+            cancelPresidiButton.addClickListener(ev -> {
                 presidiComboBox.setVisible(false);
                 presidiActions.setVisible(false);
                 presidiItemsDiv.setVisible(true);
@@ -443,14 +510,153 @@ public class MonitorSupport {
             presidiOuterContainer.add(presidiInnerContainer);
             monitorContainer.add(presidiOuterContainer);
         }
+
         return monitorContainer;
     }
+
+
+    private static void showAddAdditionalParamDialog(
+            Integer scenarioId,
+            Integer tempoId,
+            AdvancedScenarioService advancedScenarioService,
+            List<ParametroAggiuntivo> currentAdditionalParams,
+            HorizontalLayout vitalSignsLayout) {
+
+        Dialog addParamDialog = new Dialog();
+        addParamDialog.setHeaderTitle("Nuovo Parametro Aggiuntivo");
+        addParamDialog.setWidth("400px");
+
+        TextField paramNameField = new TextField("Nome Parametro");
+        paramNameField.setWidthFull();
+        paramNameField.setRequiredIndicatorVisible(true);
+        paramNameField.setErrorMessage("Il nome è obbligatorio");
+
+        TextField paramValueField = new TextField("Valore");
+        paramValueField.setWidthFull();
+
+        TextField paramUnitField = new TextField("Unità di Misura (opzionale)");
+        paramUnitField.setWidthFull();
+
+        VerticalLayout dialogLayout = new VerticalLayout(paramNameField, paramValueField, paramUnitField);
+        dialogLayout.setPadding(false);
+        dialogLayout.setSpacing(true);
+        dialogLayout.setAlignItems(FlexComponent.Alignment.STRETCH);
+        addParamDialog.add(dialogLayout);
+
+        Button saveNewParamButton = new Button("Salva", VaadinIcon.CHECK.create());
+        saveNewParamButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        Button cancelNewParamButton = new Button("Annulla", event -> addParamDialog.close());
+        addParamDialog.getFooter().add(cancelNewParamButton, saveNewParamButton);
+
+        saveNewParamButton.addClickListener(saveEvent -> {
+            String newName = paramNameField.getValue();
+            String newValueStr = paramValueField.getValue();
+            String newUnit = paramUnitField.getValue();
+
+            if (newName == null || newName.isBlank()) {
+                paramNameField.setInvalid(true);
+                Notification.show(paramNameField.getErrorMessage(), 3000, Notification.Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                paramNameField.focus();
+                return;
+            }
+            paramNameField.setInvalid(false);
+
+            boolean nameExists = currentAdditionalParams.stream().anyMatch(p -> p.getNome().equalsIgnoreCase(newName)) ||
+                    Stream.of("PA", "FC", "T", "RR", "SpO₂", "SpO2", "FiO₂", "FiO2", "Litri O₂", "Litri O2", "EtCO₂", "EtCO2")
+                            .anyMatch(stdName -> stdName.equalsIgnoreCase(newName));
+            if (nameExists) {
+                paramNameField.setInvalid(true);
+                paramNameField.setErrorMessage("Un parametro con questo nome esiste già.");
+                Notification.show("Un parametro con nome '" + newName + "' esiste già.", 3000, Notification.Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                paramNameField.focus();
+                return;
+            }
+            paramNameField.setInvalid(false);
+
+            Double parsedValueDbl = null;
+            if (newValueStr != null && !newValueStr.isBlank() && !newValueStr.equals(NULL_DISPLAY_VALUE)) {
+                try {
+                    parsedValueDbl = Double.parseDouble(newValueStr.replace(",", "."));
+                } catch (NumberFormatException nfe) {
+                    Notification.show("Valore del parametro non numerico: '" + newValueStr + "'. Sarà salvato come testo se non è un numero.",
+                            4000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
+                    Notification.show("Il valore del parametro '" + newValueStr + "' non è un numero valido.", 3000, Notification.Position.MIDDLE)
+                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    paramValueField.focus();
+                    return;
+                }
+            }
+
+            ParametroAggiuntivo newParam = new ParametroAggiuntivo(newName, parsedValueDbl, newUnit);
+
+            try {
+                advancedScenarioService.addAdditionalParam(scenarioId, tempoId, newParam);
+                currentAdditionalParams.add(newParam);
+
+                String color = ADDITIONAL_PARAM_COLORS.get(currentAdditionalParams.size() % ADDITIONAL_PARAM_COLORS.size());
+                final Div[] newBoxHolder = new Div[1];
+
+                Runnable onDeleteNewParam = () -> {
+                    ConfirmDialog confirmDelDialog = new ConfirmDialog(
+                            "Conferma Eliminazione",
+                            "Sei sicuro di voler eliminare il parametro '" + newParam.getNome() + "'?",
+                            "Elimina", delEvent -> {
+                        try {
+                            advancedScenarioService.deleteAdditionalParam(scenarioId, tempoId, newParam.getNome());
+                            if (newBoxHolder[0] != null) {
+                                vitalSignsLayout.remove(newBoxHolder[0]);
+                            }
+                            currentAdditionalParams.remove(newParam);
+                            Notification.show("Parametro '" + newParam.getNome() + "' eliminato.", 3000, Notification.Position.BOTTOM_CENTER)
+                                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        } catch (Exception exDel) {
+                            logger.error("Errore eliminazione parametro aggiuntivo '{}': {}", newParam.getNome(), exDel.getMessage());
+                            Notification.show("Errore eliminazione: " + exDel.getMessage(), 3000, Notification.Position.BOTTOM_CENTER)
+                                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        }
+                    },
+                            "Annulla", cancelDelEvent -> {
+                    }
+                    );
+                    confirmDelDialog.setConfirmButtonTheme("error primary");
+                    confirmDelDialog.open();
+                };
+
+                Div newParamBox = createVitalSignBox(
+                        newParam.getNome(),
+                        newParam.getValore() != null ? newParam.getValore() : NULL_DISPLAY_VALUE,
+                        newParam.getUnitaMisura() != null ? newParam.getUnitaMisura() : "",
+                        color,
+                        null, null, null, null, null,
+                        advancedScenarioService, scenarioId, tempoId,
+                        onDeleteNewParam
+                );
+                newBoxHolder[0] = newParamBox;
+                vitalSignsLayout.add(newParamBox);
+
+                Notification.show("Parametro '" + newName + "' aggiunto.", 3000, Notification.Position.BOTTOM_CENTER)
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                addParamDialog.close();
+
+            } catch (Exception exAdd) {
+
+                logger.error("Errore durante l'aggiunta del parametro aggiuntivo '{}': {}", newName, exAdd.getMessage(), exAdd);
+                Notification.show("Errore aggiunta parametro: " + exAdd.getMessage(), 3000, Notification.Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            }
+        });
+        addParamDialog.open();
+    }
+
 
     private static Div createVitalSignBox(String label, String displayValue, String unit, String defaultNormalColor,
                                           Double numericValue,
                                           Double criticalLowThreshold, Double criticalHighThreshold,
                                           Double warningLowThreshold, Double warningHighThreshold,
-                                          AdvancedScenarioService advancedScenarioService, Integer scenarioId, Integer tempoId) {
+                                          AdvancedScenarioService advancedScenarioService, Integer scenarioId, Integer tempoId,
+                                          Runnable onDeleteCallback) {
         Div box = new Div();
         box.getStyle()
                 .set("border", "1px solid var(--lumo-contrast-10pct)")
@@ -464,6 +670,7 @@ public class MonitorSupport {
                 .set("background-color", "var(--lumo-base-color)")
                 .set("box-shadow", "0 2px 4px rgba(0,0,0,0.05)")
                 .set("transition", "transform 0.2s ease, box-shadow 0.2s ease, border-color 0.3s ease");
+
 
         UI currentUI = UI.getCurrent();
         if (currentUI != null && currentUI.getPage() != null) {
@@ -485,9 +692,13 @@ public class MonitorSupport {
                 .set("font-size", "14px")
                 .set("font-weight", "500")
                 .set("color", "var(--lumo-secondary-text-color)")
-                .set("margin-bottom", "4px");
+                .set("margin-bottom", "4px")
+                .set("overflow", "hidden")
+                .set("text-overflow", "ellipsis")
+                .set("white-space", "nowrap");
 
-        Span valueSpan = new Span(Objects.requireNonNullElse(displayValue, "-"));
+
+        Span valueSpan = new Span(Objects.requireNonNullElse(displayValue, NULL_DISPLAY_VALUE));
         String finalValueColor = defaultNormalColor;
 
         if (numericValue != null) {
@@ -512,12 +723,12 @@ public class MonitorSupport {
         Span unitSpan = new Span(unit);
         if (("FiO₂".equals(label) || "Litri O₂".equals(label)) && numericValue != null && numericValue == 0.0) {
             box.getStyle()
-                    .set("background-color", "#var(--lumo-contrast-40pct)")
-                    .set("border", "1.5px dashed #bbb");
-            valueSpan.getStyle().set("color", "#bbb");
-            unitSpan.getStyle().set("color", "#bbb");
-            labelSpan.getStyle().set("color", "#bbb");
-            valueSpan.setText("--");
+                    .set("background-color", "var(--lumo-contrast-5pct)")
+                    .set("border", "1.5px dashed var(--lumo-contrast-30pct)");
+            valueSpan.getStyle().set("color", "var(--lumo-disabled-text-color)");
+            unitSpan.getStyle().set("color", "var(--lumo-disabled-text-color)");
+            labelSpan.getStyle().set("color", "var(--lumo-disabled-text-color)");
+            valueSpan.setText(NULL_DISPLAY_VALUE);
         }
         valueSpan.getStyle()
                 .set("display", "block")
@@ -536,10 +747,33 @@ public class MonitorSupport {
         valueEditField.setWidthFull();
         valueEditField.getStyle().set("margin-bottom", "var(--lumo-space-xs)");
 
-        Button editButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
-        editButton.setTooltipText("Modifica " + label);
-        editButton.getStyle().set("margin-left", "auto").set("align-self", "flex-start");
 
+        HorizontalLayout topRightControls = new HorizontalLayout();
+        topRightControls.setSpacing(true);
+        topRightControls.setPadding(false);
+        topRightControls.setAlignItems(FlexComponent.Alignment.CENTER);
+        topRightControls.getStyle().set("margin-left", "auto");
+
+        Button editButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color");
+        editButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL);
+        editButton.setTooltipText("Modifica " + label);
+
+        topRightControls.add(editButton);
+
+        if (onDeleteCallback != null) {
+            Button deleteButton = new Button(VaadinIcon.TRASH.create());
+            deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY,ButtonVariant.LUMO_SMALL);
+            deleteButton.setTooltipText("Elimina " + label);
+            deleteButton.addClickListener(e -> onDeleteCallback.run());
+            topRightControls.add(deleteButton);
+        }
+
+        HorizontalLayout labelAndControlsLayout = new HorizontalLayout(labelSpan, topRightControls);
+        labelSpan.getStyle().set("flex-grow", "1");
+        labelAndControlsLayout.setWidthFull();
+        labelAndControlsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        labelAndControlsLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        labelAndControlsLayout.setSpacing(true);
 
         Button saveButton = StyleApp.getButton("Salva", null, ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color");
         Button cancelButton = StyleApp.getButton("Annulla", null, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color");
@@ -563,109 +797,148 @@ public class MonitorSupport {
                 .set("margin-top", "var(--lumo-space-xs)")
                 .set("justify-content", "center");
 
-        HorizontalLayout labelAndEditButtonLayout = new HorizontalLayout(labelSpan, editButton);
-        labelAndEditButtonLayout.setWidthFull();
-        labelAndEditButtonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        labelAndEditButtonLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        labelAndEditButtonLayout.setSpacing(false);
-
-
-        box.add(labelAndEditButtonLayout, valueSpan, valueEditField, unitSpan, editActions);
+        box.add(labelAndControlsLayout, valueSpan, valueEditField, unitSpan, editActions);
 
         editButton.addClickListener(e -> {
+            topRightControls.setVisible(false);
             valueSpan.setVisible(false);
             unitSpan.setVisible(false);
-            valueEditField.setValue(valueSpan.getText());
+            valueEditField.setValue(valueSpan.getText().equals(NULL_DISPLAY_VALUE) ? "" : valueSpan.getText());
             valueEditField.setVisible(true);
+            valueEditField.focus();
             editActions.setVisible(true);
-            editButton.setVisible(false);
-            labelAndEditButtonLayout.remove(editButton);
         });
 
+        Runnable endEditMode = () -> {
+            valueSpan.setVisible(true);
+            unitSpan.setVisible(true);
+            valueEditField.setVisible(false);
+            editActions.setVisible(false);
+
+            topRightControls.setVisible(true);
+        };
+
         saveButton.addClickListener(e -> {
-            String newValue = valueEditField.getValue();
+            String editedValueStr = valueEditField.getValue();
+
+
             switch (label) {
                 case "PA" -> {
-                    if (!newValue.matches("^\\s*\\d+\\s*/\\s*\\d+\\s*$")) {
+                    if (!editedValueStr.matches("^\\s*\\d+\\s*/\\s*\\d+\\s*$") && !editedValueStr.equals(NULL_DISPLAY_VALUE) && !editedValueStr.isBlank()) {
                         Notification.show("Formato PA non valido. Usa 'sistolica/diastolica'.", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         return;
                     }
-                    valueSpan.setText(newValue);
+                    valueSpan.setText(editedValueStr.isBlank() ? NULL_DISPLAY_VALUE : editedValueStr);
                 }
                 case "FC", "RR", "EtCO₂" -> {
                     try {
-                        double doubleValue = Double.parseDouble(newValue.replace(",", "."));
-                        if (doubleValue < 0) {
-                            Notification.show("Il valore di " + label + " deve essere un numero positivo.", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                            return;
+                        if (!editedValueStr.isBlank() && !editedValueStr.equals(NULL_DISPLAY_VALUE)) {
+                            double doubleValue = Double.parseDouble(editedValueStr.replace(",", "."));
+                            if (doubleValue < 0) {
+                                Notification.show("Il valore di " + label + " deve essere un numero positivo.", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                                return;
+                            }
                         }
-                        valueSpan.setText(newValue);
+                        valueSpan.setText(editedValueStr.isBlank() ? NULL_DISPLAY_VALUE : editedValueStr);
                     } catch (NumberFormatException ex) {
-                        Notification.show("Il valore di " + label + "deve essere un numero valido.", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        Notification.show("Il valore di " + label + " deve essere un numero valido.", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         return;
                     }
                 }
                 case "SpO₂", "FiO₂", "Litri O₂" -> {
                     try {
-                        int spo2Value = Integer.parseInt(newValue.trim());
-                        if (spo2Value < 0 || spo2Value > 100) {
-                            Notification.show("Il valore di " + label + " deve essere compreso tra 0 e 100.", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                            return;
+                        if (!editedValueStr.isBlank() && !editedValueStr.equals(NULL_DISPLAY_VALUE)) {
+                            int intValue = Integer.parseInt(editedValueStr.trim());
+                            if (("SpO₂".equals(label) || "FiO₂".equals(label)) && (intValue < 0 || intValue > 100)) {
+                                Notification.show("Il valore di " + label + " deve essere compreso tra 0 e 100.", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                                return;
+                            }
+                            if ("Litri O₂".equals(label) && intValue < 0) {
+                                Notification.show("Il valore di " + label + " deve essere positivo.", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                                return;
+                            }
                         }
-                        valueSpan.setText(newValue);
+                        valueSpan.setText(editedValueStr.isBlank() ? NULL_DISPLAY_VALUE : editedValueStr);
                     } catch (NumberFormatException ex) {
                         Notification.show("Il valore di " + label + " deve essere un numero intero.", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         return;
                     }
                 }
-                default -> valueSpan.setText(newValue);
+                default -> valueSpan.setText(editedValueStr.isBlank() ? NULL_DISPLAY_VALUE : editedValueStr);
             }
-            advancedScenarioService.saveVitalSign(scenarioId, tempoId, label, newValue);
-            Double newNumericValue = null;
-            try {
-                newNumericValue = Double.parseDouble(newValue.replace(",", "."));
-            } catch (Exception ex) {
-                logger.error("Errore durante il parsing del valore numerico per il parametro {}: {}", label, ex.getMessage());
+
+            String valueToSave = valueSpan.getText();
+            advancedScenarioService.saveVitalSign(scenarioId, tempoId, label, valueToSave);
+
+
+            Double newNumericValueForColoring = null;
+            if (!valueToSave.equals(NULL_DISPLAY_VALUE) && !valueToSave.isBlank()) {
+                try {
+                    if (!label.equals("PA")) {
+                        newNumericValueForColoring = Double.parseDouble(valueToSave.replace(",", "."));
+                    }
+                } catch (Exception ex) {
+                    logger.warn("Errore nel parsing del valore numerico per colorazione {}: {} (valore: '{}')", label, ex.getMessage(), valueToSave);
+                }
             }
+
+
             box.getClassNames().remove("flash-alert-box");
             box.getStyle().remove("border-color");
-            String newColor = defaultNormalColor;
-            if (newNumericValue != null) {
-                boolean isCritical = criticalLowThreshold != null && newNumericValue < criticalLowThreshold;
-                if (!isCritical && criticalHighThreshold != null && newNumericValue > criticalHighThreshold)
+            String newDisplayColor = defaultNormalColor;
+
+            if (newNumericValueForColoring != null) {
+                boolean isCritical = criticalLowThreshold != null && newNumericValueForColoring < criticalLowThreshold;
+                if (!isCritical && criticalHighThreshold != null && newNumericValueForColoring > criticalHighThreshold)
                     isCritical = true;
+
                 boolean isWarning = false;
                 if (!isCritical) {
-                    if (warningLowThreshold != null && newNumericValue < warningLowThreshold) isWarning = true;
-                    if (!isWarning && warningHighThreshold != null && newNumericValue > warningHighThreshold)
+                    if (warningLowThreshold != null && newNumericValueForColoring < warningLowThreshold)
+                        isWarning = true;
+                    if (!isWarning && warningHighThreshold != null && newNumericValueForColoring > warningHighThreshold)
                         isWarning = true;
                 }
+
                 if (isCritical) {
                     box.addClassName("flash-alert-box");
-                    newColor = "var(--lumo-error-color)";
+                    newDisplayColor = "var(--lumo-error-color)";
                 } else if (isWarning) {
-                    newColor = "var(--lumo-warning-color)";
+                    newDisplayColor = "var(--lumo-warning-color)";
                     box.getStyle().set("border-color", "var(--lumo-warning-color-50pct)");
                 }
+            } else if (valueToSave.equals(NULL_DISPLAY_VALUE) || valueToSave.isBlank()) {
+                newDisplayColor = "var(--lumo-secondary-text-color)";
             }
-            valueSpan.getStyle().set("color", newColor);
-            valueSpan.setVisible(true);
-            unitSpan.setVisible(true);
-            valueEditField.setVisible(false);
-            editActions.setVisible(false);
-            labelAndEditButtonLayout.add(editButton);
-            editButton.setVisible(true);
+            valueSpan.getStyle().set("color", newDisplayColor);
+
+
+            boolean isFio2OrLitriO2 = "FiO₂".equals(label) || "Litri O₂".equals(label);
+            boolean isZeroOrNullEquivalent = valueToSave.equals("0") || valueToSave.equals("0.0") || valueToSave.equals(NULL_DISPLAY_VALUE) || valueToSave.isBlank();
+
+            if (isFio2OrLitriO2) {
+                if (isZeroOrNullEquivalent) {
+                    box.getStyle()
+                            .set("background-color", "var(--lumo-contrast-5pct)")
+                            .set("border", "1.5px dashed var(--lumo-contrast-30pct)");
+                    valueSpan.getStyle().set("color", "var(--lumo-disabled-text-color)");
+                    unitSpan.getStyle().set("color", "var(--lumo-disabled-text-color)");
+                    labelSpan.getStyle().set("color", "var(--lumo-disabled-text-color)");
+                    if (valueToSave.isBlank()) valueSpan.setText(NULL_DISPLAY_VALUE);
+                } else {
+                    box.getStyle().remove("background-color");
+                    box.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
+
+                    unitSpan.getStyle().set("color", "var(--lumo-tertiary-text-color)");
+                    labelSpan.getStyle().set("color", "var(--lumo-secondary-text-color)");
+                }
+            }
+
+            endEditMode.run();
             Notification.show(label + " aggiornata.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         });
 
-        cancelButton.addClickListener(e -> {
-            valueSpan.setVisible(true);
-            unitSpan.setVisible(true);
-            valueEditField.setVisible(false);
-            editActions.setVisible(false);
-            labelAndEditButtonLayout.add(editButton);
-            editButton.setVisible(true);
-        });
+        cancelButton.addClickListener(e -> endEditMode.run());
         return box;
     }
 }

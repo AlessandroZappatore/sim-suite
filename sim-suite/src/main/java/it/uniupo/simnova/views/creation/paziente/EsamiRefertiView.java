@@ -411,6 +411,9 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
                     ui.navigate("moulage/" + scenarioId);
                 }
+                else {
+                    ui.navigate("scenari/" + scenarioId);
+                }
 
             } catch (Exception e) {
                 logger.error("Errore durante il salvataggio degli esami e referti", e);

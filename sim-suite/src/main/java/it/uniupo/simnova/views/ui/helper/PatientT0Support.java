@@ -1,8 +1,13 @@
 package it.uniupo.simnova.views.ui.helper;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import it.uniupo.simnova.domain.paziente.EsameFisico;
 import it.uniupo.simnova.domain.common.ParametroAggiuntivo;
@@ -11,6 +16,7 @@ import it.uniupo.simnova.service.scenario.components.EsameFisicoService;
 import it.uniupo.simnova.service.scenario.components.PazienteT0Service;
 import it.uniupo.simnova.service.scenario.components.PresidiService;
 import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
+import it.uniupo.simnova.views.common.utils.StyleApp;
 
 import java.util.List;
 
@@ -59,11 +65,22 @@ public class PatientT0Support {
         } else {
             Div noDataCard = EmptySupport.createErrorContent("Nessun dato paziente disponibile");
             layout.add(noDataCard);
+            HorizontalLayout buttonContainer = new HorizontalLayout();
+            buttonContainer.setWidthFull();
+            buttonContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+
+            Button creatT0Button = StyleApp.getButton("Aggiungi i dati per T0", VaadinIcon.PLUS, ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
+            creatT0Button.addThemeVariants(ButtonVariant.LUMO_LARGE);
+            creatT0Button.getStyle().set("background-color", "var(--lumo-success-color");
+            creatT0Button.addClickListener(ev -> UI.getCurrent().navigate("pazienteT0/" + scenarioId + "/edit"));
+
+            buttonContainer.add(creatT0Button);
+            layout.add(buttonContainer);
         }
 
 
         Div examCard = PhysicalExamSupport.getExamCard(esame, esameFisicoService, scenarioId);
-        if(examCard != null) layout.add(examCard);
+        layout.add(examCard);
 
         return layout;
     }

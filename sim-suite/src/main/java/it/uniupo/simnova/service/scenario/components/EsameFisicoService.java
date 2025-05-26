@@ -54,6 +54,9 @@ public class EsameFisicoService {
     }
 
     public boolean addEsameFisico(int scenarioId, Map<String, String> examData) {
+        if (examData == null) {
+            examData = Map.of(); // Inizializza con una mappa vuota
+        }
 
         boolean exists = getEsameFisicoById(scenarioId) != null;
 

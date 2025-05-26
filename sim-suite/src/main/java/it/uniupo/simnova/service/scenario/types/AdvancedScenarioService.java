@@ -606,4 +606,52 @@ public class AdvancedScenarioService {
             logger.error("Errore durante l'eliminazione del tempo con ID {} dallo scenario con ID {}", idTempo, scenarioId, e);
         }
     }
+
+    public void deleteAdditionalParam(Integer scenarioId, Integer tempoId, String nome) {
+        final String sql = "DELETE FROM ParametriAggiuntivi WHERE tempo_id = ? AND scenario_id = ? AND nome = ?";
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, tempoId);
+            stmt.setInt(2, scenarioId);
+            stmt.setString(3, nome);
+
+            int rowsDeleted = stmt.executeUpdate();
+            if (rowsDeleted > 0) {
+                logger.info("Parametro aggiuntivo '{}' eliminato con successo per il tempo con ID {} nello scenario con ID {}", nome, tempoId, scenarioId);
+            } else {
+                logger.warn("Nessun parametro aggiuntivo trovato con nome '{}' per il tempo con ID {} nello scenario con ID {}", nome, tempoId, scenarioId);
+            }
+        } catch (SQLException e) {
+            logger.error("Errore durante l'eliminazione del parametro aggiuntivo '{}' per il tempo con ID {} nello scenario con ID {}", nome, tempoId, scenarioId, e);
+        }
+    }
+
+    public void addAdditionalParam(Integer scenarioId, Integer tempoId, ParametroAggiuntivo newParam) {
+        final String sql = "INSERT INTO ParametriAggiuntivi (parametri_aggiuntivi_id, tempo_id, scenario_id, nome, valore, unità_misura) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = DBConnect.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            int maxId = getMaxParamId(conn) + 1;
+
+            stmt.setInt(1, maxId);
+            stmt.setInt(2, tempoId);
+            stmt.setInt(3, scenarioId);
+            stmt.setString(4, newParam.getNome());
+            stmt.setString(5, newParam.getValore());
+            stmt.setString(6, newParam.getUnitaMisura());
+
+            int rowsInserted = stmt.executeUpdate();
+            if (rowsInserted > 0) {
+                logger.info("Parametro aggiuntivo '{}' aggiunto con successo per il tempo con ID {} nello scenario con ID {}", newParam.getNome(), tempoId, scenarioId);
+            } else {
+                logger.warn("Impossibile aggiungere il parametro aggiuntivo '{}' per il tempo con ID {} nello scenario con ID {}", newParam.getNome(), tempoId, scenarioId);
+            }
+        } catch (SQLException e) {
+            logger.error("Errore durante l'aggiunta del parametro aggiuntivo '{}' per il tempo con ID {} nello scenario con ID {}", newParam.getNome(), tempoId, scenarioId, e);
+        }
+
+    }
 }

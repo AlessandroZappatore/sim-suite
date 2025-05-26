@@ -147,4 +147,83 @@ public class AzioneChiaveService {
             }
         }
     }
+
+    public void deleteAzioneChiaveByName(Integer scenarioId, String trim) {
+        if (trim == null || trim.isEmpty() || scenarioId == null) {
+            logger.warn("Il nome dell'azione chiave o l'ID scenario è vuoto o nullo.");
+            return;
+        }
+
+        Connection conn = null;
+        try {
+            conn = DBConnect.getInstance().getConnection();
+            conn.setAutoCommit(false);
+
+            Integer idAzione = null;
+            final String selectSql = "SELECT id_azione FROM AzioniChiave WHERE nome = ?";
+            try (PreparedStatement selectStmt = conn.prepareStatement(selectSql)) {
+                selectStmt.setString(1, trim);
+                ResultSet rs = selectStmt.executeQuery();
+                if (rs.next()) {
+                    idAzione = rs.getInt("id_azione");
+                }
+            }
+
+            if (idAzione != null) {
+
+                final String deleteAssociationSql = "DELETE FROM AzioneScenario WHERE id_azione = ? AND id_scenario = ?";
+                try (PreparedStatement deleteAssocStmt = conn.prepareStatement(deleteAssociationSql)) {
+                    deleteAssocStmt.setInt(1, idAzione);
+                    deleteAssocStmt.setInt(2, scenarioId);
+                    int assocRowsDeleted = deleteAssocStmt.executeUpdate();
+                    logger.info("Rimosse {} associazioni dell'azione chiave '{}' con lo scenario {}", assocRowsDeleted, trim, scenarioId);
+                }
+
+
+                final String checkAssociationSql = "SELECT COUNT(*) FROM AzioneScenario WHERE id_azione = ?";
+                try (PreparedStatement checkAssocStmt = conn.prepareStatement(checkAssociationSql)) {
+                    checkAssocStmt.setInt(1, idAzione);
+                    ResultSet rs = checkAssocStmt.executeQuery();
+                    if (rs.next() && rs.getInt(1) == 0) {
+
+                        final String deleteActionSql = "DELETE FROM AzioniChiave WHERE id_azione = ?";
+                        try (PreparedStatement deleteActionStmt = conn.prepareStatement(deleteActionSql)) {
+                            deleteActionStmt.setInt(1, idAzione);
+                            int actionRowsDeleted = deleteActionStmt.executeUpdate();
+                            if (actionRowsDeleted > 0) {
+                                logger.info("Azione chiave '{}' con ID {} eliminata con successo in quanto non più associata a nessuno scenario.", trim, idAzione);
+                            } else {
+                                logger.warn("L'azione chiave '{}' con ID {} non è stata trovata per l'eliminazione finale, ma l'associazione è stata rimossa.", trim, idAzione);
+                            }
+                        }
+                    } else {
+                        logger.info("L'azione chiave '{}' con ID {} è ancora associata ad altri scenari, quindi non è stata eliminata.", trim, idAzione);
+                    }
+                }
+
+                conn.commit();
+            } else {
+                logger.warn("Nessuna azione chiave trovata con il nome '{}'.", trim);
+            }
+        } catch (SQLException e) {
+            logger.error("Errore durante l'eliminazione dell'azione chiave '{}': {}", trim, e.getMessage(), e);
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                    logger.warn("Eseguito rollback dell'operazione di eliminazione dell'azione chiave '{}'", trim);
+                } catch (SQLException ex) {
+                    logger.error("Errore durante il rollback: {}", ex.getMessage(), ex);
+                }
+            }
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    logger.error("Errore durante la chiusura della connessione: {}", e.getMessage(), e);
+                }
+            }
+        }
+    }
 }

@@ -382,7 +382,7 @@ public class InfoSupport extends HorizontalLayout {
             badgeViewLayout.setVisible(true);
 
             scenarioService.updateSingleField(scenario.getId(), label, newSelectedValue);
-
+            UI.getCurrent().getPage().reload();
             Notification.show(label + " aggiornata.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         });
         return itemContainer;

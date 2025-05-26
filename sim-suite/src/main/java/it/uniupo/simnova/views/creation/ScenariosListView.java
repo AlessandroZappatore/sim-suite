@@ -30,10 +30,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.domain.scenario.Scenario;
 import it.uniupo.simnova.service.export.ZipExportService;
 import it.uniupo.simnova.service.scenario.ScenarioService;
-import it.uniupo.simnova.service.scenario.components.AzioneChiaveService;
-import it.uniupo.simnova.service.scenario.components.EsameFisicoService;
-import it.uniupo.simnova.service.scenario.components.EsameRefertoService;
-import it.uniupo.simnova.service.scenario.components.PazienteT0Service;
+import it.uniupo.simnova.service.scenario.components.*;
 import it.uniupo.simnova.service.scenario.operations.ScenarioDeletionService;
 import it.uniupo.simnova.service.scenario.operations.ScenarioImportService;
 import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
@@ -88,6 +85,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
     private final AdvancedScenarioService advancedScenarioService;
     private final PatientSimulatedScenarioService patientSimulatedScenarioService;
     private final ScenarioDeletionService scenarioDeletionService;
+    private final MaterialeService materialeService;
     private final Grid<Scenario> scenariosGrid = new Grid<>();
     private final FileStorageService fileStorageService;
     private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
@@ -115,7 +113,8 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                              EsameRefertoService esameRefertoService,
                              AdvancedScenarioService advancedScenarioService,
                              PatientSimulatedScenarioService patientSimulatedScenarioService,
-                             ScenarioDeletionService scenarioDeletionService) {
+                             ScenarioDeletionService scenarioDeletionService,
+                             MaterialeService materialeService) {
         this.scenarioService = scenarioService;
         this.zipExportService = zipExportService;
         this.fileStorageService = fileStorageService;
@@ -127,6 +126,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         this.advancedScenarioService = advancedScenarioService;
         this.patientSimulatedScenarioService = patientSimulatedScenarioService;
         this.scenarioDeletionService = scenarioDeletionService;
+        this.materialeService = materialeService;
         this.detached = new AtomicBoolean(false);
         initView();
         loadData();
@@ -689,10 +689,19 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         }
 
         var esameFisico = esameFisicoService.getEsameFisicoById(scenario.getId());
-        if (esameFisico == null || esameFisico.getSections().isEmpty()) {
+        if(esameFisico != null) {
+            boolean allSectionsEmpty = esameFisico.getSections().values().stream()
+                    .allMatch(value -> value == null || value.trim().isEmpty());
+            if (allSectionsEmpty) {
+                esameFisicoChk.setEnabled(false);
+                esameFisicoChk.setValue(false);
+            }
+        }
+        else {
             esameFisicoChk.setEnabled(false);
             esameFisicoChk.setValue(false);
         }
+
 
         var pazienteT0 = pazienteT0Service.getPazienteT0ById(scenario.getId());
         if (pazienteT0 == null) {
@@ -722,6 +731,11 @@ public class ScenariosListView extends Composite<VerticalLayout> {
             timelineChk.setValue(false);
         }
 
+        var materialeNecessario = materialeService.getMaterialiByScenarioId(scenario.getId());
+        if (materialeNecessario == null || materialeNecessario.isEmpty()) {
+            matNecChk.setEnabled(false);
+            matNecChk.setValue(false);
+        }
 
         layout.add(descChk, briefingChk, infoGenChk, pattoChk, azioniChk, obiettiviChk,
                 moulageChk, liquidiChk, matNecChk, paramChk, accessiChk, esameFisicoChk,

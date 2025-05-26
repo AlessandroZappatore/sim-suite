@@ -283,9 +283,9 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                 this.scenario,
                 scenarioService.isPediatric(scenarioId),
                 this.scenario.getInfoGenitore(),
-                azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenarioId),
                 scenarioService,
-                materialeNecessario
+                materialeNecessario,
+                azioneChiaveService
         );
 
         Component statoPazienteContent = PatientT0Support.createPatientContent(
@@ -300,6 +300,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
 
         Component esamiRefertiContent = ExamSupport.createExamsContent(
                 esameRefertoService,
+                fileStorageService,
                 scenarioId
         );
 
@@ -337,7 +338,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         List<Tempo> tempi = advancedScenarioService.getTempiByScenarioId(scenarioId);
         if (!tempi.isEmpty()) {
             Tab tabTimeline = createTabWithIcon("Timeline", VaadinIcon.CLOCK);
-            Component timelineContent = TimesSupport.createTimelineContent(tempi, scenarioId, advancedScenarioService);
+            Component timelineContent = TimesSupport.createTimelineContent(tempi, scenarioId, advancedScenarioService, scenarioService.isPediatric(scenarioId));
             tabsToContent.put(tabTimeline, timelineContent);
             enhancedTabs.add(tabTimeline);
         }
