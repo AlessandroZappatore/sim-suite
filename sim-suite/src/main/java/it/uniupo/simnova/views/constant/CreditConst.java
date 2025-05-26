@@ -10,11 +10,11 @@ public final class CreditConst {
     /**
      * La data dell'ultima modifica del progetto.
      */
-    public static final String DATE = "24/05/2025";
+    public static final String DATE = "26/05/2025";
     /**
      * La versione del progetto.
      */
-    public static final String VERSION = "0.3.0";
+    public static final String VERSION = "0.4.0";
 
     /**
      * Il link al linkedin dell'ideatore del progetto.
