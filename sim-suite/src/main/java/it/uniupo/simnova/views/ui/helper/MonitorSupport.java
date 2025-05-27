@@ -705,10 +705,18 @@ public class MonitorSupport {
             boolean isCritical = criticalLowThreshold != null && numericValue < criticalLowThreshold;
             if (!isCritical && criticalHighThreshold != null && numericValue > criticalHighThreshold) isCritical = true;
 
+            if ("EtCO₂".equals(label) && numericValue == 0) {
+                isCritical = false;
+            }
+
             boolean isWarning = false;
             if (!isCritical) {
                 if (warningLowThreshold != null && numericValue < warningLowThreshold) isWarning = true;
                 if (!isWarning && warningHighThreshold != null && numericValue > warningHighThreshold) isWarning = true;
+
+                if ("EtCO₂".equals(label) && numericValue == 0) {
+                    isWarning = false;
+                }
             }
 
             if (isCritical) {
@@ -721,7 +729,7 @@ public class MonitorSupport {
         }
 
         Span unitSpan = new Span(unit);
-        if (("FiO₂".equals(label) || "Litri O₂".equals(label)) && numericValue != null && numericValue == 0.0) {
+        if (("FiO₂".equals(label) || "Litri O₂".equals(label) || "EtCO₂".equals(label)) && numericValue != null && numericValue == 0.0) {
             box.getStyle()
                     .set("background-color", "var(--lumo-contrast-5pct)")
                     .set("border", "1.5px dashed var(--lumo-contrast-30pct)");

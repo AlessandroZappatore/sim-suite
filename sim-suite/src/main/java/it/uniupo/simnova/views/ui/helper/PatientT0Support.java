@@ -78,7 +78,6 @@ public class PatientT0Support {
             layout.add(buttonContainer);
         }
 
-
         Div examCard = PhysicalExamSupport.getExamCard(esame, esameFisicoService, scenarioId);
         layout.add(examCard);
 

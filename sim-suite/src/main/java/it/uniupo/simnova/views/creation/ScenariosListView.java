@@ -689,15 +689,14 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         }
 
         var esameFisico = esameFisicoService.getEsameFisicoById(scenario.getId());
-        if(esameFisico != null) {
+        if (esameFisico != null) {
             boolean allSectionsEmpty = esameFisico.getSections().values().stream()
                     .allMatch(value -> value == null || value.trim().isEmpty());
             if (allSectionsEmpty) {
                 esameFisicoChk.setEnabled(false);
                 esameFisicoChk.setValue(false);
             }
-        }
-        else {
+        } else {
             esameFisicoChk.setEnabled(false);
             esameFisicoChk.setValue(false);
         }
@@ -881,10 +880,11 @@ public class ScenariosListView extends Composite<VerticalLayout> {
 
         Button confirmButton = new Button("Elimina", event -> {
             if (!detached.get()) {
+                String scenarioName = scenario.getTitolo() != null ? scenario.getTitolo() : "Scenario";
                 boolean deleted = scenarioDeletionService.deleteScenario(scenario.getId());
                 getUI().ifPresent(ui -> ui.access(() -> {
                     if (deleted) {
-                        Notification.show("Scenario eliminato.", 3000, Position.TOP_CENTER).addThemeVariants(NotificationVariant.LUMO_CONTRAST);
+                        Notification.show("Scenario " + scenarioName + " eliminato.", 3000, Position.TOP_CENTER).addThemeVariants(NotificationVariant.LUMO_CONTRAST);
                         loadData();
                     } else {
                         Notification.show("Errore durante l'eliminazione.", 3000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);

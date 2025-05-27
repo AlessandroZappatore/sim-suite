@@ -42,7 +42,9 @@ public class FieldGenerator extends HorizontalLayout {
         field.getStyle()
                 .set("border-radius", "var(--lumo-border-radius-m)")
                 .set("box-shadow", "var(--lumo-box-shadow-xs)")
-                .set("transition", "box-shadow 0.3s ease-in-out");
+                .set("transition", "box-shadow 0.3s ease-in-out")
+                .set("flex-grow", "1")
+                .set("flex-shrink", "1");
         if (!label.equals("Azione Chiave")) {
             field.getStyle().set("max-width", "500px");
         }
@@ -84,7 +86,9 @@ public class FieldGenerator extends HorizontalLayout {
                 .set("max-width", "500px")
                 .set("border-radius", "var(--lumo-border-radius-m)")
                 .set("box-shadow", "var(--lumo-box-shadow-xs)")
-                .set("transition", "box-shadow 0.3s ease-in-out");
+                .set("transition", "box-shadow 0.3s ease-in-out")
+                .set("flex-grow", "1")
+                .set("flex-shrink", "1");
 
         field.getElement().getStyle()
                 .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
@@ -128,7 +132,9 @@ public class FieldGenerator extends HorizontalLayout {
                 .set("max-width", "500px")
                 .set("border-radius", "var(--lumo-border-radius-m)")
                 .set("box-shadow", "var(--lumo-box-shadow-xs)")
-                .set("transition", "box-shadow 0.3s ease-in-out");
+                .set("transition", "box-shadow 0.3s ease-in-out")
+                .set("flex-grow", "1")
+                .set("flex-shrink", "1");
 
         comboBox.getElement().getStyle()
                 .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
@@ -174,7 +180,9 @@ public class FieldGenerator extends HorizontalLayout {
                 .set("max-width", "500px")
                 .set("border-radius", "var(--lumo-border-radius-m)")
                 .set("box-shadow", "var(--lumo-box-shadow-xs)")
-                .set("transition", "box-shadow 0.3s ease-in-out");
+                .set("transition", "box-shadow 0.3s ease-in-out")
+                .set("flex-grow", "1")
+                .set("flex-shrink", "1");
 
         select.getElement().getStyle()
                 .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
@@ -203,7 +211,6 @@ public class FieldGenerator extends HorizontalLayout {
             field.setSuffixComponent(unitLabel);
         }
 
-        field.getStyle().set("max-width", "320px");
         return field;
     }
 
@@ -215,7 +222,9 @@ public class FieldGenerator extends HorizontalLayout {
                 .set("border-radius", "var(--lumo-border-radius-m)")
                 .set("box-shadow", "var(--lumo-box-shadow-xs)")
                 .set("transition", "box-shadow 0.3s ease-in-out")
-                .set("min-height", "100px");
+                .set("min-height", "100px")
+                .set("flex-grow", "1")
+                .set("flex-shrink", "1");
         textArea.getElement().getStyle()
                 .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
         textArea.getElement().executeJs(
@@ -246,7 +255,9 @@ public class FieldGenerator extends HorizontalLayout {
                 .set("border-radius", "var(--lumo-border-radius-m)")
                 .set("box-shadow", "var(--lumo-box-shadow-xs)")
                 .set("transition", "box-shadow 0.3s ease-in-out")
-                .set("border-left", "3px solid var(--lumo-success-color-50pct)");
+                .set("border-left", "3px solid var(--lumo-success-color-50pct)")
+                .set("flex-grow", "1")
+                .set("flex-shrink", "1");
 
         timerPicker.getElement().getStyle()
                 .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
@@ -308,7 +319,9 @@ public class FieldGenerator extends HorizontalLayout {
         field.getStyle()
                 .set("border-radius", "var(--lumo-border-radius-m)")
                 .set("box-shadow", "var(--lumo-box-shadow-xs)")
-                .set("transition", "box-shadow 0.3s ease-in-out");
+                .set("transition", "box-shadow 0.3s ease-in-out")
+                .set("flex-grow", "1")
+                .set("flex-shrink", "1");
 
         field.getElement().getStyle()
                 .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
@@ -339,7 +352,9 @@ public class FieldGenerator extends HorizontalLayout {
                 .set("max-width", "500px")
                 .set("border-radius", "var(--lumo-border-radius-m)")
                 .set("box-shadow", "var(--lumo-box-shadow-xs)")
-                .set("transition", "box-shadow 0.3s ease-in-out");
+                .set("transition", "box-shadow 0.3s ease-in-out")
+                .set("flex-grow", "1")
+                .set("flex-shrink", "1");
 
         multiSelectComboBox.getElement().getStyle()
                 .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");

@@ -152,7 +152,6 @@ public class TimeSection {
 
         paField = FieldGenerator.createTextField("PA (Sist/Diast)", "es. 120/80", true);
         paField.setSuffixComponent(new Paragraph("mmHg"));
-        paField.getStyle().set("max-width", "320px");
 
         fcField = FieldGenerator.createMedicalField("FC", "(es. 80)", true, "bpm");
         rrField = FieldGenerator.createMedicalField("FR", "(es. 16)", true, "atti/min");
@@ -160,7 +159,7 @@ public class TimeSection {
         spo2Field = FieldGenerator.createMedicalField("SpO₂", "(es. 98)", true, "%");
         fio2Field = FieldGenerator.createMedicalField("FiO₂", "(es. 21)", false, "%");
         litriO2Field = FieldGenerator.createMedicalField("Litri O₂", "(es. 5)", false, "L/min");
-        etco2Field = FieldGenerator.createMedicalField("EtCO₂", "(es. 35)", true, "mmHg");
+        etco2Field = FieldGenerator.createMedicalField("EtCO₂", "(es. 35)", false, "mmHg");
 
 
         medicalParamsForm.add(paField, fcField, rrField, tField, spo2Field, fio2Field, litriO2Field, etco2Field);
@@ -533,3 +532,4 @@ public class TimeSection {
         return BORDER_COLORS[(timeNumber) % BORDER_COLORS.length];
     }
 }
+

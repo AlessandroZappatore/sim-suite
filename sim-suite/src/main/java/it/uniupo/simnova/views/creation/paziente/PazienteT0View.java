@@ -182,7 +182,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         etco2Field = FieldGenerator.createNumberField(
                 "EtCO₂ (mmHg)",
                 "(es. 35)",
-                true
+                false
         );
 
 
@@ -381,8 +381,6 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
             isValid = ValidationError.showErrorAndReturnFalse(tempField, "Temperatura non valida");
         if (spo2Field.isEmpty())
             isValid = ValidationError.showErrorAndReturnFalse(spo2Field, "SpO₂ non valido");
-        if (etco2Field.isEmpty())
-            isValid = ValidationError.showErrorAndReturnFalse(etco2Field, "EtCO₂ non valido");
 
         return isValid;
     }
@@ -419,7 +417,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                         spo2Field.getValue().intValue(),
                         fio2Field.getValue() != null ? fio2Field.getValue().intValue() : 0,
                         litrio2Field.getValue() != null ? litrio2Field.getValue().intValue() : 0,
-                        etco2Field.getValue().intValue(),
+                        etco2Field.getValue() != null ? etco2Field.getValue().intValue() : 0,
                         monitorArea.getValue(),
                         venosi,
                         arteriosi

@@ -59,8 +59,6 @@ public class AccessoComponent extends HorizontalLayout {
         }
         tipoSelect.setWidth(null);
         tipoSelect.getStyle()
-                .set("flex-grow", "1")
-                .set("flex-shrink", "1")
                 .set("flex-basis", "220px")
                 .set("min-width", "180px");
 
@@ -77,8 +75,6 @@ public class AccessoComponent extends HorizontalLayout {
         );
         posizioneField.setWidth(null);
         posizioneField.getStyle()
-                .set("flex-grow", "1")
-                .set("flex-shrink", "1")
                 .set("flex-basis", "200px")
                 .set("min-width", "180px");
         posizioneField.addValueChangeListener(e -> accesso.setPosizione(e.getValue()));
@@ -91,8 +87,6 @@ public class AccessoComponent extends HorizontalLayout {
         );
         latoSelect.setWidth(null);
         latoSelect.getStyle()
-                .set("flex-grow", "1")
-                .set("flex-shrink", "1")
                 .set("flex-basis", "100px")
                 .set("min-width", "90px");
         latoSelect.addValueChangeListener(e -> accesso.setLato(e.getValue()));
@@ -105,8 +99,6 @@ public class AccessoComponent extends HorizontalLayout {
         );
         misuraSelect.setWidth(null);
         misuraSelect.getStyle()
-                .set("flex-grow", "1")
-                .set("flex-shrink", "1")
                 .set("flex-basis", "140px")
                 .set("min-width", "120px");
         misuraSelect.addValueChangeListener(e -> accesso.setMisura(e.getValue()));
