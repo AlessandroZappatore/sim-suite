@@ -27,7 +27,8 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 @Theme(value = "sim.suite") // Specifica il tema Vaadin utilizzato dall'applicazione
 @PWA(
         name = "Sim Suite", // Nome completo dell'applicazione per la PWA
-        shortName = "SimSuite" // Nome breve per la PWA (es. icona nella schermata home)
+        shortName = "SimSuite", // Nome breve per la PWA (es. icona nella schermata home)
+        iconPath = "/icons/favicon.ico" // Imposta esplicitamente l'icona per la PWA
 )
 public class Application implements AppShellConfigurator {
 
