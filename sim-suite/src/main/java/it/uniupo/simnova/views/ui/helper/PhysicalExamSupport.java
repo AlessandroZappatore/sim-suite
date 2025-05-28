@@ -23,23 +23,32 @@ import org.vaadin.tinymce.TinyMce;
 import java.util.Map;
 
 /**
- * Classe di supporto per la visualizzazione e modifica degli esami fisici.
+ * Classe di supporto per la visualizzazione e modifica delle sezioni dell'esame fisico.
+ * Genera una card riassuntiva con tutte le sezioni dell'esame fisico,
+ * permettendo la modifica del contenuto di ogni sezione tramite un editor WYSIWYG.
  *
  * @author Alessandro Zappatore
  * @version 1.0
  */
 public class PhysicalExamSupport {
+
     /**
-     * Crea una card per l'esame fisico del paziente.
+     * Crea una card riassuntiva che mostra tutte le sezioni dell'esame fisico.
+     * Ogni sezione può essere modificata individualmente.
      *
-     * @param esame              l'esame fisico da visualizzare
-     * @param esameFisicoService servizio per la gestione degli esami fisici
-     * @param scenarioId         l'ID dello scenario corrente
-     * @return un Div contenente la card dell'esame fisico, o null se l'esame è vuoto
+     * @param esame              L'oggetto {@link EsameFisico} da visualizzare e modificare.
+     * @param esameFisicoService Il servizio per la gestione degli esami fisici.
+     * @param scenarioId         L'ID dello scenario a cui l'esame fisico è associato.
+     * @return Un {@link Div} contenente la card dell'esame fisico.
      */
     public static Div getExamCard(EsameFisico esame, EsameFisicoService esameFisicoService, Integer scenarioId) {
-        if (esame == null) esameFisicoService.addEsameFisico(scenarioId, null);
+        // Assicura che l'oggetto EsameFisico esista per lo scenario.
+        if (esame == null) {
+            esameFisicoService.addEsameFisico(scenarioId, null);
+        }
+        // Ricarica l'esame fisico per assicurare che sia aggiornato.
         esame = esameFisicoService.getEsameFisicoById(scenarioId);
+
         Div examCard = new Div();
         examCard.addClassName("info-card");
         examCard.getStyle()
@@ -51,6 +60,7 @@ public class PhysicalExamSupport {
                 .set("width", "80%")
                 .set("max-width", "800px");
 
+        // Aggiunge effetti di hover alla card.
         examCard.getElement().executeJs(
                 "this.addEventListener('mouseover', function() { this.style.boxShadow = 'var(--lumo-box-shadow-s)'; });" +
                         "this.addEventListener('mouseout', function() { this.style.boxShadow = 'var(--lumo-box-shadow-xs)'; });"
@@ -85,6 +95,7 @@ public class PhysicalExamSupport {
         examLayout.getStyle().set("margin-top", "var(--lumo-space-m)");
         examLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
+        // Aggiunge ogni sezione dell'esame fisico.
         addSection(examLayout, "Generale", sections.get("Generale"), esameFisicoService, scenarioId);
         addSection(examLayout, "Pupille", sections.get("Pupille"), esameFisicoService, scenarioId);
         addSection(examLayout, "Collo", sections.get("Collo"), esameFisicoService, scenarioId);
@@ -97,6 +108,7 @@ public class PhysicalExamSupport {
         addSection(examLayout, "Neurologico", sections.get("Neurologico"), esameFisicoService, scenarioId);
         addSection(examLayout, "FAST", sections.get("FAST"), esameFisicoService, scenarioId);
 
+        // Aggiunge il layout delle sezioni alla card solo se ci sono componenti.
         if (examLayout.getComponentCount() > 0) {
             examCard.add(examLayout);
         }
@@ -105,14 +117,14 @@ public class PhysicalExamSupport {
     }
 
     /**
-     * Aggiunge una sezione contenente i dati dell'esame fisico al layout.
-     * Se il valore è vuoto, viene visualizzato un messaggio di sezione vuota.
+     * Aggiunge una singola sezione dell'esame fisico al layout fornito.
+     * La sezione include un titolo, un'icona, il contenuto testuale e la possibilità di modificarlo.
      *
-     * @param content            la VerticalLayout in cui aggiungere la sezione
-     * @param title              il titolo della sezione
-     * @param value              il valore della sezione, che può essere vuoto
-     * @param esameFisicoService servizio per la gestione degli esami fisici
-     * @param scenarioId         l'ID dello scenario corrente
+     * @param content            La {@link VerticalLayout} in cui aggiungere la sezione.
+     * @param title              Il titolo della sezione (es. "Generale", "Pupille").
+     * @param value              Il contenuto testuale della sezione.
+     * @param esameFisicoService Il servizio per la gestione degli esami fisici.
+     * @param scenarioId         L'ID dello scenario corrente.
      */
     private static void addSection(VerticalLayout content, String title, String value, EsameFisicoService esameFisicoService, Integer scenarioId) {
         Icon sectionIcon = getSectionIcon(title);
@@ -153,35 +165,38 @@ public class PhysicalExamSupport {
                 .set("font-family", "var(--lumo-font-family)")
                 .set("line-height", "var(--lumo-line-height-m)")
                 .set("color", "var(--lumo-body-text-color)")
-                .set("white-space", "pre-wrap")
+                .set("white-space", "pre-wrap") // Mantiene la formattazione (es. a capo).
                 .set("padding", "var(--lumo-space-xs) 0 var(--lumo-space-s) calc(var(--lumo-icon-size-m) + var(--lumo-space-m))")
                 .set("width", "100%")
                 .set("box-sizing", "border-box");
 
+        // Imposta il testo di visualizzazione, con un messaggio di sezione vuota se il valore è nullo o vuoto.
         String displayValue = (value == null || value.trim().isEmpty())
-                ? "<i>Sezione vuota</i>"
-                : value.replace("\n", "<br />");
+                ? "<i>Sezione vuota</i>" // Testo italic per sezione vuota.
+                : value.replace("\n", "<br />"); // Converte a capo in tag HTML per la visualizzazione.
         contentDisplay.getElement().setProperty("innerHTML", displayValue);
         sectionLayout.add(contentDisplay);
 
-        TinyMce contentEditor = TinyEditor.getEditor();
+        TinyMce contentEditor = TinyEditor.getEditor(); // Inizializza l'editor WYSIWYG.
         contentEditor.setValue(value != null ? value : "");
-        contentEditor.setVisible(false);
+        contentEditor.setVisible(false); // Nascosto di default.
 
         Button saveButton = new Button("Salva");
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
         Button cancelButton = new Button("Annulla");
         cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
         HorizontalLayout editorActions = new HorizontalLayout(saveButton, cancelButton);
-        editorActions.setVisible(false);
+        editorActions.setVisible(false); // Nascosto di default.
         editorActions.getStyle()
                 .set("margin-top", "var(--lumo-space-xs)")
                 .set("padding-left", "calc(var(--lumo-icon-size-m) + var(--lumo-space-m))");
 
         sectionLayout.add(contentEditor, editorActions);
 
+        // Listener per il pulsante "Modifica": mostra l'editor e nasconde il display.
         editButton.addClickListener(e -> {
             contentDisplay.setVisible(false);
+            // Prepara il contenuto per l'editor, riconvertendo i tag HTML in a capo.
             String currentContent = value != null && !value.trim().isEmpty()
                     ? contentDisplay.getElement().getProperty("innerHTML").replace("<br />", "\n").replace("<br>", "\n")
                     : "";
@@ -191,12 +206,14 @@ public class PhysicalExamSupport {
             editButton.setVisible(false);
         });
 
+        // Listener per il pulsante "Salva": aggiorna il contenuto e ripristina il display.
         saveButton.addClickListener(e -> {
             String newContent = contentEditor.getValue();
             String displayContent = newContent.trim().isEmpty()
                     ? "<i>Sezione vuota</i>"
                     : newContent.replace("\n", "<br />");
             contentDisplay.getElement().setProperty("innerHTML", displayContent);
+            // Salva la modifica tramite il servizio.
             esameFisicoService.updateSingleEsameFisico(scenarioId, title, newContent);
             contentEditor.setVisible(false);
             editorActions.setVisible(false);
@@ -205,6 +222,7 @@ public class PhysicalExamSupport {
             Notification.show("Sezione " + title + " aggiornata.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         });
 
+        // Listener per il pulsante "Annulla": ripristina il display senza salvare.
         cancelButton.addClickListener(e -> {
             contentEditor.setVisible(false);
             editorActions.setVisible(false);
@@ -216,10 +234,10 @@ public class PhysicalExamSupport {
     }
 
     /**
-     * Associa a ogni tipo di esame fisico un'icona specifica.
+     * Restituisce un'icona {@link Icon} appropriata per la sezione dell'esame fisico specificata.
      *
-     * @param sectionTitle il titolo della sezione dell'esame fisico
-     * @return l'icona corrispondente alla sezione
+     * @param sectionTitle Il titolo della sezione (es. "Generale", "Cuore").
+     * @return L'icona corrispondente alla sezione.
      */
     private static Icon getSectionIcon(String sectionTitle) {
         return switch (sectionTitle) {
@@ -228,13 +246,13 @@ public class PhysicalExamSupport {
             case "Collo" -> new Icon(VaadinIcon.USER);
             case "Torace" -> FontAwesome.Solid.LUNGS.create();
             case "Cuore" -> new Icon(VaadinIcon.HEART);
-            case "Addome" -> FontAwesome.Solid.A.create();
+            case "Addome" -> FontAwesome.Solid.A.create(); // Icona generica per 'Addome'
             case "Retto" -> FontAwesome.Solid.POOP.create();
             case "Cute" -> FontAwesome.Solid.HAND_DOTS.create();
             case "Estremità" -> FontAwesome.Solid.HANDS.create();
             case "Neurologico" -> FontAwesome.Solid.BRAIN.create();
             case "FAST" -> new Icon(VaadinIcon.AMBULANCE);
-            default -> new Icon(VaadinIcon.INFO);
+            default -> new Icon(VaadinIcon.INFO); // Icona di default per sezioni non mappate.
         };
     }
 }

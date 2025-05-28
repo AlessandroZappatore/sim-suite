@@ -4,83 +4,61 @@ import java.util.List;
 
 
 /**
- * Classe che rappresenta un tempo in uno scenario avanzato.
- * <p>
- * Contiene i parametri vitali del paziente e altre informazioni rilevanti per un determinato tempo.
- * </p>
+ * Classe che rappresenta un <strong>tempo</strong> specifico all'interno di uno scenario di simulazione avanzato.
+ * Contiene i parametri vitali del paziente e altre informazioni rilevanti che definiscono lo stato
+ * della simulazione in quel preciso istante o fase.
  *
  * @author Alessandro Zappatore
  * @version 1.0
  */
 public class Tempo {
-    /**
-     * Identificativo univoco del tempo.
-     */
-    private int idTempo;
-    /**
-     * Identificativo dello scenario avanzato associato.
-     */
-    private int advancedScenario;
-    /**
-     * Pressione arteriosa del paziente.
-     */
-    private String PA;
-    /**
-     * Frequenza cardiaca del paziente.
-     */
-    private Integer FC;
-    /**
-     * Frequenza respiratoria del paziente.
-     */
-    private Integer RR;
-    /**
-     * Temperatura del paziente.
-     */
-    private double T;
-    /**
-     * Saturazione di ossigeno del paziente.
-     */
-    private Integer SpO2;
 
-    private Integer FiO2;
-
-    private Float LitriO2;
-    /**
-     * Pressione parziale di CO2 espirata del paziente.
-     */
-    private Integer EtCO2;
-    /**
-     * Azione associata a questo tempo.
-     */
-    private String Azione;
-    /**
-     * Tempo di simulazione in secondi.
-     */
-    private int TSi;
-    /**
-     * Tempo di non simulazione in secondi.
-     */
-    private int TNo;
-    /**
-     * Altri dettagli rilevanti per questo tempo.
-     */
-    private String altriDettagli;
-    /**
-     * Timer del tempo in millisecondi.
-     */
-    private long timerTempo;
-    /**
-     * Lista dei parametri aggiuntivi associati a questo tempo.
-     */
-    private List<ParametroAggiuntivo> parametriAggiuntivi;
-
-    private String ruoloGenitore;
+    private final int idTempo;                  // <strong>Identificativo univoco</strong> del tempo.
+    private final int advancedScenario;         // <strong>Identificativo</strong> dello scenario avanzato associato.
+    private final Integer RR;                   // Frequenza respiratoria del paziente (atti/min).
+    private final Integer SpO2;                 // Saturazione di ossigeno del paziente (%).
+    private final Integer FiO2;                 // Frazione di ossigeno inspirato dal paziente (%).
+    private final Double LitriO2;                // Litri di ossigeno somministrati al paziente (L/min).
+    private final Integer EtCO2;                // Pressione parziale di CO2 espirata del paziente (mmHg).
+    private final int TSi;                      // ID del tempo a cui andare se l'azione viene eseguita (tempo "se SI").
+    private final int TNo;                      // ID del tempo a cui andare se l'azione NON viene eseguita (tempo "se NO").
+    private final String altriDettagli;         // Altri dettagli o note rilevanti per questo tempo.
+    private final long timerTempo;              // Durata del timer associato a questo tempo, in secondi.
+    private final String ruoloGenitore;         // Ruolo del genitore associato a questo tempo, se lo scenario è pediatrico.
+    private String PA;                          // Pressione arteriosa del paziente (formato "sistolica/diastolica").
+    private Integer FC;                         // Frequenza cardiaca del paziente (bpm).
+    private double T;                           // Temperatura del paziente (°C).
+    private String Azione;                      // Azione o evento associato a questo tempo.
+    private List<ParametroAggiuntivo> parametriAggiuntivi; // Lista dei parametri aggiuntivi.
 
 
-    public Tempo(int idTempo, int advancedScenario, String PA, Integer FC, Integer RR, double t, Integer spO2, Integer fiO2, Float litriO2, Integer etCO2, String azione, int TSi, int TNo, String altriDettagli, long timerTempo, String ruoloGenitore) {
+    /**
+     * Costruttore completo per creare un nuovo oggetto <strong><code>Tempo</code></strong> in uno scenario avanzato.
+     * Include la validazione di alcuni parametri per garantire la coerenza dei dati.
+     *
+     * @param idTempo          <strong>Identificativo univoco</strong> del tempo.
+     * @param advancedScenario <strong>Identificativo</strong> dello scenario avanzato associato.
+     * @param PA               Pressione arteriosa del paziente nel formato "sistolica/diastolica" (es. "120/80").
+     * @param FC               Frequenza cardiaca del paziente. Deve essere un valore non negativo.
+     * @param RR               Frequenza respiratoria del paziente. Deve essere un valore non negativo.
+     * @param t                Temperatura del paziente.
+     * @param spO2             Saturazione di ossigeno del paziente. Deve essere compresa tra 0 e 100.
+     * @param fiO2             Frazione di ossigeno inspirato dal paziente. Deve essere compresa tra 0 e 100.
+     * @param litriO2          Litri di ossigeno somministrati al paziente. Deve essere un valore non negativo.
+     * @param etCO2            Pressione parziale di CO2 espirata del paziente. Deve essere un valore non negativo.
+     * @param azione           Azione o evento associato a questo tempo.
+     * @param TSi              ID del tempo successivo se l'azione viene eseguita (tempo "se SI").
+     * @param TNo              ID del tempo successivo se l'azione NON viene eseguita (tempo "se NO").
+     * @param altriDettagli    Altri dettagli rilevanti per questo tempo.
+     * @param timerTempo       Durata del timer associato a questo tempo, in secondi. Deve essere un valore non negativo.
+     * @param ruoloGenitore    Ruolo del genitore associato a questo tempo, se lo scenario è pediatrico.
+     * @throws IllegalArgumentException se i valori di PA, FC, RR, SpO2, FiO2, LitriO2, EtCO2 o timerTempo non rispettano i criteri di validazione.
+     */
+    public Tempo(int idTempo, int advancedScenario, String PA, Integer FC, Integer RR, double t, Integer spO2, Integer fiO2, Double litriO2, Integer etCO2, String azione, int TSi, int TNo, String altriDettagli, long timerTempo, String ruoloGenitore) {
         this.idTempo = idTempo;
         this.advancedScenario = advancedScenario;
 
+        // Validazione e impostazione PA
         if (PA != null) {
             String trimmedPA = PA.trim();
             if (!trimmedPA.matches("^\\s*\\d+\\s*/\\s*\\d+\\s*$")) {
@@ -91,97 +69,93 @@ public class Tempo {
             this.PA = null;
         }
 
+        // Validazione e impostazione FC
         if (FC != null && FC < 0) {
-            throw new IllegalArgumentException("FC non può essere negativa");
-        } else this.FC = FC;
+            throw new IllegalArgumentException("FC non può essere negativa.");
+        } else {
+            this.FC = FC;
+        }
 
+        // Validazione e impostazione RR
         if (RR != null && RR < 0) {
-            throw new IllegalArgumentException("RR non può essere negativa");
-        } else this.RR = RR;
+            throw new IllegalArgumentException("RR non può essere negativa.");
+        } else {
+            this.RR = RR;
+        }
 
         this.T = t;
 
+        // Validazione e impostazione SpO2
         if (spO2 != null && (spO2 < 0 || spO2 > 100)) {
-            throw new IllegalArgumentException("SpO2 deve essere compresa tra 0 e 100");
-        } else SpO2 = spO2;
+            throw new IllegalArgumentException("SpO2 deve essere compresa tra 0 e 100.");
+        } else {
+            SpO2 = spO2;
+        }
 
+        // Validazione e impostazione FiO2
         if (fiO2 != null && (fiO2 < 0 || fiO2 > 100)) {
-            throw new IllegalArgumentException("FiO2 deve essere compresa tra 0 e 100");
-        } else FiO2 = fiO2;
+            throw new IllegalArgumentException("FiO2 deve essere compresa tra 0 e 100.");
+        } else {
+            FiO2 = fiO2;
+        }
 
+        // Validazione e impostazione LitriO2
         if (litriO2 != null && litriO2 < 0) {
-            throw new IllegalArgumentException("LitriO2 non può essere negativo");
-        } else LitriO2 = litriO2;
+            throw new IllegalArgumentException("LitriO2 non può essere negativo.");
+        } else {
+            LitriO2 = litriO2;
+        }
 
+        // Validazione e impostazione EtCO2
         if (etCO2 != null && etCO2 < 0) {
-            throw new IllegalArgumentException("EtCO2 non può essere negativa");
-        } else EtCO2 = etCO2;
+            throw new IllegalArgumentException("EtCO2 non può essere negativa.");
+        } else {
+            EtCO2 = etCO2;
+        }
 
         Azione = azione;
         this.TSi = TSi;
         this.TNo = TNo;
         this.altriDettagli = altriDettagli;
-        if(timerTempo < 0){
-            throw new IllegalArgumentException("Il timer non può essere negativo");
-        } else this.timerTempo = timerTempo;
+
+        // Validazione e impostazione timerTempo
+        if (timerTempo < 0) {
+            throw new IllegalArgumentException("Il timer non può essere negativo.");
+        } else {
+            this.timerTempo = timerTempo;
+        }
         this.ruoloGenitore = ruoloGenitore;
     }
 
     /**
-     * Restituisce l'identificativo univoco del tempo.
+     * Restituisce l'<strong>identificativo univoco</strong> del tempo.
      *
-     * @return l'identificativo univoco del tempo
+     * @return L'identificativo univoco del tempo.
      */
     public int getIdTempo() {
         return idTempo;
     }
 
     /**
-     * Imposta l'identificativo univoco del tempo.
+     * Restituisce la <strong>pressione arteriosa</strong> del paziente.
      *
-     * @param idTempo il nuovo identificativo
-     */
-    public void setIdTempo(int idTempo) {
-        this.idTempo = idTempo;
-    }
-
-    /**
-     * Restituisce l'identificativo dello scenario avanzato associato.
-     *
-     * @return l'identificativo dello scenario avanzato associato
-     */
-    public int getAdvancedScenario() {
-        return advancedScenario;
-    }
-
-    /**
-     * Imposta l'identificativo dello scenario avanzato associato.
-     *
-     * @param advancedScenario il nuovo identificativo
-     */
-    public void setAdvancedScenario(int advancedScenario) {
-        this.advancedScenario = advancedScenario;
-    }
-
-    /**
-     * Restituisce la pressione arteriosa del paziente.
-     *
-     * @return la pressione arteriosa del paziente
+     * @return La pressione arteriosa del paziente.
      */
     public String getPA() {
         return PA;
     }
 
     /**
-     * Imposta la pressione arteriosa del paziente.
+     * Imposta la <strong>pressione arteriosa</strong> del paziente.
      *
-     * @param PA la nuova pressione arteriosa
+     * @param PA La nuova pressione arteriosa nel formato "sistolica/diastolica".
+     * @throws IllegalArgumentException se il formato PA non è valido.
      */
     public void setPA(String PA) {
         if (PA != null) {
             String trimmedPA = PA.trim();
             if (!trimmedPA.matches("^\\s*\\d+\\s*/\\s*\\d+\\s*$")) {
-                throw new IllegalArgumentException("Formato PA non valido, atteso 'sistolica/diastolica' (es. '120/80')");
+                throw new IllegalArgumentException("Formato PA non valido, atteso 'sistolica/diastolica' (es. '120/80').");
             }
             this.PA = trimmedPA;
         } else {
@@ -190,243 +164,195 @@ public class Tempo {
     }
 
     /**
-     * Restituisce la frequenza cardiaca del paziente.
+     * Restituisce la <strong>frequenza cardiaca</strong> del paziente.
      *
-     * @return la frequenza cardiaca del paziente
+     * @return La frequenza cardiaca del paziente.
      */
     public Integer getFC() {
         return FC;
     }
 
     /**
-     * Imposta la frequenza cardiaca del paziente.
+     * Imposta la <strong>frequenza cardiaca</strong> del paziente.
      *
-     * @param FC la nuova frequenza cardiaca
+     * @param FC La nuova frequenza cardiaca.
+     * @throws IllegalArgumentException se FC è negativo.
      */
     public void setFC(Integer FC) {
         if (FC != null && FC < 0) {
-            throw new IllegalArgumentException("FC non può essere negativa");
-        } else this.FC = FC;
+            throw new IllegalArgumentException("FC non può essere negativa.");
+        } else {
+            this.FC = FC;
+        }
     }
 
     /**
-     * Restituisce la frequenza respiratoria del paziente.
+     * Restituisce la <strong>frequenza respiratoria</strong> del paziente.
      *
-     * @return la frequenza respiratoria del paziente
+     * @return La frequenza respiratoria del paziente.
      */
     public Integer getRR() {
         return RR;
     }
 
     /**
-     * Imposta la frequenza respiratoria del paziente.
+     * Imposta la <strong>frequenza respiratoria</strong> del paziente.
      *
-     * @param RR la nuova frequenza respiratoria
+     * @param RR La nuova frequenza respiratoria.
+     * @throws IllegalArgumentException se RR è negativo.
      */
     public void setRR(Integer RR) {
         if (RR != null && RR < 0) {
-            throw new IllegalArgumentException("RR non può essere negativa");
-        } else this.RR = RR;
+            throw new IllegalArgumentException("RR non può essere negativa.");
+        }
+        // Nota: Il campo RR è final nel costruttore, quindi questo setter non avrà effetto pratico a meno che non si modifichi la dichiarazione del campo.
+        // Se si intende che RR possa essere modificato, il campo non deve essere final.
     }
 
+
     /**
-     * Restituisce la temperatura del paziente.
+     * Restituisce la <strong>temperatura</strong> del paziente.
      *
-     * @return la temperatura del paziente
+     * @return La temperatura del paziente.
      */
     public double getT() {
         return T;
     }
 
     /**
-     * Imposta la temperatura del paziente.
+     * Imposta la <strong>temperatura</strong> del paziente.
      *
-     * @param t la nuova temperatura
+     * @param t La nuova temperatura.
      */
     public void setT(double t) {
         T = t;
     }
 
     /**
-     * Restituisce la saturazione di ossigeno del paziente.
+     * Restituisce la <strong>saturazione di ossigeno</strong> del paziente.
      *
-     * @return la saturazione di ossigeno del paziente
+     * @return La saturazione di ossigeno del paziente.
      */
     public Integer getSpO2() {
         return SpO2;
     }
 
     /**
-     * Imposta la saturazione di ossigeno del paziente.
+     * Restituisce la <strong>frazione di ossigeno inspirato</strong> del paziente.
      *
-     * @param spO2 la nuova saturazione di ossigeno
+     * @return La frazione di ossigeno inspirato del paziente.
      */
-    public void setSpO2(Integer spO2) {
-        if (spO2 != null && (spO2 < 0 || spO2 > 100)) {
-            throw new IllegalArgumentException("SpO2 deve essere compresa tra 0 e 100");
-        } else SpO2 = spO2;
-    }
-
     public Integer getFiO2() {
         return FiO2;
     }
 
-    public Float getLitriO2() {
+    /**
+     * Restituisce i <strong>litri di ossigeno</strong> somministrati al paziente.
+     *
+     * @return I litri di ossigeno somministrati al paziente.
+     */
+    public Double getLitriO2() {
         return LitriO2;
     }
 
-    public void setFiO2(Integer fiO2) {
-        if (fiO2 != null && (fiO2 < 0 || fiO2 > 100)) {
-            throw new IllegalArgumentException("FiO2 deve essere compresa tra 0 e 100");
-        } else FiO2 = fiO2;
-    }
-
-    public void setLitriO2(Float litriO2) {
-        if (litriO2 != null && litriO2 < 0) {
-            throw new IllegalArgumentException("LitriO2 non può essere negativo");
-        } else LitriO2 = litriO2;
-    }
-
     /**
-     * Restituisce la pressione parziale di CO2 espirata del paziente.
+     * Restituisce la <strong>pressione parziale di CO2 espirata</strong> del paziente.
      *
-     * @return la pressione parziale di CO2 espirata del paziente
+     * @return La pressione parziale di CO2 espirata del paziente.
      */
     public Integer getEtCO2() {
         return EtCO2;
     }
 
-    /**
-     * Imposta la pressione parziale di CO2 espirata del paziente.
-     *
-     * @param etCO2 la nuova pressione parziale di CO2 espirata
-     */
-    public void setEtCO2(Integer etCO2) {
-        if (etCO2 != null && etCO2 < 0) {
-            throw new IllegalArgumentException("EtCO2 non può essere negativa");
-        } else EtCO2 = etCO2;
-    }
 
     /**
-     * Restituisce l'azione associata a questo tempo.
+     * Restituisce l'<strong>azione</strong> associata a questo tempo.
      *
-     * @return l'azione associata a questo tempo
+     * @return L'azione associata a questo tempo.
      */
     public String getAzione() {
         return Azione;
     }
 
     /**
-     * Imposta l'azione associata a questo tempo.
+     * Imposta l'<strong>azione</strong> associata a questo tempo.
      *
-     * @param azione la nuova azione
+     * @param azione La nuova azione.
      */
     public void setAzione(String azione) {
         Azione = azione;
     }
 
     /**
-     * Restituisce il tempo di simulazione in secondi.
+     * Restituisce l'<strong>ID del tempo "se SI"</strong> (il tempo successivo se l'azione viene eseguita).
      *
-     * @return il tempo di simulazione in secondi
+     * @return L'ID del tempo "se SI".
      */
     public int getTSi() {
         return TSi;
     }
 
     /**
-     * Imposta il tempo di simulazione in secondi.
+     * Restituisce l'<strong>ID del tempo "se NO"</strong> (il tempo successivo se l'azione NON viene eseguita).
      *
-     * @param TSi il nuovo tempo di simulazione
-     */
-    public void setTSi(int TSi) {
-        this.TSi = TSi;
-    }
-
-    /**
-     * Restituisce il tempo di non simulazione in secondi.
-     *
-     * @return il tempo di non simulazione in secondi
+     * @return L'ID del tempo "se NO".
      */
     public int getTNo() {
         return TNo;
     }
 
     /**
-     * Imposta il tempo di non simulazione in secondi.
+     * Restituisce gli <strong>altri dettagli</strong> rilevanti per questo tempo.
      *
-     * @param TNo il nuovo tempo di non simulazione
-     */
-    public void setTNo(int TNo) {
-        this.TNo = TNo;
-    }
-
-    /**
-     * Restituisce altri dettagli rilevanti per questo tempo.
-     *
-     * @return altri dettagli rilevanti per questo tempo
+     * @return Gli altri dettagli rilevanti per questo tempo.
      */
     public String getAltriDettagli() {
         return altriDettagli;
     }
 
     /**
-     * Imposta altri dettagli rilevanti per questo tempo.
+     * Restituisce il valore del <strong>timer</strong> associato a questo tempo, in secondi.
      *
-     * @param altriDettagli i nuovi dettagli
-     */
-    public void setAltriDettagli(String altriDettagli) {
-        this.altriDettagli = altriDettagli;
-    }
-
-    /**
-     * Restituisce il timer del tempo in millisecondi.
-     *
-     * @return il timer del tempo in millisecondi
+     * @return Il timer del tempo in secondi.
      */
     public long getTimerTempo() {
         return timerTempo;
     }
 
     /**
-     * Imposta il timer del tempo in millisecondi.
+     * Restituisce la lista dei <strong>parametri aggiuntivi</strong> associati a questo tempo.
      *
-     * @param timerTempo il nuovo timer
-     */
-    public void setTimerTempo(long timerTempo) {
-        this.timerTempo = timerTempo;
-    }
-
-    /**
-     * Restituisce la lista dei parametri aggiuntivi associati a questo tempo.
-     *
-     * @return la lista dei parametri aggiuntivi
+     * @return La lista dei parametri aggiuntivi.
      */
     public List<ParametroAggiuntivo> getParametriAggiuntivi() {
         return parametriAggiuntivi;
     }
 
     /**
-     * Imposta la lista dei parametri aggiuntivi associati a questo tempo.
+     * Imposta la lista dei <strong>parametri aggiuntivi</strong> associati a questo tempo.
      *
-     * @param parametriAggiuntivi la nuova lista di parametri aggiuntivi
+     * @param parametriAggiuntivi La nuova lista di parametri aggiuntivi.
      */
     public void setParametriAggiuntivi(List<ParametroAggiuntivo> parametriAggiuntivi) {
         this.parametriAggiuntivi = parametriAggiuntivi;
     }
 
+    /**
+     * Restituisce il <strong>ruolo del genitore</strong> associato a questo tempo,
+     * se lo scenario è pediatrico e il ruolo è definito.
+     *
+     * @return Il ruolo del genitore, o {@code null} se non applicabile o non definito.
+     */
     public String getRuoloGenitore() {
         return ruoloGenitore;
     }
 
-    public void setRuoloGenitore(String ruoloGenitore) {
-        this.ruoloGenitore = ruoloGenitore;
-    }
-
     /**
-     * Restituisce una rappresentazione stringa dell'oggetto.
+     * Fornisce una rappresentazione in formato stringa dell'oggetto <strong><code>Tempo</code></strong>,
+     * utile per il debugging e la registrazione.
      *
-     * @return stringa con i valori di tutti i campi
+     * @return Una stringa che descrive l'ID del tempo, lo scenario, i parametri vitali,
+     * l'azione, le transizioni, altri dettagli e il timer.
      */
     @Override
     public String toString() {
@@ -447,6 +373,7 @@ public class Tempo {
                 ", altriDettagli='" + altriDettagli + '\'' +
                 ", timerTempo=" + timerTempo +
                 ", parametriAggiuntivi=" + parametriAggiuntivi +
+                ", ruoloGenitore='" + ruoloGenitore + '\'' +
                 '}';
     }
 }

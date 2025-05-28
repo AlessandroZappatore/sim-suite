@@ -5,104 +5,104 @@ import it.uniupo.simnova.domain.common.Accesso;
 import java.util.List;
 
 /**
- * Classe che rappresenta i parametri del paziente in T0.
- * <p>
- * Contiene i parametri vitali principali e gli accessi venosi e arteriosi.
- * </p>
+ * Classe che rappresenta i <strong>parametri del paziente al tempo T0</strong> (iniziale) di uno scenario di simulazione.
+ * Contiene i parametri vitali principali e le liste degli accessi venosi e arteriosi.
  *
  * @author Alessandro Zappatore
  * @version 1.0
  */
 public class PazienteT0 {
-    /**
-     * Identificativo univoco del paziente.
-     */
-    private int idPaziente;
-    /**
-     * Pressione arteriosa del paziente.
-     */
-    private String PA;
-    /**
-     * Frequenza cardiaca del paziente.
-     */
-    private Integer FC;
-    /**
-     * Frequenza respiratoria del paziente.
-     */
-    private Integer RR;
-    /**
-     * Temperatura del paziente.
-     */
-    private double T;
-    /**
-     * Saturazione di ossigeno del paziente.
-     */
-    private Integer SpO2;
-    /**
-     * Percentuale di ossigeno somministrato al paziente.
-     */
-    private Integer FiO2;
-    /**
-     * Litri di ossigeno somministrati al paziente.
-     */
-    private Float LitriO2;
-    /**
-     * Pressione parziale di CO2 espirata del paziente.
-     */
-    private Integer EtCO2;
-    /**
-     * Monitoraggio del paziente.
-     */
-    private String Monitor;
-    /**
-     * Lista degli accessi venosi del paziente.
-     */
-    private List<Accesso> accessiVenosi;
-    /**
-     * Lista degli accessi arteriosi del paziente.
-     */
-    private List<Accesso> accessiArteriosi;
+
+    private final int idPaziente;       // Identificativo univoco del paziente.
+    private final Integer RR;           // Frequenza respiratoria del paziente (atti/min).
+    private final Integer SpO2;         // Saturazione di ossigeno del paziente (%).
+    private final Integer FiO2;         // Percentuale di ossigeno somministrato al paziente (%).
+    private final Double LitriO2;        // Litri di ossigeno somministrati al paziente (L/min).
+    private final Integer EtCO2;        // Pressione parziale di CO2 espirata del paziente (mmHg).
+    private final String Monitor;       // Testo aggiuntivo per il monitoraggio del paziente.
+    private final List<Accesso> accessiVenosi;  // Lista degli accessi venosi del paziente.
+    private final List<Accesso> accessiArteriosi; // Lista degli accessi arteriosi del paziente.
+    private String PA;                  // Pressione arteriosa del paziente (formato "sistolica/diastolica").
+    private Integer FC;                 // Frequenza cardiaca del paziente (bpm).
+    private double T;                   // Temperatura del paziente (°C).
 
 
-    public PazienteT0(int idPaziente, String PA, Integer FC, Integer RR, double t, Integer spO2, Integer fiO2, Float litriO2, Integer etCO2,
+    /**
+     * Costruttore completo per creare un nuovo oggetto <strong><code>PazienteT0</code></strong>.
+     * Include la validazione di alcuni parametri per garantire la coerenza dei dati.
+     *
+     * @param idPaziente       <strong>Identificativo univoco</strong> del paziente.
+     * @param PA               <strong>Pressione arteriosa</strong> del paziente nel formato "sistolica/diastolica" (es. "120/80").
+     * @param FC               <strong>Frequenza cardiaca</strong> del paziente. Deve essere un valore non negativo.
+     * @param RR               <strong>Frequenza respiratoria</strong> del paziente. Deve essere un valore non negativo.
+     * @param t                <strong>Temperatura</strong> del paziente.
+     * @param spO2             <strong>Saturazione di ossigeno</strong> del paziente. Deve essere compresa tra 0 e 100.
+     * @param fiO2             <strong>Percentuale di ossigeno</strong> somministrato al paziente. Deve essere compresa tra 0 e 100.
+     * @param litriO2          <strong>Litri di ossigeno</strong> somministrati al paziente. Deve essere un valore non negativo.
+     * @param etCO2            <strong>Pressione parziale di CO2 espirata</strong> del paziente. Deve essere un valore non negativo.
+     * @param monitor          <strong>Monitoraggio</strong> del paziente (testo aggiuntivo).
+     * @param accessiVenosi    <strong>Lista degli accessi venosi</strong> del paziente.
+     * @param accessiArteriosi <strong>Lista degli accessi arteriosi</strong> del paziente.
+     * @throws IllegalArgumentException se i valori di PA, FC, RR, SpO2, FiO2, LitriO2 o EtCO2 non rispettano i criteri di validazione.
+     */
+    public PazienteT0(int idPaziente, String PA, Integer FC, Integer RR, double t, Integer spO2, Integer fiO2, Double litriO2, Integer etCO2,
                       String monitor, List<Accesso> accessiVenosi, List<Accesso> accessiArteriosi) {
         this.idPaziente = idPaziente;
 
+        // Validazione e impostazione PA
         if (PA != null) {
             String trimmedPA = PA.trim();
             if (!trimmedPA.matches("^\\s*\\d+\\s*/\\s*\\d+\\s*$")) {
-                throw new IllegalArgumentException("Formato PA non valido, atteso 'sistolica/diastolica' (es. '120/80')");
+                throw new IllegalArgumentException("Formato PA non valido, atteso 'sistolica/diastolica' (es. '120/80').");
             }
             this.PA = trimmedPA;
         } else {
             this.PA = null;
         }
 
+        // Validazione e impostazione FC
         if (FC < 0) {
-            throw new IllegalArgumentException("FC non può essere negativa");
-        } else this.FC = FC;
+            throw new IllegalArgumentException("FC non può essere negativa.");
+        } else {
+            this.FC = FC;
+        }
 
+        // Validazione e impostazione RR
         if (RR < 0) {
-            throw new IllegalArgumentException("RR non può essere negativa");
-        } else this.RR = RR;
+            throw new IllegalArgumentException("RR non può essere negativa.");
+        } else {
+            this.RR = RR;
+        }
 
         this.T = t;
 
+        // Validazione e impostazione SpO2
         if (spO2 < 0 || spO2 > 100) {
-            throw new IllegalArgumentException("SpO2 deve essere compresa tra 0 e 100");
-        } else SpO2 = spO2;
+            throw new IllegalArgumentException("SpO2 deve essere compresa tra 0 e 100.");
+        } else {
+            SpO2 = spO2;
+        }
 
+        // Validazione e impostazione FiO2
         if (fiO2 < 0 || fiO2 > 100) {
-            throw new IllegalArgumentException("FiO2 deve essere compresa tra 0 e 100");
-        } else FiO2 = fiO2;
+            throw new IllegalArgumentException("FiO2 deve essere compresa tra 0 e 100.");
+        } else {
+            FiO2 = fiO2;
+        }
 
+        // Validazione e impostazione LitriO2
         if (litriO2 < 0) {
-            throw new IllegalArgumentException("LitriO2 non può essere negativo");
-        } else LitriO2 = litriO2;
+            throw new IllegalArgumentException("LitriO2 non può essere negativo.");
+        } else {
+            LitriO2 = litriO2;
+        }
 
+        // Validazione e impostazione EtCO2
         if (etCO2 < 0) {
-            throw new IllegalArgumentException("EtCO2 non può essere negativa");
-        } else EtCO2 = etCO2;
+            throw new IllegalArgumentException("EtCO2 non può essere negativa.");
+        } else {
+            EtCO2 = etCO2;
+        }
 
         Monitor = monitor;
         this.accessiVenosi = accessiVenosi;
@@ -110,42 +110,25 @@ public class PazienteT0 {
     }
 
     /**
-     * Restituisce l'identificativo univoco del paziente.
+     * Restituisce la <strong>pressione arteriosa</strong> del paziente.
      *
-     * @return l'identificativo univoco del paziente
-     */
-    public int getIdPaziente() {
-        return idPaziente;
-    }
-
-    /**
-     * Imposta l'identificativo univoco del paziente.
-     *
-     * @param idPaziente il nuovo identificativo
-     */
-    public void setIdPaziente(int idPaziente) {
-        this.idPaziente = idPaziente;
-    }
-
-    /**
-     * Restituisce la pressione arteriosa del paziente.
-     *
-     * @return la pressione arteriosa del paziente
+     * @return La pressione arteriosa del paziente.
      */
     public String getPA() {
         return PA;
     }
 
     /**
-     * Imposta la pressione arteriosa del paziente.
+     * Imposta la <strong>pressione arteriosa</strong> del paziente.
      *
-     * @param PA la nuova pressione arteriosa
+     * @param PA La nuova pressione arteriosa.
+     * @throws IllegalArgumentException se il formato PA non è valido.
      */
     public void setPA(String PA) {
         if (PA != null) {
             String trimmedPA = PA.trim();
             if (!trimmedPA.matches("^\\s*\\d+\\s*/\\s*\\d+\\s*$")) {
-                throw new IllegalArgumentException("Formato PA non valido, atteso 'sistolica/diastolica' (es. '120/80')");
+                throw new IllegalArgumentException("Formato PA non valido, atteso 'sistolica/diastolica' (es. '120/80').");
             }
             this.PA = trimmedPA;
         } else {
@@ -154,181 +137,124 @@ public class PazienteT0 {
     }
 
     /**
-     * Restituisce la frequenza cardiaca del paziente.
+     * Restituisce la <strong>frequenza cardiaca</strong> del paziente.
      *
-     * @return la frequenza cardiaca del paziente
+     * @return La frequenza cardiaca del paziente.
      */
     public Integer getFC() {
         return FC;
     }
 
     /**
-     * Imposta la frequenza cardiaca del paziente.
+     * Imposta la <strong>frequenza cardiaca</strong> del paziente.
      *
-     * @param FC la nuova frequenza cardiaca
+     * @param FC La nuova frequenza cardiaca.
+     * @throws IllegalArgumentException se FC è negativo.
      */
     public void setFC(Integer FC) {
         if (FC < 0) {
-            throw new IllegalArgumentException("FC non può essere negativa");
-        } else this.FC = FC;
+            throw new IllegalArgumentException("FC non può essere negativa.");
+        } else {
+            this.FC = FC;
+        }
     }
 
     /**
-     * Restituisce la frequenza respiratoria del paziente.
+     * Restituisce la <strong>frequenza respiratoria</strong> del paziente.
      *
-     * @return la frequenza respiratoria del paziente
+     * @return La frequenza respiratoria del paziente.
      */
     public Integer getRR() {
         return RR;
     }
 
     /**
-     * Imposta la frequenza respiratoria del paziente.
+     * Restituisce la <strong>temperatura</strong> del paziente.
      *
-     * @param RR la nuova frequenza respiratoria
-     */
-    public void setRR(Integer RR) {
-        if (RR < 0) {
-            throw new IllegalArgumentException("RR non può essere negativa");
-        } else this.RR = RR;
-    }
-
-    /**
-     * Restituisce la temperatura del paziente.
-     *
-     * @return la temperatura del paziente
+     * @return La temperatura del paziente.
      */
     public double getT() {
         return T;
     }
 
     /**
-     * Imposta la temperatura del paziente.
+     * Imposta la <strong>temperatura</strong> del paziente.
      *
-     * @param t la nuova temperatura
+     * @param t La nuova temperatura.
      */
     public void setT(double t) {
         T = t;
     }
 
     /**
-     * Restituisce la saturazione di ossigeno del paziente.
+     * Restituisce la <strong>saturazione di ossigeno</strong> del paziente.
      *
-     * @return la saturazione di ossigeno del paziente
+     * @return La saturazione di ossigeno del paziente.
      */
     public Integer getSpO2() {
         return SpO2;
     }
 
     /**
-     * Imposta la saturazione di ossigeno del paziente.
+     * Restituisce la <strong>pressione parziale di CO2 espirata</strong> del paziente.
      *
-     * @param spO2 la nuova saturazione di ossigeno
-     */
-    public void setSpO2(Integer spO2) {
-        if (spO2 < 0 || spO2 > 100) {
-            throw new IllegalArgumentException("SpO2 deve essere compresa tra 0 e 100");
-        } else SpO2 = spO2;
-    }
-
-    /**
-     * Restituisce la pressione parziale di CO2 espirata del paziente.
-     *
-     * @return la pressione parziale di CO2 espirata del paziente
+     * @return La pressione parziale di CO2 espirata del paziente.
      */
     public Integer getEtCO2() {
         return EtCO2;
     }
 
     /**
-     * Imposta la pressione parziale di CO2 espirata del paziente.
+     * Restituisce il <strong>monitoraggio</strong> del paziente (testo aggiuntivo).
      *
-     * @param etCO2 la nuova pressione parziale di CO2 espirata
-     */
-    public void setEtCO2(Integer etCO2) {
-        if (etCO2 < 0) {
-            throw new IllegalArgumentException("EtCO2 non può essere negativa");
-        } else EtCO2 = etCO2;
-    }
-
-    /**
-     * Restituisce il monitoraggio del paziente.
-     *
-     * @return il monitoraggio del paziente
+     * @return Il testo di monitoraggio del paziente.
      */
     public String getMonitor() {
         return Monitor;
     }
 
     /**
-     * Imposta il monitoraggio del paziente.
+     * Restituisce la <strong>lista degli accessi venosi</strong> del paziente.
      *
-     * @param monitor il nuovo monitoraggio
-     */
-    public void setMonitor(String monitor) {
-        Monitor = monitor;
-    }
-
-    /**
-     * Restituisce la lista degli accessi venosi del paziente.
-     *
-     * @return la lista degli accessi venosi del paziente
+     * @return La lista degli accessi venosi del paziente.
      */
     public List<Accesso> getAccessiVenosi() {
         return accessiVenosi;
     }
 
     /**
-     * Imposta la lista degli accessi venosi del paziente.
+     * Restituisce la <strong>lista degli accessi arteriosi</strong> del paziente.
      *
-     * @param accessiVenosi la nuova lista di accessi venosi
-     */
-    public void setAccessiVenosi(List<Accesso> accessiVenosi) {
-        this.accessiVenosi = accessiVenosi;
-    }
-
-    /**
-     * Restituisce la lista degli accessi arteriosi del paziente.
-     *
-     * @return la lista degli accessi arteriosi del paziente
+     * @return La lista degli accessi arteriosi del paziente.
      */
     public List<Accesso> getAccessiArteriosi() {
         return accessiArteriosi;
     }
 
     /**
-     * Imposta la lista degli accessi arteriosi del paziente.
+     * Restituisce la <strong>percentuale di ossigeno somministrato</strong> al paziente.
      *
-     * @param accessiArteriosi la nuova lista di accessi arteriosi
+     * @return La percentuale di ossigeno somministrato al paziente.
      */
-    public void setAccessiArteriosi(List<Accesso> accessiArteriosi) {
-        this.accessiArteriosi = accessiArteriosi;
-    }
-
     public Integer getFiO2() {
         return FiO2;
     }
 
-    public void setFiO2(Integer fiO2) {
-        if (fiO2 < 0 || fiO2 > 100) {
-            throw new IllegalArgumentException("FiO2 deve essere compresa tra 0 e 100");
-        } else FiO2 = fiO2;
-    }
-
-    public Float getLitriO2() {
+    /**
+     * Restituisce i <strong>litri di ossigeno somministrati</strong> al paziente.
+     *
+     * @return I litri di ossigeno somministrati al paziente.
+     */
+    public Double getLitriO2() {
         return LitriO2;
     }
 
-    public void setLitriO2(Float litriO2) {
-        if (litriO2 < 0) {
-            throw new IllegalArgumentException("LitriO2 non può essere negativo");
-        } else LitriO2 = litriO2;
-    }
-
     /**
-     * Restituisce una rappresentazione stringa dell'oggetto.
+     * Fornisce una rappresentazione in formato stringa dell'oggetto <strong><code>PazienteT0</code></strong>,
+     * utile per il debugging e la registrazione.
      *
-     * @return stringa con i valori di tutti i campi
+     * @return Una stringa che descrive l'ID del paziente, i parametri vitali principali,
+     * il testo di monitoraggio e gli accessi venosi/arteriosi.
      */
     @Override
     public String toString() {

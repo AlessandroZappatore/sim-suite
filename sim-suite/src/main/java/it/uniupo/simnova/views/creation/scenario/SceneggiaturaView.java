@@ -24,10 +24,11 @@ import org.vaadin.tinymce.TinyMce;
 import java.util.Optional;
 
 /**
- * View per la gestione della sceneggiatura dello scenario di simulazione.
+ * Vista per la gestione della sceneggiatura di uno scenario di simulazione.
  *
- * <p>Questa view permette all'utente di inserire o modificare la sceneggiatura
- * dettagliata dello scenario corrente, includendo azioni, dialoghi ed eventi chiave.</p>
+ * <p>Questa vista consente all'utente di inserire o modificare la sceneggiatura
+ * dettagliata dello scenario corrente, inclusi azioni, dialoghi ed eventi chiave.
+ * È specificamente progettata per gli scenari di tipo "Patient Simulated Scenario".</p>
  *
  * <p>Implementa {@link HasUrlParameter} per ricevere l'ID dello scenario come parametro nell'URL.</p>
  *
@@ -37,134 +38,164 @@ import java.util.Optional;
 @PageTitle("Sceneggiatura")
 @Route(value = "sceneggiatura")
 public class SceneggiaturaView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
+
     /**
-     * Servizio per la gestione degli scenari.
-     */
-    private final ScenarioService scenarioService;
-    private final PatientSimulatedScenarioService patientSimulatedScenarioService;
-    /**
-     * ID dello scenario corrente.
-     */
-    private Integer scenarioId;
-    /**
-     * Area di testo per l'inserimento della sceneggiatura.
-     */
-    private final TinyMce sceneggiaturaEditor;
-    /**
-     * Logger per la registrazione delle operazioni.
+     * Il logger per questa classe, utilizzato per registrare informazioni ed errori.
      */
     private static final Logger logger = LoggerFactory.getLogger(SceneggiaturaView.class);
 
     /**
-     * Costruttore della view.
+     * Il servizio per la gestione delle operazioni sugli scenari.
+     */
+    private final ScenarioService scenarioService;
+
+    /**
+     * Il servizio specifico per la gestione degli scenari di tipo "Patient Simulated Scenario".
+     */
+    private final PatientSimulatedScenarioService patientSimulatedScenarioService;
+
+    /**
+     * L'editor di testo avanzato (TinyMCE) utilizzato per la stesura della sceneggiatura.
+     */
+    private final TinyMce sceneggiaturaEditor;
+
+    /**
+     * L'ID dello scenario corrente, passato come parametro URL.
+     */
+    private Integer scenarioId;
+
+    /**
+     * Costruisce una nuova istanza di <code>SceneggiaturaView</code>.
+     * Inizializza l'interfaccia utente, inclusi l'header, il corpo centrale con l'editor di testo
+     * e il footer con i bottoni di navigazione.
      *
-     * @param scenarioService il servizio per la gestione degli scenari
+     * @param scenarioService                 Il servizio per la gestione degli scenari.
+     * @param fileStorageService              Il servizio per la gestione dei file, utilizzato per l'intestazione dell'applicazione.
+     * @param patientSimulatedScenarioService Il servizio per la gestione degli scenari di tipo "Patient Simulated Scenario".
      */
     public SceneggiaturaView(ScenarioService scenarioService, FileStorageService fileStorageService, PatientSimulatedScenarioService patientSimulatedScenarioService) {
         this.scenarioService = scenarioService;
         this.patientSimulatedScenarioService = patientSimulatedScenarioService;
 
-
+        // Configura il layout principale della vista.
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
-
+        // Configura l'header personalizzato con un bottone "Indietro" e l'header dell'app.
         AppHeader header = new AppHeader(fileStorageService);
-
         Button backButton = StyleApp.getBackButton();
-
-
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
-
+        // Sezione dell'intestazione visuale per la vista, con titolo, sottotitolo e icona.
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
-                "Sceneggiatura",
-                "Inserisci la sceneggiatura dettagliata dello scenario corrente, includendo azioni, dialoghi ed eventi chiave",
+                "SCENEGGIATURA",
+                "Inserisci la sceneggiatura dettagliata dello scenario corrente, includendo azioni, dialoghi ed eventi chiave.",
                 VaadinIcon.FILE_TEXT.create(),
                 "var(--lumo-primary-color)"
         );
 
-
-
+        // Configura il layout per il contenuto centrale.
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
+        // Inizializza l'editor TinyMCE per la sceneggiatura.
         sceneggiaturaEditor = TinyEditor.getEditor();
 
+        // Aggiunge le sezioni dell'header e l'editor al layout del contenuto.
         contentLayout.add(headerSection, sceneggiaturaEditor);
 
-
+        // Configura il footer con il bottone "Avanti".
         Button nextButton = StyleApp.getNextButton();
-
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
-
+        // Aggiunge tutte le sezioni al layout principale.
         mainLayout.add(
                 customHeader,
                 contentLayout,
                 footerLayout
         );
 
-
+        // Listener per il bottone "Indietro".
+        // Naviga alla vista "tempi" passando l'ID dello scenario corrente.
         backButton.addClickListener(e ->
                 backButton.getUI().ifPresent(ui -> ui.navigate("tempi/" + scenarioId + "/edit")));
 
+        // Listener per il bottone "Avanti".
         nextButton.addClickListener(e -> {
-
+            // Controlla se il contenuto della sceneggiatura è vuoto dopo aver rimosso gli spazi.
             if (sceneggiaturaEditor.getValue().trim().isEmpty()) {
-                Notification.show("Inserisci la sceneggiatura per lo scenario", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                return;
+                Notification.show("Per favore, inserisci la sceneggiatura per lo scenario prima di proseguire.", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
+                return; // Blocca la navigazione se il campo è vuoto.
             }
             saveSceneggiaturaAndNavigate(nextButton.getUI());
         });
     }
 
     /**
-     * Gestisce il parametro ID scenario ricevuto dall'URL.
+     * Implementazione del metodo {@link HasUrlParameter#setParameter(BeforeEvent, Object)}
+     * per gestire l'ID dello scenario passato tramite l'URL.
+     * Questo metodo è invocato automaticamente da Vaadin all'apertura della vista.
      *
-     * @param event     l'evento di navigazione
-     * @param parameter l'ID dello scenario come stringa
+     * @param event     L'evento di navigazione.
+     * @param parameter L'ID dello scenario come {@link String}. Se <code>null</code> o non valido,
+     *                  la navigazione verrà reindirizzata a una pagina di errore. Inoltre, verifica che lo scenario
+     *                  sia effettivamente di tipo "Patient Simulated Scenario".
      */
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
         try {
-
+            // Verifica che il parametro ID non sia nullo o vuoto.
             if (parameter == null || parameter.trim().isEmpty()) {
-                throw new NumberFormatException();
+                logger.warn("ID scenario non fornito nell'URL per la vista Sceneggiatura. Re indirizzamento a pagina di errore.");
+                throw new NumberFormatException("ID scenario non fornito."); // Lancia per cattura nel catch.
             }
 
-            this.scenarioId = Integer.parseInt(parameter);
+            this.scenarioId = Integer.parseInt(parameter); // Converte l'ID da String a Integer.
+            // Verifica che l'ID sia valido e che lo scenario esista nel database.
             if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
-                throw new NumberFormatException();
+                logger.warn("Tentativo di accesso a scenario non esistente o con ID non valido: {}. Re indirizzamento a pagina di errore.", scenarioId);
+                throw new NumberFormatException("Scenario con ID " + scenarioId + " non trovato o non valido."); // Lancia per cattura nel catch.
             }
 
-
+            // Verifica che lo scenario sia di tipo "Patient Simulated Scenario".
             String scenarioType = scenarioService.getScenarioType(scenarioId);
             if (!"Patient Simulated Scenario".equals(scenarioType)) {
-                event.rerouteToError(NotFoundException.class, "Questa funzionalità è disponibile solo per Patient Simulated Scenario");
+                logger.warn("L'utente ha tentato di accedere alla vista Sceneggiatura per uno scenario di tipo '{}' (ID {}). Questa funzionalità è solo per 'Patient Simulated Scenario'.", scenarioType, scenarioId);
+                event.rerouteToError(NotFoundException.class, "Questa funzionalità è disponibile solo per scenari di tipo 'Patient Simulated Scenario'. Lo scenario con ID " + scenarioId + " è di tipo " + scenarioType + ".");
                 return;
             }
 
+            logger.info("Caricamento sceneggiatura per lo scenario ID: {}.", scenarioId);
+            loadExistingSceneggiatura(); // Carica la sceneggiatura esistente associata allo scenario.
 
-            loadExistingSceneggiatura();
         } catch (NumberFormatException e) {
-            logger.error("ID scenario non valido: {}", parameter, e);
-            event.rerouteToError(NotFoundException.class, "ID scenario non valido");
+            logger.error("Errore: ID scenario non valido ricevuto come parametro: '{}'. Dettagli: {}. Re indirizzamento a NotFoundException.", parameter, e.getMessage());
+            event.rerouteToError(NotFoundException.class, "Formato ID scenario non valido o scenario non trovato: " + parameter + ". Assicurati che l'ID sia un numero intero valido e che lo scenario esista.");
+        } catch (Exception e) {
+            logger.error("Errore imprevisto durante l'impostazione dei parametri per la vista Sceneggiatura per scenario ID: {}. Dettagli: {}", parameter, e.getMessage(), e);
+            event.rerouteToError(NotFoundException.class, "Errore durante il caricamento della pagina della sceneggiatura. Riprova più tardi.");
         }
     }
 
     /**
-     * Carica la sceneggiatura esistente per lo scenario corrente.
+     * Carica il testo della sceneggiatura esistente per lo scenario corrente dal database
+     * e lo imposta nell'editor TinyMCE.
      */
     private void loadExistingSceneggiatura() {
+        // Recupera l'oggetto PatientSimulatedScenario dal servizio.
         PatientSimulatedScenario scenario = patientSimulatedScenarioService.getPatientSimulatedScenarioById(scenarioId);
+        // Se lo scenario esiste e ha una sceneggiatura non nulla e non vuota, la imposta nell'editor.
         if (scenario != null && scenario.getSceneggiatura() != null && !scenario.getSceneggiatura().isEmpty()) {
             sceneggiaturaEditor.setValue(scenario.getSceneggiatura());
+            logger.debug("Sceneggiatura esistente caricata per lo scenario ID {}.", scenarioId);
+        } else {
+            logger.debug("Nessuna sceneggiatura esistente trovata per lo scenario ID {}. L'editor sarà vuoto.", scenarioId);
         }
     }
 
     /**
-     * Salva la sceneggiatura e naviga alla view successiva.
+     * Salva il contenuto dell'editor della sceneggiatura nel database e naviga alla vista successiva
+     * (Dettagli Scenario). Una {@link ProgressBar} viene mostrata durante l'operazione di salvataggio.
      *
-     * @param uiOptional l'istanza UI opzionale per l'accesso alla UI
+     * @param uiOptional L'{@link Optional} che incapsula l'istanza di {@link UI} corrente.
      */
     private void saveSceneggiaturaAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {

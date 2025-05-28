@@ -8,25 +8,33 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Classe di supporto per caricare i font per i PDF.
+ * Classe di supporto per il <strong>caricamento dei font</strong> all'interno dei documenti PDF.
+ * Facilita l'integrazione di font TrueType personalizzati nei PDF generati,
+ * garantendo coerenza estetica e corretta visualizzazione del testo.
  *
  * @author Alessandro Zappatore
  * @version 1.0
  */
 public class LoadFont {
+
     /**
-     * Carica un font TrueType da un file.
+     * Carica un font TrueType da un file specificato, incorporandolo in un documento PDF.
+     * Questo metodo cerca il file del font nel classpath dell'applicazione.
      *
-     * @param document il documento PDF in cui caricare il font
-     * @param fontPath il percorso del file del font
-     * @return il font caricato
-     * @throws IOException se si verifica un errore durante il caricamento del font
+     * @param document Il documento {@link PDDocument} in cui caricare il font.
+     * @param fontPath Il percorso del file del font (es. "/fonts/MyFont.ttf").
+     * @return Il font caricato, rappresentato come oggetto {@link PDFont}.
+     * @throws IOException Se si verifica un errore durante la lettura o il caricamento del font,
+     *                     o se il file del font non viene trovato.
      */
     public static PDFont loadFont(PDDocument document, String fontPath) throws IOException {
+        // Tenta di ottenere l'InputStream del file del font dal classpath.
         try (InputStream fontStream = LoadFont.class.getResourceAsStream(fontPath)) {
             if (fontStream == null) {
+                // Se il font non è trovato, lancia un'eccezione.
                 throw new IOException("Font file not found: " + fontPath);
             }
+            // Carica il font nel documento PDF utilizzando PDType0Font.
             return PDType0Font.load(document, fontStream);
         }
     }

@@ -1,13 +1,15 @@
 package it.uniupo.simnova.views.constant;
 
 /**
- * Classe di supporto contenente le costanti per i target.
+ * Classe di supporto contenente le ***costanti per la definizione dei target**
+ * di uno scenario di simulazione. Include categorie professionali e specializzazioni.
  *
  * @author Alessandro Zappatore
  * @version 1.0
  */
 public final class TargetConst {
-    // --- Costanti Target Principali ---
+
+    // --- Costanti Target Principali (Categorie Professionali) ---
     public static final String MEDICI_ASSISTENTI = "Medici Assistenti";
     public static final String MEDICI_SPECIALISTI = "Medici specialisti";
     public static final String STUDENTI_MEDICINA = "Studenti di medicina";

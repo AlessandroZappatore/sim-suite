@@ -9,52 +9,57 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 import static it.uniupo.simnova.service.export.PdfExportService.checkForNewPage;
+import static it.uniupo.simnova.service.export.helper.pdf.PdfConstant.LEADING;
+import static it.uniupo.simnova.service.export.helper.pdf.PdfConstant.MARGIN;
 import static it.uniupo.simnova.service.export.helper.pdf.SectionDrawer.drawSection;
 import static it.uniupo.simnova.service.export.helper.pdf.SectionDrawer.renderHtmlWithFormatting;
-import static it.uniupo.simnova.service.export.helper.pdf.PdfConstant.*;
 
 /**
- * Classe di utilità per la generazione della sezione "Sceneggiatura" nel PDF.
- * Permette di esportare la sceneggiatura associata a uno scenario, se presente.
+ * Questa classe di utilità si occupa della generazione della sezione "Sceneggiatura"
+ * all'interno di un documento PDF. Esporta il testo della sceneggiatura associata a uno scenario,
+ * se presente e richiesto, applicando la formattazione HTML.
  *
  * @author Alessandro Zappatore
  * @version 1.0
  */
 public class ScenarioSceneggiatura {
-    /**
-     * Logger per la classe ScenarioSceneggiatura.
-     */
+
     private static final Logger logger = LoggerFactory.getLogger(ScenarioSceneggiatura.class);
 
     /**
-     * Crea la sezione "Sceneggiatura" nel PDF, se abilitata e se la sceneggiatura è presente.
-     * Recupera la sceneggiatura tramite il service e la inserisce nel PDF con formattazione HTML.
+     * Crea la sezione "Sceneggiatura" nel documento PDF.
+     * La sezione viene aggiunta solo se il flag {@code scen} è impostato a <code>true</code>
+     * e se la sceneggiatura per lo scenario specificato è presente e non vuota.
      *
-     * @param scenario                        Scenario di riferimento.
-     * @param scen                            true per includere la sezione sceneggiatura.
-     * @param patientSimulatedScenarioService Service per recuperare la sceneggiatura.
-     * @throws IOException In caso di errore nella scrittura del PDF.
+     * @param scenario                        L'oggetto {@link Scenario} di riferimento.
+     * @param scen                            Un flag che indica se la sezione "Sceneggiatura" deve essere inclusa nel PDF.
+     * @param patientSimulatedScenarioService Il servizio {@link PatientSimulatedScenarioService}
+     *                                        per recuperare il testo della sceneggiatura.
+     * @throws IOException Se si verifica un errore durante la scrittura nel documento PDF.
      */
     public static void createSceneggiaturaSection(Scenario scenario, boolean scen, PatientSimulatedScenarioService patientSimulatedScenarioService) throws IOException {
-        // Recupera la sceneggiatura associata allo scenario tramite il service
+        // Recupera il testo della sceneggiatura per lo scenario dato.
         String sceneggiatura = patientSimulatedScenarioService.getSceneggiatura(scenario.getId());
-        // Se la sceneggiatura è nulla, vuota o la sezione non è richiesta, esce senza fare nulla
+
+        // Se la sceneggiatura è nulla, vuota, o la sezione non è richiesta, il metodo termina.
         if (sceneggiatura == null || sceneggiatura.isEmpty() || !scen) {
             return;
         }
 
-        // Verifica se c'è spazio sufficiente per la sezione, altrimenti va a nuova pagina
+        // Controlla se è necessario iniziare una nuova pagina prima di disegnare la sezione.
+        // Lo spazio stimato è per il titolo della sezione e un margine iniziale.
         checkForNewPage(LEADING * 5);
 
-        // Scrive il titolo della sezione "Sceneggiatura"
-        drawSection("Sceneggiatura", "");
-        // Inserisce la sceneggiatura con formattazione HTML e margine a sinistra
+        // Disegna il titolo principale della sezione "Sceneggiatura".
+        drawSection("Sceneggiatura", ""); // Il secondo parametro è vuoto perché il contenuto segue.
+
+        // Inserisce il testo della sceneggiatura nel PDF, gestendo eventuali tag HTML.
+        // Il testo viene indentato con un margine sinistro maggiore.
         renderHtmlWithFormatting(sceneggiatura, MARGIN + 20);
-        // Aggiunge uno spazio verticale dopo la sezione
+
+        // Aggiunge uno spazio verticale dopo la sezione per separarla dal contenuto successivo.
         PdfExportService.currentYPosition -= LEADING;
 
-        // Logga la creazione della sezione per debug/tracciamento
-        logger.info("Sceneggiatura section created");
+        logger.info("Sezione Sceneggiatura creata con successo per lo scenario {}.", scenario.getId());
     }
 }
-

@@ -1,6 +1,7 @@
 package it.uniupo.simnova.views.creation.paziente;
 
-import com.vaadin.flow.component.*;
+import com.vaadin.flow.component.Composite;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.icon.Icon;
@@ -12,23 +13,29 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
-import com.vaadin.flow.router.*;
+import com.vaadin.flow.router.BeforeEvent;
+import com.vaadin.flow.router.HasUrlParameter;
+import com.vaadin.flow.router.NotFoundException;
+import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.WildcardParameter;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.domain.paziente.EsameReferto;
+import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.service.scenario.components.EsameRefertoService;
 import it.uniupo.simnova.service.storage.FileStorageService;
-import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.views.common.components.AppHeader;
 import it.uniupo.simnova.views.common.components.CreditsComponent;
 import it.uniupo.simnova.views.common.utils.StyleApp;
 import it.uniupo.simnova.views.ui.helper.support.FormRow;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static it.uniupo.simnova.views.constant.ColorsConst.BORDER_COLORS;
 import static it.uniupo.simnova.views.constant.ExamConst.ALLINSTREXAMS;
@@ -36,11 +43,9 @@ import static it.uniupo.simnova.views.constant.ExamConst.ALLLABSEXAMS;
 
 /**
  * Vista per la gestione degli esami e referti nello scenario di simulazione.
- * <p>
  * Permette di aggiungere, modificare e rimuovere esami clinici e relativi referti,
  * sia testuali che multimediali. Supporta l'upload di file e la selezione da un elenco
  * predefinito di esami di laboratorio e strumentali.
- * </p>
  *
  * @author Alessandro Zappatore
  * @version 1.0
@@ -48,50 +53,28 @@ import static it.uniupo.simnova.views.constant.ExamConst.ALLLABSEXAMS;
 @PageTitle("Esami e Referti")
 @Route(value = "esamiReferti")
 public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-    /**
-     * Logger per la registrazione degli eventi.
-     */
+
     private static final Logger logger = LoggerFactory.getLogger(EsamiRefertiView.class);
-    /**
-     * Servizio per la gestione degli scenari.
-     */
+
     private final ScenarioService scenarioService;
     private final EsameRefertoService esameRefertoService;
-    /**
-     * Layout principale per la visualizzazione delle righe degli esami.
-     */
-    private final VerticalLayout rowsContainer;
-    /**
-     * Lista di righe degli esami/referti.
-     */
-    private final List<FormRow> formRows = new ArrayList<>();
-    /**
-     * Servizio per la gestione del caricamento dei file.
-     */
     private final FileStorageService fileStorageService;
-    /**
-     * Pulsante per navigare alla vista successiva.
-     */
-    Button nextButton = StyleApp.getNextButton();
-    /**
-     * ID dello scenario corrente.
-     */
-    private Integer scenarioId;
-    /**
-     * Modalità corrente (creazione o modifica).
-     */
-    private String mode;
-    /**
-     * Contatore per il numero di righe degli esami.
-     */
-    private int rowCount = 1;
 
+    private final VerticalLayout rowsContainer; // Contenitore per le righe dei form di esame/referto
+    private final List<FormRow> formRows = new ArrayList<>(); // Lista degli oggetti FormRow
+    private final Button nextButton = StyleApp.getNextButton(); // Pulsante per navigare alla vista successiva
+
+    private Integer scenarioId; // ID dello scenario corrente
+    private String mode; // Modalità corrente: "create" o "edit"
+    private int rowCount = 1; // Contatore per il numero di righe degli esami
 
     /**
-     * Costruttore che inizializza l'interfaccia utente.
+     * Costruttore della vista {@code EsamiRefertiView}.
+     * Inizializza i servizi e configura la struttura base dell'interfaccia utente.
      *
-     * @param scenarioService    servizio per la gestione degli scenari
-     * @param fileStorageService servizio per la gestione dei file
+     * @param scenarioService     Il servizio per la gestione degli scenari.
+     * @param fileStorageService  Il servizio per la gestione dei file.
+     * @param esameRefertoService Il servizio per la gestione degli esami e referti.
      */
     public EsamiRefertiView(ScenarioService scenarioService, FileStorageService fileStorageService, EsameRefertoService esameRefertoService) {
         this.scenarioService = scenarioService;
@@ -100,12 +83,10 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
-
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
-
 
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
@@ -123,26 +104,27 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         Button addButton = new Button("Aggiungi Esame/Referto", new Icon(VaadinIcon.PLUS_CIRCLE));
         addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addButton.addClassName(LumoUtility.Margin.Top.MEDIUM);
-        addButton.addClickListener(event -> addNewRow());
+        addButton.addClickListener(event -> addNewRow()); // Listener per aggiungere una nuova riga
 
         contentLayout.add(headerSection, rowsContainer, addButton);
-
 
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
         mainLayout.add(customHeader, contentLayout, footerLayout);
 
-        backButton.addClickListener(e ->
-                backButton.getUI().ifPresent(ui -> ui.navigate("materialeNecessario/" + scenarioId)));
-
+        // Listener per la navigazione indietro
+        backButton.addClickListener(e -> backButton.getUI().ifPresent(ui -> ui.navigate("materialeNecessario/" + scenarioId)));
+        // Listener per il salvataggio e la navigazione successiva
         nextButton.addClickListener(e -> saveEsamiRefertiAndNavigate(nextButton.getUI()));
     }
 
     /**
-     * Gestisce il parametro ricevuto dall'URL (ID scenario).
+     * Gestisce il parametro dell'URL, che può includere l'ID dello scenario e la modalità (edit/create).
+     * Carica i dati esistenti se in modalità "edit".
      *
-     * @param event     l'evento di navigazione
-     * @param parameter l'ID dello scenario come stringa
+     * @param event     L'evento di navigazione.
+     * @param parameter La stringa del parametro URL (es. "123/edit").
+     * @throws NotFoundException Se l'ID dello scenario non è valido o mancante.
      */
     @Override
     public void setParameter(BeforeEvent event, @WildcardParameter String parameter) {
@@ -152,35 +134,35 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                 throw new NumberFormatException("Scenario ID è richiesto");
             }
 
-
             String[] parts = parameter.split("/");
             String scenarioIdStr = parts[0];
 
-
             this.scenarioId = Integer.parseInt(scenarioIdStr);
+            // Verifica che lo scenario esista nel servizio
             if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
                 logger.warn("Scenario ID non valido o non esistente: {}", scenarioId);
                 throw new NumberFormatException("Scenario ID non valido");
             }
 
-
+            // Determina la modalità: "edit" se il secondo segmento è "edit", altrimenti "create"
             mode = parts.length > 1 && "edit".equals(parts[1]) ? "edit" : "create";
 
             logger.info("Scenario ID impostato a: {}, Mode: {}", this.scenarioId, mode);
 
-
+            // Ottiene il layout principale (Composite) per accedere ai suoi figli
             VerticalLayout mainLayout = getContent();
 
-
+            // Rende visibili o invisibili componenti specifici a seconda della modalità
+            // L'header (first HorizontalLayout) viene nascosto in modalità "edit"
             mainLayout.getChildren()
                     .filter(component -> component instanceof HorizontalLayout)
                     .findFirst()
                     .ifPresent(header -> header.setVisible(!"edit".equals(mode)));
 
-
+            // Il CreditsComponent nel footer (secondo HorizontalLayout, o ultimo) viene nascosto in modalità "edit"
             mainLayout.getChildren()
                     .filter(component -> component instanceof HorizontalLayout)
-                    .reduce((first, second) -> second)
+                    .reduce((first, second) -> second) // Prende l'ultimo HorizontalLayout (il footer)
                     .ifPresent(footer -> {
                         HorizontalLayout footerLayout = (HorizontalLayout) footer;
                         footerLayout.getChildren()
@@ -188,16 +170,15 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                                 .forEach(credits -> credits.setVisible(!"edit".equals(mode)));
                     });
 
-
             if ("edit".equals(mode)) {
                 logger.info("Modalità EDIT: caricamento dati esistenti per scenario {}", this.scenarioId);
                 nextButton.setText("Salva");
                 nextButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
                 nextButton.setIcon(new Icon(VaadinIcon.CHECK));
-                loadExistingData();
+                loadExistingData(); // Carica i dati dal database
             } else {
                 logger.info("Modalità CREATE: aggiunta prima riga vuota per scenario {}", this.scenarioId);
-                if (formRows.isEmpty()) {
+                if (formRows.isEmpty()) { // Aggiunge una riga vuota solo se non ce ne sono già
                     addNewRow();
                 }
             }
@@ -208,7 +189,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
     }
 
     /**
-     * Carica i dati esistenti per lo scenario corrente in modalità "edit".
+     * Carica gli esami e referti esistenti dallo scenario corrente e popola la UI.
      */
     private void loadExistingData() {
         List<EsameReferto> existingData = esameRefertoService.getEsamiRefertiByScenarioId(scenarioId);
@@ -217,26 +198,22 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             logger.warn("Nessun dato esistente trovato per scenario {} in modalità edit. Aggiungo una riga vuota.", this.scenarioId);
             addNewRow();
         } else {
-
-            rowsContainer.removeAll();
-            formRows.clear();
-            rowCount = 1;
-
-
+            rowsContainer.removeAll(); // Rimuove tutte le righe esistenti nella UI
+            formRows.clear(); // Pulisce la lista interna di FormRow
+            rowCount = 1; // Resetta il contatore delle righe per ripartire
             for (EsameReferto data : existingData) {
-                populateRow(data);
+                populateRow(data); // Popola una nuova riga con i dati esistenti
             }
             logger.info("Popolate {} righe con dati esistenti.", existingData.size());
         }
     }
 
     /**
-     * Aggiunge una nuova riga per l'inserimento di un esame/referto.
+     * Aggiunge una nuova riga vuota al form per l'inserimento di un esame/referto.
      */
     private void addNewRow() {
-        FormRow newRow = new FormRow(rowCount++, fileStorageService);
-        formRows.add(newRow);
-
+        FormRow newRow = new FormRow(rowCount++, fileStorageService); // Crea un nuovo FormRow
+        formRows.add(newRow); // Aggiunge alla lista interna
 
         VerticalLayout rowContainer = new VerticalLayout();
         rowContainer.addClassName(LumoUtility.Padding.MEDIUM);
@@ -249,9 +226,8 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                 .set("background", "var(--lumo-base-color)")
                 .set("border-radius", "var(--lumo-border-radius-l)")
                 .set("margin-bottom", "var(--lumo-space-l)")
-                .set("border-left", "6px solid " + getBorderColor(rowCount))
+                .set("border-left", "6px solid " + getBorderColor(rowCount)) // Bordo colorato per distinguere le righe
                 .set("box-shadow", "var(--lumo-box-shadow-s)");
-
 
         HorizontalLayout rowHeader = new HorizontalLayout();
         rowHeader.setWidthFull();
@@ -261,33 +237,39 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         Button deleteButton = new Button(new Icon(VaadinIcon.TRASH));
         deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
         deleteButton.addClickListener(e -> {
-            formRows.remove(newRow);
-            rowsContainer.remove(rowContainer);
-            if (formRows.isEmpty()) {
+            formRows.remove(newRow); // Rimuove dalla lista interna
+            rowsContainer.remove(rowContainer); // Rimuove dalla UI
+            if (formRows.isEmpty()) { // Se non rimangono righe, ne aggiunge una vuota
                 addNewRow();
             }
         });
 
-        rowHeader.add(newRow.getRowTitle(), deleteButton);
-        rowContainer.add(rowHeader, newRow.getRowLayout());
-        rowsContainer.add(rowContainer);
+        rowHeader.add(newRow.getRowTitle(), deleteButton); // Aggiunge titolo e pulsante elimina
+        rowContainer.add(rowHeader, newRow.getRowLayout()); // Aggiunge header e layout dei campi
+        rowsContainer.add(rowContainer); // Aggiunge il contenitore della riga al layout generale
     }
 
+    /**
+     * Restituisce un colore del bordo basato sull'indice della riga, per dare varietà visiva.
+     *
+     * @param rowCount Il numero della riga.
+     * @return Una stringa CSS per il colore del bordo.
+     */
     private String getBorderColor(int rowCount) {
         return BORDER_COLORS[(rowCount) % BORDER_COLORS.length];
     }
 
-
     /**
-     * Popola una riga con i dati esistenti di un esame/referto.
+     * Popola una riga del form con i dati esistenti di un {@link EsameReferto}.
+     * Determina se l'esame è personalizzato o predefinito e imposta i campi di conseguenza.
      *
-     * @param data dati dell'esame/referto da popolare
+     * @param data L'oggetto {@link EsameReferto} contenente i dati da popolare.
      */
     private void populateRow(EsameReferto data) {
         FormRow existingRow = new FormRow(rowCount++, fileStorageService);
         formRows.add(existingRow);
 
-
+        // Determina se il tipo di esame è personalizzato o proviene dalle liste predefinite
         boolean isCustom = !ALLLABSEXAMS.contains(data.getTipo()) && !ALLINSTREXAMS.contains(data.getTipo());
 
         if (isCustom) {
@@ -297,18 +279,17 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
             existingRow.examTypeGroup.setValue("Seleziona da elenco");
             existingRow.selectedExamField.setValue(data.getTipo() != null ? data.getTipo() : "");
         }
-        existingRow.updateExamFieldVisibility();
+        existingRow.updateExamFieldVisibility(); // Aggiorna la visibilità dei campi di esame
 
         existingRow.getReportField().setValue(data.getRefertoTestuale() != null ? data.getRefertoTestuale() : "");
 
-
+        // Popola i campi relativi al media
         if (data.getMedia() != null && !data.getMedia().isEmpty()) {
             existingRow.mediaSourceGroup.setValue("Seleziona da esistenti");
             existingRow.selectedMediaField.setValue(data.getMedia());
-            existingRow.selectedExistingMedia = data.getMedia();
-            existingRow.updateMediaFieldVisibility();
+            existingRow.selectedExistingMedia = data.getMedia(); // Memorizza il nome del file esistente
+            existingRow.updateMediaFieldVisibility(); // Aggiorna la visibilità dei campi media
         }
-
 
         VerticalLayout rowContainer = new VerticalLayout();
         rowContainer.addClassName(LumoUtility.Padding.MEDIUM);
@@ -317,6 +298,13 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         rowContainer.addClassName(LumoUtility.BorderRadius.MEDIUM);
         rowContainer.setPadding(true);
         rowContainer.setSpacing(false);
+        // Aggiunge stili specifici per la riga popolata (simili a addNewRow)
+        rowContainer.getStyle()
+                .set("background", "var(--lumo-base-color)")
+                .set("border-radius", "var(--lumo-border-radius-l)")
+                .set("margin-bottom", "var(--lumo-space-l)")
+                .set("border-left", "6px solid " + getBorderColor(rowCount))
+                .set("box-shadow", "var(--lumo-box-shadow-s)");
 
         HorizontalLayout rowHeader = new HorizontalLayout();
         rowHeader.setWidthFull();
@@ -339,52 +327,53 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
     }
 
     /**
-     * Salva gli esami/referti e naviga alla vista successiva.
+     * Salva tutti gli esami e referti inseriti nel form.
+     * Gestisce sia i nuovi upload che i riferimenti a file esistenti.
+     * Dopo il salvataggio, naviga alla vista successiva in base alla modalità corrente.
      *
-     * @param uiOptional l'UI corrente (opzionale)
+     * @param uiOptional L'istanza opzionale dell'UI corrente per la navigazione.
      */
     private void saveEsamiRefertiAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {
             ProgressBar progressBar = new ProgressBar();
             progressBar.setIndeterminate(true);
-            getContent().add(progressBar);
+            getContent().add(progressBar); // Mostra una progress bar durante il salvataggio
 
             try {
                 List<EsameReferto> esamiReferti = new ArrayList<>();
-                boolean hasValidData = false;
+                boolean hasValidDataToSave = false; // Flag per controllare se ci sono dati significativi
 
                 for (FormRow row : formRows) {
                     String fileName = "";
                     String selectedExam = row.getSelectedExam();
                     String reportText = row.getReportField().getValue();
 
-
+                    // Gestione dell'upload o della selezione del media
                     if ("Carica nuovo file".equals(row.mediaSourceGroup.getValue())) {
-
                         if (row.getUpload().getReceiver() instanceof MemoryBuffer buffer) {
                             if (buffer.getFileName() != null && !buffer.getFileName().isEmpty()) {
                                 try (InputStream fileData = buffer.getInputStream()) {
-                                    fileName = fileStorageService.storeFile(fileData, buffer.getFileName());
-                                    hasValidData = true;
+                                    fileName = fileStorageService.storeFile(fileData, buffer.getFileName()); // Carica il file
+                                    hasValidDataToSave = true;
                                 }
                             }
                         }
-                    } else {
-
-                        fileName = row.getSelectedMedia();
+                    } else { // Seleziona da esistenti
+                        fileName = row.getSelectedMedia(); // Prende il nome del file già esistente
                         if (fileName != null && !fileName.isEmpty()) {
-                            hasValidData = true;
+                            hasValidDataToSave = true;
                         }
                     }
 
-
+                    // Se almeno uno dei campi principali (esame, referto, media) ha un valore, considera la riga valida
                     if ((selectedExam != null && !selectedExam.trim().isEmpty()) ||
-                            (reportText != null && !reportText.trim().isEmpty())) {
-                        hasValidData = true;
+                            (reportText != null && !reportText.trim().isEmpty()) ||
+                            (fileName != null && !fileName.isEmpty())) {
+                        hasValidDataToSave = true;
                     }
 
                     EsameReferto esameReferto = new EsameReferto(
-                            row.getRowNumber(),
+                            row.getRowNumber(), // L'ID temporaneo della riga
                             scenarioId,
                             selectedExam,
                             fileName,
@@ -393,9 +382,8 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                     esamiReferti.add(esameReferto);
                 }
 
-
-                if (hasValidData) {
-                    boolean success = esameRefertoService.saveEsamiReferti(scenarioId, esamiReferti);
+                if (hasValidDataToSave) {
+                    boolean success = esameRefertoService.saveEsamiReferti(scenarioId, esamiReferti); // Salva tutti gli esami
                     if (success) {
                         Notification.show("Esami e referti salvati con successo", 3000, Notification.Position.TOP_CENTER)
                                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -404,15 +392,12 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                     logger.info("Nessun dato significativo da salvare per gli esami e referti dello scenario {}", scenarioId);
                 }
 
-
-
+                // Navigazione finale in base alla modalità
                 boolean isEditMode = "edit".equals(mode);
                 if (!isEditMode) {
-
-                    ui.navigate("moulage/" + scenarioId);
-                }
-                else {
-                    ui.navigate("scenari/" + scenarioId);
+                    ui.navigate("moulage/" + scenarioId); // Naviga alla fase successiva (Moulage)
+                } else {
+                    ui.navigate("scenari/" + scenarioId); // In modalità edit, torna alla vista dettaglio scenario
                 }
 
             } catch (Exception e) {
@@ -420,7 +405,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
                 Notification.show("Errore: " + e.getMessage(), 5000, Notification.Position.TOP_CENTER)
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
             } finally {
-                getContent().remove(progressBar);
+                getContent().remove(progressBar); // Rimuove la progress bar
             }
         });
     }

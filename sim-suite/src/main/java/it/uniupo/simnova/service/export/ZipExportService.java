@@ -18,34 +18,42 @@ import java.util.zip.ZipOutputStream;
 
 /**
  * Servizio per l'esportazione di uno scenario in un file ZIP.
- * Contiene il file JSON dello scenario e gli allegati multimediali.
+ * Il file ZIP può contenere la rappresentazione JSON o PDF dello scenario,
+ * insieme a tutti gli allegati multimediali associati.
  *
  * @author Alessandro Zappatore
  * @version 1.0
  */
 @Service
 public class ZipExportService {
+
     /**
-     * Logger per la registrazione delle informazioni e degli errori.
+     * Il logger per questa classe, utilizzato per registrare informazioni ed errori.
      */
     private static final Logger logger = LoggerFactory.getLogger(ZipExportService.class);
+
     /**
-     * Servizio per la gestione dei file.
+     * Servizio per la gestione dello storage dei file, utilizzato per accedere ai file multimediali.
      */
     private final FileStorageService fileStorageService;
+
     /**
-     * Servizio per l'esportazione in PDF.
+     * Servizio per l'esportazione degli scenari in formato PDF.
      */
     private final PdfExportService pdfExportService;
+
     /**
-     * Servizio per l'esportazione in JSON.
+     * Servizio per l'esportazione degli scenari in formato JSON.
      */
     private final JSONExportService jsonExportService;
 
     /**
-     * Costruttore del servizio ZipExportService.
+     * Costruisce una nuova istanza di <code>ZipExportService</code>.
+     * Inietta le dipendenze dei servizi necessari per l'esportazione.
      *
-     * @param fileStorageService servizio per la gestione dei file
+     * @param fileStorageService Il servizio per la gestione dei file.
+     * @param pdfExportService   Il servizio per l'esportazione in PDF.
+     * @param jsonExportService  Il servizio per l'esportazione in JSON.
      */
     @Autowired
     public ZipExportService(FileStorageService fileStorageService, PdfExportService pdfExportService, JSONExportService jsonExportService) {
@@ -55,51 +63,54 @@ public class ZipExportService {
     }
 
     /**
-     * Esporta uno scenario in un file ZIP, includendo il file JSON dello scenario e tutti i file multimediali associati.
+     * Esporta uno scenario in un file ZIP.
+     * Il file ZIP include la rappresentazione JSON dello scenario (<code>scenario.json</code>)
+     * e tutti i file multimediali associati, organizzati nella sotto cartella <code>esami/</code>.
      *
-     * @param scenarioId ID dello scenario da esportare
-     * @return Array di byte rappresentante il file ZIP generato
-     * @throws IOException in caso di errore durante la scrittura del file ZIP
+     * @param scenarioId L'ID dello scenario da esportare.
+     * @return Un array di byte che rappresenta il file ZIP generato.
+     * @throws IOException se si verifica un errore durante la scrittura del file ZIP o l'accesso ai file.
      */
     public byte[] exportScenarioToZip(Integer scenarioId) throws IOException {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              ZipOutputStream zipOut = new ZipOutputStream(baos)) {
 
-
+            // Aggiunge il file JSON dello scenario allo ZIP.
             byte[] jsonBytes = jsonExportService.exportScenarioToJSON(scenarioId);
             ZipEntry jsonEntry = new ZipEntry("scenario.json");
             zipOut.putNextEntry(jsonEntry);
             zipOut.write(jsonBytes);
             zipOut.closeEntry();
 
-
+            // Recupera la lista dei nomi dei file multimediali associati allo scenario.
             List<String> mediaFiles = MediaHelper.getMediaFilesForScenario(scenarioId);
             if (!mediaFiles.isEmpty()) {
-
+                // Crea una directory virtuale "esami/" all'interno dello ZIP.
                 zipOut.putNextEntry(new ZipEntry("esami/"));
                 zipOut.closeEntry();
 
-
+                // Aggiunge ogni file multimediale allo ZIP nella sotto cartella "esami/".
                 for (String filename : mediaFiles) {
                     try {
-
                         Path imagePath = Paths.get(fileStorageService.getMediaDirectory().toString(), filename);
 
                         if (Files.exists(imagePath)) {
-
                             byte[] imageBytes = Files.readAllBytes(imagePath);
                             ZipEntry imageEntry = new ZipEntry("esami/" + filename);
                             zipOut.putNextEntry(imageEntry);
                             zipOut.write(imageBytes);
                             zipOut.closeEntry();
+                        } else {
+                            logger.warn("Il file multimediale non esiste e non può essere aggiunto allo ZIP: {}", imagePath);
                         }
                     } catch (IOException e) {
-
-                        logger.error("Errore nell'aggiungere l'immagine {} allo ZIP", filename, e);
+                        logger.error("Errore durante l'aggiunta del file multimediale '{}' allo ZIP: {}", filename, e.getMessage());
+                        // Continua con gli altri file anche in caso di errore su uno specifico.
                     }
                 }
             }
 
+            // Finalizza e svuota lo stream ZIP.
             zipOut.finish();
             zipOut.flush();
 
@@ -108,26 +119,27 @@ public class ZipExportService {
     }
 
     /**
-     * Esporta uno scenario in un file ZIP, includendo il file PDF dello scenario e tutti i file multimediali associati.
+     * Esporta uno scenario in un file ZIP, includendo la rappresentazione PDF dello scenario (<code>scenario.pdf</code>)
+     * e tutti i file multimediali associati, organizzati nella sotto cartella <code>esami/</code>.
      *
-     * @param scenarioId ID dello scenario da esportare
-     * @param desc       flag per includere la descrizione
-     * @param brief      flag per includere il brief
-     * @param infoGen    flag per includere le informazioni generali
-     * @param patto      flag per includere il patto
-     * @param azioni     flag per includere le azioni chiave
-     * @param obiettivi  flag per includere gli obiettivi
-     * @param moula      flag per includere la sezione moula
-     * @param liqui      flag per includere la sezione liquidi
-     * @param matNec     flag per includere i materiali necessari
-     * @param param      flag per includere i parametri
-     * @param acces      flag per includere gli accessi
-     * @param fisic      flag per includere l'esame fisico
-     * @param esam       flag per includere gli esami
-     * @param time       flag per includere la timeline
-     * @param scen       flag per includere la sceneggiatura
-     * @return Array di byte rappresentante il file ZIP generato
-     * @throws IOException in caso di errore durante la scrittura del file ZIP
+     * @param scenarioId L'ID dello scenario da esportare.
+     * @param desc       Flag per includere la descrizione dello scenario nel PDF.
+     * @param brief      Flag per includere il brief dello scenario nel PDF.
+     * @param infoGen    Flag per includere le informazioni generali nel PDF.
+     * @param patto      Flag per includere la sezione "Patto" nel PDF.
+     * @param azioni     Flag per includere le azioni chiave nel PDF.
+     * @param obiettivi  Flag per includere gli obiettivi nel PDF.
+     * @param moula      Flag per includere la sezione "Moula" nel PDF.
+     * @param liqui      Flag per includere la sezione "Liquidi" nel PDF.
+     * @param matNec     Flag per includere i materiali necessari nel PDF.
+     * @param param      Flag per includere i parametri del paziente nel PDF.
+     * @param acces      Flag per includere gli accessi nel PDF.
+     * @param fisic      Flag per includere l'esame fisico nel PDF.
+     * @param esam       Flag per includere gli esami e referti nel PDF.
+     * @param time       Flag per includere la timeline nel PDF (per scenari avanzati/simulati).
+     * @param scen       Flag per includere la sceneggiatura nel PDF (solo per scenari simulati).
+     * @return Un array di byte che rappresenta il file ZIP generato.
+     * @throws IOException se si verifica un errore durante la scrittura del file ZIP o l'accesso ai file.
      */
     public byte[] exportScenarioPdfToZip(Integer scenarioId,
                                          boolean desc,
@@ -148,41 +160,42 @@ public class ZipExportService {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              ZipOutputStream zipOut = new ZipOutputStream(baos)) {
 
-
+            // Genera il PDF dello scenario e lo aggiunge allo ZIP.
             byte[] pdfBytes = pdfExportService.exportScenarioToPdf(scenarioId, desc, brief, infoGen, patto, azioni, obiettivi, moula, liqui, matNec, param, acces, fisic, esam, time, scen);
             ZipEntry pdfEntry = new ZipEntry("scenario.pdf");
             zipOut.putNextEntry(pdfEntry);
             zipOut.write(pdfBytes);
             zipOut.closeEntry();
 
-
+            // Recupera la lista dei nomi dei file multimediali associati allo scenario.
             List<String> mediaFiles = MediaHelper.getMediaFilesForScenario(scenarioId);
             if (!mediaFiles.isEmpty()) {
-
+                // Crea una directory virtuale "esami/" all'interno dello ZIP.
                 zipOut.putNextEntry(new ZipEntry("esami/"));
                 zipOut.closeEntry();
 
-
+                // Aggiunge ogni file multimediale allo ZIP nella sotto cartella "esami/".
                 for (String filename : mediaFiles) {
                     try {
-
                         Path imagePath = Paths.get(fileStorageService.getMediaDirectory().toString(), filename);
 
                         if (Files.exists(imagePath)) {
-
                             byte[] imageBytes = Files.readAllBytes(imagePath);
                             ZipEntry imageEntry = new ZipEntry("esami/" + filename);
                             zipOut.putNextEntry(imageEntry);
                             zipOut.write(imageBytes);
                             zipOut.closeEntry();
+                        } else {
+                            logger.warn("Il file multimediale non esiste e non può essere aggiunto allo ZIP: {}", imagePath);
                         }
                     } catch (IOException e) {
-
-                        logger.error("Errore nell'aggiungere l'immagine {} allo ZIP", filename, e);
+                        logger.error("Errore durante l'aggiunta del file multimediale '{}' allo ZIP: {}", filename, e.getMessage());
+                        // Continua con gli altri file anche in caso di errore su uno specifico.
                     }
                 }
             }
 
+            // Finalizza e svuota lo stream ZIP.
             zipOut.finish();
             zipOut.flush();
 

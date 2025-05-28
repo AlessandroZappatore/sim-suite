@@ -1,43 +1,52 @@
 package it.uniupo.simnova.views.constant;
 
 /**
- * Classe di supporto contenente le informazioni di credito per il progetto.
+ * Classe di supporto contenente le **costanti informative sui crediti** per il progetto.
+ * Include dati relativi a versioni, date di rilascio, e collegamenti a profili e istituzioni.
  *
  * @author Alessandro Zappatore
  * @version 1.0
  */
 public final class CreditConst {
+
     /**
-     * La data dell'ultima modifica del progetto.
+     * La data dell'ultima modifica o rilascio del progetto, formattata come stringa.
      */
-    public static final String DATE = "26/05/2025";
+    public static final String DATE = "27/05/2025";
+
     /**
-     * La versione del progetto.
+     * La versione corrente del progetto, espressa come stringa semantica.
      */
     public static final String VERSION = "0.4.0";
 
     /**
-     * Il link al linkedin dell'ideatore del progetto.
+     * Il link diretto al profilo LinkedIn dell'ideatore del progetto.
      */
     public static final String IDEATORLINK = "https://www.linkedin.com/in/antoscalogna/";
+
     /**
-     * Il link al linkedin del programmatore del progetto.
+     * Il link diretto al profilo LinkedIn del programmatore principale del progetto.
      */
     public static final String DEVELOPERLINK = "https://www.linkedin.com/in/alessandro-zappatore";
+
     /**
-     * La mail del programmatore del progetto.
+     * L'indirizzo email del programmatore, formattato come un link "mailto:".
      */
     public static final String DEVELOPERMAIL = "mailto:alessandrozappatore03@gmail.com";
+
     /**
-     * Il link al github del programmatore del progetto.
+     * Il link al repository GitHub del programmatore, dove il codice del progetto potrebbe essere ospitato.
      */
     public static final String GITHUBLINK = "https://github.com/AlessandroZappatore";
+
     /**
-     * Il link alla pagina dei release del progetto.
+     * Il link diretto alla pagina dei rilasci (releases) del progetto su GitHub,
+     * dove è possibile trovare le diverse versioni pubblicate.
      */
     public static final String RELEASELINK = "https://github.com/AlessandroZappatore/sim-suite/releases";
+
     /**
-     * Il link alla pagina dell'università.
+     * Il link alla homepage dell'università coinvolta nel progetto.
      */
     public static final String UNIVERSITYLINK = "https://www.uniupo.it";
 }

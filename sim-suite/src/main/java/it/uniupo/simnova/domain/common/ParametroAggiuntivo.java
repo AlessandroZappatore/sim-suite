@@ -1,187 +1,152 @@
 package it.uniupo.simnova.domain.common;
 
 /**
- * Classe che rappresenta un parametro aggiuntivo per uno scenario di simulazione.
- * <p>
- * Questa classe modella parametri personalizzati che possono essere aggiunti
- * a specifici tempi di uno scenario per arricchire la simulazione con dati
- * aggiuntivi (es. parametri vitali personalizzati, valori di laboratorio, etc.).
- * </p>
+ * Classe che rappresenta un <strong>parametro aggiuntivo</strong> per uno scenario di simulazione.
+ * Questa classe modella parametri personalizzati che possono essere aggiunti a specifici
+ * tempi di uno scenario per arricchire la simulazione con dati extra (es. parametri vitali personalizzati, valori di laboratorio).
  *
  * @author Alessandro Zappatore
  * @version 1.0
  */
-@SuppressWarnings("NonAsciiCharacters")
 public class ParametroAggiuntivo {
-    /**
-     * Identificativo univoco del parametro.
-     */
-    private int id;
-    /**
-     * Identificativo del tempo a cui appartiene il parametro.
-     */
-    private int tempoId;
-    /**
-     * Identificativo dello scenario a cui appartiene il parametro.
-     */
-    private int scenarioId;
-    /**
-     * Nome del parametro (es. "Pressione venosa centrale").
-     */
-    private String nome;
-    /**
-     * Valore del parametro (es. "12").
-     */
-    private String valore;
-    /**
-     * Unità di misura del parametro (es. "mmHg").
-     */
-    private String unitaMisura;
+
+    private final String unitaMisura; // Unità di misura del parametro (es. "mmHg", "%").
+    private int id;             // Identificativo univoco del parametro (ID assegnato dal database).
+    private int tempoId;        // Identificativo del tempo a cui appartiene il parametro.
+    private int scenarioId;     // Identificativo dello scenario a cui appartiene il parametro.
+    private String nome;        // Nome del parametro (es. "Pressione venosa centrale", "Glicemia").
+    private String valore;      // Valore del parametro, memorizzato come stringa (es. "12", "98.5").
 
     /**
-     * Costruttore completo per creare un nuovo parametro aggiuntivo con scenarioId.
+     * Costruttore completo per creare un nuovo oggetto <strong><code>ParametroAggiuntivo</code></strong> con
+     * tutti i dettagli, inclusi gli ID di tempo e scenario.
      *
-     * @param parametriAggiuntiviId identificativo univoco del parametro
-     * @param tempoId               identificativo del tempo a cui appartiene il parametro
-     * @param scenarioId            identificativo dello scenario a cui appartiene il parametro
-     * @param nome                  nome del parametro (es. "Pressione venosa centrale")
-     * @param valore                valore del parametro (es. "12")
-     * @param unitàMisura           unità di misura del parametro (es. "mmHg")
+     * @param parametriAggiuntiviId Identificativo univoco del parametro.
+     * @param tempoId               Identificativo del tempo a cui il parametro è associato.
+     * @param scenarioId            Identificativo dello scenario a cui il parametro è associato.
+     * @param nome                  Il nome del parametro.
+     * @param valore                Il valore del parametro, come stringa.
+     * @param unitaMisura           L'unità di misura del parametro.
      */
-    public ParametroAggiuntivo(int parametriAggiuntiviId, int tempoId, int scenarioId, String nome, String valore, String unitàMisura) {
+    public ParametroAggiuntivo(int parametriAggiuntiviId, int tempoId, int scenarioId, String nome, String valore, String unitaMisura) {
         this.id = parametriAggiuntiviId;
         this.tempoId = tempoId;
         this.scenarioId = scenarioId;
         this.nome = nome;
         this.valore = valore;
-        this.unitaMisura = unitàMisura;
+        this.unitaMisura = unitaMisura;
     }
 
     /**
-     * Costruttore per creare un nuovo parametro aggiuntivo senza scenarioId.
+     * Costruttore semplificato per creare un nuovo oggetto <strong><code>ParametroAggiuntivo</code></strong>,
+     * utile quando l'ID non è ancora noto (es. prima del salvataggio nel database).
      *
-     * @param nome il nome del parametro
-     * @param valore il valore del parametro
-     * @param unita l'unità di misura del parametro
+     * @param nome   Il nome del parametro.
+     * @param valore Il valore del parametro, come numero. Verrà convertito in stringa.
+     * @param unita  L'unità di misura del parametro.
      */
     public ParametroAggiuntivo(String nome, double valore, String unita) {
         this.nome = nome;
-        this.valore = String.valueOf(valore);
+        this.valore = String.valueOf(valore); // Converte il valore numerico in stringa.
         this.unitaMisura = unita;
     }
 
     /**
-     * Restituisce l'identificativo univoco del parametro.
+     * Restituisce l'<strong>identificativo univoco</strong> del parametro.
      *
-     * @return l'identificativo univoco del parametro
+     * @return L'ID del parametro.
      */
     public int getId() {
         return id;
     }
 
     /**
-     * Imposta l'identificativo univoco del parametro.
+     * Imposta l'<strong>identificativo univoco</strong> del parametro.
      *
-     * @param id il nuovo identificativo
+     * @param id Il nuovo ID del parametro.
      */
     public void setId(int id) {
         this.id = id;
     }
 
     /**
-     * Restituisce l'identificativo del tempo a cui appartiene il parametro.
+     * Restituisce l'<strong>identificativo dello scenario</strong> a cui appartiene il parametro.
      *
-     * @return l'identificativo del tempo a cui appartiene il parametro
-     */
-    public int getTempoId() {
-        return tempoId;
-    }
-
-    /**
-     * Imposta l'identificativo del tempo a cui appartiene il parametro.
-     *
-     * @param tempoId il nuovo identificativo del tempo
-     */
-    public void setTempoId(int tempoId) {
-        this.tempoId = tempoId;
-    }
-
-    /**
-     * Restituisce l'identificativo dello scenario a cui appartiene il parametro.
-     *
-     * @return l'identificativo dello scenario a cui appartiene il parametro
+     * @return L'ID dello scenario.
      */
     public int getScenarioId() {
         return scenarioId;
     }
 
     /**
-     * Imposta l'identificativo dello scenario a cui appartiene il parametro.
+     * Imposta l'<strong>identificativo dello scenario</strong> a cui appartiene il parametro.
      *
-     * @param scenarioId il nuovo identificativo dello scenario
+     * @param scenarioId Il nuovo ID dello scenario.
      */
     public void setScenarioId(int scenarioId) {
         this.scenarioId = scenarioId;
     }
 
     /**
-     * Restituisce il nome del parametro.
+     * Restituisce il <strong>nome</strong> del parametro.
      *
-     * @return il nome del parametro
+     * @return Il nome del parametro.
      */
     public String getNome() {
         return nome;
     }
 
     /**
-     * Imposta il nome del parametro.
+     * Imposta il <strong>nome</strong> del parametro.
      *
-     * @param nome il nuovo nome del parametro
+     * @param nome Il nuovo nome del parametro.
      */
     public void setNome(String nome) {
         this.nome = nome;
     }
 
     /**
-     * Restituisce il valore del parametro.
+     * Restituisce il <strong>valore</strong> del parametro come stringa.
      *
-     * @return il valore del parametro
+     * @return Il valore del parametro.
      */
     public String getValore() {
         return valore;
     }
 
     /**
-     * Imposta il valore del parametro.
+     * Imposta il <strong>valore</strong> del parametro come stringa.
      *
-     * @param valore il nuovo valore del parametro
+     * @param valore Il nuovo valore del parametro.
      */
     public void setValore(String valore) {
         this.valore = valore;
     }
 
     /**
-     * Restituisce l'unità di misura del parametro.
+     * Imposta il <strong>valore</strong> del parametro come numero.
+     * Il valore numerico viene convertito in stringa per l'archiviazione.
      *
-     * @return l'unità di misura del parametro
+     * @param valore Il nuovo valore numerico del parametro.
+     */
+    public void setValue(double valore) {
+        this.valore = String.valueOf(valore);
+    }
+
+    /**
+     * Restituisce l'<strong>unità di misura</strong> del parametro.
+     *
+     * @return L'unità di misura del parametro.
      */
     public String getUnitaMisura() {
         return unitaMisura;
     }
 
     /**
-     * Imposta l'unità di misura del parametro.
+     * Fornisce una rappresentazione in formato stringa dell'oggetto {@code ParametroAggiuntivo},
+     * utile per il debugging e la registrazione.
      *
-     * @param unitaMisura la nuova unità di misura
-     */
-    public void setUnitaMisura(String unitaMisura) {
-        this.unitaMisura = unitaMisura;
-    }
-
-    /**
-     * Restituisce una rappresentazione stringa dell'oggetto.
-     *
-     * @return stringa con i valori di tutti i campi
+     * @return Una stringa che descrive l'ID, il tempo, lo scenario, il nome, il valore e l'unità di misura del parametro.
      */
     @Override
     public String toString() {

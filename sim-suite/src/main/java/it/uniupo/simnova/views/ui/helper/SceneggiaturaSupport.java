@@ -18,7 +18,25 @@ import it.uniupo.simnova.views.common.utils.StyleApp;
 import it.uniupo.simnova.views.common.utils.TinyEditor;
 import org.vaadin.tinymce.TinyMce;
 
+/**
+ * Classe di supporto per la gestione e visualizzazione della sceneggiatura di uno scenario simulato.
+ * Fornisce un componente UI che permette di visualizzare e modificare il testo della sceneggiatura
+ * tramite un editor WYSIWYG.
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 public class SceneggiaturaSupport extends HorizontalLayout {
+
+    /**
+     * Crea un componente per visualizzare e modificare la sceneggiatura.
+     * La sceneggiatura è presentata in una card con titolo, icona e pulsanti di modifica.
+     *
+     * @param scenarioId                      L'ID dello scenario a cui è associata la sceneggiatura.
+     * @param sceneggiaturaText               Il testo attuale della sceneggiatura.
+     * @param patientSimulatedScenarioService Il servizio per la gestione degli scenari simulati con paziente.
+     * @return Un {@link Component} (VerticalLayout) che rappresenta la sezione della sceneggiatura.
+     */
     public static Component createSceneggiaturaContent(Integer scenarioId, String sceneggiaturaText,
                                                        PatientSimulatedScenarioService patientSimulatedScenarioService) {
         VerticalLayout mainLayout = new VerticalLayout();
@@ -27,6 +45,7 @@ public class SceneggiaturaSupport extends HorizontalLayout {
         mainLayout.setWidthFull();
         mainLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
+        // Array per mantenere un riferimento mutabile al testo della sceneggiatura
         final String[] currentSceneggiatura = {sceneggiaturaText};
 
         Div sceneggiaturaCard = new Div();
@@ -43,6 +62,7 @@ public class SceneggiaturaSupport extends HorizontalLayout {
                 .set("transition", "transform 0.2s ease, box-shadow 0.2s ease")
                 .set("box-sizing", "border-box");
 
+        // Aggiunge effetti di hover alla card.
         sceneggiaturaCard.getElement().executeJs(
                 "this.addEventListener('mouseover', function() {" +
                         "  this.style.transform = 'translateY(-2px)';" +
@@ -76,21 +96,19 @@ public class SceneggiaturaSupport extends HorizontalLayout {
         scriptTitle.addClassNames(LumoUtility.Margin.NONE, LumoUtility.TextColor.PRIMARY);
         scriptTitle.getStyle().set("font-weight", "600");
 
-
         Button editButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
         editButton.setTooltipText("Modifica la sceneggiatura");
-        editButton.getStyle().set("margin-left", "auto");
+        editButton.getStyle().set("margin-left", "auto"); // Spinge il pulsante a destra.
 
         headerLayout.add(scriptIcon, scriptTitle, editButton);
         sceneggiaturaCard.add(headerLayout);
-
 
         Div scriptTextDisplay = new Div();
         scriptTextDisplay.getStyle()
                 .set("font-family", "var(--lumo-font-family)")
                 .set("line-height", "var(--lumo-line-height-l)")
                 .set("color", "var(--lumo-body-text-color)")
-                .set("white-space", "pre-wrap")
+                .set("white-space", "pre-wrap") // Mantiene la formattazione (es. a capo).
                 .set("padding", "var(--lumo-space-m)")
                 .set("max-height", "60vh")
                 .set("overflow-y", "auto")
@@ -100,6 +118,7 @@ public class SceneggiaturaSupport extends HorizontalLayout {
                 .set("width", "100%")
                 .set("box-sizing", "border-box");
 
+        // Imposta il testo visualizzato o un messaggio di "non disponibile".
         if (sceneggiaturaText == null || sceneggiaturaText.trim().isEmpty()) {
             scriptTextDisplay.getElement().setProperty("innerHTML", "Sceneggiatura non disponibile");
         } else {
@@ -107,10 +126,9 @@ public class SceneggiaturaSupport extends HorizontalLayout {
         }
         sceneggiaturaCard.add(scriptTextDisplay);
 
-
-        TinyMce editor = TinyEditor.getEditor();
+        TinyMce editor = TinyEditor.getEditor(); // Inizializza l'editor WYSIWYG.
         editor.setValue((sceneggiaturaText == null || sceneggiaturaText.trim().isEmpty()) ? "" : sceneggiaturaText);
-        editor.setVisible(false);
+        editor.setVisible(false); // Nascosto di default.
         editor.getStyle()
                 .set("width", "100%")
                 .set("padding", "var(--lumo-space-m)")
@@ -123,19 +141,20 @@ public class SceneggiaturaSupport extends HorizontalLayout {
         sceneggiaturaCard.add(editor);
 
         Button saveButton = new Button("Salva", new Icon(VaadinIcon.CHECK));
-        saveButton.addThemeVariants(com.vaadin.flow.component.button.ButtonVariant.LUMO_PRIMARY);
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.getStyle().set("margin-top", "var(--lumo-space-m)");
 
         Button cancelButton = new Button("Annulla", new Icon(VaadinIcon.CLOSE_SMALL));
-        cancelButton.addThemeVariants(com.vaadin.flow.component.button.ButtonVariant.LUMO_ERROR);
+        cancelButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
         cancelButton.getStyle().set("margin-top", "var(--lumo-space-m)");
 
         HorizontalLayout buttonLayout = new HorizontalLayout(saveButton, cancelButton);
         buttonLayout.setSpacing(true);
-        buttonLayout.setVisible(false);
+        buttonLayout.setVisible(false); // Nascosto di default.
         buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         sceneggiaturaCard.add(buttonLayout);
 
+        // Listener per il pulsante "Modifica": mostra l'editor e i pulsanti, nasconde il display.
         editButton.addClickListener(e -> {
             scriptTextDisplay.setVisible(false);
             editor.setVisible(true);
@@ -143,19 +162,22 @@ public class SceneggiaturaSupport extends HorizontalLayout {
             editor.setValue((currentSceneggiatura[0] == null || currentSceneggiatura[0].trim().isEmpty()) ? "" : currentSceneggiatura[0]);
         });
 
+        // Listener per il pulsante "Annulla": nasconde l'editor e ripristina il display.
         cancelButton.addClickListener(e -> {
             editor.setVisible(false);
             buttonLayout.setVisible(false);
             scriptTextDisplay.setVisible(true);
         });
 
+        // Listener per il pulsante "Salva": aggiorna la sceneggiatura e ripristina il display.
         saveButton.addClickListener(e -> {
             String updatedText = editor.getValue();
+            // Salva la sceneggiatura tramite il servizio.
             patientSimulatedScenarioService.updateScenarioSceneggiatura(scenarioId, updatedText);
 
-            currentSceneggiatura[0] = updatedText;
+            currentSceneggiatura[0] = updatedText; // Aggiorna il riferimento locale.
 
-
+            // Aggiorna il testo visualizzato nel display.
             if (currentSceneggiatura[0] == null || currentSceneggiatura[0].trim().isEmpty()) {
                 scriptTextDisplay.getElement().setProperty("innerHTML", "Sceneggiatura non disponibile");
             } else {

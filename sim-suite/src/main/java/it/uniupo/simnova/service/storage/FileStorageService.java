@@ -12,10 +12,24 @@ import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Servizio per la gestione della memorizzazione dei file multimediali.
+ * Fornisce metodi per salvare, eliminare e leggere file dalla directory di archiviazione.
+ * I file vengono sanitizzati per garantire nomi validi e sicuri.
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 @Service
 public class FileStorageService {
+    /**
+     * Logger per registrare le operazioni della classe.
+     */
     private static final Logger logger = LoggerFactory.getLogger(FileStorageService.class);
-
+    /**
+     * Percorso della directory di archiviazione dei file multimediali.
+     * Viene configurato tramite la proprietà "storage.media-dir" in application.properties.
+     */
     private final Path rootLocation;
 
     /**
@@ -48,7 +62,6 @@ public class FileStorageService {
             baseName = filename.substring(0, lastDotIndex);
         }
 
-
         String sanitizedBaseName = baseName.replaceAll("[^a-zA-Z0-9_-]", "_");
 
         sanitizedBaseName = sanitizedBaseName.replaceAll("_+", "_");
@@ -65,7 +78,6 @@ public class FileStorageService {
         if (sanitizedBaseName.isEmpty()) {
             sanitizedBaseName = "file";
         }
-
 
         return sanitizedBaseName + sanitizedExtension;
     }
@@ -149,7 +161,6 @@ public class FileStorageService {
             return;
         }
 
-
         if (MediaHelper.isFileInUse(filename)) {
             logger.info("File {} non eliminato perché è utilizzato in altri scenari", filename);
             return;
@@ -196,6 +207,13 @@ public class FileStorageService {
         return Files.exists(filePath);
     }
 
+    /**
+     * Memorizza un file nella directory di archiviazione.
+     * Il nome del file deve essere fornito come parametro.
+     *
+     * @param inputStream        InputStream del file da memorizzare.
+     * @param centerLogoFilename Nome del file da memorizzare.
+     */
     public void store(InputStream inputStream, String centerLogoFilename) {
         try {
             Path destinationFile = rootLocation.resolve(centerLogoFilename).normalize();
@@ -212,6 +230,13 @@ public class FileStorageService {
         }
     }
 
+    /**
+     * Legge un file dalla directory di archiviazione e restituisce un InputStream.
+     * Il file deve essere presente nella directory di archiviazione.
+     *
+     * @param centerLogoFilename Nome del file da leggere.
+     * @return InputStream del file letto.
+     */
     public InputStream readFile(String centerLogoFilename) {
         try {
             Path filePath = rootLocation.resolve(centerLogoFilename).normalize();
@@ -227,6 +252,11 @@ public class FileStorageService {
         }
     }
 
+    /**
+     * Recupera tutti i file presenti nella directory di archiviazione, escludendo il file "center_logo.png".
+     *
+     * @return Una lista di nomi di file presenti nella directory di archiviazione.
+     */
     public ArrayList<String> getAllFiles() {
         ArrayList<String> files = new ArrayList<>();
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(rootLocation)) {

@@ -21,10 +21,28 @@ import java.io.InputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * Classe di utility per la gestione di dialog comuni nell'interfaccia utente.
+ * Fornisce metodi statici per mostrare dialog specifici, come quello per l'upload di file ZIP.
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 public class DialogSupport {
+
+    /**
+     * Mostra un dialog modale per il caricamento di un file ZIP.
+     * Questo dialog è utilizzato per importare nuovi scenari nell'applicazione.
+     * L'operazione di importazione avviene in background.
+     *
+     * @param detached              Flag atomico che indica se la UI è stata distaccata, per prevenire operazioni su componenti non più attaccati.
+     * @param executorService       Servizio esecutore per eseguire l'importazione in un thread separato.
+     * @param scenarioImportService Servizio per la logica di importazione dello scenario da file ZIP.
+     * @param onSuccess             Runnable da eseguire in caso di successo dell'importazione.
+     */
     public static void showZipUploadDialog(AtomicBoolean detached, ExecutorService executorService, ScenarioImportService scenarioImportService, Runnable onSuccess) {
         if (detached.get()) {
-            return;
+            return; // Non mostrare il dialog se la UI è già distaccata
         }
 
         Dialog uploadDialog = new Dialog();
@@ -47,10 +65,11 @@ public class DialogSupport {
                         "e una cartella 'esami/' con eventuali file multimediali associati.");
         description.addClassName(LumoUtility.FontSize.SMALL);
 
-        MemoryBuffer buffer = new MemoryBuffer();
+        // Configurazione del componente Upload
+        MemoryBuffer buffer = new MemoryBuffer(); // Buffer per memorizzare il file caricato in memoria
         Upload upload = new Upload(buffer);
-        upload.setAcceptedFileTypes(".zip");
-        upload.setMaxFiles(1);
+        upload.setAcceptedFileTypes(".zip"); // Accetta solo file ZIP
+        upload.setMaxFiles(1); // Permette il caricamento di un solo file
         upload.setDropLabel(new Span("Trascina qui il file ZIP o clicca per cercare"));
         upload.setWidthFull();
 
@@ -64,35 +83,45 @@ public class DialogSupport {
 
         uploadDialog.open();
 
+        // Listener per l'evento di caricamento completato con successo
         upload.addSucceededListener(event -> {
             try {
                 InputStream inputStream = buffer.getInputStream();
                 byte[] zipBytes = inputStream.readAllBytes();
                 String fileName = event.getFileName();
-                uploadDialog.close();
+                uploadDialog.close(); // Chiude il dialog di upload
 
                 UI ui = UI.getCurrent();
-                if (ui == null || detached.get()) return;
+                // Verifica che la UI sia ancora disponibile e non distaccata
+                if (ui == null || detached.get()) {
+                    return;
+                }
 
+                // Mostra una notifica di caricamento in corso
                 Notification loadingNotification = new Notification("Importazione scenario in corso...", 0, Notification.Position.MIDDLE);
                 loadingNotification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
                 loadingNotification.open();
 
+                // Esegue l'importazione in un thread separato per non bloccare la UI
                 executorService.submit(() -> {
                     try {
                         boolean imported = scenarioImportService.importScenarioFromZip(zipBytes, fileName);
+                        // Accede alla UI per aggiornare i componenti una volta completata l'operazione
                         if (!detached.get() && !ui.isClosing()) {
                             ui.access(() -> {
-                                loadingNotification.close();
+                                loadingNotification.close(); // Chiude la notifica di caricamento
                                 if (imported) {
                                     Notification.show("Scenario importato con successo!", 3000, Notification.Position.TOP_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                                    if (onSuccess != null) onSuccess.run();
+                                    if (onSuccess != null) {
+                                        onSuccess.run(); // Esegue il callback di successo
+                                    }
                                 } else {
                                     Notification.show("Errore durante l'importazione dello scenario.", 5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                                 }
                             });
                         }
                     } catch (Exception ex) {
+                        // Gestisce eccezioni durante l'importazione
                         if (!detached.get() && !ui.isClosing()) {
                             ui.access(() -> {
                                 loadingNotification.close();
@@ -102,10 +131,13 @@ public class DialogSupport {
                     }
                 });
             } catch (IOException ex) {
+                // Gestisce errori di lettura del file
                 Notification.show("Errore lettura file: " + ex.getMessage(), 5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                 uploadDialog.close();
             }
         });
+
+        // Listener per l'evento di caricamento fallito
         upload.addFailedListener(event -> Notification.show("Caricamento fallito: " + event.getReason().getMessage(), 5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR));
     }
 }

@@ -13,10 +13,7 @@ import it.uniupo.simnova.views.common.utils.StyleApp;
 
 /**
  * Vista di esecuzione dell'applicazione SIM SUITE.
- * <p>
- * Fornisce la struttura della pagina di esecuzione, con header, pulsante di ritorno e messaggio centrale.
- * Attualmente la funzionalità non è implementata e viene mostrato un messaggio informativo.
- * </p>
+ * Fornisce la struttura base della pagina, indicando che la funzionalità non è ancora implementata.
  *
  * @author Alessandro Zappatore
  * @version 1.0
@@ -27,43 +24,37 @@ public class ExecutionView extends Composite<VerticalLayout> {
 
     /**
      * Costruttore della vista di esecuzione.
-     * <p>
-     * Inizializza la pagina con header, pulsante di ritorno e messaggio centrale.
-     * </p>
+     * Inizializza la pagina con header, pulsante di ritorno e un messaggio centrale.
      *
-     * @param fileStorageService servizio per la gestione dei file, utilizzato dall'header
+     * @param fileStorageService Servizio per la gestione dei file, utilizzato per l'AppHeader.
      */
     public ExecutionView(FileStorageService fileStorageService) {
 
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
-
         AppHeader header = new AppHeader(fileStorageService);
 
-
         Button backButton = StyleApp.getBackButton();
+        // Listener per navigare alla home page al click del pulsante "Indietro"
         backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("")));
-
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
-
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
-
+        // Sezione dell'header specifico per questa vista con titolo e sottotitolo informativo
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
-                "SIM ECECUTION",
-                "Funzionalità non implementata",
-                VaadinIcon.BUILDING.create(),
-                "var(--lumo-primary-color)"
+                "SIM EXECUTION", // Titolo della sezione
+                "Funzionalità non implementata", // Sottotitolo informativo
+                VaadinIcon.BUILDING.create(), // Icona rappresentativa
+                "var(--lumo-primary-color)" // Colore dell'icona/titolo
         );
 
         contentLayout.add(headerSection);
 
-
         HorizontalLayout footerSection = StyleApp.getFooterLayout(null);
 
-
+        // Aggiunge i componenti principali al layout radice della vista
         mainLayout.add(customHeader, contentLayout, footerSection);
     }
 }

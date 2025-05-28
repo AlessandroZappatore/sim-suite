@@ -12,48 +12,40 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Classe per il caricamento dei loghi per i PDF.
+ * Classe di utilità per il <strong>caricamento dei loghi</strong> da includere nei documenti PDF generati.
+ * Gestisce sia il logo predefinito dell'applicazione che un logo personalizzato del centro,
+ * se fornito.
  *
  * @author Alessandro Zappatore
  * @version 1.0
  */
 public class LogoLoader {
-    /**
-     * Logger per la classe LogoLoader.
-     */
+
     private static final Logger logger = LoggerFactory.getLogger(LogoLoader.class);
-    /**
-     * Percorso del logo di default.
-     */
-    private static final String LOGO_URL = "/META-INF/resources/icons/LogoSimsuite.png";
-    /**
-     * Nome del file del logo del centro.
-     */
-    private static final String CENTER_LOGO_FILENAME = "center_logo.png"; // Nome file standard per il logo del centro
-    /**
-     * Larghezza del logo del centro.
-     */
-    public static float centerLogoWidth;
-    /**
-     * Altezza del logo del centro.
-     */
-    public static float centerLogoHeight;
+
+    private static final String LOGO_URL = "/META-INF/resources/icons/LogoSimsuite.png"; // Percorso del logo predefinito di SIM SUITE.
+    private static final String CENTER_LOGO_FILENAME = "center_logo.png"; // Nome file standard per il logo del centro.
+
+    public static float centerLogoWidth;  // Larghezza del logo del centro dopo il caricamento.
+    public static float centerLogoHeight; // Altezza del logo del centro dopo il caricamento.
 
     /**
-     * Carica il logo di SIMSUITE da aggiungere nel PDF.
+     * Carica il <strong>logo predefinito di SIM SUITE</strong> da aggiungere nel documento PDF.
+     * Il logo viene caricato dal classpath dell'applicazione.
      *
-     * @param document Il documento PDF in cui caricare il logo.
-     * @return L'oggetto PDImageXObject rappresentante il logo.
-     * @throws IOException Se si verifica un errore durante il caricamento del logo.
+     * @param document Il documento {@link PDDocument} in cui caricare il logo.
+     * @return Un oggetto {@link PDImageXObject} che rappresenta il logo di SIM SUITE,
+     * o {@code null} se il file del logo non viene trovato.
+     * @throws IOException Se si verifica un errore durante il caricamento del logo (es. errore di I/O).
      */
     public static PDImageXObject loadLogo(PDDocument document) throws IOException {
         try (InputStream logoStream = LogoLoader.class.getResourceAsStream(LOGO_URL)) {
             if (logoStream == null) {
-                logger.warn("File del logo non trovato: {}", LOGO_URL);
+                logger.warn("File del logo predefinito non trovato: {}", LOGO_URL);
                 return null;
             }
 
-            // Converte l'InputStream in un array di byte
+            // Converte l'InputStream del logo in un array di byte.
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             int nRead;
             byte[] data = new byte[1024];
@@ -61,17 +53,23 @@ public class LogoLoader {
                 buffer.write(data, 0, nRead);
             }
 
-            // Crea l'immagine dall'array di byte
-            return PDImageXObject.createFromByteArray(document, buffer.toByteArray(), CENTER_LOGO_FILENAME);
+            // Crea l'oggetto immagine PDF da un array di byte.
+            return PDImageXObject.createFromByteArray(document, buffer.toByteArray(), "SimSuiteLogo");
         }
     }
 
     /**
-     * Carica il logo del centro da aggiungere nel PDF.
+     * Carica il <strong>logo personalizzato del centro</strong> da aggiungere nel documento PDF.
+     * Il logo viene letto tramite il {@link FileStorageService}, permettendo di caricare file
+     * dalla directory di upload dell'applicazione.
      *
-     * @param document           Il documento PDF in cui caricare il logo.
-     * @param fileStorageService Il servizio di storage per il caricamento del logo.
-     * @return L'oggetto PDImageXObject rappresentante il logo del centro.
+     * @param document           Il documento {@link PDDocument} in cui caricare il logo.
+     * @param fileStorageService Il servizio {@link FileStorageService} per accedere al file del logo.
+     * @return Un oggetto {@link PDImageXObject} che rappresenta il logo del centro.
+     * Le sue dimensioni (larghezza e altezza) vengono memorizzate nelle variabili statiche
+     * {@code centerLogoWidth} e {@code centerLogoHeight}.
+     * @throws RuntimeException Se il file del logo non viene trovato nella directory di upload,
+     *                          o se si verifica un errore di I/O durante il caricamento.
      */
     public static PDImageXObject loadCenterLogo(PDDocument document, FileStorageService fileStorageService) {
         try (InputStream logoStream = fileStorageService.readFile(CENTER_LOGO_FILENAME)) {
@@ -82,27 +80,27 @@ public class LogoLoader {
                 buffer.write(data, 0, nRead);
             }
 
-            // Assicura che sia presente il logo del centro
+            // Se il buffer è vuoto, significa che il file è vuoto o non leggibile.
             if (buffer.size() == 0) {
-                logger.warn("Il file del logo del centro è vuoto: {}", CENTER_LOGO_FILENAME);
+                logger.warn("Il file del logo del centro è vuoto o illeggibile: {}", CENTER_LOGO_FILENAME);
                 return null;
             }
 
-            // Crea l'immagine dall'array di byte
+            // Crea l'oggetto immagine PDF e ne memorizza le dimensioni.
             PDImageXObject logoImage = PDImageXObject.createFromByteArray(document, buffer.toByteArray(), CENTER_LOGO_FILENAME);
 
-            // Memorizza le dimensioni originali per poterle usare nel metodo initNewPage
             centerLogoWidth = logoImage.getWidth();
             centerLogoHeight = logoImage.getHeight();
 
             return logoImage;
 
         } catch (FileNotFoundException e) {
-            logger.info("Logo del centro non trovato nella directory di upload: {}", CENTER_LOGO_FILENAME);
-            throw new RuntimeException("Logo del centro non trovato nella directory di upload");
+            logger.info("Logo del centro non trovato nella directory di upload: {}. Non verrà aggiunto al PDF.", CENTER_LOGO_FILENAME);
+            // Non si lancia un'eccezione bloccante, ma si gestisce il caso di logo non presente.
+            return null;
         } catch (IOException e) {
             logger.error("Errore durante il caricamento del logo del centro da upload: {}", CENTER_LOGO_FILENAME, e);
-            throw new RuntimeException("Errore durante il caricamento del logo del centro da upload", e);
+            throw new RuntimeException("Errore durante il caricamento del logo del centro da upload: " + e.getMessage(), e);
         }
     }
 }

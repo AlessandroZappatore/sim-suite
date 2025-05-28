@@ -3,14 +3,17 @@ package it.uniupo.simnova.views.constant;
 import java.util.List;
 
 /**
- * Classe di supporto contenente le costanti per gli esami.
+ * Classe di supporto contenente le ***costanti per gli esami** di laboratorio e strumentali.
+ * Queste liste predefinite sono utilizzate per popolare i campi di selezione
+ * nell'interfaccia utente, garantendo coerenza e facilità d'uso.
  *
  * @author Alessandro Zappatore
  * @version 1.0
  */
 public final class ExamConst {
+
     /**
-     * Tutti i tipi di esami di laboratorio
+     * Lista di stringhe contenente tutti i ***tipi di esami di laboratorio** predefiniti.
      */
     public static final List<String> ALLLABSEXAMS = List.of(
             "Emocromo con formula", "Glicemia", "Elettroliti sierici (Na⁺, K⁺, Cl⁻, Ca²⁺, Mg²⁺)",
@@ -21,7 +24,7 @@ public final class ExamConst {
     );
 
     /**
-     * Tutti i tipi di esami strumentali
+     * Lista di stringhe contenente tutti i ***tipi di esami strumentali** predefiniti.
      */
     public static final List<String> ALLINSTREXAMS = List.of(
             "ECG (Elettrocardiogramma)", "RX Torace", "TC Torace (con mdc)", "TC Torace (senza mdc)",

@@ -22,9 +22,26 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+/**
+ * Classe di utility per la gestione e visualizzazione degli accessi (venosi e arteriosi)
+ * di un paziente all'interno di uno scenario. Fornisce metodi per creare interfacce
+ * di visualizzazione e aggiunta/eliminazione di accessi.
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 public class AccessSupport {
-    static Logger logger = LoggerFactory.getLogger(AccessSupport.class);
 
+    private static final Logger logger = LoggerFactory.getLogger(AccessSupport.class);
+
+    /**
+     * Genera una card per la visualizzazione e gestione degli accessi venosi e arteriosi.
+     * Include griglie per visualizzare gli accessi esistenti e form per aggiungerne di nuovi.
+     *
+     * @param pazienteT0Service Il servizio per la gestione dei dati del paziente T0.
+     * @param scenarioId        L'ID dello scenario a cui è associato il paziente.
+     * @return Un {@link Div} contenente la card degli accessi.
+     */
     public static Div getAccessoCard(PazienteT0Service pazienteT0Service, Integer scenarioId) {
         PazienteT0 paziente = pazienteT0Service.getPazienteT0ById(scenarioId);
 
@@ -35,6 +52,7 @@ public class AccessSupport {
                 .set("border-top", "1px solid var(--lumo-contrast-10pct)")
                 .set("width", "100%");
 
+        // Sezione Accessi Venosi
         HorizontalLayout accessVenosiTitleLayout = new HorizontalLayout();
         accessVenosiTitleLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         accessVenosiTitleLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
@@ -56,6 +74,7 @@ public class AccessSupport {
         accessVenosiTitleLayout.add(accessVenosiIcon, accessVenosiTitle);
         accessesCard.add(accessVenosiTitleLayout);
 
+        // Griglia per gli accessi venosi
         Grid<Accesso> accessiVenosiGrid = createAccessiGrid(paziente.getAccessiVenosi(), pazienteT0Service, scenarioId, true);
         accessiVenosiGrid.getStyle()
                 .set("border", "none")
@@ -67,6 +86,7 @@ public class AccessSupport {
                 .set("max-width", "600px");
         accessesCard.add(accessiVenosiGrid);
 
+        // Contenitore per il form di aggiunta accesso venoso
         VerticalLayout addVenosoFormContainer = new VerticalLayout();
         addVenosoFormContainer.setWidthFull();
         addVenosoFormContainer.setSpacing(true);
@@ -79,18 +99,18 @@ public class AccessSupport {
                 .set("margin-top", "var(--lumo-space-s)")
                 .set("margin-bottom", "var(--lumo-space-m)");
 
+        // Listener per il pulsante "Aggiungi Accesso Venoso"
         addVenosoButton.addClickListener(e -> {
-            addVenosoFormContainer.removeAll();
+            addVenosoFormContainer.removeAll(); // Pulisce il form precedente
             AccessoComponent nuovoAccessoVenosoComp = new AccessoComponent("Venoso", false);
             addVenosoFormContainer.add(nuovoAccessoVenosoComp);
 
-            Button saveVenosoButton = StyleApp.getButton("Salva",
-                    VaadinIcon.CHECK, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
-            Button cancelVenosoButton = StyleApp.getButton("Annulla",
-                    VaadinIcon.CLOSE, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color)");
+            Button saveVenosoButton = StyleApp.getButton("Salva", VaadinIcon.CHECK, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+            Button cancelVenosoButton = StyleApp.getButton("Annulla", VaadinIcon.CLOSE, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color)");
 
             saveVenosoButton.addClickListener(saveEvent -> {
                 Accesso nuovoAccesso = nuovoAccessoVenosoComp.getAccesso();
+                // Validazione dei campi
                 if (nuovoAccesso.getTipologia() == null || nuovoAccesso.getTipologia().isEmpty() ||
                         nuovoAccesso.getPosizione() == null || nuovoAccesso.getPosizione().isEmpty() ||
                         nuovoAccesso.getLato() == null || nuovoAccesso.getLato().isEmpty() ||
@@ -99,11 +119,12 @@ public class AccessSupport {
                     return;
                 }
                 try {
-                    pazienteT0Service.addAccesso(scenarioId, nuovoAccesso, true);
-                    PazienteT0 pazienteAggiornato = pazienteT0Service.getPazienteT0ById(scenarioId);
-                    accessiVenosiGrid.setItems(pazienteAggiornato.getAccessiVenosi());
+                    pazienteT0Service.addAccesso(scenarioId, nuovoAccesso, true); // Aggiunge l'accesso venoso
+                    PazienteT0 pazienteAggiornato = pazienteT0Service.getPazienteT0ById(scenarioId); // Ricarica i dati
+                    accessiVenosiGrid.setItems(pazienteAggiornato.getAccessiVenosi()); // Aggiorna la griglia
                     Notification.show("Accesso venoso aggiunto con successo", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
+                    // Nasconde il form e riabilita il pulsante "Aggiungi"
                     addVenosoFormContainer.removeAll();
                     addVenosoFormContainer.setVisible(false);
                     addVenosoButton.setVisible(true);
@@ -123,7 +144,7 @@ public class AccessSupport {
             buttonsLayout.setSpacing(true);
             addVenosoFormContainer.add(buttonsLayout);
             addVenosoFormContainer.setVisible(true);
-            addVenosoButton.setVisible(false);
+            addVenosoButton.setVisible(false); // Nasconde il pulsante "Aggiungi" quando il form è visibile
         });
 
         HorizontalLayout addVenosoLayout = new HorizontalLayout(addVenosoButton);
@@ -132,6 +153,7 @@ public class AccessSupport {
         accessesCard.add(addVenosoLayout);
         accessesCard.add(addVenosoFormContainer);
 
+        // Sezione Accessi Arteriosi (struttura simile agli accessi venosi)
         HorizontalLayout accessArtTitleLayout = new HorizontalLayout();
         accessArtTitleLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         accessArtTitleLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
@@ -153,6 +175,7 @@ public class AccessSupport {
         accessArtTitleLayout.add(accessArtIcon, accessArtTitle);
         accessesCard.add(accessArtTitleLayout);
 
+        // Griglia per gli accessi arteriosi
         Grid<Accesso> accessiArtGrid = createAccessiGrid(paziente.getAccessiArteriosi(), pazienteT0Service, scenarioId, false);
         accessiArtGrid.getStyle()
                 .set("border", "none")
@@ -163,6 +186,7 @@ public class AccessSupport {
                 .set("max-width", "600px");
         accessesCard.add(accessiArtGrid);
 
+        // Contenitore per il form di aggiunta accesso arterioso
         VerticalLayout addArteriosoFormContainer = new VerticalLayout();
         addArteriosoFormContainer.setWidthFull();
         addArteriosoFormContainer.setSpacing(true);
@@ -175,18 +199,18 @@ public class AccessSupport {
                 .set("margin-top", "var(--lumo-space-s)")
                 .set("margin-bottom", "var(--lumo-space-m)");
 
+        // Listener per il pulsante "Aggiungi Accesso Arterioso"
         addArtButton.addClickListener(e -> {
             addArteriosoFormContainer.removeAll();
             AccessoComponent nuovoAccessoArteriosoComp = new AccessoComponent("Arterioso", false);
             addArteriosoFormContainer.add(nuovoAccessoArteriosoComp);
 
-            Button saveArteriosoButton = StyleApp.getButton("Salva",
-                    VaadinIcon.CHECK, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
-            Button cancelArteriosoButton = StyleApp.getButton("Cancella",
-                    VaadinIcon.CLOSE, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color)");
+            Button saveArteriosoButton = StyleApp.getButton("Salva", VaadinIcon.CHECK, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+            Button cancelArteriosoButton = StyleApp.getButton("Cancella", VaadinIcon.CLOSE, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color)");
 
             saveArteriosoButton.addClickListener(saveEvent -> {
                 Accesso nuovoAccesso = nuovoAccessoArteriosoComp.getAccesso();
+                // Validazione dei campi
                 if (nuovoAccesso.getTipologia() == null || nuovoAccesso.getTipologia().isEmpty() ||
                         nuovoAccesso.getPosizione() == null || nuovoAccesso.getPosizione().isEmpty() ||
                         nuovoAccesso.getLato() == null || nuovoAccesso.getLato().isEmpty() ||
@@ -195,9 +219,9 @@ public class AccessSupport {
                     return;
                 }
                 try {
-                    pazienteT0Service.addAccesso(scenarioId, nuovoAccesso, false);
+                    pazienteT0Service.addAccesso(scenarioId, nuovoAccesso, false); // Aggiunge l'accesso arterioso
                     PazienteT0 pazienteAggiornato = pazienteT0Service.getPazienteT0ById(scenarioId);
-                    accessiArtGrid.setItems(pazienteAggiornato.getAccessiArteriosi());
+                    accessiArtGrid.setItems(pazienteAggiornato.getAccessiArteriosi()); // Aggiorna la griglia
                     Notification.show("Accesso arterioso aggiunto con successo", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
                     addArteriosoFormContainer.removeAll();
@@ -231,6 +255,16 @@ public class AccessSupport {
         return accessesCard;
     }
 
+    /**
+     * Crea una griglia {@link Grid} per visualizzare una lista di accessi.
+     * Include colonne per tipologia, posizione, lato, misura e un pulsante di eliminazione.
+     *
+     * @param accessi           La lista di oggetti {@link Accesso} da visualizzare.
+     * @param pazienteT0Service Il servizio per la gestione dei dati del paziente T0.
+     * @param scenarioId        L'ID dello scenario a cui gli accessi appartengono.
+     * @param isVenoso          Indica se la griglia è per accessi venosi (true) o arteriosi (false).
+     * @return Una {@link Grid} configurata per gli accessi.
+     */
     private static Grid<Accesso> createAccessiGrid(List<Accesso> accessi, PazienteT0Service pazienteT0Service, Integer scenarioId, boolean isVenoso) {
         Grid<Accesso> grid = new Grid<>();
         grid.setItems(accessi);
@@ -239,6 +273,7 @@ public class AccessSupport {
         grid.addColumn(Accesso::getLato).setHeader("Lato").setAutoWidth(true);
         grid.addColumn(Accesso::getMisura).setHeader("Misura").setAutoWidth(true);
 
+        // Colonna per il pulsante di eliminazione
         grid.addComponentColumn(accesso -> {
             Button deleteButton = new Button(new Icon(VaadinIcon.TRASH));
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
@@ -261,22 +296,24 @@ public class AccessSupport {
 
                 confirmDialog.addConfirmListener(event -> {
                     try {
-                        pazienteT0Service.deleteAccesso(scenarioId, accesso.getId(), isVenoso);
+                        pazienteT0Service.deleteAccesso(scenarioId, accesso.getId(), isVenoso); // Elimina l'accesso
+                        // Mostra notifica di successo
                         Notification.show("Accesso " + (isVenoso ? "venoso" : "arterioso") + " eliminato con successo", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        // Ricarica gli elementi nella griglia per riflettere la modifica
+                        grid.setItems(isVenoso ? pazienteT0Service.getPazienteT0ById(scenarioId).getAccessiVenosi() : pazienteT0Service.getPazienteT0ById(scenarioId).getAccessiArteriosi());
                     } catch (Exception ex) {
                         logger.error("Errore durante l'eliminazione dell'accesso", ex);
                         Notification.show("Errore durante l'eliminazione dell'accesso", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     }
                 });
 
-                confirmDialog.open();
+                confirmDialog.open(); // Apre il dialog di conferma
             });
 
             return deleteButton;
-        }).setHeader("Azioni").setAutoWidth(true).setFlexGrow(0);
+        }).setHeader("Azioni").setAutoWidth(true).setFlexGrow(0); // Colonna delle azioni non espandibile
 
-        grid.setAllRowsVisible(true);
+        grid.setAllRowsVisible(true); // Mostra tutte le righe della griglia senza scrollbar interne
         return grid;
     }
 }
-

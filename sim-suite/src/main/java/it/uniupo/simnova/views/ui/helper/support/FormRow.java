@@ -26,179 +26,141 @@ import it.uniupo.simnova.service.storage.FileStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static it.uniupo.simnova.views.constant.ExamConst.ALLINSTREXAMS;
 import static it.uniupo.simnova.views.constant.ExamConst.ALLLABSEXAMS;
 
+/**
+ * Rappresenta una singola riga di un form per l'inserimento di esami e referti.
+ * Gestisce la selezione di esami predefiniti o personalizzati,
+ * l'upload di file multimediali e l'inserimento di referti testuali.
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 public class FormRow {
-    public static final Logger logger = LoggerFactory.getLogger(FormRow.class);
 
-    /**
-     * Numero della riga.
-     */
+    private static final Logger logger = LoggerFactory.getLogger(FormRow.class);
+
+    // Proprietà della riga del form
     public final int rowNumber;
-    /**
-     * Titolo della riga.
-     */
     public final Paragraph rowTitle;
-    /**
-     * Layout della riga.
-     */
     public final FormLayout rowLayout;
-    /**
-     * Pulsante per selezionare l'esame.
-     */
+
+    // Componenti per la selezione dell'esame
     public final Button selectExamButton = new Button("Seleziona", new Icon(VaadinIcon.SEARCH));
-    /**
-     * Finestra di dialogo per la selezione dell'esame.
-     */
     public final Dialog examDialog = new Dialog();
-    /**
-     * Campo di testo per l'esame selezionato.
-     */
     public final TextField selectedExamField = new TextField("Tipo Esame");
-    /**
-     * Campo di testo per l'esame personalizzato.
-     */
     public final TextField customExamField = new TextField("Esame Personalizzato");
-    /**
-     * Gruppo di radio button per la selezione del tipo di esame.
-     */
     public final RadioButtonGroup<String> examTypeGroup = new RadioButtonGroup<>();
-    /**
-     * Campo di upload per il file del referto.
-     */
+
+    // Componenti per la gestione del media
     public final Upload upload;
-    /**
-     * Campo di testo per il referto testuale.
-     */
     public final TextField reportField;
-    /**
-     * Opzioni per la sorgente del media.
-     */
     public final RadioButtonGroup<String> mediaSourceGroup = new RadioButtonGroup<>();
-    /**
-     * Pulsante per selezionare media esistente.
-     */
     public final Button selectMediaButton = new Button("Seleziona da esistenti", new Icon(VaadinIcon.FOLDER_OPEN));
-    /**
-     * Dialog per visualizzare media esistenti.
-     */
     public final Dialog mediaDialog = new Dialog();
-    /**
-     * Campo di testo per mostrare il media selezionato.
-     */
     public final TextField selectedMediaField = new TextField("Media Selezionato");
-    /**
-     * Servizio per l'accesso ai file.
-     */
-    public final FileStorageService fileStorageService;
-    /**
-     * Nome del media esistente selezionato.
-     */
-    public String selectedExistingMedia = null;
-
+    private final FileStorageService fileStorageService;
+    public String selectedExistingMedia = null; // Nome del media esistente selezionato
 
     /**
-     * Costruttore per una riga del form.
+     * Costruttore per una riga del form di esami/referti.
      *
-     * @param rowNumber          numero della riga
-     * @param fileStorageService servizio per la gestione dei file
+     * @param rowNumber          Il numero identificativo della riga.
+     * @param fileStorageService Il servizio per la gestione dei file.
      */
     public FormRow(int rowNumber, FileStorageService fileStorageService) {
         this.rowNumber = rowNumber;
         this.fileStorageService = fileStorageService;
 
-
         this.rowTitle = new Paragraph("Esame/Referto #" + rowNumber);
         rowTitle.addClassName(LumoUtility.FontWeight.BOLD);
         rowTitle.addClassName(LumoUtility.Margin.Bottom.NONE);
 
-
+        // Configurazione del gruppo di radio button per il tipo di esame (predefinito/personalizzato)
         examTypeGroup.setLabel("Tipo di inserimento");
         examTypeGroup.setItems("Seleziona da elenco", "Inserisci manualmente");
-        examTypeGroup.setValue("Seleziona da elenco");
-        examTypeGroup.addValueChangeListener(e -> updateExamFieldVisibility());
-
-
+        examTypeGroup.setValue("Seleziona da elenco"); // Valore predefinito
+        examTypeGroup.addValueChangeListener(e -> updateExamFieldVisibility()); // Listener per aggiornare visibilità
         examTypeGroup.getStyle()
                 .set("margin-top", "0")
                 .set("margin-bottom", "var(--lumo-space-s)");
 
-
+        // Campo per l'esame selezionato da elenco
         selectedExamField.setReadOnly(true);
         selectedExamField.setWidthFull();
         selectedExamField.setPrefixComponent(new Icon(VaadinIcon.FILE_TEXT));
+        // Al click, apre il dialog di selezione esame se l'opzione "Seleziona da elenco" è attiva
         selectedExamField.getElement().addEventListener("click", e -> {
             if ("Seleziona da elenco".equals(examTypeGroup.getValue())) {
                 selectExamButton.click();
             }
         });
 
-
+        // Campo per l'esame personalizzato (visibile solo se selezionato "Inserisci manualmente")
         customExamField.setWidthFull();
         customExamField.setVisible(false);
         customExamField.setPlaceholder("Inserisci il nome dell'esame");
         customExamField.setPrefixComponent(new Icon(VaadinIcon.EDIT));
 
-
+        // Pulsante per aprire il dialog di selezione esame
         selectExamButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         selectExamButton.addClassName(LumoUtility.Margin.Bottom.NONE);
         selectExamButton.setWidth("auto");
 
-
+        // Layout per il campo esame selezionato e il pulsante di selezione
         HorizontalLayout selectionLayout = new HorizontalLayout(selectedExamField, selectExamButton);
         selectionLayout.setWidthFull();
         selectionLayout.setFlexGrow(1, selectedExamField);
         selectionLayout.setAlignItems(FlexComponent.Alignment.END);
         selectionLayout.setSpacing(true);
 
-
+        // Dialog per la selezione del tipo di esame
         examDialog.setHeaderTitle("Seleziona Tipo Esame");
         examDialog.setWidth("600px");
         examDialog.setHeight("70vh");
         examDialog.setDraggable(true);
         examDialog.setResizable(true);
 
-
+        // Configurazione del gruppo di radio button per la sorgente del media (upload/esistente)
         mediaSourceGroup.setLabel("Sorgente del media");
         mediaSourceGroup.setItems("Carica nuovo file", "Seleziona da esistenti");
-        mediaSourceGroup.setValue("Carica nuovo file");
-        mediaSourceGroup.addValueChangeListener(e -> updateMediaFieldVisibility());
+        mediaSourceGroup.setValue("Carica nuovo file"); // Valore predefinito
+        mediaSourceGroup.addValueChangeListener(e -> updateMediaFieldVisibility()); // Listener per aggiornare visibilità
 
-
+        // Campo per mostrare il media selezionato (da esistenti)
         selectedMediaField.setReadOnly(true);
         selectedMediaField.setWidthFull();
         selectedMediaField.setPrefixComponent(new Icon(VaadinIcon.FILE));
         selectedMediaField.setVisible(false);
 
-
+        // Pulsante per selezionare media esistente
         selectMediaButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         selectMediaButton.setWidth("auto");
         selectMediaButton.setVisible(false);
 
-
+        // Layout per il campo media selezionato e il pulsante di selezione media esistente
         HorizontalLayout mediaSelectionLayout = new HorizontalLayout(selectedMediaField, selectMediaButton);
         mediaSelectionLayout.setWidthFull();
         mediaSelectionLayout.setFlexGrow(1, selectedMediaField);
         mediaSelectionLayout.setAlignItems(FlexComponent.Alignment.END);
         mediaSelectionLayout.setSpacing(true);
 
-
+        // Dialog per la selezione di media esistenti
         mediaDialog.setHeaderTitle("Seleziona Media");
         mediaDialog.setWidth("600px");
         mediaDialog.setDraggable(true);
         mediaDialog.setResizable(true);
 
+        configureMediaDialog(); // Configura il contenuto del dialog media
 
-        configureMediaDialog();
+        selectMediaButton.addClickListener(e -> mediaDialog.open()); // Apre il dialog media al click
 
-
-        selectMediaButton.addClickListener(e -> mediaDialog.open());
-
-
+        // Componenti del dialog di selezione esame
         TextField searchField = new TextField();
         searchField.setPlaceholder("Cerca esame...");
         searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
@@ -206,38 +168,31 @@ public class FormRow {
         searchField.setClearButtonVisible(true);
         searchField.addClassName(LumoUtility.Margin.Bottom.SMALL);
 
-
         Tabs categoryTabs = new Tabs();
         Tab labTab = new Tab("Laboratorio");
         Tab instrTab = new Tab("Strumentali");
         categoryTabs.add(labTab, instrTab);
         categoryTabs.setWidthFull();
-
-
         categoryTabs.getStyle()
                 .set("margin-bottom", "0")
                 .set("box-shadow", "0 -1px 0 0 var(--lumo-contrast-10pct) inset");
 
-
         VerticalLayout labContent = createLabExamContent(ALLLABSEXAMS);
         VerticalLayout instrContent = createInstrumentalExamContent(ALLINSTREXAMS);
-
 
         Div pages = new Div(labContent, instrContent);
         pages.setWidthFull();
         pages.getStyle().set("overflow-y", "auto");
         pages.getStyle().set("max-height", "calc(70vh - 150px)");
 
-
+        // Listener per il campo di ricerca degli esami
         searchField.addValueChangeListener(e -> {
             String searchTerm = e.getValue().toLowerCase();
-
             VerticalLayout filteredLabContent = createLabExamContent(
                     ALLLABSEXAMS.stream()
                             .filter(exam -> exam.toLowerCase().contains(searchTerm))
                             .collect(Collectors.toList())
             );
-
             VerticalLayout filteredInstrContent = createInstrumentalExamContent(
                     ALLINSTREXAMS.stream()
                             .filter(exam -> exam.toLowerCase().contains(searchTerm))
@@ -252,6 +207,7 @@ public class FormRow {
             }
         });
 
+        // Listener per il cambio di tab (Laboratorio/Strumentali)
         categoryTabs.addSelectedChangeListener(event -> {
             pages.removeAll();
             if (event.getSelectedTab() == labTab) {
@@ -261,11 +217,10 @@ public class FormRow {
             }
         });
 
-
+        // Pulsante di chiusura del dialog esami
         Button closeButton = new Button("Chiudi", e -> examDialog.close());
         closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         examDialog.getFooter().add(closeButton);
-
 
         VerticalLayout dialogContent = new VerticalLayout();
         dialogContent.setPadding(false);
@@ -273,14 +228,13 @@ public class FormRow {
         dialogContent.add(searchField, categoryTabs, pages);
         examDialog.add(dialogContent);
 
-
         selectExamButton.addClickListener(e -> {
             if ("Seleziona da elenco".equals(examTypeGroup.getValue())) {
                 examDialog.open();
             }
         });
 
-
+        // Campo di upload per nuovi file media
         MemoryBuffer buffer = new MemoryBuffer();
         this.upload = new Upload(buffer);
         upload.setDropAllowed(true);
@@ -290,15 +244,16 @@ public class FormRow {
         upload.setUploadButton(new Button("Carica File", new Icon(VaadinIcon.UPLOAD)));
         upload.setDropLabel(new Div(new Text("Trascina file qui o clicca per selezionare")));
 
-
+        // Campo di testo per il referto
         this.reportField = new TextField("Referto Testuale");
         reportField.setWidthFull();
         reportField.setPrefixComponent(new Icon(VaadinIcon.COMMENT));
         reportField.setPlaceholder("Inserisci il referto dell'esame...");
 
-
+        // Layout principale della riga del form
         this.rowLayout = new FormLayout();
         rowLayout.setWidthFull();
+        // Aggiunge i componenti al FormLayout con span di colonne
         rowLayout.add(examTypeGroup, 2);
         rowLayout.add(selectionLayout, 2);
         rowLayout.add(customExamField, 2);
@@ -306,22 +261,23 @@ public class FormRow {
         rowLayout.add(upload, 2);
         rowLayout.add(mediaSelectionLayout, 2);
         rowLayout.add(reportField, 2);
+        // Configurazione responsive del layout
         rowLayout.setResponsiveSteps(
                 new FormLayout.ResponsiveStep("0", 1),
                 new FormLayout.ResponsiveStep("600px", 2),
                 new FormLayout.ResponsiveStep("900px", 3)
         );
 
-
+        // Imposta margine inferiore per tutti i componenti del layout della riga
         rowLayout.getChildren().forEach(component ->
                 component.getElement().getStyle().set("margin-bottom", "var(--lumo-space-s)"));
 
-
-        updateMediaFieldVisibility();
+        updateMediaFieldVisibility(); // Aggiorna la visibilità iniziale dei campi media
     }
 
     /**
-     * Aggiorna la visibilità dei campi in base al tipo di inserimento selezionato.
+     * Aggiorna la visibilità dei campi di selezione esame (predefinito o personalizzato)
+     * in base al valore del RadioButtonGroup {@code examTypeGroup}.
      */
     public void updateExamFieldVisibility() {
         boolean isCustom = "Inserisci manualmente".equals(examTypeGroup.getValue());
@@ -330,14 +286,15 @@ public class FormRow {
         customExamField.setVisible(isCustom);
 
         if (isCustom) {
-            selectedExamField.clear();
+            selectedExamField.clear(); // Pulisce il campo se si passa all'inserimento manuale
         } else {
-            customExamField.clear();
+            customExamField.clear(); // Pulisce il campo se si passa alla selezione da elenco
         }
     }
 
     /**
-     * Aggiorna la visibilità dei campi relativi al media in base all'opzione selezionata.
+     * Aggiorna la visibilità dei campi relativi alla sorgente del media (upload o selezione da esistenti)
+     * in base al valore del RadioButtonGroup {@code mediaSourceGroup}.
      */
     public void updateMediaFieldVisibility() {
         boolean isNewUpload = "Carica nuovo file".equals(mediaSourceGroup.getValue());
@@ -345,21 +302,20 @@ public class FormRow {
         selectedMediaField.setVisible(!isNewUpload);
         selectMediaButton.setVisible(!isNewUpload);
 
-
         if (isNewUpload) {
-            selectedMediaField.clear();
+            selectedMediaField.clear(); // Pulisce il campo del media selezionato se si carica un nuovo file
             selectedExistingMedia = null;
         } else {
-
+            // Resetta il campo di upload se si passa alla selezione da esistenti
             upload.getElement().executeJs("this.files = []");
         }
     }
 
     /**
-     * Configura il dialog per la selezione dei media esistenti.
+     * Configura il dialog per la selezione di file multimediali esistenti.
+     * Include un campo di ricerca e una griglia per visualizzare le anteprime dei media.
      */
     public void configureMediaDialog() {
-
         TextField searchField = new TextField();
         searchField.setPlaceholder("Cerca media...");
         searchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
@@ -367,22 +323,19 @@ public class FormRow {
         searchField.setClearButtonVisible(true);
         searchField.addClassName(LumoUtility.Margin.Bottom.SMALL);
 
-
         Div mediaContent = new Div();
         mediaContent.setWidthFull();
         mediaContent.getStyle()
                 .set("overflow-y", "auto")
                 .set("padding", "var(--lumo-space-m)")
-                .set("max-height", "400px");
-
+                .set("max-height", "400px"); // Altezza massima del contenitore dei media
 
         Button closeButton = new Button("Chiudi", e -> mediaDialog.close());
         closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         mediaDialog.getFooter().add(closeButton);
 
-
+        // Carica i media disponibili all'apertura del dialog
         loadAvailableMedia(mediaContent);
-
 
         VerticalLayout dialogContent = new VerticalLayout();
         dialogContent.setPadding(false);
@@ -390,12 +343,11 @@ public class FormRow {
         dialogContent.add(searchField, mediaContent);
         dialogContent.setSizeFull();
 
-
         mediaDialog.setWidth("700px");
         mediaDialog.setHeight("600px");
         mediaDialog.add(dialogContent);
 
-
+        // Listener per la ricerca dinamica dei media nel dialog
         searchField.addValueChangeListener(e -> {
             String searchTerm = e.getValue().toLowerCase();
             loadAvailableMedia(mediaContent, searchTerm);
@@ -403,33 +355,32 @@ public class FormRow {
     }
 
     /**
-     * Carica i media disponibili nel dialog di selezione.
+     * Carica e visualizza i media disponibili nel contenitore specificato.
+     * Non filtra i risultati.
      *
-     * @param container contenitore per i media
+     * @param container Il Div in cui caricare i componenti dei media.
      */
     public void loadAvailableMedia(Div container) {
         loadAvailableMedia(container, null);
     }
 
     /**
-     * Carica i media disponibili nel dialog di selezione con filtro di ricerca.
+     * Carica e visualizza i media disponibili nel contenitore, applicando un filtro di ricerca.
      *
-     * @param container  contenitore per i media
-     * @param searchTerm termine di ricerca (opzionale)
+     * @param container  Il Div in cui caricare i componenti dei media.
+     * @param searchTerm Il termine di ricerca per filtrare i nomi dei media (può essere null per nessun filtro).
      */
     public void loadAvailableMedia(Div container, String searchTerm) {
-        container.removeAll();
+        container.removeAll(); // Pulisce il contenuto precedente
 
+        List<String> availableMedia = getAvailableMedia(); // Ottiene tutti i media disponibili
 
-        List<String> availableMedia = getAvailableMedia();
-
-
+        // Applica il filtro di ricerca se un termine è fornito
         if (searchTerm != null && !searchTerm.isEmpty()) {
             availableMedia = availableMedia.stream()
                     .filter(media -> media.toLowerCase().contains(searchTerm.toLowerCase()))
                     .toList();
         }
-
 
         if (availableMedia.isEmpty()) {
             Paragraph noResults = new Paragraph("Nessun media trovato");
@@ -438,18 +389,16 @@ public class FormRow {
             return;
         }
 
-
+        // Griglia per visualizzare gli elementi multimediali
         Div mediaGrid = new Div();
         mediaGrid.setWidthFull();
         mediaGrid.getStyle()
                 .set("display", "grid")
-                .set("grid-template-columns", "repeat(auto-fill, minmax(150px, 1fr))")
+                .set("grid-template-columns", "repeat(auto-fill, minmax(150px, 1fr))") // Griglia responsiva
                 .set("grid-gap", "var(--lumo-space-m)")
                 .set("padding", "var(--lumo-space-s)");
 
-
         for (String media : availableMedia) {
-
             VerticalLayout mediaItem = new VerticalLayout();
             mediaItem.setPadding(false);
             mediaItem.setSpacing(false);
@@ -461,24 +410,20 @@ public class FormRow {
                     .set("transition", "all 0.2s ease-in-out")
                     .set("overflow", "hidden");
 
-
+            // Anteprima del media (immagine o icona generica)
             Component mediaPreview;
             String mediaLower = media.toLowerCase();
 
             if (mediaLower.endsWith(".jpg") || mediaLower.endsWith(".jpeg") ||
                     mediaLower.endsWith(".png") || mediaLower.endsWith(".gif") ||
                     mediaLower.endsWith(".webp")) {
-
-
-                Image image = getImage(media);
+                Image image = getImage(media); // Ottiene l'immagine come StreamResource
                 image.getStyle()
                         .set("object-fit", "contain")
                         .set("background-color", "var(--lumo-contrast-5pct)");
-
                 mediaPreview = image;
             } else {
-
-                Icon mediaIcon = getMediaIcon(media);
+                Icon mediaIcon = getMediaIcon(media); // Ottiene l'icona in base al tipo di file
                 mediaIcon.setSize("48px");
                 mediaIcon.getStyle().set("margin", "var(--lumo-space-m) auto");
 
@@ -490,11 +435,10 @@ public class FormRow {
                         .set("align-items", "center")
                         .set("justify-content", "center")
                         .set("background-color", "var(--lumo-contrast-5pct)");
-
                 mediaPreview = iconContainer;
             }
 
-
+            // Nome del media
             Paragraph mediaName = new Paragraph(media);
             mediaName.getStyle()
                     .set("margin", "0")
@@ -506,20 +450,18 @@ public class FormRow {
                     .set("text-align", "center")
                     .set("background-color", "var(--lumo-base-color)")
                     .set("width", "100%");
-
-
-            mediaName.getElement().setAttribute("title", media);
+            mediaName.getElement().setAttribute("title", media); // Tooltip con il nome completo
 
             mediaItem.add(mediaPreview, mediaName);
 
-
+            // Listener per la selezione del media
             mediaItem.addClickListener(e -> {
                 selectedExistingMedia = media;
                 selectedMediaField.setValue(media);
                 mediaDialog.close();
             });
 
-
+            // Effetti visivi al passaggio del mouse
             mediaItem.getElement().addEventListener("mouseover", e ->
                     mediaItem.getStyle().set("box-shadow", "0 0 5px var(--lumo-primary-color-50pct)"));
             mediaItem.getElement().addEventListener("mouseout", e ->
@@ -531,27 +473,33 @@ public class FormRow {
         container.add(mediaGrid);
     }
 
+    /**
+     * Crea una {@link StreamResource} per l'immagine specificata e la incapsula in un componente {@link Image}.
+     *
+     * @param media Il nome del file media (es. "image.jpg").
+     * @return Un componente {@link Image} configurato per visualizzare il media.
+     */
     public Image getImage(String media) {
         StreamResource resource = new StreamResource(media, () -> {
             try {
-                return fileStorageService.readFile(media);
+                return fileStorageService.readFile(media); // Legge il file dal servizio di storage
             } catch (Exception e) {
                 logger.error("Errore nel caricamento dell'anteprima per {}", media, e);
-                return null;
+                return InputStream.nullInputStream(); // Restituisce un InputStream vuoto in caso di errore
             }
         });
 
         Image image = new Image(resource, "Anteprima");
         image.setWidth("100%");
-        image.setHeight("100px");
+        image.setHeight("100px"); // Altezza fissa per l'anteprima
         return image;
     }
 
     /**
-     * Determina l'icona appropriata in base al tipo di file.
+     * Restituisce un'icona {@link VaadinIcon} appropriata in base all'estensione del nome del file.
      *
-     * @param filename nome del file
-     * @return icona corrispondente
+     * @param filename Il nome del file per cui determinare l'icona.
+     * @return L'icona corrispondente al tipo di file.
      */
     public Icon getMediaIcon(String filename) {
         filename = filename.toLowerCase();
@@ -568,44 +516,44 @@ public class FormRow {
                 filename.endsWith(".ogg")) {
             return new Icon(VaadinIcon.HEADPHONES);
         } else {
-            return new Icon(VaadinIcon.FILE);
+            return new Icon(VaadinIcon.FILE); // Icona generica per tipi non riconosciuti
         }
     }
 
     /**
-     * Ottiene la lista dei media disponibili dal servizio di storage.
+     * Ottiene la lista dei nomi di tutti i file multimediali disponibili dal servizio di storage.
      *
-     * @return lista dei media disponibili
+     * @return Una lista di stringhe contenente i nomi dei file.
      */
     public List<String> getAvailableMedia() {
         return fileStorageService.getAllFiles();
     }
 
     /**
-     * Crea il contenuto per gli esami di laboratorio.
+     * Crea un layout verticale contenente pulsanti per la selezione degli esami di laboratorio.
      *
-     * @param exams lista degli esami da visualizzare
-     * @return layout con i pulsanti degli esami
+     * @param exams La lista di stringhe degli esami di laboratorio.
+     * @return Un {@link VerticalLayout} con i pulsanti degli esami.
      */
     public VerticalLayout createLabExamContent(List<String> exams) {
         return createExamContent(exams);
     }
 
     /**
-     * Crea il contenuto per gli esami strumentali.
+     * Crea un layout verticale contenente pulsanti per la selezione degli esami strumentali.
      *
-     * @param exams lista degli esami da visualizzare
-     * @return layout con i pulsanti degli esami
+     * @param exams La lista di stringhe degli esami strumentali.
+     * @return Un {@link VerticalLayout} con i pulsanti degli esami.
      */
     public VerticalLayout createInstrumentalExamContent(List<String> exams) {
         return createExamContent(exams);
     }
 
     /**
-     * Crea il layout con i pulsanti per la selezione degli esami.
+     * Metodo generico per creare un layout verticale con pulsanti di selezione esame.
      *
-     * @param exams lista degli esami da visualizzare
-     * @return layout configurato
+     * @param exams La lista di stringhe degli esami da visualizzare.
+     * @return Un {@link VerticalLayout} configurato.
      */
     public VerticalLayout createExamContent(List<String> exams) {
         VerticalLayout layout = new VerticalLayout();
@@ -624,21 +572,19 @@ public class FormRow {
                 layout.add(examButton);
             }
         }
-
         return layout;
     }
 
     /**
-     * Crea un pulsante per la selezione di un esame specifico.
+     * Crea un pulsante configurato per la selezione di un esame specifico.
+     * Il click sul pulsante imposta il valore nel campo {@code selectedExamField}
+     * e chiude il dialog dell'esame.
      *
-     * @param examName nome dell'esame
-     * @return pulsante configurato
+     * @param examName Il nome dell'esame da associare al pulsante.
+     * @return Un {@link Button} preconfigurato.
      */
     public Button createExamButton(String examName) {
-        Button button = new Button(examName, e -> {
-            selectedExamField.setValue(examName);
-            examDialog.close();
-        });
+        Button button = new Button(examName);
         button.setWidthFull();
         button.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         button.getStyle()
@@ -651,15 +597,15 @@ public class FormRow {
             selectedExamField.setValue(examName);
             examDialog.close();
         });
-
         return button;
     }
 
-
     /**
-     * Restituisce il nome dell'esame selezionato.
+     * Restituisce il valore dell'esame selezionato,
+     * prendendolo dal campo personalizzato se l'opzione "Inserisci manualmente" è attiva,
+     * altrimenti dal campo di selezione predefinito.
      *
-     * @return nome dell'esame selezionato
+     * @return Il nome dell'esame selezionato.
      */
     public String getSelectedExam() {
         return "Inserisci manualmente".equals(examTypeGroup.getValue())
@@ -668,54 +614,55 @@ public class FormRow {
     }
 
     /**
-     * Restituisce il media selezionato dall'elenco esistente.
+     * Restituisce il nome del file multimediale selezionato dalla lista dei media esistenti.
      *
-     * @return nome del file media selezionato
+     * @return Il nome del file media selezionato, o {@code null} se non è stato selezionato nulla
+     * o se la sorgente è impostata su "Carica nuovo file".
      */
     public String getSelectedMedia() {
         return selectedExistingMedia;
     }
 
     /**
-     * Restituisce il numero della riga.
+     * Restituisce il numero di questa riga del form.
      *
-     * @return numero della riga
+     * @return Il numero della riga.
      */
     public int getRowNumber() {
         return rowNumber;
     }
 
     /**
-     * Restituisce il titolo della riga.
+     * Restituisce il componente {@link Paragraph} che funge da titolo per questa riga.
      *
-     * @return titolo della riga
+     * @return Il titolo della riga.
      */
     public Paragraph getRowTitle() {
         return rowTitle;
     }
 
     /**
-     * Restituisce il layout della riga.
+     * Restituisce il componente {@link FormLayout} che contiene i campi di input di questa riga.
      *
-     * @return layout della riga
+     * @return Il layout della riga.
      */
     public FormLayout getRowLayout() {
         return rowLayout;
     }
 
     /**
-     * Restituisce il pulsante di upload.
+     * Restituisce il componente {@link Upload} per caricare nuovi file.
      *
-     * @return pulsante di upload
+     * @return Il componente di upload.
      */
     public Upload getUpload() {
         return upload;
     }
 
     /**
-     * Restituisce il campo di testo per il referto.
+     * Restituisce il componente {@link TextField} per l'inserimento del referto testuale.
      *
-     * @return campo di testo per il referto
+     * @return Il campo di testo per il referto.
      */
     public TextField getReportField() {
         return reportField;

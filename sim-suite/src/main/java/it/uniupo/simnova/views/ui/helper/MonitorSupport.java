@@ -35,14 +35,26 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
+/**
+ * Classe di utility per la creazione e gestione di monitor virtuali dei parametri vitali.
+ * Supporta la visualizzazione di parametri predefiniti e aggiuntivi,
+ * inclusa la gestione di soglie di allarme e la modifica in linea dei valori.
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 public class MonitorSupport {
+
     private static final Logger logger = LoggerFactory.getLogger(MonitorSupport.class);
+
+    // Colori predefiniti per i parametri aggiuntivi
     private static final List<String> ADDITIONAL_PARAM_COLORS = List.of(
             "var(--lumo-contrast-70pct)",
             "var(--lumo-shade-50pct)",
             "var(--lumo-tertiary-color)"
     );
 
+    // Stile CSS per l'animazione di "flash" in caso di valori critici
     private static final String FLASH_ANIMATION_CSS =
             "@keyframes flash-outline-anim {" +
                     "  0% { outline: 2px solid transparent; outline-offset: 0px; }" +
@@ -54,28 +66,64 @@ public class MonitorSupport {
                     "  border-color: var(--lumo-error-color) !important;" +
                     "}";
 
-    private static final String FLASH_STYLE_ID = "global-flash-alert-style";
-    private static final String NULL_DISPLAY_VALUE = "-";
+    private static final String FLASH_STYLE_ID = "global-flash-alert-style"; // ID per lo stile dinamico
+    private static final String NULL_DISPLAY_VALUE = "-"; // Valore di default per display vuoto
 
 
+    /**
+     * Converte un {@link Number} in {@link Double}.
+     *
+     * @param number Il numero da convertire.
+     * @return Il valore {@code Double}, o {@code null} se il numero è {@code null}.
+     */
     private static Double toDouble(Number number) {
         return number == null ? null : number.doubleValue();
     }
 
+    /**
+     * Formatta un valore numerico per la visualizzazione con un formato specifico.
+     *
+     * @param number Il numero da formattare.
+     * @param format Il formato stringa (es. "%.1f" per un decimale).
+     * @return La stringa formattata, o {@link #NULL_DISPLAY_VALUE} se il numero è {@code null}.
+     */
     private static String formatDisplayValue(Number number, @SuppressWarnings("SameParameterValue") String format) {
-        if (number == null) return NULL_DISPLAY_VALUE;
+        if (number == null) {
+            return NULL_DISPLAY_VALUE;
+        }
         if (number instanceof Double || number instanceof Float) {
             return String.format(format, number.doubleValue());
         }
         return String.valueOf(number);
     }
 
+    /**
+     * Formatta un valore numerico per la visualizzazione.
+     *
+     * @param number Il numero da formattare.
+     * @return La stringa del numero, o {@link #NULL_DISPLAY_VALUE} se il numero è {@code null}.
+     */
     private static String formatDisplayValue(Number number) {
-        if (number == null) return NULL_DISPLAY_VALUE;
+        if (number == null) {
+            return NULL_DISPLAY_VALUE;
+        }
         return String.valueOf(number);
     }
 
-
+    /**
+     * Crea un componente monitor dei parametri vitali.
+     * Visualizza i parametri vitali principali (PA, FC, T, RR, SpO2, FiO2, Litri O2, EtCO2)
+     * e parametri aggiuntivi, con soglie di allarme e possibilità di modifica.
+     *
+     * @param dataProvider            Fornitore dei dati dei parametri vitali.
+     * @param scenarioId              L'ID dello scenario.
+     * @param isT0                    Indica se è la sezione T0 (per mostrare i presidi).
+     * @param presidiService          Servizio per la gestione dei presidi.
+     * @param pazienteT0Service       Servizio per la gestione del paziente T0.
+     * @param advancedScenarioService Servizio per la gestione degli scenari avanzati (per parametri aggiuntivi).
+     * @param tempoId                 L'ID del tempo corrente (per i parametri aggiuntivi).
+     * @return Un {@link Component} che rappresenta il monitor.
+     */
     public static Component createVitalSignsMonitor(VitalSignsDataProvider dataProvider,
                                                     Integer scenarioId,
                                                     boolean isT0,
@@ -83,6 +131,7 @@ public class MonitorSupport {
                                                     PazienteT0Service pazienteT0Service,
                                                     AdvancedScenarioService advancedScenarioService,
                                                     Integer tempoId) {
+        // Inietta lo stile CSS per l'animazione di flash una sola volta nell'head del documento
         UI currentUI = UI.getCurrent();
         if (currentUI != null && currentUI.getPage() != null) {
             currentUI.getPage().executeJs(
@@ -121,7 +170,6 @@ public class MonitorSupport {
                 .set("font-weight", "600");
 
         Div statusLed = new Div();
-
         statusLed.getStyle()
                 .set("width", "12px")
                 .set("height", "12px")
@@ -130,6 +178,7 @@ public class MonitorSupport {
                 .set("box-shadow", "0 0 5px var(--lumo-success-color)")
                 .set("box-sizing", "border-box");
 
+        // Aggiunge animazione "pulse" al LED di stato
         if (currentUI != null && currentUI.getPage() != null) {
             statusLed.getElement().executeJs(
                     "this.style.animation = 'pulse 2s infinite';" +
@@ -150,7 +199,7 @@ public class MonitorSupport {
         vitalSignsLayout.getStyle().set("flex-wrap", "wrap");
         vitalSignsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
-
+        // Creazione dei box per i parametri vitali predefiniti
         if (dataProvider.getPA() != null && !dataProvider.getPA().isEmpty()) {
             vitalSignsLayout.add(createVitalSignBox("PA", dataProvider.getPA(), "mmHg",
                     "var(--lumo-primary-color)", null, null, null, null, null, advancedScenarioService, scenarioId, tempoId, null));
@@ -168,7 +217,7 @@ public class MonitorSupport {
                 "var(--lumo-primary-color)", toDouble(dataProvider.getFC()),
                 FC_CRITICAL_LOW, FC_CRITICAL_HIGH, FC_WARNING_LOW, FC_WARNING_HIGH, advancedScenarioService, scenarioId, tempoId, null));
 
-        if (dataProvider.getT() != null && dataProvider.getT() > -50) {
+        if (dataProvider.getT() != null && dataProvider.getT() > -50) { // Valore -50 come discriminante per temperatura valida
             final double MIN_CRITICAL_TEMP = 35.0;
             final double MAX_CRITICAL_TEMP = 39.0;
             final double MIN_WARNING_TEMP = 36.0;
@@ -199,18 +248,15 @@ public class MonitorSupport {
                 "var(--lumo-contrast)", toDouble(dataProvider.getSpO2()),
                 SPO2_CRITICAL_LOW, null, SPO2_WARNING_LOW, null, advancedScenarioService, scenarioId, tempoId, null));
 
-
         vitalSignsLayout.add(createVitalSignBox("FiO₂",
                 formatDisplayValue(dataProvider.getFiO2()), "%",
                 "var(--lumo-primary-color-50pct)", toDouble(dataProvider.getFiO2()),
                 null, null, null, null, advancedScenarioService, scenarioId, tempoId, null));
 
-
         vitalSignsLayout.add(createVitalSignBox("Litri O₂",
                 formatDisplayValue(dataProvider.getLitriO2()), "Litri/m",
                 "var(--lumo-contrast-70pct)", toDouble(dataProvider.getLitriO2()),
                 null, null, null, null, advancedScenarioService, scenarioId, tempoId, null));
-
 
         final Double ETCO2_CRITICAL_LOW = 25.0;
         final Double ETCO2_CRITICAL_HIGH = 60.0;
@@ -221,14 +267,11 @@ public class MonitorSupport {
                 "var(--lumo-warning-color)", toDouble(dataProvider.getEtCO2()),
                 ETCO2_CRITICAL_LOW, ETCO2_CRITICAL_HIGH, ETCO2_WARNING_LOW, ETCO2_WARNING_HIGH, advancedScenarioService, scenarioId, tempoId, null));
 
-
+        // Gestione dei parametri aggiuntivi
         List<ParametroAggiuntivo> additionalParamsList = dataProvider.getAdditionalParameters();
         if (additionalParamsList == null) {
             additionalParamsList = new ArrayList<>();
-
-
         }
-
 
         final List<ParametroAggiuntivo> finalAdditionalParamsList = additionalParamsList;
 
@@ -236,14 +279,14 @@ public class MonitorSupport {
             AtomicInteger colorIndex = new AtomicInteger(0);
             for (ParametroAggiuntivo param : finalAdditionalParamsList) {
                 String label = param.getNome();
-
                 String value = param.getValore() != null ? param.getValore() : NULL_DISPLAY_VALUE;
                 String unit = param.getUnitaMisura() != null ? param.getUnitaMisura() : "";
-
                 String color = ADDITIONAL_PARAM_COLORS.get(colorIndex.getAndIncrement() % ADDITIONAL_PARAM_COLORS.size());
 
+                // Utilizzo di un array per permettere la modifica del riferimento al box all'interno della lambda
                 final Div[] boxHolder = new Div[1];
 
+                // Callback per l'eliminazione di un parametro aggiuntivo
                 Runnable onDelete = () -> {
                     ConfirmDialog confirmDialog = new ConfirmDialog(
                             "Conferma Eliminazione",
@@ -252,9 +295,9 @@ public class MonitorSupport {
                         try {
                             advancedScenarioService.deleteAdditionalParam(scenarioId, tempoId, param.getNome());
                             if (boxHolder[0] != null) {
-                                vitalSignsLayout.remove(boxHolder[0]);
+                                vitalSignsLayout.remove(boxHolder[0]); // Rimuove il box dalla UI
                             }
-                            finalAdditionalParamsList.remove(param);
+                            finalAdditionalParamsList.remove(param); // Rimuove dalla lista
                             Notification.show("Parametro '" + param.getNome() + "' eliminato.", 3000, Notification.Position.BOTTOM_CENTER)
                                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                         } catch (Exception ex) {
@@ -271,7 +314,7 @@ public class MonitorSupport {
                 };
 
                 Div paramBox = createVitalSignBox(label, value, unit, color,
-                        null, null, null, null, null,
+                        null, null, null, null, null, // Nessuna soglia per i custom params
                         advancedScenarioService, scenarioId, tempoId,
                         onDelete
                 );
@@ -281,7 +324,7 @@ public class MonitorSupport {
         }
         monitorContainer.add(monitorHeader, vitalSignsLayout);
 
-
+        // Pulsante per aggiungere nuovi parametri aggiuntivi
         Button addParamButton = new Button("Aggiungi Parametro", VaadinIcon.PLUS_CIRCLE_O.create());
         addParamButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
         addParamButton.getStyle().set("margin-top", "var(--lumo-space-m)").set("margin-left", "auto").set("margin-right", "auto").set("display", "block");
@@ -295,7 +338,7 @@ public class MonitorSupport {
         ));
         monitorContainer.add(addParamButton);
 
-
+        // Sezione per il testo aggiuntivo del monitoraggio
         String additionalText = dataProvider.getAdditionalMonitorText();
         if (additionalText != null && !additionalText.isEmpty()) {
             Div monitorTextContainer = new Div();
@@ -337,7 +380,7 @@ public class MonitorSupport {
             monitorText.getStyle()
                     .set("display", "block")
                     .set("margin-top", "var(--lumo-space-s)")
-                    .set("white-space", "pre-wrap")
+                    .set("white-space", "pre-wrap") // Mantiene la formattazione (es. a capo)
                     .set("font-family", "var(--lumo-font-family-monospace)")
                     .set("color", "var(--lumo-body-text-color)")
                     .set("font-size", "var(--lumo-font-size-s)")
@@ -346,17 +389,17 @@ public class MonitorSupport {
 
             TextArea monitorTextArea = new TextArea();
             monitorTextArea.setWidthFull();
-            monitorTextArea.setVisible(false);
+            monitorTextArea.setVisible(false); // Nascosto di default
             monitorTextArea.setValue(additionalText);
             Button saveMonitorButton = StyleApp.getButton("Salva", VaadinIcon.CHECK, ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color");
             Button cancelMonitorButton = StyleApp.getButton("Annulla", VaadinIcon.CLOSE, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color");
             HorizontalLayout monitorActions = new HorizontalLayout(saveMonitorButton, cancelMonitorButton);
-            monitorActions.setVisible(false);
+            monitorActions.setVisible(false); // Nascosto di default
             monitorTextContainer.add(monitorTextArea, monitorActions);
 
             editMonitorButton.addClickListener(ev -> {
                 monitorText.setVisible(false);
-                monitorTextArea.setValue(monitorText.getText());
+                monitorTextArea.setValue(monitorText.getText()); // Popola la textarea con il testo attuale
                 monitorTextArea.setVisible(true);
                 monitorActions.setVisible(true);
                 editMonitorButton.setVisible(false);
@@ -364,7 +407,7 @@ public class MonitorSupport {
             saveMonitorButton.addClickListener(ev -> {
                 String newText = monitorTextArea.getValue();
                 monitorText.setText(newText);
-                pazienteT0Service.saveMonitor(scenarioId, newText);
+                pazienteT0Service.saveMonitor(scenarioId, newText); // Salva il testo nel servizio
                 monitorText.setVisible(true);
                 monitorTextArea.setVisible(false);
                 monitorActions.setVisible(false);
@@ -385,7 +428,7 @@ public class MonitorSupport {
             monitorContainer.add(textWrapper);
         }
 
-
+        // Sezione per i presidi utilizzati (visibile solo per T0)
         List<String> presidiList = PresidiService.getPresidiByScenarioId(scenarioId);
         if (isT0) {
             Div presidiOuterContainer = new Div();
@@ -435,6 +478,7 @@ public class MonitorSupport {
                     .set("flex-direction", "column")
                     .set("margin-top", "var(--lumo-space-s)")
                     .set("padding-left", "var(--lumo-space-xs)");
+            // Popola la lista dei presidi attuali
             for (String presidio : presidiList) {
                 HorizontalLayout itemLayout = new HorizontalLayout();
                 itemLayout.setSpacing(false);
@@ -459,27 +503,30 @@ public class MonitorSupport {
             }
             presidiInnerContainer.add(presidiHeader, presidiItemsDiv);
 
+            // ComboBox per la modifica dei presidi (multi-selezione)
             List<String> allPresidi = PresidiService.getAllPresidi();
             MultiSelectComboBox<String> presidiComboBox = new MultiSelectComboBox<>();
             presidiComboBox.setItems(allPresidi);
             presidiComboBox.setWidthFull();
-            presidiComboBox.setVisible(false);
-            presidiComboBox.setValue(Set.copyOf(presidiList));
+            presidiComboBox.setVisible(false); // Nascosto di default
+            presidiComboBox.setValue(Set.copyOf(presidiList)); // Imposta i valori attuali
+
             Button savePresidiButton = StyleApp.getButton("Salva", VaadinIcon.CHECK, ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color");
             Button cancelPresidiButton = StyleApp.getButton("Annulla", VaadinIcon.CLOSE, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color");
             HorizontalLayout presidiActions = new HorizontalLayout(savePresidiButton, cancelPresidiButton);
-            presidiActions.setVisible(false);
+            presidiActions.setVisible(false); // Nascosto di default
             presidiInnerContainer.add(presidiComboBox, presidiActions);
 
             editPresidiButton.addClickListener(ev -> {
-                presidiItemsDiv.setVisible(false);
-                presidiComboBox.setVisible(true);
+                presidiItemsDiv.setVisible(false); // Nasconde la lista visualizzata
+                presidiComboBox.setVisible(true); // Mostra il ComboBox
                 presidiActions.setVisible(true);
                 editPresidiButton.setVisible(false);
             });
             savePresidiButton.addClickListener(ev -> {
                 Set<String> newPresidi = presidiComboBox.getValue();
-                presidiItemsDiv.removeAll();
+                presidiItemsDiv.removeAll(); // Pulisce la lista visualizzata
+                // Popola nuovamente la lista visualizzata con i nuovi presidi
                 for (String presidio : newPresidi) {
                     HorizontalLayout itemLayout = new HorizontalLayout();
                     itemLayout.setSpacing(false);
@@ -493,7 +540,7 @@ public class MonitorSupport {
                     itemLayout.add(bulletPoint, presidioSpan);
                     presidiItemsDiv.add(itemLayout);
                 }
-                presidiService.savePresidi(scenarioId, newPresidi);
+                presidiService.savePresidi(scenarioId, newPresidi); // Salva i presidi nel servizio
                 presidiItemsDiv.setVisible(true);
                 presidiComboBox.setVisible(false);
                 presidiActions.setVisible(false);
@@ -514,7 +561,16 @@ public class MonitorSupport {
         return monitorContainer;
     }
 
-
+    /**
+     * Mostra un dialog per aggiungere un nuovo parametro aggiuntivo personalizzato.
+     * Permette all'utente di definire nome, valore e unità di misura.
+     *
+     * @param scenarioId              L'ID dello scenario.
+     * @param tempoId                 L'ID del tempo a cui aggiungere il parametro.
+     * @param advancedScenarioService Servizio per la gestione degli scenari avanzati.
+     * @param currentAdditionalParams La lista attuale dei parametri aggiuntivi.
+     * @param vitalSignsLayout        Il layout dei parametri vitali a cui aggiungere il nuovo box.
+     */
     private static void showAddAdditionalParamDialog(
             Integer scenarioId,
             Integer tempoId,
@@ -553,6 +609,7 @@ public class MonitorSupport {
             String newValueStr = paramValueField.getValue();
             String newUnit = paramUnitField.getValue();
 
+            // Validazione nome parametro
             if (newName == null || newName.isBlank()) {
                 paramNameField.setInvalid(true);
                 Notification.show(paramNameField.getErrorMessage(), 3000, Notification.Position.MIDDLE)
@@ -562,6 +619,7 @@ public class MonitorSupport {
             }
             paramNameField.setInvalid(false);
 
+            // Controllo duplicati e nomi standard
             boolean nameExists = currentAdditionalParams.stream().anyMatch(p -> p.getNome().equalsIgnoreCase(newName)) ||
                     Stream.of("PA", "FC", "T", "RR", "SpO₂", "SpO2", "FiO₂", "FiO2", "Litri O₂", "Litri O2", "EtCO₂", "EtCO2")
                             .anyMatch(stdName -> stdName.equalsIgnoreCase(newName));
@@ -580,6 +638,7 @@ public class MonitorSupport {
                 try {
                     parsedValueDbl = Double.parseDouble(newValueStr.replace(",", "."));
                 } catch (NumberFormatException nfe) {
+                    // Non è un errore bloccante se il valore non è numerico, ma avvisa l'utente
                     Notification.show("Valore del parametro non numerico: '" + newValueStr + "'. Sarà salvato come testo se non è un numero.",
                             4000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
                     Notification.show("Il valore del parametro '" + newValueStr + "' non è un numero valido.", 3000, Notification.Position.MIDDLE)
@@ -589,15 +648,16 @@ public class MonitorSupport {
                 }
             }
 
-            ParametroAggiuntivo newParam = new ParametroAggiuntivo(newName, parsedValueDbl, newUnit);
+            @SuppressWarnings("DataFlowIssue") ParametroAggiuntivo newParam = new ParametroAggiuntivo(newName, parsedValueDbl, newUnit);
 
             try {
                 advancedScenarioService.addAdditionalParam(scenarioId, tempoId, newParam);
-                currentAdditionalParams.add(newParam);
+                currentAdditionalParams.add(newParam); // Aggiunge il parametro alla lista locale
 
                 String color = ADDITIONAL_PARAM_COLORS.get(currentAdditionalParams.size() % ADDITIONAL_PARAM_COLORS.size());
-                final Div[] newBoxHolder = new Div[1];
+                final Div[] newBoxHolder = new Div[1]; // Riferimento al nuovo box creato
 
+                // Callback per l'eliminazione del nuovo parametro
                 Runnable onDeleteNewParam = () -> {
                     ConfirmDialog confirmDelDialog = new ConfirmDialog(
                             "Conferma Eliminazione",
@@ -624,6 +684,7 @@ public class MonitorSupport {
                     confirmDelDialog.open();
                 };
 
+                // Crea e aggiunge il box per il nuovo parametro alla UI
                 Div newParamBox = createVitalSignBox(
                         newParam.getNome(),
                         newParam.getValore() != null ? newParam.getValore() : NULL_DISPLAY_VALUE,
@@ -638,10 +699,9 @@ public class MonitorSupport {
 
                 Notification.show("Parametro '" + newName + "' aggiunto.", 3000, Notification.Position.BOTTOM_CENTER)
                         .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                addParamDialog.close();
+                addParamDialog.close(); // Chiude il dialog di aggiunta
 
             } catch (Exception exAdd) {
-
                 logger.error("Errore durante l'aggiunta del parametro aggiuntivo '{}': {}", newName, exAdd.getMessage(), exAdd);
                 Notification.show("Errore aggiunta parametro: " + exAdd.getMessage(), 3000, Notification.Position.MIDDLE)
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -650,7 +710,26 @@ public class MonitorSupport {
         addParamDialog.open();
     }
 
-
+    /**
+     * Crea un singolo box di visualizzazione/modifica per un parametro vitale o aggiuntivo.
+     * Gestisce la visualizzazione del valore, unità di misura, colorazione in base a soglie
+     * e un pulsante per la modifica in linea.
+     *
+     * @param label                   La label del parametro (es. "FC", "Temperatura").
+     * @param displayValue            Il valore da visualizzare (stringa).
+     * @param unit                    L'unità di misura (es. "bpm", "mmHg").
+     * @param defaultNormalColor      Il colore del testo in condizioni normali.
+     * @param numericValue            Il valore numerico del parametro, usato per il confronto con le soglie.
+     * @param criticalLowThreshold    Soglia critica inferiore.
+     * @param criticalHighThreshold   Soglia critica superiore.
+     * @param warningLowThreshold     Soglia di attenzione inferiore.
+     * @param warningHighThreshold    Soglia di attenzione superiore.
+     * @param advancedScenarioService Servizio per salvare le modifiche.
+     * @param scenarioId              L'ID dello scenario.
+     * @param tempoId                 L'ID del tempo.
+     * @param onDeleteCallback        Callback da eseguire in caso di eliminazione (solo per parametri aggiuntivi).
+     * @return Un {@link Div} che rappresenta il box del parametro.
+     */
     private static Div createVitalSignBox(String label, String displayValue, String unit, String defaultNormalColor,
                                           Double numericValue,
                                           Double criticalLowThreshold, Double criticalHighThreshold,
@@ -671,7 +750,7 @@ public class MonitorSupport {
                 .set("box-shadow", "0 2px 4px rgba(0,0,0,0.05)")
                 .set("transition", "transform 0.2s ease, box-shadow 0.2s ease, border-color 0.3s ease");
 
-
+        // Aggiunge effetti di hover tramite JavaScript
         UI currentUI = UI.getCurrent();
         if (currentUI != null && currentUI.getPage() != null) {
             box.getElement().executeJs(
@@ -697,22 +776,29 @@ public class MonitorSupport {
                 .set("text-overflow", "ellipsis")
                 .set("white-space", "nowrap");
 
-
         Span valueSpan = new Span(Objects.requireNonNullElse(displayValue, NULL_DISPLAY_VALUE));
         String finalValueColor = defaultNormalColor;
 
+        // Logica per la colorazione e l'animazione di allarme
         if (numericValue != null) {
             boolean isCritical = criticalLowThreshold != null && numericValue < criticalLowThreshold;
-            if (!isCritical && criticalHighThreshold != null && numericValue > criticalHighThreshold) isCritical = true;
+            if (!isCritical && criticalHighThreshold != null && numericValue > criticalHighThreshold) {
+                isCritical = true;
+            }
 
+            // Eccezione per EtCO2 a 0 (considerato normale se non ci sono altri allarmi)
             if ("EtCO₂".equals(label) && numericValue == 0) {
                 isCritical = false;
             }
 
             boolean isWarning = false;
-            if (!isCritical) {
-                if (warningLowThreshold != null && numericValue < warningLowThreshold) isWarning = true;
-                if (!isWarning && warningHighThreshold != null && numericValue > warningHighThreshold) isWarning = true;
+            if (!isCritical) { // Controlla warning solo se non già critico
+                if (warningLowThreshold != null && numericValue < warningLowThreshold) {
+                    isWarning = true;
+                }
+                if (!isWarning && warningHighThreshold != null && numericValue > warningHighThreshold) {
+                    isWarning = true;
+                }
 
                 if ("EtCO₂".equals(label) && numericValue == 0) {
                     isWarning = false;
@@ -720,7 +806,7 @@ public class MonitorSupport {
             }
 
             if (isCritical) {
-                box.addClassName("flash-alert-box");
+                box.addClassName("flash-alert-box"); // Applica animazione flash
                 finalValueColor = "var(--lumo-error-color)";
             } else if (isWarning) {
                 finalValueColor = "var(--lumo-warning-color)";
@@ -729,6 +815,7 @@ public class MonitorSupport {
         }
 
         Span unitSpan = new Span(unit);
+        // Stile specifico per FiO2 e Litri O2 quando il valore è 0 o N/D
         if (("FiO₂".equals(label) || "Litri O₂".equals(label) || "EtCO₂".equals(label)) && numericValue != null && numericValue == 0.0) {
             box.getStyle()
                     .set("background-color", "var(--lumo-contrast-5pct)")
@@ -736,7 +823,7 @@ public class MonitorSupport {
             valueSpan.getStyle().set("color", "var(--lumo-disabled-text-color)");
             unitSpan.getStyle().set("color", "var(--lumo-disabled-text-color)");
             labelSpan.getStyle().set("color", "var(--lumo-disabled-text-color)");
-            valueSpan.setText(NULL_DISPLAY_VALUE);
+            valueSpan.setText(NULL_DISPLAY_VALUE); // Forza "- " se il valore è 0
         }
         valueSpan.getStyle()
                 .set("display", "block")
@@ -750,12 +837,13 @@ public class MonitorSupport {
                 .set("font-size", "12px")
                 .set("color", "var(--lumo-tertiary-text-color)");
 
+        // Campo di testo per la modifica del valore
         TextField valueEditField = new TextField();
-        valueEditField.setVisible(false);
+        valueEditField.setVisible(false); // Nascosto di default
         valueEditField.setWidthFull();
         valueEditField.getStyle().set("margin-bottom", "var(--lumo-space-xs)");
 
-
+        // Controlli in alto a destra (modifica/elimina)
         HorizontalLayout topRightControls = new HorizontalLayout();
         topRightControls.setSpacing(true);
         topRightControls.setPadding(false);
@@ -768,9 +856,10 @@ public class MonitorSupport {
 
         topRightControls.add(editButton);
 
+        // Aggiunge il pulsante di eliminazione se un callback è fornito (per parametri aggiuntivi)
         if (onDeleteCallback != null) {
             Button deleteButton = new Button(VaadinIcon.TRASH.create());
-            deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY,ButtonVariant.LUMO_SMALL);
+            deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
             deleteButton.setTooltipText("Elimina " + label);
             deleteButton.addClickListener(e -> onDeleteCallback.run());
             topRightControls.add(deleteButton);
@@ -783,6 +872,7 @@ public class MonitorSupport {
         labelAndControlsLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         labelAndControlsLayout.setSpacing(true);
 
+        // Pulsanti Salva e Annulla per la modalità di modifica
         Button saveButton = StyleApp.getButton("Salva", null, ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color");
         Button cancelButton = StyleApp.getButton("Annulla", null, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color");
 
@@ -799,42 +889,47 @@ public class MonitorSupport {
                 .set("min-width", "auto");
 
         HorizontalLayout editActions = new HorizontalLayout(saveButton, cancelButton);
-        editActions.setVisible(false);
+        editActions.setVisible(false); // Nascosto di default
         editActions.setSpacing(true);
         editActions.getStyle()
                 .set("margin-top", "var(--lumo-space-xs)")
                 .set("justify-content", "center");
 
+        // Aggiunge tutti i componenti al box
         box.add(labelAndControlsLayout, valueSpan, valueEditField, unitSpan, editActions);
 
+        // Listener per il pulsante "Modifica"
         editButton.addClickListener(e -> {
             topRightControls.setVisible(false);
             valueSpan.setVisible(false);
             unitSpan.setVisible(false);
+            // Popola il campo di modifica con il valore attuale, gestendo NULL_DISPLAY_VALUE
             valueEditField.setValue(valueSpan.getText().equals(NULL_DISPLAY_VALUE) ? "" : valueSpan.getText());
             valueEditField.setVisible(true);
             valueEditField.focus();
             editActions.setVisible(true);
         });
 
+        // Runnable per uscire dalla modalità di modifica
         Runnable endEditMode = () -> {
             valueSpan.setVisible(true);
             unitSpan.setVisible(true);
             valueEditField.setVisible(false);
             editActions.setVisible(false);
-
             topRightControls.setVisible(true);
         };
 
+        // Listener per il pulsante "Salva" in modalità modifica
         saveButton.addClickListener(e -> {
             String editedValueStr = valueEditField.getValue();
 
-
+            // Validazione e aggiornamento del valore in base alla label del parametro
             switch (label) {
                 case "PA" -> {
+                    // Formato "sistolica/diastolica"
                     if (!editedValueStr.matches("^\\s*\\d+\\s*/\\s*\\d+\\s*$") && !editedValueStr.equals(NULL_DISPLAY_VALUE) && !editedValueStr.isBlank()) {
                         Notification.show("Formato PA non valido. Usa 'sistolica/diastolica'.", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                        return;
+                        return; // Non salvare e resta in modalità modifica
                     }
                     valueSpan.setText(editedValueStr.isBlank() ? NULL_DISPLAY_VALUE : editedValueStr);
                 }
@@ -876,13 +971,14 @@ public class MonitorSupport {
             }
 
             String valueToSave = valueSpan.getText();
+            // Salva il valore nel servizio
             advancedScenarioService.saveVitalSign(scenarioId, tempoId, label, valueToSave);
 
-
+            // Ricalcola la colorazione e l'animazione in base al nuovo valore
             Double newNumericValueForColoring = null;
             if (!valueToSave.equals(NULL_DISPLAY_VALUE) && !valueToSave.isBlank()) {
                 try {
-                    if (!label.equals("PA")) {
+                    if (!label.equals("PA")) { // La PA ha un formato specifico, non è un singolo numero per la colorazione
                         newNumericValueForColoring = Double.parseDouble(valueToSave.replace(",", "."));
                     }
                 } catch (Exception ex) {
@@ -890,22 +986,24 @@ public class MonitorSupport {
                 }
             }
 
-
-            box.getClassNames().remove("flash-alert-box");
-            box.getStyle().remove("border-color");
-            String newDisplayColor = defaultNormalColor;
+            box.getClassNames().remove("flash-alert-box"); // Rimuove animazione precedente
+            box.getStyle().remove("border-color"); // Rimuove bordo di allarme precedente
+            String newDisplayColor = defaultNormalColor; // Colore di default
 
             if (newNumericValueForColoring != null) {
                 boolean isCritical = criticalLowThreshold != null && newNumericValueForColoring < criticalLowThreshold;
-                if (!isCritical && criticalHighThreshold != null && newNumericValueForColoring > criticalHighThreshold)
+                if (!isCritical && criticalHighThreshold != null && newNumericValueForColoring > criticalHighThreshold) {
                     isCritical = true;
+                }
 
                 boolean isWarning = false;
                 if (!isCritical) {
-                    if (warningLowThreshold != null && newNumericValueForColoring < warningLowThreshold)
+                    if (warningLowThreshold != null && newNumericValueForColoring < warningLowThreshold) {
                         isWarning = true;
-                    if (!isWarning && warningHighThreshold != null && newNumericValueForColoring > warningHighThreshold)
+                    }
+                    if (!isWarning && warningHighThreshold != null && newNumericValueForColoring > warningHighThreshold) {
                         isWarning = true;
+                    }
                 }
 
                 if (isCritical) {
@@ -916,11 +1014,11 @@ public class MonitorSupport {
                     box.getStyle().set("border-color", "var(--lumo-warning-color-50pct)");
                 }
             } else if (valueToSave.equals(NULL_DISPLAY_VALUE) || valueToSave.isBlank()) {
-                newDisplayColor = "var(--lumo-secondary-text-color)";
+                newDisplayColor = "var(--lumo-secondary-text-color)"; // Colore per valori N/D o vuoti
             }
-            valueSpan.getStyle().set("color", newDisplayColor);
+            valueSpan.getStyle().set("color", newDisplayColor); // Aggiorna il colore del valore
 
-
+            // Gestione specifica di FiO2 e Litri O2 per lo stato "assente/spento"
             boolean isFio2OrLitriO2 = "FiO₂".equals(label) || "Litri O₂".equals(label);
             boolean isZeroOrNullEquivalent = valueToSave.equals("0") || valueToSave.equals("0.0") || valueToSave.equals(NULL_DISPLAY_VALUE) || valueToSave.isBlank();
 
@@ -932,20 +1030,22 @@ public class MonitorSupport {
                     valueSpan.getStyle().set("color", "var(--lumo-disabled-text-color)");
                     unitSpan.getStyle().set("color", "var(--lumo-disabled-text-color)");
                     labelSpan.getStyle().set("color", "var(--lumo-disabled-text-color)");
-                    if (valueToSave.isBlank()) valueSpan.setText(NULL_DISPLAY_VALUE);
+                    if (valueToSave.isBlank()) {
+                        valueSpan.setText(NULL_DISPLAY_VALUE);
+                    }
                 } else {
                     box.getStyle().remove("background-color");
-                    box.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
-
+                    box.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)"); // Ripristina bordo normale
                     unitSpan.getStyle().set("color", "var(--lumo-tertiary-text-color)");
                     labelSpan.getStyle().set("color", "var(--lumo-secondary-text-color)");
                 }
             }
 
-            endEditMode.run();
+            endEditMode.run(); // Esce dalla modalità di modifica
             Notification.show(label + " aggiornata.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         });
 
+        // Listener per il pulsante "Annulla" in modalità modifica
         cancelButton.addClickListener(e -> endEditMode.run());
         return box;
     }

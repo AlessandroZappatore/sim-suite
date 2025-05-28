@@ -1,22 +1,31 @@
 package it.uniupo.simnova.service.export.helper.pdf;
 
 /**
- * Classe di supporto utilizzata per rimuovere i caratteri in apice e in pedice da usare nei PDF.
- * Senza questa gestione il font utilizzato non saprebbe gestire questi caratteri sollevando un eccezione che non permetterebbe la creazione del PDF.
+ * Questa classe di supporto è utilizzata per <strong>rimuovere o sostituire caratteri speciali</strong>
+ * (come quelli in apice e in pedice) dal testo destinato alla generazione di PDF.
+ * Senza questa gestione, il font utilizzato in Apache PDFBox potrebbe non essere in grado
+ * di renderizzare correttamente questi caratteri, sollevando eccezioni che impedirebbero
+ * la creazione del documento PDF.
  *
  * @author Alessandro Zappatore
  * @version 1.1
  */
 public class ReplaceSubscript {
+
     /**
-     * Sostituisce i caratteri in apice e in pedice con i rispettivi caratteri normali.
+     * Sostituisce i caratteri Unicode comunemente usati per gli apici e i pedici
+     * con i loro equivalenti numerici o simboli normali. Questo assicura che il testo
+     * sia compatibile con i font standard utilizzati nella generazione PDF.
      *
-     * @param text il testo da elaborare
-     * @return il testo con i caratteri in apice e in pedice sostituiti
+     * @param text Il testo da elaborare. Se il testo è <code>null</code>, il metodo restituisce <code>null</code>.
+     * @return Il testo con i caratteri in apice e in pedice sostituiti da caratteri normali.
      */
     public static String replaceSubscriptCharacters(String text) {
-        if (text == null) return null;
+        if (text == null) {
+            return null;
+        }
 
+        // Sostituzioni per caratteri in pedice (numeri e simboli)
         return text.replace('₁', '1')
                 .replace('₂', '2')
                 .replace('₃', '3')
@@ -27,6 +36,7 @@ public class ReplaceSubscript {
                 .replace('₈', '8')
                 .replace('₉', '9')
                 .replace('₀', '0')
+                // Sostituzioni per caratteri in apice (numeri e simboli)
                 .replace('⁰', '0')
                 .replace('¹', '1')
                 .replace('²', '2')

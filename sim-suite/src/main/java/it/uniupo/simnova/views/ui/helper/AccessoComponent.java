@@ -15,36 +15,36 @@ import it.uniupo.simnova.views.common.utils.StyleApp;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Componente UI per la gestione di un singolo accesso (venoso o arterioso).
+ * Permette di selezionare il tipo, la posizione, il lato e la misura dell'accesso.
+ * Include opzionalmente un pulsante per la rimozione del componente.
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 public class AccessoComponent extends HorizontalLayout {
-    /**
-     * Campo di selezione per il tipo di accesso (venoso o arterioso).
-     */
+
     private final Select<String> tipoSelect;
-    /**
-     * Campo di testo per la posizione dell'accesso.
-     */
     private final TextField posizioneField;
-    /**
-     * Oggetto Accesso associato a questo componente.
-     */
     private final Select<String> latoSelect;
-
     private final Select<Integer> misuraSelect;
-
-    private final Accesso accesso;
+    private final Accesso accesso; // Oggetto Accesso associato a questo componente
 
     /**
-     * Costruttore del componente di accesso.
+     * Costruttore per creare un nuovo componente AccessoComponent.
      *
-     * @param tipo il tipo di accesso (venoso o arterioso)
+     * @param tipo      Il tipo generico dell'accesso (es. "Venoso", "Arterioso").
+     * @param hasDelete Indica se il componente deve includere un pulsante di rimozione.
      */
     public AccessoComponent(String tipo, boolean hasDelete) {
         setAlignItems(Alignment.BASELINE);
         setSpacing(true);
-        getStyle().set("flex-wrap", "wrap");
+        getStyle().set("flex-wrap", "wrap"); // Permette al layout di andare a capo su schermi piccoli
 
-        this.accesso = new Accesso(0, "", "", "", 0);
+        this.accesso = new Accesso(0, "", "", "", 0); // Inizializza un nuovo oggetto Accesso
 
+        // Campo di selezione per il tipo di accesso
         tipoSelect = FieldGenerator.createSelect(
                 "Tipo accesso " + tipo,
                 List.of("Periferico", "Centrale", "CVC a breve termine", "CVC tunnellizzato",
@@ -52,22 +52,23 @@ public class AccessoComponent extends HorizontalLayout {
                 null,
                 true
         );
+        // Personalizza le opzioni per gli accessi arteriosi
         if (tipo.equals("Arterioso")) {
             tipoSelect.setItems(
                     "Radiale", "Femorale", "Omerale", "Brachiale", "Ascellare", "Pedidia", "Altro"
             );
         }
-        tipoSelect.setWidth(null);
+        tipoSelect.setWidth(null); // Larghezza automatica
         tipoSelect.getStyle()
-                .set("flex-basis", "220px")
-                .set("min-width", "180px");
-
+                .set("flex-basis", "220px") // Larghezza base per il layout responsivo
+                .set("min-width", "180px"); // Larghezza minima
         tipoSelect.addValueChangeListener(e -> {
             if (e.getValue() != null) {
                 accesso.setTipologia(e.getValue());
             }
         });
 
+        // Campo di testo per la posizione dell'accesso
         posizioneField = FieldGenerator.createTextField(
                 "Posizione",
                 "(es. avambraccio, collo, torace)",
@@ -79,6 +80,7 @@ public class AccessoComponent extends HorizontalLayout {
                 .set("min-width", "180px");
         posizioneField.addValueChangeListener(e -> accesso.setPosizione(e.getValue()));
 
+        // Campo di selezione per il lato (DX/SX)
         latoSelect = FieldGenerator.createSelect(
                 "Lato",
                 List.of("DX", "SX"),
@@ -91,6 +93,7 @@ public class AccessoComponent extends HorizontalLayout {
                 .set("min-width", "90px");
         latoSelect.addValueChangeListener(e -> accesso.setLato(e.getValue()));
 
+        // Campo di selezione per la misura (Gauge)
         misuraSelect = FieldGenerator.createSelect(
                 "Misura (Gauge)",
                 List.of(14, 16, 18, 20, 22, 24, 26),
@@ -103,24 +106,27 @@ public class AccessoComponent extends HorizontalLayout {
                 .set("min-width", "120px");
         misuraSelect.addValueChangeListener(e -> accesso.setMisura(e.getValue()));
 
-        Button removeButton = StyleApp.getButton(
-                "Rimuovi",
-                VaadinIcon.TRASH,
-                ButtonVariant.LUMO_ERROR,
-                "var(--lumo-error-color)"
-        );
-        removeButton.getStyle()
-                .set("flex-grow", "0")
-                .set("flex-shrink", "0")
-                .set("align-self", "flex-end");
-        removeButton.addClickListener(e -> removeSelf());
-
-        add(tipoSelect, posizioneField, latoSelect, misuraSelect);
-        if (hasDelete) add(removeButton);
+        // Pulsante per rimuovere il componente, se richiesto
+        if (hasDelete) {
+            Button removeButton = StyleApp.getButton(
+                    "Rimuovi",
+                    VaadinIcon.TRASH,
+                    ButtonVariant.LUMO_ERROR,
+                    "var(--lumo-error-color)"
+            );
+            removeButton.getStyle()
+                    .set("flex-grow", "0")
+                    .set("flex-shrink", "0")
+                    .set("align-self", "flex-end"); // Allinea il pulsante alla fine della riga
+            removeButton.addClickListener(e -> removeSelf()); // Listener per la rimozione
+            add(tipoSelect, posizioneField, latoSelect, misuraSelect, removeButton);
+        } else {
+            add(tipoSelect, posizioneField, latoSelect, misuraSelect);
+        }
     }
 
     /**
-     * Rimuove il componente di accesso dalla vista e dalla lista appropriata.
+     * Rimuove questo componente dalla sua vista genitore.
      */
     private void removeSelf() {
         Optional<Component> parentOpt = getParent();
@@ -129,13 +135,13 @@ public class AccessoComponent extends HorizontalLayout {
                 container.remove(this);
             }
         });
-
     }
 
     /**
-     * Restituisce l'oggetto Accesso associato a questo componente.
+     * Restituisce l'oggetto {@link Accesso} associato a questo componente,
+     * aggiornando i suoi campi con i valori correnti dei selettori e dei campi di testo.
      *
-     * @return l'oggetto Accesso con i dati correnti
+     * @return L'oggetto {@link Accesso} con i dati attuali del componente.
      */
     public Accesso getAccesso() {
         accesso.setTipologia(tipoSelect.getValue());
@@ -144,5 +150,4 @@ public class AccessoComponent extends HorizontalLayout {
         accesso.setMisura(misuraSelect.getValue());
         return accesso;
     }
-
 }

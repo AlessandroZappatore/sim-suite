@@ -15,29 +15,31 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.router.*;
+import com.vaadin.flow.router.BeforeEvent;
+import com.vaadin.flow.router.HasUrlParameter;
+import com.vaadin.flow.router.OptionalParameter;
+import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.Route;
+import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
 import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
 import it.uniupo.simnova.service.storage.FileStorageService;
-import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.views.common.components.AppHeader;
 import it.uniupo.simnova.views.common.utils.FieldGenerator;
 import it.uniupo.simnova.views.common.utils.StyleApp;
 import it.uniupo.simnova.views.common.utils.ValidationError;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Vista per l'inizio della creazione di uno scenario.
- * <p>
- * Permette di inserire i dettagli iniziali dello scenario come titolo, nome del paziente, patologia e durata.
- * Fa parte del flusso di creazione dello scenario.
- * </p>
+ * Permette l'inserimento dei dettagli iniziali come titolo, paziente, patologia e durata.
  *
  * @author Alessandro Zappatore
  * @version 1.1
@@ -45,71 +47,40 @@ import java.util.Optional;
 @PageTitle("StartCreation")
 @Route("startCreation")
 public class StartCreationView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-    /**
-     * Logger per la registrazione delle informazioni e degli errori.
-     */
+
     private static final Logger logger = LoggerFactory.getLogger(StartCreationView.class);
-    /**
-     * Servizio per la gestione degli scenari.
-     */
+
     private final ScenarioService scenarioService;
-    /**
-     * Servizio per la gestione degli scenari avanzati.
-     */
     private final AdvancedScenarioService advancedScenarioService;
-    /**
-     * Servizio per la gestione degli scenari simulati con pazienti.
-     */
     private final PatientSimulatedScenarioService patientSimulatedScenarioService;
-    /**
-     * Campi di input per il titolo dello scenario.
-     */
+
+    // Campi di input
     private final TextField scenarioTitle;
-    /**
-     * Campo di input per il nome del paziente.
-     */
     private final TextField patientName;
-    /**
-     * Campo di input per la patologia.
-     */
     private final TextField pathology;
-    /**
-     * Campo di input per la durata della simulazione.
-     */
     private final ComboBox<Integer> durationField;
-    /**
-     * Campo di input per l'autore dello scenario.
-     */
     private final TextField authorField;
-    /**
-     * Campo di input per il tipo di scenario.
-     */
     private final Select<String> typeField;
-    /**
-     * Tipo di scenario selezionato.
-     */
-    private String scenarioType;
+
+    private String scenarioType; // Tipo di scenario da creare (es. quickscenario, advancedscenario)
 
     /**
-     * Costruttore che inizializza l'interfaccia utente.
+     * Costruttore che inizializza la vista e configura i campi di input.
      *
-     * @param scenarioService                 servizio per la gestione degli scenari
-     * @param fileStorageService              servizio per la gestione dei file
-     * @param advancedScenarioService         servizio per scenari avanzati
-     * @param patientSimulatedScenarioService servizio per scenari con paziente simulato
+     * @param scenarioService                 Servizio per la gestione degli scenari.
+     * @param fileStorageService              Servizio per la gestione dei file.
+     * @param advancedScenarioService         Servizio specifico per scenari avanzati.
+     * @param patientSimulatedScenarioService Servizio specifico per scenari con paziente simulato.
      */
-    public StartCreationView(ScenarioService scenarioService, FileStorageService fileStorageService, AdvancedScenarioService advancedScenarioService, PatientSimulatedScenarioService patientSimulatedScenarioService) {
+    public StartCreationView(ScenarioService scenarioService, FileStorageService fileStorageService,
+                             AdvancedScenarioService advancedScenarioService, PatientSimulatedScenarioService patientSimulatedScenarioService) {
         this.scenarioService = scenarioService;
         this.advancedScenarioService = advancedScenarioService;
         this.patientSimulatedScenarioService = patientSimulatedScenarioService;
 
-
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
-
         AppHeader header = new AppHeader(fileStorageService);
-
-
         Button backButton = StyleApp.getBackButton();
 
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
@@ -120,83 +91,39 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         );
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
-
-
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
-
-
-
-        scenarioTitle = FieldGenerator.createTextField(
-                "TITOLO SCENARIO",
-                "Inserisci il titolo dello scenario",
-                true
-        );
-        Icon titleIcon = FontAwesome.Solid.TAGS.create();
-        HorizontalLayout scenarioTitleLayout = createFieldWithIconLayout(titleIcon, scenarioTitle);
+        // Inizializzazione dei campi di input con icone e layout personalizzati
+        scenarioTitle = FieldGenerator.createTextField("TITOLO SCENARIO", "Inserisci il titolo dello scenario", true);
+        HorizontalLayout scenarioTitleLayout = createFieldWithIconLayout(FontAwesome.Solid.TAGS.create(), scenarioTitle);
         scenarioTitleLayout.setWidthFull();
-        scenarioTitleLayout.getStyle().set("max-width", "500px");
-        scenarioTitleLayout.getStyle().set("margin", "0 auto");
+        scenarioTitleLayout.getStyle().set("max-width", "500px").set("margin", "0 auto");
 
-
-        patientName = FieldGenerator.createTextField(
-                "NOME PAZIENTE",
-                "Inserisci il nome del paziente",
-                true
-        );
-        Icon patientNameIcon = FontAwesome.Solid.USER_INJURED.create();
-        HorizontalLayout patientNameLayout = createFieldWithIconLayout(patientNameIcon, patientName);
+        patientName = FieldGenerator.createTextField("NOME PAZIENTE", "Inserisci il nome del paziente", true);
+        HorizontalLayout patientNameLayout = createFieldWithIconLayout(FontAwesome.Solid.USER_INJURED.create(), patientName);
         patientNameLayout.setWidthFull();
-        patientNameLayout.getStyle().set("max-width", "500px");
-        patientNameLayout.getStyle().set("margin", "0 auto");
+        patientNameLayout.getStyle().set("max-width", "500px").set("margin", "0 auto");
 
-
-        pathology = FieldGenerator.createTextField(
-                "PATOLOGIA/MALATTIA",
-                "Inserisci la patologia",
-                true
-        );
-        Icon pathologyIcon = FontAwesome.Solid.DISEASE.create();
-        HorizontalLayout pathologyLayout = createFieldWithIconLayout(pathologyIcon, pathology);
+        pathology = FieldGenerator.createTextField("PATOLOGIA/MALATTIA", "Inserisci la patologia", true);
+        HorizontalLayout pathologyLayout = createFieldWithIconLayout(FontAwesome.Solid.DISEASE.create(), pathology);
         pathologyLayout.setWidthFull();
-        pathologyLayout.getStyle().set("max-width", "500px");
-        pathologyLayout.getStyle().set("margin", "0 auto");
+        pathologyLayout.getStyle().set("max-width", "500px").set("margin", "0 auto");
 
-
-        authorField = FieldGenerator.createTextField(
-                "AUTORE",
-                "Inserisci il tuo nome",
-                true
-        );
-        Icon authorIcon = FontAwesome.Solid.SIGNATURE.create();
-        HorizontalLayout authorLayout = createFieldWithIconLayout(authorIcon, authorField);
+        authorField = FieldGenerator.createTextField("AUTORE", "Inserisci il tuo nome", true);
+        HorizontalLayout authorLayout = createFieldWithIconLayout(FontAwesome.Solid.SIGNATURE.create(), authorField);
         authorLayout.setWidthFull();
-        authorLayout.getStyle().set("max-width", "500px");
-        authorLayout.getStyle().set("margin", "0 auto");
-
+        authorLayout.getStyle().set("max-width", "500px").set("margin", "0 auto");
 
         List<Integer> durations = List.of(5, 10, 15, 20, 25, 30);
-        durationField = FieldGenerator.createComboBox(
-                "DURATA SIMULAZIONE (minuti)",
-                durations,
-                10,
-                true
-        );
-        Icon durationIcon = FontAwesome.Solid.STOPWATCH_20.create();
-        HorizontalLayout durationLayout = createFieldWithIconLayout(durationIcon, durationField);
+        durationField = FieldGenerator.createComboBox("DURATA SIMULAZIONE (minuti)", durations, 10, true);
+        HorizontalLayout durationLayout = createFieldWithIconLayout(FontAwesome.Solid.STOPWATCH_20.create(), durationField);
         durationLayout.setWidthFull();
-        durationLayout.getStyle().set("max-width", "500px");
-        durationLayout.getStyle().set("margin", "0 auto");
-
+        durationLayout.getStyle().set("max-width", "500px").set("margin", "0 auto");
 
         List<String> scenarioTypes = List.of("Adulto", "Pediatrico", "Neonatale", "Prematuro");
-        typeField = FieldGenerator.createSelect(
-                "TIPO SCENARIO",
-                scenarioTypes,
-                "Adulto",
-                true
-        );
+        typeField = FieldGenerator.createSelect("TIPO SCENARIO", scenarioTypes, "Adulto", true);
 
+        // Mappa per associare icone ai tipi di paziente
         Map<String, Icon> iconMap = new HashMap<>();
         iconMap.put("Adulto", FontAwesome.Solid.USER.create());
         iconMap.put("Pediatrico", FontAwesome.Solid.CHILD.create());
@@ -207,14 +134,13 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         scenarioTypeIcon[0].getStyle().set("margin-right", "10px");
         scenarioTypeIcon[0].setSize("24px");
 
-
         HorizontalLayout typeFieldWithIcon = new HorizontalLayout(scenarioTypeIcon[0], typeField);
         typeFieldWithIcon.setAlignItems(FlexComponent.Alignment.BASELINE);
         typeFieldWithIcon.setWidthFull();
-        typeFieldWithIcon.getStyle().set("max-width", "500px");
-        typeFieldWithIcon.getStyle().set("margin", "0 auto");
+        typeFieldWithIcon.getStyle().set("max-width", "500px").set("margin", "0 auto");
         typeFieldWithIcon.expand(typeField);
 
+        // Aggiorna l'icona in base alla selezione del tipo di paziente
         typeField.addValueChangeListener(event -> {
             Icon newIcon = iconMap.getOrDefault(event.getValue(), FontAwesome.Solid.QUESTION.create());
             newIcon.getStyle().set("margin-right", "10px");
@@ -223,7 +149,6 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
             if (iconIndex != -1) {
                 typeFieldWithIcon.replace(scenarioTypeIcon[0], newIcon);
             } else {
-
                 typeFieldWithIcon.addComponentAsFirst(newIcon);
             }
             scenarioTypeIcon[0] = newIcon;
@@ -238,24 +163,15 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
                 durationLayout,
                 typeFieldWithIcon
         );
-
         contentLayout.setHorizontalComponentAlignment(FlexComponent.Alignment.CENTER);
-
 
         Button nextButton = StyleApp.getNextButton();
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
+        mainLayout.add(customHeader, contentLayout, footerLayout);
 
-        mainLayout.add(
-                customHeader,
-                contentLayout,
-                footerLayout
-        );
-
-
-        backButton.addClickListener(e ->
-                backButton.getUI().ifPresent(ui -> ui.navigate("creation")));
-
+        // Listener per la navigazione
+        backButton.addClickListener(e -> backButton.getUI().ifPresent(ui -> ui.navigate("creation")));
         nextButton.addClickListener(e -> {
             if (validateFields()) {
                 saveScenarioAndNavigate(nextButton.getUI());
@@ -264,11 +180,11 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
     }
 
     /**
-     * Helper method to create a HorizontalLayout with an icon and a field.
+     * Crea un layout orizzontale con un'icona e un componente campo.
      *
-     * @param icon  The icon to display.
-     * @param field The field component.
-     * @return A HorizontalLayout containing the icon and field.
+     * @param icon  L'icona da visualizzare.
+     * @param field Il componente campo.
+     * @return Un {@link HorizontalLayout} contenente l'icona e il campo.
      */
     private HorizontalLayout createFieldWithIconLayout(Icon icon, Component field) {
         icon.setSize("24px");
@@ -281,67 +197,62 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         return layout;
     }
 
-
     /**
-     * Gestisce il parametro ricevuto dall'URL (tipo di scenario).
+     * Gestisce il parametro dell'URL, impostando il tipo di scenario.
      *
-     * @param event     l'evento di navigazione
-     * @param parameter il tipo di scenario come stringa
+     * @param event     L'evento di navigazione.
+     * @param parameter Il tipo di scenario ricevuto dall'URL.
      */
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
-        if (parameter != null) {
-            this.scenarioType = parameter.toLowerCase();
-        } else {
-
-            this.scenarioType = "quickscenario";
-        }
+        this.scenarioType = (parameter != null) ? parameter.toLowerCase() : "quickscenario";
     }
 
     /**
      * Valida i campi del form.
      *
-     * @return true se tutti i campi sono validi, false altrimenti
+     * @return {@code true} se tutti i campi sono validi, altrimenti {@code false}.
      */
     private boolean validateFields() {
         boolean isValid = true;
 
-        if (scenarioTitle.isEmpty())
+        if (scenarioTitle.isEmpty()) {
             isValid = ValidationError.showErrorAndReturnFalse(scenarioTitle, "Compila il campo TITOLO SCENARIO");
-
-        if (patientName.isEmpty())
+        }
+        if (patientName.isEmpty()) {
             isValid = ValidationError.showErrorAndReturnFalse(patientName, "Compila il campo NOME PAZIENTE");
-
-        if (pathology.isEmpty())
+        }
+        if (pathology.isEmpty()) {
             isValid = ValidationError.showErrorAndReturnFalse(pathology, "Compila il campo PATOLOGIA/MALATTIA");
-
-        if (authorField.isEmpty())
+        }
+        if (authorField.isEmpty()) {
             isValid = ValidationError.showErrorAndReturnFalse(authorField, "Compila il campo AUTORE");
-
-        if (durationField.isEmpty())
+        }
+        if (durationField.isEmpty()) {
             isValid = ValidationError.showErrorAndReturnFalse(durationField, "Compila il campo DURATA SIMULAZIONE");
-        else if (durationField.getValue() == null || durationField.getValue() <= 0)
+        } else if (durationField.getValue() == null || durationField.getValue() <= 0) {
             isValid = ValidationError.showErrorAndReturnFalse(durationField, "Inserisci una durata valida (maggiore di 0)");
-
-        if (typeField.isEmpty())
+        }
+        if (typeField.isEmpty()) {
             isValid = ValidationError.showErrorAndReturnFalse(typeField, "Compila il campo TIPO SCENARIO");
+        }
         return isValid;
     }
 
     /**
-     * Salva lo scenario e naviga alla vista successiva.
+     * Salva i dati iniziali dello scenario in base al tipo selezionato
+     * e naviga alla vista successiva per la configurazione avanzata.
      *
-     * @param uiOptional l'UI corrente (opzionale)
+     * @param uiOptional L'istanza opzionale dell'UI corrente per la navigazione.
      */
     private void saveScenarioAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {
             try {
                 int scenarioId;
-
                 switch (scenarioType) {
                     case "quickscenario":
                         scenarioId = scenarioService.startQuickScenario(
-                                -1,
+                                -1, // ID temporaneo, verrà assegnato dal servizio
                                 scenarioTitle.getValue(),
                                 patientName.getValue(),
                                 pathology.getValue(),

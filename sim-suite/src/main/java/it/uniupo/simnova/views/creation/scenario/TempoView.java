@@ -33,240 +33,270 @@ import static it.uniupo.simnova.views.constant.AdditionParametersConst.ADDITIONA
 import static it.uniupo.simnova.views.constant.AdditionParametersConst.CUSTOM_PARAMETER_KEY;
 
 /**
- * Classe che rappresenta la vista per la creazione e gestione dei tempi in uno scenario avanzato.
+ * Vista per la creazione e gestione dei "tempi" in uno scenario avanzato di simulazione.
  * <p>
- * Permette di definire i parametri vitali e le azioni da eseguire in diversi momenti dello scenario.
+ * Questa vista consente di definire una sequenza di stati (tempi) del paziente,
+ * specificando per ognuno i parametri vitali, le azioni che i discenti devono intraprendere
+ * per progredire e le possibili transizioni. Permette anche di aggiungere parametri vitali
+ * e metriche personalizzate.
  * </p>
  *
  * @author Alessandro Zappatore
- * @version 1.1 (con gestione unità di misura per parametri custom)
+ * @version 1.1
  */
-@PageTitle("Tempi")
+@PageTitle("Tempi Scenario")
 @Route("tempi")
 public class TempoView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
+
     /**
-     * Logger per la registrazione delle attività e degli errori.
+     * Il logger per questa classe, utilizzato per registrare informazioni ed errori.
      */
     private static final Logger logger = LoggerFactory.getLogger(TempoView.class);
+
     /**
-     * Container principale per le sezioni temporali.
-     * Ogni sezione rappresenta un tempo con i relativi parametri e azioni.
+     * Il contenitore principale che ospita tutte le sezioni di tempo (T0, T1, T2...).
      */
     private final VerticalLayout timeSectionsContainer;
+
     /**
-     * Lista di sezioni temporali (T0, T1, T2, ecc.).
-     * Ogni sezione rappresenta un tempo con i relativi parametri e azioni.
+     * Una lista che tiene traccia di tutti gli oggetti {@link TimeSection} attualmente visualizzati nella UI.
      */
     private final List<TimeSection> timeSections = new ArrayList<>();
+
     /**
-     * Pulsante per navigare alla schermata successiva.
+     * Il bottone per navigare alla schermata successiva del flusso di creazione/modifica dello scenario.
      */
     private final Button nextButton;
+
     /**
-     * Servizio per la gestione degli scenari.
+     * Il servizio per la gestione delle operazioni di base sugli scenari.
      */
     private final ScenarioService scenarioService;
 
+    /**
+     * Il servizio specifico per la gestione degli scenari avanzati, che include le operazioni sui tempi.
+     */
     private final AdvancedScenarioService advancedScenarioService;
 
-    private final PazienteT0Service pazienteT0Service;
     /**
-     * Contatore per il numero di tempo corrente.
-     * Inizializzato a 1 per rappresentare T1 (T0 viene aggiunto separatamente se necessario).
+     * Il servizio per la gestione dei dati del paziente al tempo zero (T0), ovvero lo stato iniziale.
+     */
+    private final PazienteT0Service pazienteT0Service;
+
+    /**
+     * Un contatore utilizzato per assegnare un numero progressivo (ID) a ogni nuova sezione di tempo (T1, T2...).
+     * Inizia da 1, poiché T0 ha un trattamento speciale.
      */
     private int timeCount = 1;
+
     /**
-     * ID dello scenario corrente.
+     * L'ID dello scenario corrente, passato come parametro URL.
      */
     private int scenarioId;
+
     /**
-     * Modalità di apertura della vista ("create" o "edit").
+     * La modalità di apertura della vista ("create" per la creazione di un nuovo scenario, "edit" per la modifica di uno esistente).
      */
     private String mode;
 
     /**
-     * Costruttore della vista TempoView.
-     * Inizializza il layout principale e i componenti della vista.
+     * Costruisce una nuova istanza di <code>TempoView</code>.
+     * Inizializza l'interfaccia utente, inclusi l'header, il corpo centrale con il contenitore dei tempi
+     * e il footer con i bottoni di navigazione.
      *
-     * @param scenarioService servizio per la gestione degli scenari
+     * @param scenarioService         Il servizio per la gestione degli scenari.
+     * @param fileStorageService      Il servizio per la gestione dei file, utilizzato per l'intestazione dell'applicazione.
+     * @param advancedScenarioService Il servizio specifico per gli scenari avanzati.
+     * @param pazienteT0Service       Il servizio per la gestione dei dati del paziente T0.
      */
-    public TempoView(ScenarioService scenarioService, FileStorageService fileStorageService, AdvancedScenarioService advancedScenarioService, PazienteT0Service pazienteT0Service) {
+    public TempoView(ScenarioService scenarioService, FileStorageService fileStorageService,
+                     AdvancedScenarioService advancedScenarioService, PazienteT0Service pazienteT0Service) {
         this.scenarioService = scenarioService;
         this.advancedScenarioService = advancedScenarioService;
         this.pazienteT0Service = pazienteT0Service;
 
-
+        // Configura il layout principale della vista.
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
-
+        // Configura l'header dell'applicazione e il bottone "Indietro".
         AppHeader header = new AppHeader(fileStorageService);
-
-
         Button backButton = StyleApp.getBackButton();
 
+        // Listener per il bottone "Indietro": naviga alla vista "esameFisico".
         backButton.addClickListener(e -> {
-
             if (scenarioId > 0) {
-                backButton.getUI().ifPresent(ui -> ui.navigate("esameFisico/" + scenarioId));
+                // Se scenarioId è valido, naviga alla vista precedente nel flusso di creazione.
+                e.getSource().getUI().ifPresent(ui -> ui.navigate("esameFisico/" + scenarioId));
             } else {
-
-                backButton.getUI().ifPresent(ui -> ui.getPage().getHistory().back());
+                // Altrimenti, torna indietro nella cronologia del browser.
+                e.getSource().getUI().ifPresent(ui -> ui.getPage().getHistory().back());
             }
         });
 
-
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
-
+        // Configura il layout per il contenuto centrale.
         VerticalLayout contentLayout = StyleApp.getContentLayout();
 
+        // Sezione dell'intestazione visuale per la vista, con titolo, sottotitolo e icona.
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "DEFINIZIONE TEMPI SCENARIO",
                 "Definisci i tempi dello scenario (T0, T1, T2...). Per ogni tempo, specifica i parametri vitali, " +
                         "eventuali parametri aggiuntivi, l'azione richiesta per procedere e le transizioni possibili (Tempo SI / Tempo NO). " +
                         "T0 rappresenta lo stato iniziale del paziente.",
-                VaadinIcon.CLOCK.create(),
+                VaadinIcon.CLOCK.create(), // Icona dell'orologio.
                 "var(--lumo-primary-color)"
         );
 
-
+        // Contenitore per le sezioni dei tempi.
         timeSectionsContainer = new VerticalLayout();
         timeSectionsContainer.setWidthFull();
         timeSectionsContainer.setSpacing(true);
 
-
+        // Bottone per aggiungere nuove sezioni di tempo (Tn).
         Button addTimeButton = new Button("Aggiungi Tempo (Tn)", new Icon(VaadinIcon.PLUS_CIRCLE));
         addTimeButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addTimeButton.addClassName(LumoUtility.Margin.Top.XLARGE);
-        addTimeButton.addClickListener(event -> addTimeSection(timeCount++));
+        addTimeButton.addClickListener(event -> addTimeSection(timeCount++)); // Aggiunge una nuova sezione e incrementa il contatore.
 
-
+        // Aggiunge le sezioni dell'header e il contenitore dei tempi al layout del contenuto.
         contentLayout.add(headerSection, timeSectionsContainer, addTimeButton);
 
-
-
+        // Configura il bottone "Avanti" e il suo listener.
         nextButton = StyleApp.getNextButton();
-        nextButton.addClickListener(e -> saveAllTimeSections());
+        nextButton.addClickListener(e -> saveAllTimeSections()); // Al click, tenta di salvare tutti i tempi.
 
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
-
+        // Aggiunge tutte le sezioni al layout principale.
         mainLayout.add(customHeader, contentLayout, footerLayout);
     }
 
     /**
-     * Imposta il parametro URL (ID dello scenario) per la vista.
-     * Carica i dati iniziali o esistenti in base alla modalità ("create" o "edit").
-     * Gestisce eventuali errori di formato o ID non valido.
+     * Implementazione del metodo {@link HasUrlParameter#setParameter(BeforeEvent, Object)}.
+     * Questo metodo viene chiamato da Vaadin quando la vista viene navigata con un parametro URL.
+     * Gestisce l'estrazione dell'ID dello scenario e della modalità ("create" o "edit") dall'URL.
      *
-     * @param event     evento di navigazione (contiene informazioni sull'URL)
-     * @param parameter parametro ID passato nell'URL (può essere nullo)
+     * @param event     L'evento di navigazione.
+     * @param parameter Il parametro URL, che può contenere l'ID dello scenario e opzionalmente la modalità "edit" (es. "123" o "123/edit").
+     * @throws NotFoundException Se il parametro è nullo, vuoto, non un numero valido, non positivo, o se lo scenario non esiste.
      */
     @Override
     public void setParameter(BeforeEvent event, @WildcardParameter String parameter) {
         try {
             if (parameter == null || parameter.trim().isEmpty()) {
-                logger.warn("Parametro mancante nell'URL.");
-                throw new NumberFormatException("ID Scenario è richiesto");
+                logger.warn("Parametro URL mancante per la vista Tempi. ID scenario richiesto.");
+                throw new NumberFormatException("ID Scenario è richiesto.");
             }
 
-
+            // Divide il parametro per ottenere l'ID e la modalità.
             String[] parts = parameter.split("/");
             String scenarioIdStr = parts[0];
 
-
             this.scenarioId = Integer.parseInt(scenarioIdStr.trim());
+            // Validazione dell'ID dello scenario.
             if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
-                logger.warn("ID Scenario non valido o non esistente: {}", scenarioId);
-                throw new NumberFormatException("ID Scenario non valido");
+                logger.warn("ID Scenario non valido o non esistente: {}. Re indirizzamento a pagina di errore.", scenarioId);
+                throw new NumberFormatException("ID Scenario non valido o non esistente.");
             }
 
+            // Verifica che lo scenario non sia di tipo "Quick Scenario".
             if (scenarioService.getScenarioType(scenarioId).equals("Quick Scenario")) {
-                logger.warn("ID Scenario non valido: {}", scenarioId);
-                throw new NumberFormatException("Quick Scenario non supporta la gestione dei tempi");
+                logger.warn("Tentativo di accedere alla gestione dei Tempi per un Quick Scenario (ID {}). Questa funzionalità è solo per scenari avanzati/simulati.", scenarioId);
+                throw new NumberFormatException("I Quick Scenario non supportano la gestione dei tempi.");
             }
 
+            // Determina la modalità: "edit" se il secondo segmento è "edit", altrimenti "create".
+            mode = parts.length > 1 && "edit".equalsIgnoreCase(parts[1]) ? "edit" : "create";
 
-            mode = parts.length > 1 && "edit".equals(parts[1]) ? "edit" : "create";
-
-            logger.info("Scenario ID impostato a: {}, Mode: {}", this.scenarioId, mode);
-
+            logger.info("Vista Tempi caricata per lo scenario ID: {}, in modalità: {}.", this.scenarioId, mode);
 
             VerticalLayout mainLayout = getContent();
 
-
+            // Nasconde l'header (AppHeader) in modalità "edit" per un layout più compatto.
             mainLayout.getChildren()
                     .filter(component -> component instanceof HorizontalLayout)
-                    .findFirst()
+                    .findFirst() // Trova il primo HorizontalLayout (presumibilmente l'header).
                     .ifPresent(headerLayout -> headerLayout.setVisible(!"edit".equals(mode)));
 
-
+            // Nasconde la CreditsComponent nel footer in modalità "edit".
             mainLayout.getChildren()
                     .filter(component -> component instanceof HorizontalLayout)
-                    .reduce((first, second) -> second)
+                    .reduce((first, second) -> second) // Trova l'ultimo HorizontalLayout (presumibilmente il footer).
                     .ifPresent(footerLayout -> footerLayout.getChildren()
                             .filter(component -> component instanceof CreditsComponent)
                             .forEach(credits -> credits.setVisible(!"edit".equals(mode))));
 
-
+            // Carica i dati iniziali (T0) e, in modalità "edit", anche i tempi esistenti.
             if ("edit".equals(mode)) {
-                logger.info("Modalità EDIT: caricamento dati Tempi esistenti per scenario {}", this.scenarioId);
-                nextButton.setText("Salva");
-                nextButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
-                nextButton.setIcon(new Icon(VaadinIcon.CHECK));
-                nextButton.setIconAfterText(false);
+                logger.info("Modalità EDIT attiva: caricamento dati Tempi esistenti per lo scenario {}.", this.scenarioId);
+                nextButton.setText("Salva Modifiche"); // Cambia testo del bottone.
+                nextButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS); // Aggiunge stile di successo.
+                nextButton.setIcon(new Icon(VaadinIcon.CHECK)); // Cambia icona.
+                // Carica prima i dati iniziali di T0, poi tutti gli altri tempi esistenti.
                 loadInitialData();
                 loadExistingTimes();
             } else {
-                logger.info("Modalità CREATE: caricamento dati iniziali T0 e preparazione per nuovi tempi per scenario {}", this.scenarioId);
-                loadInitialData();
+                logger.info("Modalità CREATE attiva: caricamento dati iniziali T0 e preparazione per nuovi tempi per lo scenario {}.", this.scenarioId);
+                loadInitialData(); // Carica solo i dati iniziali di T0 per la modalità di creazione.
             }
         } catch (NumberFormatException e) {
-            logger.error("Errore nel parsing o validazione dell'ID Scenario: '{}'", parameter, e);
-            event.rerouteToError(NotFoundException.class, "ID scenario non valido o mancante.");
+            logger.error("Errore nel parsing o validazione dell'ID Scenario: '{}'. Dettagli: {}", parameter, e.getMessage(), e);
+            event.rerouteToError(NotFoundException.class, "ID scenario non valido o mancante. Assicurati che l'URL sia corretto.");
+        } catch (Exception e) {
+            logger.error("Errore imprevisto durante l'impostazione dei parametri per la vista Tempi: {}", e.getMessage(), e);
+            event.rerouteToError(NotFoundException.class, "Si è verificato un errore durante il caricamento della pagina. Riprova.");
         }
     }
 
     /**
-     * Aggiunge una nuova sezione temporale (T1, T2, ecc.) al layout.
-     * Ogni sezione contiene campi per i parametri vitali, azioni e parametri aggiuntivi.
+     * Aggiunge una nuova sezione temporale {@link TimeSection} alla vista.
+     * Ogni sezione rappresenta un momento specifico nello scenario (es. T1, T2...).
+     * La sezione include campi per i parametri vitali, azioni, transizioni e parametri aggiuntivi.
      *
-     * @param timeNumber numero del tempo corrente (1 per T1, 2 per T2, ecc.)
+     * @param timeNumber Il numero progressivo del tempo da aggiungere (es. 1 per T1, 2 per T2).
      */
     private void addTimeSection(int timeNumber) {
-
+        // Verifica se una sezione per questo numero di tempo esiste già per evitare duplicati.
         boolean alreadyExists = timeSections.stream().anyMatch(ts -> ts.getTimeNumber() == timeNumber);
         if (alreadyExists) {
             logger.debug("Sezione per T{} esiste già, non viene aggiunta di nuovo.", timeNumber);
             return;
         }
 
-
+        // Crea una nuova istanza di TimeSection.
         TimeSection timeSection = new TimeSection(timeNumber, scenarioService, timeSections, timeSectionsContainer, scenarioId);
-        timeSections.add(timeSection);
+        timeSections.add(timeSection); // Aggiunge la nuova sezione alla lista di gestione.
 
+        // Ordina le sezioni per numero di tempo e le riaggiunge al contenitore per mantenere l'ordine.
         timeSections.sort(Comparator.comparingInt(TimeSection::getTimeNumber));
+        timeSectionsContainer.removeAll(); // Rimuove tutte le sezioni esistenti.
+        timeSections.forEach(ts -> timeSectionsContainer.add(ts.getLayout())); // Aggiunge le sezioni ordinate.
 
-        timeSectionsContainer.removeAll();
-        timeSections.forEach(ts -> timeSectionsContainer.add(ts.getLayout()));
-
+        // Se è la sezione T0, nasconde il bottone di rimozione (T0 non può essere rimosso).
         if (timeNumber == 0) {
             timeSection.hideRemoveButton();
         }
 
+        // Aggiunge un bottone per aprire il dialog di aggiunta parametri aggiuntivi.
         Button addParamsButton = new Button("Aggiungi Parametri Aggiuntivi", new Icon(VaadinIcon.PLUS));
         addParamsButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         addParamsButton.addClassName(LumoUtility.Margin.Top.SMALL);
         addParamsButton.addClickListener(e -> AdditionalParamDialog.showAdditionalParamsDialog(timeSection));
 
+        // Aggiunge il bottone al layout dei parametri medici della sezione.
         timeSection.getMedicalParamsForm().add(addParamsButton);
+
+        logger.info("Aggiunta nuova sezione Tempo T{} per lo scenario ID {}.", timeNumber, scenarioId);
     }
 
 
     /**
-     * Salva tutte le sezioni temporali (T0, T1, T2...) nel database.
-     * Raccoglie i dati da ogni {@link TimeSection}, li invia al {@link ScenarioService}
-     * e naviga alla schermata successiva in caso di successo.
+     * Salva tutti i tempi definiti dall'utente nel database.
+     * Raccoglie i dati da ogni {@link TimeSection}, li converte in oggetti {@link Tempo},
+     * e li passa al {@link AdvancedScenarioService} per il salvataggio transazionale.
+     * In caso di successo, naviga alla schermata successiva (Dettagli Scenario o Sceneggiatura, a seconda del tipo di scenario).
+     * Gestisce gli errori di validazione o di database tramite notifiche all'utente.
      */
     private void saveAllTimeSections() {
         try {
@@ -329,36 +359,35 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
 
     /**
      * Carica i dati iniziali per la sezione T0 (stato iniziale del paziente).
-     * Recupera i parametri da {@link PazienteT0} associato allo scenario.
-     * Se i dati sono presenti, li precompila nei campi della sezione T0 rendendoli non modificabili.
-     * Se T0 non esiste nel DB, aggiunge una sezione T0 vuota e modificabile (solo in create mode?).
+     * Recupera i parametri dal {@link PazienteT0} associato allo scenario e li precompila
+     * nei campi della sezione T0, rendendoli non modificabili se i dati provengono da PazienteT0.
+     * Aggiunge una sezione T0 vuota e modificabile solo se in modalità "create" e PazienteT0 non esiste.
      */
     private void loadInitialData() {
         try {
             PazienteT0 pazienteT0 = pazienteT0Service.getPazienteT0ById(scenarioId);
 
-
+            // Verifica se una sezione T0 è già presente nell'UI.
             Optional<TimeSection> existingT0 = timeSections.stream()
                     .filter(ts -> ts.getTimeNumber() == 0)
                     .findFirst();
 
             if (pazienteT0 != null) {
+                // Se PazienteT0 esiste nel DB, popola o aggiorna la sezione T0 nell'UI.
                 TimeSection t0Section;
                 if (existingT0.isEmpty()) {
-
+                    // Se T0 non è ancora nell'UI, lo aggiunge.
                     addTimeSection(0);
                     t0Section = timeSections.stream().filter(ts -> ts.getTimeNumber() == 0).findFirst().orElse(null);
                     if (t0Section == null) {
-                        logger.error("Impossibile trovare la sezione T0 appena aggiunta per scenario {}", scenarioId);
+                        logger.error("Impossibile trovare la sezione T0 appena aggiunta per lo scenario {}.", scenarioId);
                         return;
                     }
                 } else {
-
                     t0Section = existingT0.get();
                 }
 
-
-
+                // Popola i campi della sezione T0 con i dati di PazienteT0.
                 t0Section.setPaValue(pazienteT0.getPA());
                 t0Section.setFcValue(pazienteT0.getFC());
                 t0Section.setRrValue(pazienteT0.getRR());
@@ -368,49 +397,49 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                 t0Section.setLitriO2Value(pazienteT0.getLitriO2());
                 t0Section.setEtco2Value(pazienteT0.getEtCO2());
 
-
-                Notification.show("I parametri base di T0 derivano dallo stato iniziale del paziente e non sono modificabili qui.",
+                // Notifica all'utente che i parametri di T0 non sono modificabili direttamente qui.
+                Notification.show("I parametri base di T0 derivano dallo stato iniziale del paziente e non sono modificabili direttamente qui.",
                         4000, Notification.Position.BOTTOM_START).addThemeVariants(NotificationVariant.LUMO_WARNING);
 
-
+                // Carica i parametri aggiuntivi specifici per T0.
                 loadAdditionalParameters(t0Section, 0);
 
             } else if (existingT0.isEmpty() && "create".equals(mode)) {
-
-
-                logger.info("PazienteT0 non trovato per scenario {}, aggiunta sezione T0 vuota in modalità create.", scenarioId);
+                // Se PazienteT0 non esiste nel DB e siamo in modalità "create", aggiunge una sezione T0 vuota e modificabile.
+                logger.info("PazienteT0 non trovato per lo scenario {}, aggiunta sezione T0 vuota in modalità create.", scenarioId);
                 addTimeSection(0);
 
             } else if (existingT0.isPresent()) {
-
-
-                logger.warn("Sezione T0 presente nell'UI ma PazienteT0 non trovato nel DB per scenario {}", scenarioId);
-
+                // Questo caso potrebbe indicare un'inconsistenza: T0 è nell'UI ma non nel DB.
+                logger.warn("Sezione T0 presente nell'UI ma PazienteT0 non trovato nel DB per lo scenario {}. Controllare consistenza dati.", scenarioId);
+                // Potrebbe essere necessario un reset o un messaggio specifico.
             }
 
         } catch (Exception e) {
-            Notification.show("Errore nel caricamento dei dati iniziali di T0: " + e.getMessage(),
+            Notification.show("Errore critico nel caricamento dei dati iniziali di T0: " + e.getMessage(),
                     5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
-            logger.error("Errore durante il caricamento dei dati iniziali (PazienteT0) per scenario {}", scenarioId, e);
+            logger.error("Errore durante il caricamento dei dati iniziali (PazienteT0) per lo scenario {}: {}", scenarioId, e.getMessage(), e);
         }
     }
 
 
     /**
-     * Carica i dati dei tempi esistenti (T1, T2, ...) dallo scenario salvato.
-     * Viene chiamato in modalità "edit" dopo {@link #loadInitialData()}.
-     * Popola le sezioni temporali con i dati recuperati dal database.
+     * Carica i dati dei tempi esistenti (T1, T2, ...) dallo scenario salvato nel database.
+     * Questo metodo viene chiamato specificamente in modalità "edit" dopo che {@link #loadInitialData()} ha gestito T0.
+     * Popola le sezioni temporali della UI con i dati recuperati, gestendo anche i parametri aggiuntivi.
      */
     private void loadExistingTimes() {
-        if (!"edit".equals(mode)) return;
+        if (!"edit".equals(mode)) {
+            logger.debug("Non in modalità 'edit'. Saltato il caricamento dei tempi esistenti (T1, T2...).");
+            return;
+        }
 
         List<Tempo> existingTempi = advancedScenarioService.getTempiByScenarioId(scenarioId);
 
         if (!existingTempi.isEmpty()) {
-            logger.info("Trovati {} tempi esistenti per scenario {}", existingTempi.size(), scenarioId);
+            logger.info("Trovati {} tempi esistenti (oltre a T0) per lo scenario ID {}.", existingTempi.size(), scenarioId);
 
-
-
+            // Preserva la sezione T0 se già caricata, poi pulisce e ricostruisce la lista e il contenitore.
             TimeSection t0Section = timeSections.stream().filter(ts -> ts.getTimeNumber() == 0).findFirst().orElse(null);
             timeSections.clear();
             timeSectionsContainer.removeAll();
@@ -419,22 +448,19 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                 timeSectionsContainer.add(t0Section.getLayout());
             }
 
-
-
+            // Itera sui tempi recuperati dal DB e aggiunge/popola le sezioni corrispondenti.
             for (Tempo tempo : existingTempi) {
                 int tempoId = tempo.getIdTempo();
-                if (tempoId >= 0) {
-
-                    addTimeSection(tempoId);
+                if (tempoId >= 0) { // Assicura che l'ID del tempo sia valido (non negativo).
+                    addTimeSection(tempoId); // Aggiunge la sezione UI per questo tempo.
                     TimeSection section = timeSections.stream()
                             .filter(ts -> ts.getTimeNumber() == tempoId)
                             .findFirst()
                             .orElse(null);
 
                     if (section != null) {
-
-
-
+                        // Popola i campi vitali per T1, T2, ...
+                        // T0 è già stato gestito da loadInitialData.
                         if (tempoId > 0) {
                             section.paField.setValue(tempo.getPA() != null ? tempo.getPA() : "");
                             section.fcField.setValue(Optional.ofNullable(tempo.getFC()).map(Double::valueOf).orElse(null));
@@ -442,111 +468,110 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                             section.tField.setValue(Optional.of(tempo.getT()).orElse(null));
                             section.spo2Field.setValue(Optional.ofNullable(tempo.getSpO2()).map(Double::valueOf).orElse(null));
                             section.fio2Field.setValue(Optional.ofNullable(tempo.getFiO2()).map(Double::valueOf).orElse(null));
-                            section.litriO2Field.setValue(Optional.ofNullable(tempo.getLitriO2()).map(Double::valueOf).orElse(null));
+                            section.litriO2Field.setValue(tempo.getLitriO2());
                             section.etco2Field.setValue(Optional.ofNullable(tempo.getEtCO2()).map(Double::valueOf).orElse(null));
                         }
 
-
+                        // Popola gli altri campi del tempo.
                         section.actionDetailsArea.setValue(tempo.getAzione() != null ? tempo.getAzione() : "");
                         section.timeIfYesField.setValue(tempo.getTSi());
                         section.timeIfNoField.setValue(tempo.getTNo());
                         section.additionalDetailsArea.setValue(tempo.getAltriDettagli() != null ? tempo.getAltriDettagli() : "");
                         section.ruoloGenitoreArea.setValue(tempo.getRuoloGenitore() != null ? tempo.getRuoloGenitore() : "");
 
+                        // Popola il TimePicker per il timerTempo.
                         if (tempo.getTimerTempo() > 0) {
                             try {
                                 section.timerPicker.setValue(LocalTime.ofSecondOfDay(tempo.getTimerTempo()));
                             } catch (Exception e) {
-                                logger.warn("Errore nel parsing del timer ({}) per T{} scenario {}", tempo.getTimerTempo(), tempoId, scenarioId, e);
+                                logger.warn("Errore nel parsing del timer ({} secondi) per T{} dello scenario ID {}. Il campo sarà vuoto.", tempo.getTimerTempo(), tempoId, scenarioId, e);
                                 section.timerPicker.setValue(null);
                             }
                         } else {
-                            section.timerPicker.setValue(null);
+                            section.timerPicker.setValue(null); // Se il timer è 0 o negativo, lo imposta a null.
                         }
 
-
+                        // Carica i parametri aggiuntivi per questo tempo.
                         loadAdditionalParameters(section, tempoId);
                     } else {
-                        logger.error("Impossibile trovare/creare la sezione per T{} durante il caricamento scenario {}", tempoId, scenarioId);
+                        logger.error("Impossibile trovare/creare la sezione UI per il tempo T{} durante il caricamento dello scenario ID {}. Dati non visualizzati correttamente.", tempoId, scenarioId);
                     }
                 }
             }
 
+            // Aggiorna il timeCount per i nuovi tempi da aggiungere, basandosi sul massimo ID esistente.
             timeCount = existingTempi.stream()
                     .mapToInt(Tempo::getIdTempo)
                     .max()
                     .orElse(0) + 1;
-            if (timeCount == 0) timeCount = 1;
+            if (timeCount == 0) timeCount = 1; // Assicura che timeCount sia almeno 1 per T1 se non ci sono altri tempi.
 
-
+            // Ordina e riaggiunge tutte le sezioni al contenitore per garantire l'ordine corretto nella UI.
             timeSections.sort(Comparator.comparingInt(TimeSection::getTimeNumber));
             timeSectionsContainer.removeAll();
             timeSections.forEach(ts -> timeSectionsContainer.add(ts.getLayout()));
 
         } else {
-            logger.info("Nessun tempo (T1, T2...) trovato nel database per scenario {}", scenarioId);
-
+            logger.info("Nessun tempo (T1, T2...) trovato nel database per lo scenario ID {}.", scenarioId);
         }
     }
 
     /**
-     * Carica i parametri aggiuntivi associati a un tempo specifico (tempoId)
-     * per un dato scenario (scenarioId).
-     * Aggiunge i campi corrispondenti alla sezione {@link TimeSection} fornita.
+     * Carica i {@link ParametroAggiuntivo parametri aggiuntivi} associati a un tempo specifico
+     * (identificato da <code>tempoId</code>) e a un dato scenario (<code>scenarioId</code>) dal database.
+     * Aggiunge i campi di input corrispondenti per questi parametri alla {@link TimeSection} fornita,
+     * popolandoli con i valori recuperati.
      *
-     * @param section la sezione temporale (UI) a cui aggiungere i parametri
-     * @param tempoId l'ID del tempo (0 per T0, 1 per T1, ...) di cui caricare i parametri
+     * @param section La {@link TimeSection} (componente UI) a cui aggiungere e visualizzare i parametri aggiuntivi.
+     * @param tempoId L'ID del tempo (0 per T0, 1 per T1, ecc.) di cui caricare i parametri aggiuntivi.
      */
     private void loadAdditionalParameters(TimeSection section, int tempoId) {
         List<ParametroAggiuntivo> params = advancedScenarioService.getParametriAggiuntiviByTempoId(tempoId, scenarioId);
 
         if (!params.isEmpty()) {
-            logger.debug("Caricamento di {} parametri aggiuntivi per T{} scenario {}", params.size(), tempoId, scenarioId);
+            logger.debug("Caricamento di {} parametri aggiuntivi per il tempo T{} dello scenario ID {}.", params.size(), tempoId, scenarioId);
             for (ParametroAggiuntivo param : params) {
                 String paramName = param.getNome();
                 String unit = param.getUnitaMisura() != null ? param.getUnitaMisura() : "";
                 String valueStr = param.getValore();
 
-
-
+                // Costruisce una chiave unica per il parametro, distinguendo tra standard e custom.
                 String paramKey = ADDITIONAL_PARAMETERS.keySet().stream()
                         .filter(s -> s.equalsIgnoreCase(paramName))
                         .findFirst()
-                        .orElse(CUSTOM_PARAMETER_KEY + "_" + paramName.replaceAll("\\s+", "_"));
+                        .orElse(CUSTOM_PARAMETER_KEY + "_" + paramName.replaceAll("\\s+", "_")); // Per parametri custom.
 
-
+                // Costruisce il label visualizzato (nome + unità di misura).
                 String label = paramName + (unit.isEmpty() ? "" : " (" + unit + ")");
 
-
-
+                // Aggiunge il campo input per il parametro aggiuntivo alla sezione UI.
                 section.addCustomParameter(paramKey, label, unit);
 
-
+                // Popola il campo con il valore recuperato.
                 if (section.getCustomParameters().containsKey(paramKey)) {
                     try {
                         if (valueStr != null && !valueStr.trim().isEmpty()) {
-                            double value = Double.parseDouble(valueStr.trim().replace(',', '.'));
+                            double value = Double.parseDouble(valueStr.trim().replace(',', '.')); // Gestisce virgola/punto.
                             section.getCustomParameters().get(paramKey).setValue(value);
                         } else {
-                            section.getCustomParameters().get(paramKey).setValue(0.0);
+                            section.getCustomParameters().get(paramKey).setValue(0.0); // Valore nullo o vuoto -> 0.0.
                         }
                     } catch (NumberFormatException e) {
-                        logger.error("Errore parsing valore '{}' per parametro '{}' (T{}, Scenario {}). Impostato a 0.",
-                                valueStr, paramName, tempoId, scenarioId, e);
+                        logger.error("Errore di parsing del valore '{}' per il parametro '{}' (T{}, Scenario ID {}). Impostato a 0. Dettagli: {}",
+                                valueStr, paramName, tempoId, scenarioId, e.getMessage(), e);
                         section.getCustomParameters().get(paramKey).setValue(0.0);
                     } catch (NullPointerException e) {
-                        logger.error("Errore: valore nullo per parametro '{}' (T{}, Scenario {}). Impostato a 0.",
-                                paramName, tempoId, scenarioId, e);
+                        logger.error("Errore: valore nullo inaspettato per il parametro '{}' (T{}, Scenario ID {}). Impostato a 0. Dettagli: {}",
+                                paramName, tempoId, scenarioId, e.getMessage(), e);
                         section.getCustomParameters().get(paramKey).setValue(0.0);
                     }
                 } else {
-
-                    logger.warn("Campo per parametro con chiave '{}' non trovato nell'UI dopo addCustomParameter durante il caricamento (T{}, Scenario {}).",
+                    logger.warn("Campo per il parametro con chiave '{}' non trovato nell'UI dopo l'aggiunta durante il caricamento (Tempo T{}, Scenario ID {}). Assicurati che 'addCustomParameter' crei il campo correttamente.",
                             paramKey, tempoId, scenarioId);
                 }
             }
         } else {
-            logger.debug("Nessun parametro aggiuntivo trovato per T{} scenario {}", tempoId, scenarioId);
+            logger.debug("Nessun parametro aggiuntivo trovato per il tempo T{} dello scenario ID {}.", tempoId, scenarioId);
         }
     }
 }

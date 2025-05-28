@@ -21,13 +21,8 @@ import it.uniupo.simnova.views.common.utils.StyleApp;
 
 /**
  * Vista principale per la creazione di nuovi scenari di simulazione.
- * <p>
- * Offre diverse opzioni per la creazione di scenari:
- * - Scenario veloce
- * - Scenario avanzato
- * - Scenario con paziente simulato
- * - Accesso alla libreria degli scenari salvati
- * </p>
+ * Offre opzioni per creare scenari veloci, avanzati, con paziente simulato
+ * o accedere alla libreria degli scenari salvati.
  *
  * @author Alessandro Zappatore
  * @version 1.0
@@ -37,7 +32,9 @@ import it.uniupo.simnova.views.common.utils.StyleApp;
 public class CreationView extends Composite<VerticalLayout> {
 
     /**
-     * Costruttore che inizializza l'interfaccia per la selezione del tipo di scenario.
+     * Costruttore che inizializza l'interfaccia utente per la selezione del tipo di scenario.
+     *
+     * @param fileStorageService Servizio per la gestione dello storage dei file.
      */
     public CreationView(FileStorageService fileStorageService) {
 
@@ -54,7 +51,6 @@ public class CreationView extends Composite<VerticalLayout> {
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
         VerticalLayout contentLayout = StyleApp.getContentLayout();
-
 
         Button quickScenarioButton = createScenarioButton(
                 "Quick Scenario",
@@ -84,10 +80,8 @@ public class CreationView extends Composite<VerticalLayout> {
                 "Accedi alla libreria degli scenari creati"
         );
 
-
+        // Listener per la navigazione
         backButton.addClickListener(e -> backButton.getUI().ifPresent(ui -> ui.navigate("")));
-
-
         quickScenarioButton.addClickListener(e ->
                 quickScenarioButton.getUI().ifPresent(ui -> ui.navigate("startCreation/quickScenario")));
         advancedScenarioButton.addClickListener(e ->
@@ -97,7 +91,6 @@ public class CreationView extends Composite<VerticalLayout> {
         visualizzaScenari.addClickListener(e ->
                 visualizzaScenari.getUI().ifPresent(ui -> ui.navigate("scenari")));
 
-
         Div contentContainer = new Div();
         contentContainer.addClassName("scenario-container");
         contentContainer.getStyle()
@@ -105,7 +98,6 @@ public class CreationView extends Composite<VerticalLayout> {
                 .set("margin", "0 auto")
                 .set("padding", "1rem")
                 .set("height", "100%");
-
 
         contentContainer.add(
                 quickScenarioButton,
@@ -116,7 +108,6 @@ public class CreationView extends Composite<VerticalLayout> {
 
         contentLayout.add(headerSection, contentContainer);
 
-
         VerticalLayout layout = getContent();
         layout.addClassName("creation-view");
         layout.setPadding(false);
@@ -126,14 +117,14 @@ public class CreationView extends Composite<VerticalLayout> {
         layout.getStyle().set("min-height", "100vh");
         layout.getStyle().set("position", "relative");
 
-
         layout.add(customHeader, contentLayout);
 
-
+        // Impostazione variabili CSS per la visibilità delle descrizioni
         layout.getElement().getStyle().set("--short-desc-display", "none");
         layout.getElement().getStyle().set("--long-desc-display", "block");
         layout.getElement().getStyle().set("background-color", "var(--lumo-contrast-5pct)");
 
+        // JavaScript per la logica di visualizzazione delle descrizioni in base alla larghezza dello schermo
         layout.getElement().executeJs("""
                     const style = document.createElement('style');
                     style.textContent = `
@@ -167,30 +158,27 @@ public class CreationView extends Composite<VerticalLayout> {
 
     /**
      * Crea un pulsante personalizzato per la selezione del tipo di scenario.
+     * Include icona, titolo e descrizioni adattive (breve per mobile, estesa per desktop).
      *
-     * @param title     Titolo del pulsante
-     * @param buttonIcon      Icona da visualizzare
-     * @param shortDesc Descrizione breve (per mobile)
-     * @param longDesc  Descrizione estesa (per desktop)
-     * @return Pulsante configurato
+     * @param title      Titolo del pulsante.
+     * @param buttonIcon Icona da visualizzare.
+     * @param shortDesc  Descrizione breve (per schermi piccoli).
+     * @param longDesc   Descrizione estesa (per schermi grandi).
+     * @return Il pulsante configurato.
      */
     private Button createScenarioButton(String title, Icon buttonIcon, String shortDesc, String longDesc) {
         Div content = new Div();
         content.addClassName("button-content");
 
-
-
         buttonIcon.setSize("24px");
         buttonIcon.getStyle().set("margin-right", "0.5rem");
         buttonIcon.addClassName("buttonIcon");
-
 
         Span titleSpan = new Span(title);
         titleSpan.getStyle()
                 .set("font-weight", "600")
                 .set("font-size", "1.2rem");
         titleSpan.addClassName("titleSpan");
-
 
         Span shortDescSpan = new Span(shortDesc);
         shortDescSpan.addClassNames(
@@ -203,7 +191,6 @@ public class CreationView extends Composite<VerticalLayout> {
                 .set("display", "var(--short-desc-display)")
                 .set("margin-top", "0.5rem")
                 .set("text-align", "center");
-
 
         Span longDescSpan = new Span(longDesc);
         longDescSpan.addClassNames(
@@ -233,7 +220,6 @@ public class CreationView extends Composite<VerticalLayout> {
                 .set("justify-content", "flex-start")
                 .set("height", "auto")
                 .set("min-height", "80px");
-
 
         button.addClickListener(e -> button.getStyle().set("transform", "translateY(2px)"));
 

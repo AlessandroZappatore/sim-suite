@@ -4,47 +4,45 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Classe che rappresenta un esame fisico completo di un paziente.
- * <p>
- * Contiene i risultati di un esame fisico organizzato per sezioni anatomiche.
- * Ogni sezione può contenere una descrizione testuale dei risultati.
- * </p>
+ * Classe che rappresenta un <strong>esame fisico completo</strong> di un paziente.
+ * Contiene i risultati di un esame fisico organizzato per sezioni anatomiche,
+ * con ogni sezione che può avere una descrizione testuale dei risultati.
  *
  * @author Alessandro Zappatore
  * @version 1.0
  */
-@SuppressWarnings("NonAsciiCharacters")
+@SuppressWarnings("NonAsciiCharacters") // Sopprime l'avviso per caratteri non-ASCII, se presenti (es. in descrizioni)
 public class EsameFisico {
-    /**
-     * Identificativo univoco dell'esame fisico.
-     */
-    private int idEsameFisico;
-    /**
-     * Mappa che associa il nome di ogni sezione dell'esame fisico al suo risultato.
-     * Le chiavi della mappa sono i nomi delle sezioni, mentre i valori sono le
-     * descrizioni testuali dei risultati.
-     */
-    private Map<String, String> sections;
+
+    private final int idEsameFisico; // <strong>Identificativo univoco</strong> dell'esame fisico, assegnato dal database.
 
     /**
-     * Costruttore completo per creare un esame fisico con tutti i valori.
+     * Mappa che associa il nome di ogni sezione dell'esame fisico (es. "Generale", "Torace")
+     * alla sua descrizione testuale dei risultati.
+     */
+    private final Map<String, String> sections;
+
+    /**
+     * Costruttore completo per creare un oggetto <strong><code>EsameFisico</code></strong>
+     * con i risultati di tutte le sezioni predefinite.
      *
-     * @param idEsameFisico identificativo univoco dell'esame fisico
-     * @param generale      risultati sezione generale
-     * @param pupille       risultati esame pupille
-     * @param collo         risultati esame collo
-     * @param torace        risultati esame torace
-     * @param cuore         risultati esame cuore
-     * @param addome        risultati esame addome
-     * @param retto         risultati esame rettale (se eseguito)
-     * @param cute          risultati esame cute
-     * @param estremità     risultati esame estremità
-     * @param neurologico   risultati esame neurologico
-     * @param fast          risultati FAST exam (Focused Assessment with Sonography for Trauma)
+     * @param idEsameFisico <strong>Identificativo univoco</strong> dell'esame fisico.
+     * @param generale      Risultati della sezione "Generale".
+     * @param pupille       Risultati dell'esame "Pupille".
+     * @param collo         Risultati dell'esame "Collo".
+     * @param torace        Risultati dell'esame "Torace".
+     * @param cuore         Risultati dell'esame "Cuore".
+     * @param addome        Risultati dell'esame "Addome".
+     * @param retto         Risultati dell'esame "Retto" (se eseguito).
+     * @param cute          Risultati dell'esame "Cute".
+     * @param estremità     Risultati dell'esame "Estremità".
+     * @param neurologico   Risultati dell'esame "Neurologico".
+     * @param fast          Risultati del FAST exam (Focused Assessment with Sonography for Trauma).
      */
     public EsameFisico(int idEsameFisico, String generale, String pupille, String collo, String torace, String cuore, String addome, String retto, String cute, String estremità, String neurologico, String fast) {
         this.idEsameFisico = idEsameFisico;
         this.sections = new HashMap<>();
+        // Inizializza la mappa con tutte le sezioni e i loro valori corrispondenti.
         sections.put("Generale", generale);
         sections.put("Pupille", pupille);
         sections.put("Collo", collo);
@@ -59,58 +57,22 @@ public class EsameFisico {
     }
 
     /**
-     * Restituisce l'identificativo univoco dell'esame fisico.
+     * Recupera la <strong>mappa completa</strong> di tutte le sezioni dell'esame fisico
+     * con i rispettivi risultati testuali.
      *
-     * @return l'identificativo univoco dell'esame fisico
-     */
-    public Integer getIdEsameFisico() {
-        return idEsameFisico;
-    }
-
-    /**
-     * Imposta l'identificativo univoco dell'esame fisico.
-     *
-     * @param idEsameFisico il nuovo identificativo
-     */
-    public void setIdEsameFisico(Integer idEsameFisico) {
-        this.idEsameFisico = idEsameFisico;
-    }
-
-    /**
-     * Recupera la mappa completa di tutte le sezioni dell'esame fisico.
-     *
-     * @return la mappa completa di tutte le sezioni dell'esame con i relativi risultati
+     * @return Una mappa dove le chiavi sono i nomi delle sezioni e i valori sono le descrizioni dei risultati.
      */
     public Map<String, String> getSections() {
         return sections;
     }
 
     /**
-     * Imposta una nuova mappa di sezioni per l'esame fisico.
+     * Restituisce l'<strong>identificativo univoco</strong> dell'esame fisico.
      *
-     * @param sections la nuova mappa di sezioni
+     * @return L'ID dell'esame fisico.
      */
-    public void setSections(Map<String, String> sections) {
-        this.sections = sections;
-    }
-
-    /**
-     * Recupera il risultato di una specifica sezione dell'esame.
-     *
-     * @param sectionName il nome della sezione da recuperare
-     * @return il risultato testuale della sezione, o null se la sezione non esiste
-     */
-    public String getSection(String sectionName) {
-        return sections.get(sectionName);
-    }
-
-    /**
-     * Imposta il risultato per una specifica sezione dell'esame.
-     *
-     * @param sectionName il nome della sezione da modificare
-     * @param value       il nuovo valore testuale per la sezione
-     */
-    public void setSection(String sectionName, String value) {
-        sections.put(sectionName, value);
+    @SuppressWarnings("unused") // Sopprime l'avviso se il metodo non viene usato direttamente nel codice Java.
+    public int getIdEsameFisico() {
+        return idEsameFisico;
     }
 }

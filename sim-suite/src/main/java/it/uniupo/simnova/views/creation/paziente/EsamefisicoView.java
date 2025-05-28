@@ -4,7 +4,9 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -13,28 +15,32 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
-import com.vaadin.flow.router.*;
+import com.vaadin.flow.router.BeforeEvent;
+import com.vaadin.flow.router.HasUrlParameter;
+import com.vaadin.flow.router.NotFoundException;
+import com.vaadin.flow.router.OptionalParameter;
+import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.Route;
 import it.uniupo.simnova.domain.paziente.EsameFisico;
+import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.service.scenario.components.EsameFisicoService;
 import it.uniupo.simnova.service.storage.FileStorageService;
-import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.views.common.components.AppHeader;
 import it.uniupo.simnova.views.common.utils.StyleApp;
 import it.uniupo.simnova.views.common.utils.TinyEditor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.vaadin.tinymce.TinyMce;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.vaadin.tinymce.TinyMce;
+
 /**
- * Vista per la gestione dell'esame fisico del paziente nello scenario di simulazione.
- * <p>
- * Permette di inserire e modificare i risultati dell'esame fisico divisi per sezioni anatomiche.
- * Fa parte del flusso di creazione dello scenario.
- * </p>
+ * Vista per la gestione dell'esame fisico del paziente all'interno di uno scenario di simulazione.
+ * Questa vista permette l'inserimento e la modifica dettagliata dei risultati dell'esame fisico,
+ * suddivisi per sezioni anatomiche, utilizzando un editor WYSIWYG per ogni sezione.
  *
  * @author Alessandro Zappatore
  * @version 1.0
@@ -42,32 +48,23 @@ import java.util.Optional;
 @PageTitle("Esame Fisico")
 @Route(value = "esameFisico")
 public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-    /**
-     * Logger per la registrazione degli eventi.
-     */
+
     private static final Logger logger = LoggerFactory.getLogger(EsamefisicoView.class);
-    /**
-     * Servizio per la gestione degli scenari.
-     */
+
     private final ScenarioService scenarioService;
     private final EsameFisicoService esameFisicoService;
-    /**
-     * Servizio per la gestione del caricamento dei file.
-     */
     private final FileStorageService fileStorageService;
-    /**
-     * Mappa per memorizzare le aree di testo delle sezioni dell'esame fisico.
-     */
-    private final Map<String, TinyMce> examSections = new HashMap<>();
-    /**
-     * ID dello scenario corrente.
-     */
-    private Integer scenarioId;
+
+    private final Map<String, TinyMce> examSections = new HashMap<>(); // Mappa: nome sezione -> editor TinyMCE
+    private Integer scenarioId; // ID dello scenario corrente
 
     /**
-     * Costruttore che inizializza l'interfaccia utente.
+     * Costruttore della vista {@code EsamefisicoView}.
+     * Inizializza i servizi e imposta la struttura base dell'interfaccia utente.
      *
-     * @param scenarioService servizio per la gestione degli scenari
+     * @param scenarioService    Il servizio per la gestione degli scenari.
+     * @param fileStorageService Il servizio per la gestione dei file.
+     * @param esameFisicoService Il servizio per la gestione degli esami fisici.
      */
     public EsamefisicoView(ScenarioService scenarioService, FileStorageService fileStorageService, EsameFisicoService esameFisicoService) {
         this.scenarioService = scenarioService;
@@ -77,53 +74,74 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
     }
 
     /**
-     * Configura la struttura principale della vista.
+     * Restituisce l'icona {@link Icon} appropriata per una specifica sezione dell'esame fisico.
+     *
+     * @param sectionTitle Il titolo della sezione (es. "Generale", "Pupille").
+     * @return L'icona corrispondente alla sezione.
+     */
+    private static Icon getSectionIcon(String sectionTitle) {
+        return switch (sectionTitle) {
+            case "Generale" -> new Icon(VaadinIcon.CLIPBOARD_PULSE);
+            case "Pupille" -> new Icon(VaadinIcon.EYE);
+            case "Collo" -> new Icon(VaadinIcon.USER);
+            case "Torace" -> FontAwesome.Solid.LUNGS.create();
+            case "Cuore" -> new Icon(VaadinIcon.HEART);
+            case "Addome" -> FontAwesome.Solid.A.create(); // Icona generica per 'Addome'
+            case "Retto" -> FontAwesome.Solid.POOP.create();
+            case "Cute" -> FontAwesome.Solid.HAND_DOTS.create();
+            case "Estremità" -> FontAwesome.Solid.HANDS.create();
+            case "Neurologico" -> FontAwesome.Solid.BRAIN.create();
+            case "FAST" -> new Icon(VaadinIcon.AMBULANCE);
+            default -> new Icon(VaadinIcon.INFO); // Icona di default
+        };
+    }
+
+    /**
+     * Configura la struttura principale della vista, inclusi header, layout dei contenuti
+     * e pulsanti di navigazione.
      */
     private void setupView() {
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
 
         AppHeader header = new AppHeader(fileStorageService);
-
         Button backButton = StyleApp.getBackButton();
 
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "ESAME FISICO",
-                "Definisci il briefing che verrà mostrato ai discenti prima della simulazione",
+                "Definisci i risultati dell'esame fisico del paziente, suddivisi per sezioni anatomiche.",
                 VaadinIcon.STETHOSCOPE.create(),
                 "var(--lumo-primary-color)"
         );
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
-
         VerticalLayout contentLayout = StyleApp.getContentLayout();
-
         contentLayout.add(headerSection);
-        setupExamSections(contentLayout);
 
+        setupExamSections(contentLayout); // Imposta le sezioni dell'esame fisico
 
         Button nextButton = StyleApp.getNextButton();
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
 
+        // Pulsanti di scroll rapido per pagine lunghe
         Button scrollToTopButton = StyleApp.getScrollButton();
         Button scrollDownButton = StyleApp.getScrollDownButton();
         VerticalLayout scrollLayout = new VerticalLayout(scrollToTopButton, scrollDownButton);
-
         mainLayout.add(scrollLayout);
 
+        // Aggiunge i componenti principali al layout radice
         mainLayout.add(customHeader, contentLayout, footerLayout);
 
-        backButton.addClickListener(e ->
-                backButton.getUI().ifPresent(ui -> ui.navigate("pazienteT0/" + scenarioId)));
+        // Listener per la navigazione
+        backButton.addClickListener(e -> backButton.getUI().ifPresent(ui -> ui.navigate("pazienteT0/" + scenarioId)));
         nextButton.addClickListener(e -> saveExamAndNavigate(nextButton.getUI()));
-
     }
 
-
     /**
-     * Configura le sezioni dell'esame fisico.
+     * Configura e aggiunge al layout le sezioni dell'esame fisico, ciascuna con un editor TinyMCE.
+     * Ogni sezione ha un titolo, una descrizione e un'icona.
      *
-     * @param contentLayout layout a cui aggiungere le sezioni
+     * @param contentLayout Il layout verticale a cui aggiungere le sezioni dell'esame.
      */
     private void setupExamSections(VerticalLayout contentLayout) {
         VerticalLayout examSectionsLayout = new VerticalLayout();
@@ -131,27 +149,25 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
         examSectionsLayout.setSpacing(true);
         examSectionsLayout.setPadding(false);
 
-
+        // Definizioni delle sezioni dell'esame fisico: Nome, Descrizione, Colore tema
         String[][] sections = {
-                {"Generale", "Stato generale, livello di coscienza, etc.", "#4285F4"},
-                {"Pupille", "Dimensione, reattività, simmetria", "#4285F4"},
-                {"Collo", "Esame del collo, tiroide, linfonodi", "#0F9D58"},
-                {"Torace", "Ispezione, palpazione, percussione, auscultazione", "#0F9D58"},
-                {"Cuore", "Frequenza, ritmo, soffi", "#0F9D58"},
-                {"Addome", "Ispezione, palpazione, dolorabilità, organomegalie", "#DB4437"},
-                {"Retto", "Esame rettale se indicato", "#DB4437"},
-                {"Cute", "Colorito, turgore, lesioni", "#F4B400"},
-                {"Estremità", "Edemi, pulsazioni periferiche", "#F4B400"},
-                {"Neurologico", "Stato mentale, nervi cranici, forza, sensibilità", "#673AB7"},
-                {"FAST", "Focused Assessment with Sonography for Trauma", "#673AB7"}
+                {"Generale", "Stato generale, livello di coscienza, postura, facies, cute e mucose, etc.", "#4285F4"}, // Blu
+                {"Pupille", "Dimensione, forma, simmetria, reattività alla luce, movimenti oculari.", "#4285F4"},
+                {"Collo", "Ispezione, palpazione, mobilità, vasi, linfonodi.", "#0F9D58"}, // Verde
+                {"Torace", "Ispezione, palpazione, percussione, auscultazione polmonare (murmure vescicolare, rumori aggiunti).", "#0F9D58"},
+                {"Cuore", "Ispezione, palpazione (itto della punta, fremiti), auscultazione (toni, soffi), frequenza e ritmo.", "#0F9D58"},
+                {"Addome", "Ispezione, auscultazione, percussione, palpazione superficiale e profonda, dolorabilità, organomegalie.", "#DB4437"}, // Rosso
+                {"Retto", "Ispezione perianale, esplorazione digitale rettale (se indicato).", "#DB4437"},
+                {"Cute", "Colorito, turgore, elasticità, lesioni, alterazioni ungueali e pilifere.", "#F4B400"}, // Giallo
+                {"Estremità", "Ispezione, palpazione (edemi, polsi periferici), motilità attiva e passiva, forza muscolare, riflessi.", "#F4B400"},
+                {"Neurologico", "Stato mentale, nervi cranici, sistema motorio, sistema sensitivo, riflessi, coordinazione, equilibrio.", "#673AB7"}, // Viola
+                {"FAST", "Focused Assessment with Sonography for Trauma (EFAST).", "#673AB7"}
         };
-
 
         for (String[] section : sections) {
             String sectionName = section[0];
             String sectionDesc = section[1];
             String sectionColor = section[2];
-
 
             VerticalLayout sectionLayout = new VerticalLayout();
             sectionLayout.setWidthFull();
@@ -161,9 +177,8 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
                     .set("background", "var(--lumo-base-color)")
                     .set("border-radius", "12px")
                     .set("margin-bottom", "1.5rem")
-                    .set("border-left", "4px solid " + sectionColor)
-                    .set("box-shadow", "0 2px 10px rgba(0, 0, 0, 0.05)");
-
+                    .set("border-left", "4px solid " + sectionColor) // Bordo colorato a sinistra
+                    .set("box-shadow", "0 2px 10px rgba(0, 0, 0, 0.05)"); // Ombra leggera
 
             HorizontalLayout headerLayout = new HorizontalLayout();
             headerLayout.setWidthFull();
@@ -171,8 +186,7 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
             headerLayout.setSpacing(true);
             headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-
-            Icon sectionIcon = getSectionIcon(sectionName);
+            Icon sectionIcon = getSectionIcon(sectionName); // Icona per la sezione
             Div iconCircle = new Div();
             iconCircle.add(sectionIcon);
             iconCircle.getStyle()
@@ -186,25 +200,21 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
                     .set("justify-content", "center")
                     .set("margin-right", "12px");
 
-
             sectionIcon.getStyle()
                     .set("color", "white")
                     .set("width", "20px")
                     .set("height", "20px");
 
-
             VerticalLayout titleDescLayout = new VerticalLayout();
             titleDescLayout.setPadding(false);
             titleDescLayout.setSpacing(false);
-
 
             H3 sectionTitle = new H3(sectionName);
             sectionTitle.getStyle()
                     .set("margin", "0")
                     .set("font-size", "18px")
-                    .set("color", sectionColor)
+                    .set("color", sectionColor) // Colore del titolo.
                     .set("font-weight", "600");
-
 
             Paragraph sectionDescription = new Paragraph(sectionDesc);
             sectionDescription.getStyle()
@@ -216,14 +226,13 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
             titleDescLayout.add(sectionTitle, sectionDescription);
             headerLayout.add(iconCircle, titleDescLayout);
 
-
-            TinyMce editor = TinyEditor.getEditor();
+            TinyMce editor = TinyEditor.getEditor(); // Editor WYSIWYG per il contenuto della sezione.
             editor.getStyle()
                     .set("margin-top", "12px")
                     .set("border", "1px solid " + sectionColor + "30")
                     .set("border-radius", "8px");
 
-            examSections.put(sectionName, editor);
+            examSections.put(sectionName, editor); // Mappa il nome della sezione al suo editor.
 
             sectionLayout.add(headerLayout, editor);
             examSectionsLayout.add(sectionLayout);
@@ -233,32 +242,12 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
     }
 
     /**
-     * Restituisce l'icona corrispondente alla sezione dell'esame fisico
+     * Gestisce il parametro dell'URL (ID dello scenario).
+     * Se l'ID non è valido o lo scenario non esiste, reindirizza a una pagina di errore 404.
      *
-     * @param sectionTitle il nome della sezione
-     * @return l'icona corrispondente
-     */
-    private static Icon getSectionIcon(String sectionTitle) {
-        return switch (sectionTitle) {
-            case "Generale" -> new Icon(VaadinIcon.CLIPBOARD_PULSE);
-            case "Pupille" -> new Icon(VaadinIcon.EYE);
-            case "Collo" -> new Icon(VaadinIcon.USER);
-            case "Torace" -> FontAwesome.Solid.LUNGS.create();
-            case "Cuore" -> new Icon(VaadinIcon.HEART);
-            case "Addome" -> FontAwesome.Solid.A.create();
-            case "Retto" -> FontAwesome.Solid.POOP.create();
-            case "Cute" -> FontAwesome.Solid.HAND_DOTS.create();
-            case "Estremità" -> FontAwesome.Solid.HANDS.create();
-            case "Neurologico" -> FontAwesome.Solid.BRAIN.create();
-            case "FAST" -> new Icon(VaadinIcon.AMBULANCE);
-            default -> new Icon(VaadinIcon.INFO);
-        };
-    }
-    /**
-     * Gestisce il parametro ricevuto dall'URL (ID scenario).
-     *
-     * @param event     l'evento di navigazione
-     * @param parameter l'ID dello scenario come stringa
+     * @param event     L'evento di navigazione.
+     * @param parameter L'ID dello scenario come stringa.
+     * @throws NotFoundException Se l'ID dello scenario non è valido o lo scenario non esiste.
      */
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
@@ -268,25 +257,29 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
             }
 
             this.scenarioId = Integer.parseInt(parameter);
+            // Verifica che lo scenario esista nel servizio
             if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
-                throw new NumberFormatException();
+                throw new NumberFormatException(); // Tratta come ID non valido se non esiste
             }
 
-            loadExistingExamData();
+            loadExistingExamData(); // Carica i dati dell'esame fisico se già esistenti
         } catch (NumberFormatException e) {
             logger.error("ID scenario non valido: {}", parameter, e);
-            event.rerouteToError(NotFoundException.class, "ID scenario " + scenarioId + " non valido");
+            // Reindirizza a una pagina di errore 404
+            event.rerouteToError(NotFoundException.class, "ID scenario " + parameter + " non valido.");
         }
     }
 
     /**
      * Carica i dati dell'esame fisico esistente per lo scenario corrente.
+     * Popola gli editor TinyMCE con i valori recuperati dal database.
      */
     private void loadExistingExamData() {
         EsameFisico esameFisico = esameFisicoService.getEsameFisicoById(scenarioId);
 
         if (esameFisico != null) {
             Map<String, String> savedSections = esameFisico.getSections();
+            // Popola ogni editor con il contenuto salvato per la rispettiva sezione
             savedSections.forEach((sectionName, value) -> {
                 TinyMce editor = examSections.get(sectionName);
                 if (editor != null) {
@@ -294,31 +287,35 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
                 }
             });
         } else {
+            // Se non esiste un esame fisico, inizializza tutti gli editor con stringhe vuote
             examSections.values().forEach(editor -> editor.setValue(""));
         }
     }
 
     /**
-     * Salva l'esame fisico e naviga alla vista successiva in base al tipo di scenario.
+     * Salva i dati dell'esame fisico inseriti negli editor e naviga alla vista successiva
+     * in base al tipo di scenario. Mostra notifiche di stato e di errore.
      *
-     * @param uiOptional l'UI corrente (opzionale)
+     * @param uiOptional L'istanza opzionale dell'UI corrente per la navigazione.
      */
     private void saveExamAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {
             ProgressBar progressBar = new ProgressBar();
             progressBar.setIndeterminate(true);
-            getContent().add(progressBar);
+            getContent().add(progressBar); // Mostra una progress bar durante il salvataggio
 
             try {
                 Map<String, String> examData = new HashMap<>();
+                // Raccoglie i valori da tutti gli editor
                 examSections.forEach((section, editor) -> examData.put(section, editor.getValue()));
 
                 boolean success = esameFisicoService.addEsameFisico(
-                        scenarioId, examData
+                        scenarioId, examData // Salva l'esame fisico nel servizio
                 );
 
+                // Aggiorna l'UI dopo il salvataggio
                 ui.accessSynchronously(() -> {
-                    getContent().remove(progressBar);
+                    getContent().remove(progressBar); // Rimuove la progress bar
                     if (!success) {
                         Notification.show("Errore durante il salvataggio dell'esame fisico",
                                 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -326,16 +323,17 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
                         return;
                     }
 
-
+                    // Naviga alla vista successiva in base al tipo di scenario
                     String scenarioType = scenarioService.getScenarioType(scenarioId);
                     if ("Quick Scenario".equals(scenarioType)) {
-                        ui.navigate("scenari/" + scenarioId);
+                        ui.navigate("scenari/" + scenarioId); // Naviga alla vista dettaglio scenario
                     } else if ("Advanced Scenario".equals(scenarioType) ||
                             "Patient Simulated Scenario".equals(scenarioType)) {
-                        ui.navigate("tempi/" + scenarioId + "/create");
+                        ui.navigate("tempi/" + scenarioId + "/create"); // Naviga alla creazione dei tempi
                     }
                 });
             } catch (Exception e) {
+                // Gestisce errori durante il salvataggio
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
                     Notification.show("Errore: " + e.getMessage(),

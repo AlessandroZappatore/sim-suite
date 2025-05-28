@@ -36,9 +36,27 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * Classe di utility per la gestione e visualizzazione degli esami e referti.
+ * Fornisce metodi per creare card riassuntive, visualizzare anteprime media,
+ * e consentire la modifica di referti e media associati.
+ *
+ * @author Alessandro Zappatore
+ * @version 1.0
+ */
 public class ExamSupport {
+
     private static final Logger logger = LoggerFactory.getLogger(ExamSupport.class);
 
+    /**
+     * Crea un layout verticale contenente le card di tutti gli esami e referti associati a uno scenario.
+     * Include funzionalità di visualizzazione, modifica del media/referto ed eliminazione.
+     *
+     * @param esameRefertoService Il servizio per la gestione degli esami e referti.
+     * @param fileStorageService  Il servizio per la gestione dei file.
+     * @param scenarioId          L'ID dello scenario.
+     * @return Un {@link VerticalLayout} con le card degli esami.
+     */
     public static VerticalLayout createExamsContent(EsameRefertoService esameRefertoService, FileStorageService fileStorageService, Integer scenarioId) {
         List<EsameReferto> esami = esameRefertoService.getEsamiRefertiByScenarioId(scenarioId);
         VerticalLayout layout = new VerticalLayout();
@@ -73,7 +91,6 @@ public class ExamSupport {
                         .set("color", "var(--lumo-primary-text-color)")
                         .set("flex-grow", "1");
 
-
                 Button editMediaButton = StyleApp.getButton("Modifica Media", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
                 editMediaButton.setTooltipText("Modifica file multimediale per " + esame.getTipo());
                 editMediaButton.getElement().setAttribute("aria-label", "Modifica file multimediale per " + esame.getTipo());
@@ -82,7 +99,6 @@ public class ExamSupport {
                 titleAndEditMedia.setAlignItems(FlexComponent.Alignment.CENTER);
                 titleAndEditMedia.setSpacing(true);
                 titleAndEditMedia.getStyle().set("flex-grow", "1");
-
 
                 Button deleteButton = new Button(VaadinIcon.TRASH.create());
                 deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
@@ -102,7 +118,7 @@ public class ExamSupport {
                         boolean deleted = esameRefertoService.deleteEsameReferto(esame.getIdEsame(), scenarioId);
                         if (deleted) {
                             Notification.show("Esame '" + esame.getTipo() + "' eliminato con successo.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                            layout.remove(examCard);
+                            layout.remove(examCard); // Rimuove la card dalla UI
                         } else {
                             Notification.show("Errore durante l'eliminazione dell'esame.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         }
@@ -122,12 +138,11 @@ public class ExamSupport {
                 cardHeader.add(titleAndEditMedia, deleteButton);
                 examCard.add(cardHeader);
 
-
+                // Sezione per l'anteprima e la modifica del media
                 VerticalLayout mediaSectionContainer = new VerticalLayout();
                 mediaSectionContainer.setPadding(false);
                 mediaSectionContainer.setSpacing(true);
                 mediaSectionContainer.setWidthFull();
-
 
                 Div mediaPreviewWrapper = new Div();
                 mediaPreviewWrapper.setWidthFull();
@@ -136,13 +151,11 @@ public class ExamSupport {
                 }
                 mediaSectionContainer.add(mediaPreviewWrapper);
 
-
                 VerticalLayout mediaEditLayout = new VerticalLayout();
                 mediaEditLayout.setPadding(false);
                 mediaEditLayout.setSpacing(true);
-                mediaEditLayout.setVisible(false);
+                mediaEditLayout.setVisible(false); // Nascosto di default
                 mediaEditLayout.getStyle().set("border", "1px dashed var(--lumo-contrast-20pct)").set("padding", "var(--lumo-space-s)");
-
 
                 RadioButtonGroup<String> mediaSourceGroupEdit = new RadioButtonGroup<>();
                 mediaSourceGroupEdit.setLabel("Sorgente Media");
@@ -152,11 +165,11 @@ public class ExamSupport {
                 Upload uploadMediaEdit = new Upload(bufferEdit);
                 uploadMediaEdit.setAcceptedFileTypes("image/*", "video/*", "audio/*", ".pdf");
                 uploadMediaEdit.setMaxFiles(1);
-                uploadMediaEdit.setVisible(false);
+                uploadMediaEdit.setVisible(false); // Nascosto di default
 
                 ComboBox<String> selectExistingMediaEdit = new ComboBox<>("Seleziona Media Esistente");
                 selectExistingMediaEdit.setWidthFull();
-
+                // Popola il ComboBox con i file esistenti
                 try {
                     List<String> availableFiles = fileStorageService.getAllFiles();
                     if (availableFiles != null) {
@@ -169,22 +182,22 @@ public class ExamSupport {
                     logger.error("Error fetching available files for media editing", ex);
                     selectExistingMediaEdit.setItems(new ArrayList<>());
                 }
-                selectExistingMediaEdit.setVisible(false);
+                selectExistingMediaEdit.setVisible(false); // Nascosto di default
 
+                // Listener per la scelta della sorgente media
                 mediaSourceGroupEdit.addValueChangeListener(event -> {
                     String value = event.getValue();
                     uploadMediaEdit.setVisible("Carica nuovo file".equals(value));
                     selectExistingMediaEdit.setVisible("Seleziona da esistenti".equals(value));
                 });
 
-
+                // Imposta la selezione iniziale del gruppo di radio button e del ComboBox
                 if (esame.getMedia() != null && !esame.getMedia().isEmpty()) {
                     mediaSourceGroupEdit.setValue("Seleziona da esistenti");
                     selectExistingMediaEdit.setValue(esame.getMedia());
                 } else {
                     mediaSourceGroupEdit.setValue("Carica nuovo file");
                 }
-
 
                 Button saveMediaButton = StyleApp.getButton("Salva Media", VaadinIcon.CHECK, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
                 Button cancelMediaButton = StyleApp.getButton("Annulla", VaadinIcon.CLOSE, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color)");
@@ -195,12 +208,13 @@ public class ExamSupport {
                 mediaEditLayout.add(mediaSourceGroupEdit, uploadMediaEdit, selectExistingMediaEdit, mediaEditActions);
                 mediaSectionContainer.add(mediaEditLayout);
 
-
+                // Listener per il pulsante "Modifica Media"
                 editMediaButton.addClickListener(ev -> {
                     mediaPreviewWrapper.setVisible(false);
                     editMediaButton.setVisible(false);
                     mediaEditLayout.setVisible(true);
 
+                    // Ricarica i file disponibili e reimposta la selezione
                     try {
                         List<String> availableFiles = fileStorageService.getAllFiles();
                         if (availableFiles != null) {
@@ -209,11 +223,9 @@ public class ExamSupport {
                                 selectExistingMediaEdit.setValue(esame.getMedia());
                                 mediaSourceGroupEdit.setValue("Seleziona da esistenti");
                             } else if (esame.getMedia() != null && !esame.getMedia().isEmpty()) {
-
-
                                 logger.warn("Current media '{}' for exam '{}' not in available files list. Defaulting to upload.", esame.getMedia(), esame.getTipo());
                                 mediaSourceGroupEdit.setValue("Carica nuovo file");
-                                selectExistingMediaEdit.clear();
+                                selectExistingMediaEdit.clear(); // Pulisce la selezione precedente se il file non è più disponibile
                             } else {
                                 mediaSourceGroupEdit.setValue("Carica nuovo file");
                             }
@@ -226,12 +238,13 @@ public class ExamSupport {
                         selectExistingMediaEdit.setItems(new ArrayList<>());
                         mediaSourceGroupEdit.setValue("Carica nuovo file");
                     }
+                    // Assicura che i campi di upload/selezione siano visibili correttamente dopo il ripristino
                     mediaSourceGroupEdit.getOptionalValue().ifPresentOrElse(
                             currentValue -> {
                                 uploadMediaEdit.setVisible("Carica nuovo file".equals(currentValue));
                                 selectExistingMediaEdit.setVisible("Seleziona da esistenti".equals(currentValue));
                             },
-                            () -> {
+                            () -> { // Default se non c'è valore (es. all'inizializzazione)
                                 mediaSourceGroupEdit.setValue("Carica nuovo file");
                                 uploadMediaEdit.setVisible(true);
                                 selectExistingMediaEdit.setVisible(false);
@@ -239,17 +252,20 @@ public class ExamSupport {
                     );
                 });
 
+                // Listener per il pulsante "Annulla" la modifica del media
                 cancelMediaButton.addClickListener(ev -> {
                     mediaEditLayout.setVisible(false);
                     mediaPreviewWrapper.setVisible(true);
                     editMediaButton.setVisible(true);
-                    uploadMediaEdit.getElement().executeJs("this.files=[]");
+                    uploadMediaEdit.getElement().executeJs("this.files=[]"); // Resetta il campo di upload
                 });
 
+                // Listener per il pulsante "Salva Media"
                 saveMediaButton.addClickListener(ev -> {
                     String newMediaFileName;
                     boolean success = false;
 
+                    // Logica di salvataggio basata sulla sorgente selezionata
                     if ("Carica nuovo file".equals(mediaSourceGroupEdit.getValue())) {
                         if (bufferEdit.getFileName() != null && !bufferEdit.getFileName().isEmpty()) {
                             try (InputStream fileData = bufferEdit.getInputStream()) {
@@ -264,7 +280,7 @@ public class ExamSupport {
                             Notification.show("Nessun file selezionato per il caricamento.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_WARNING);
                             return;
                         }
-                    } else {
+                    } else { // Seleziona da esistenti
                         newMediaFileName = selectExistingMediaEdit.getValue();
                         if (newMediaFileName == null || newMediaFileName.trim().isEmpty()) {
                             Notification.show("Nessun file esistente selezionato.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_WARNING);
@@ -273,45 +289,43 @@ public class ExamSupport {
                         logger.info("File esistente selezionato: {}", newMediaFileName);
                     }
 
+                    // Aggiorna il media nello scenario
                     if (newMediaFileName != null && !newMediaFileName.isEmpty()) {
-
                         success = esameRefertoService.updateMedia(esame.getIdEsame(), scenarioId, newMediaFileName);
                         if (success) {
-                            esame.setMedia(newMediaFileName);
+                            esame.setMedia(newMediaFileName); // Aggiorna l'oggetto EsameReferto in memoria
                             mediaPreviewWrapper.removeAll();
-                            mediaPreviewWrapper.add(createMediaPreview(newMediaFileName));
+                            mediaPreviewWrapper.add(createMediaPreview(newMediaFileName)); // Aggiorna l'anteprima
                             Notification.show("Media aggiornato con successo.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                         } else {
                             Notification.show("Errore durante l'aggiornamento del media.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         }
                     } else if (!"Carica nuovo file".equals(mediaSourceGroupEdit.getValue()) && esame.getMedia() != null && !esame.getMedia().isEmpty()) {
-
-
+                        // Se l'utente ha deselezionato un media esistente, rimuovilo
                         success = esameRefertoService.updateMedia(esame.getIdEsame(), scenarioId, null);
                         if (success) {
                             esame.setMedia(null);
-                            mediaPreviewWrapper.removeAll();
+                            mediaPreviewWrapper.removeAll(); // Rimuove l'anteprima
                             Notification.show("Media rimosso con successo.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                         } else {
                             Notification.show("Errore durante la rimozione del media.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_ERROR);
                         }
                     }
 
-
+                    // Nasconde il form di modifica media e mostra l'anteprima/bottone di modifica
                     if (success || (newMediaFileName == null && !"Carica nuovo file".equals(mediaSourceGroupEdit.getValue()))) {
                         mediaEditLayout.setVisible(false);
                         mediaPreviewWrapper.setVisible(true);
                         editMediaButton.setVisible(true);
-                        uploadMediaEdit.getElement().executeJs("this.files=[]");
+                        uploadMediaEdit.getElement().executeJs("this.files=[]"); // Resetta il campo di upload
                     }
                 });
 
-
+                // Sezione per il referto testuale
                 VerticalLayout examContent = new VerticalLayout();
                 examContent.setPadding(false);
                 examContent.setSpacing(true);
                 examContent.setWidthFull();
-
 
                 Div refertoDisplayContainer = new Div();
                 refertoDisplayContainer.setWidthFull();
@@ -327,7 +341,6 @@ public class ExamSupport {
                         .set("box-sizing", "border-box")
                         .set("margin-left", "auto")
                         .set("margin-right", "auto");
-
 
                 HorizontalLayout refertoHeader = new HorizontalLayout();
                 refertoHeader.setPadding(false);
@@ -351,19 +364,18 @@ public class ExamSupport {
                 refertoHeader.add(refertoTitleLayout, editRefertoButton);
 
                 String refertoTestuale = esame.getRefertoTestuale();
-                if( refertoTestuale == null || refertoTestuale.isEmpty()) {
+                if (refertoTestuale == null || refertoTestuale.isEmpty()) {
                     refertoTestuale = "Nessun referto disponibile.";
                 }
                 Paragraph refertoText = new Paragraph(refertoTestuale);
                 refertoText.getStyle()
                         .set("margin", "var(--lumo-space-s) 0 0 0")
                         .set("color", "var(--lumo-body-text-color)")
-                        .set("white-space", "pre-wrap")
+                        .set("white-space", "pre-wrap") // Mantiene la formattazione del testo (es. a capo)
                         .set("box-sizing", "border-box");
 
                 refertoContainer.add(refertoHeader, refertoText);
                 refertoDisplayContainer.add(refertoContainer);
-
 
                 VerticalLayout refertoEditLayout = new VerticalLayout();
                 refertoEditLayout.setWidth("90%");
@@ -373,8 +385,7 @@ public class ExamSupport {
                         .set("margin-top", "var(--lumo-space-m)");
                 refertoEditLayout.setPadding(false);
                 refertoEditLayout.setSpacing(true);
-                refertoEditLayout.setVisible(false);
-
+                refertoEditLayout.setVisible(false); // Nascosto di default
 
                 TextArea editRefertoArea = new TextArea("Modifica Referto");
                 editRefertoArea.setWidthFull();
@@ -388,24 +399,27 @@ public class ExamSupport {
 
                 refertoEditLayout.add(editRefertoArea, refertoEditActions);
 
+                // Listener per il pulsante "Modifica Referto"
                 editRefertoButton.addClickListener(ev -> {
-                    refertoDisplayContainer.setVisible(false);
-                    refertoEditLayout.setVisible(true);
-                    editRefertoArea.setValue(esame.getRefertoTestuale());
+                    refertoDisplayContainer.setVisible(false); // Nasconde il display del referto
+                    refertoEditLayout.setVisible(true); // Mostra il form di modifica
+                    editRefertoArea.setValue(esame.getRefertoTestuale()); // Popola l'area di testo con il referto attuale
                 });
 
+                // Listener per il pulsante "Annulla" la modifica del referto
                 cancelRefertoButton.addClickListener(ev -> {
-                    refertoEditLayout.setVisible(false);
-                    refertoDisplayContainer.setVisible(true);
+                    refertoEditLayout.setVisible(false); // Nasconde il form di modifica
+                    refertoDisplayContainer.setVisible(true); // Mostra il display del referto
                 });
 
+                // Listener per il pulsante "Salva Referto"
                 saveRefertoButton.addClickListener(ev -> {
                     String nuovoReferto = editRefertoArea.getValue();
 
                     boolean updated = esameRefertoService.updateRefertoTestuale(esame.getIdEsame(), scenarioId, nuovoReferto);
                     if (updated) {
-                        esame.setRefertoTestuale(nuovoReferto);
-                        refertoText.setText(nuovoReferto);
+                        esame.setRefertoTestuale(nuovoReferto); // Aggiorna l'oggetto in memoria
+                        refertoText.setText(nuovoReferto); // Aggiorna il testo visualizzato
                         Notification.show("Referto aggiornato con successo.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                         refertoEditLayout.setVisible(false);
                         refertoDisplayContainer.setVisible(true);
@@ -421,16 +435,19 @@ public class ExamSupport {
                 layout.add(examCard);
             }
         } else {
+            // Messaggio di contenuto vuoto se non ci sono esami
             Div errorDiv = EmptySupport.createErrorContent("Nessun esame disponibile");
             layout.add(errorDiv);
         }
+        // Pulsante per aggiungere un nuovo esame
         HorizontalLayout buttonContainer = new HorizontalLayout();
         buttonContainer.setWidthFull();
         buttonContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
         Button addNewExamButton = StyleApp.getButton("Aggiungi Nuovo Esame", VaadinIcon.PLUS, ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
         addNewExamButton.addThemeVariants(ButtonVariant.LUMO_LARGE);
-        addNewExamButton.getStyle().set("background-color", "var(--lumo-success-color");
+        addNewExamButton.getStyle().set("background-color", "var(--lumo-success-color"); // Colore del pulsante
+        // Naviga alla pagina di creazione di un nuovo esame
         addNewExamButton.addClickListener(ev -> UI.getCurrent().navigate("esamiReferti/" + scenarioId + "/edit"));
 
         buttonContainer.add(addNewExamButton);
@@ -438,7 +455,14 @@ public class ExamSupport {
         return layout;
     }
 
-
+    /**
+     * Crea un componente per l'anteprima di un file multimediale.
+     * Supporta immagini, PDF, video e audio, con un fallback per tipi sconosciuti.
+     * Include un pulsante per aprire il media a schermo intero in una nuova pagina.
+     *
+     * @param fileName Il nome del file multimediale (es. "image.jpg", "document.pdf").
+     * @return Un {@link Component} che rappresenta l'anteprima del media.
+     */
     private static Component createMediaPreview(String fileName) {
         String fileExtension;
         int lastDotIndex = fileName.lastIndexOf(".");
@@ -465,6 +489,7 @@ public class ExamSupport {
                 .set("transition", "transform 0.2s ease, box-shadow 0.2s ease")
                 .set("box-sizing", "border-box");
 
+        // Aggiunge effetti di hover tramite JavaScript per trasformazione e ombra
         previewContainer.getElement().executeJs(
                 "this.addEventListener('mouseover', function() { " +
                         " this.style.transform = 'translateY(-2px)'; " +
@@ -518,7 +543,7 @@ public class ExamSupport {
         logger.debug("Percorso media per anteprima: {}", mediaPath);
 
         Component mediaComponent;
-        Icon typeIcon = getIconForFileType(fileExtension);
+        Icon typeIcon = getIconForFileType(fileExtension); // Icona basata sul tipo di file
 
         Button fullscreenButton = new Button("Apri in una nuova pagina", new Icon(VaadinIcon.EXPAND_FULL));
         fullscreenButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -528,6 +553,7 @@ public class ExamSupport {
                 .set("transition", "transform 0.2s ease")
                 .set("cursor", "pointer");
 
+        // Aggiunge effetti di hover per il pulsante fullscreen
         fullscreenButton.getElement().executeJs(
                 "this.addEventListener('mouseover', function() { " +
                         "  this.style.transform = 'scale(1.1)'; " +
@@ -538,8 +564,9 @@ public class ExamSupport {
         );
 
         fullscreenButton.addClassName("hover-effect");
-        fullscreenButton.addClickListener(e -> openFullMedia(fileName));
+        fullscreenButton.addClickListener(e -> openFullMedia(fileName)); // Listener per aprire il media
 
+        // Switch per creare il componente media appropriato in base all'estensione
         switch (fileExtension) {
             case "jpg", "jpeg", "png", "gif", "webp":
                 Image image = new Image(mediaPath, fileName);
@@ -574,7 +601,7 @@ public class ExamSupport {
                         .set("overflow", "hidden")
                         .set("box-shadow", "0 1px 3px rgba(0,0,0,0.1)");
 
-                ExamSupport.NativeVideo video = new ExamSupport.NativeVideo();
+                NativeVideo video = new NativeVideo();
                 video.setSrc(mediaPath);
                 video.setControls(true);
                 video.setWidth("100%");
@@ -602,7 +629,7 @@ public class ExamSupport {
                         .set("color", "var(--lumo-primary-color)")
                         .set("margin-bottom", "var(--lumo-space-s)");
 
-                ExamSupport.NativeAudio audio = new ExamSupport.NativeAudio();
+                NativeAudio audio = new NativeAudio();
                 audio.setSrc(mediaPath);
                 audio.setControls(true);
                 audio.setWidth("100%");
@@ -612,6 +639,7 @@ public class ExamSupport {
                 break;
 
             default:
+                // Contenitore per tipi di file sconosciuti
                 Div unknownContainer = new Div();
                 unknownContainer.getStyle()
                         .set("padding", "var(--lumo-space-l)")
@@ -640,14 +668,20 @@ public class ExamSupport {
         fileInfoLayout.setSpacing(true);
 
         mediaHeader.removeAll();
-        mediaHeader.add(fileInfoLayout);
+        mediaHeader.add(fileInfoLayout); // Aggiunge le info sul file all'header
 
-        mediaContentContainer.add(mediaComponent);
+        mediaContentContainer.add(mediaComponent); // Aggiunge il componente media al suo contenitore
 
         previewContainer.add(mediaHeader, mediaContentContainer, fullscreenButton);
         return previewContainer;
     }
 
+    /**
+     * Crea un componente di anteprima per visualizzare un messaggio di errore.
+     *
+     * @param message Il messaggio di errore da visualizzare.
+     * @return Un {@link Component} che mostra l'errore.
+     */
     private static Component createErrorPreview(String message) {
         Div errorContainer = new Div();
         errorContainer.getStyle()
@@ -674,45 +708,62 @@ public class ExamSupport {
         return errorContainer;
     }
 
+    /**
+     * Restituisce una versione abbreviata del nome del file, rimuovendo il percorso e troncando la lunghezza.
+     *
+     * @param fileName Il nome completo del file, inclusi i percorsi.
+     * @return Il nome del file abbreviato.
+     */
     private static String getShortFileName(String fileName) {
         String shortName = fileName;
         int lastSlash = fileName.lastIndexOf('/');
         if (lastSlash > -1 && lastSlash < fileName.length() - 1) {
-            shortName = fileName.substring(lastSlash + 1);
+            shortName = fileName.substring(lastSlash + 1); // Estrae solo il nome del file
         }
+        // Tronca il nome se troppo lungo
         return shortName.length() > 30 ? shortName.substring(0, 27) + "..." : shortName;
     }
 
+    /**
+     * Restituisce un'icona {@link VaadinIcon} appropriata in base all'estensione del file.
+     * L'icona ha anche un colore associato al tipo di file.
+     *
+     * @param fileExtension L'estensione del file (es. "jpg", "pdf").
+     * @return Un'icona Vaadin con stile applicato.
+     */
     private static Icon getIconForFileType(String fileExtension) {
-        return switch (fileExtension) {
+        Icon icon;
+        switch (fileExtension) {
             case "jpg", "jpeg", "png", "gif", "webp" -> {
-                Icon icon = new Icon(VaadinIcon.PICTURE);
+                icon = new Icon(VaadinIcon.PICTURE);
                 icon.getStyle().set("color", "var(--lumo-primary-color)");
-                yield icon;
             }
             case "pdf" -> {
-                Icon icon = new Icon(VaadinIcon.FILE_TEXT);
+                icon = new Icon(VaadinIcon.FILE_TEXT);
                 icon.getStyle().set("color", "var(--lumo-error-color)");
-                yield icon;
             }
             case "mp4", "webm", "mov" -> {
-                Icon icon = new Icon(VaadinIcon.FILM);
+                icon = new Icon(VaadinIcon.FILM);
                 icon.getStyle().set("color", "var(--lumo-success-color)");
-                yield icon;
             }
             case "mp3", "wav", "ogg" -> {
-                Icon icon = new Icon(VaadinIcon.MUSIC);
+                icon = new Icon(VaadinIcon.MUSIC);
                 icon.getStyle().set("color", "var(--lumo-warning-color)");
-                yield icon;
             }
             default -> {
-                Icon icon = new Icon(VaadinIcon.FILE_O);
+                icon = new Icon(VaadinIcon.FILE_O);
                 icon.getStyle().set("color", "var(--lumo-contrast-50pct)");
-                yield icon;
             }
-        };
+        }
+        return icon;
     }
 
+    /**
+     * Restituisce una stringa di colore CSS (variabile Lumo) basata sull'estensione del file.
+     *
+     * @param fileExtension L'estensione del file.
+     * @return Una stringa CSS per il colore.
+     */
     private static String getColorForFileType(String fileExtension) {
         return switch (fileExtension) {
             case "jpg", "jpeg", "png", "gif", "webp" -> "var(--lumo-primary-color)";
@@ -724,48 +775,50 @@ public class ExamSupport {
     }
 
     /**
-     * Apre il file multimediale completo in una nuova scheda.
+     * Apre il file multimediale completo in una nuova scheda del browser.
+     * La URL viene costruita usando la rotta "media/" e il nome del file.
      *
-     * @param fileName nome del file
+     * @param fileName Il nome del file multimediale da aprire.
      */
     private static void openFullMedia(String fileName) {
         logger.debug("Opening full media for file: {}", fileName);
-        UI.getCurrent().getPage().open("media/" + fileName, "_blank");
+        UI.getCurrent().getPage().open("media/" + fileName, "_blank"); // Apre in una nuova scheda
     }
 
     /**
-     * Componente per la riproduzione di video nativo
+     * Componente Vaadin personalizzato per la riproduzione di video HTML5.
+     * Incapsula un elemento HTML `video`.
      */
     private static class NativeVideo extends Component {
         /**
-         * Costruttore per il video nativo.
+         * Costruttore per il componente video nativo.
          */
         public NativeVideo() {
             super(new Element("video"));
         }
 
         /**
-         * Imposta l'attributo src del video.
+         * Imposta l'attributo `src` dell'elemento video HTML.
          *
-         * @param src il percorso del video
+         * @param src Il percorso del file video.
          */
         public void setSrc(String src) {
             getElement().setAttribute("src", src);
         }
 
         /**
-         * Imposta l'attributo controls del video.
+         * Imposta l'attributo `controls` dell'elemento video HTML.
          *
-         * @param controls true per mostrare i controlli, false altrimenti
+         * @param controls {@code true} per mostrare i controlli di riproduzione, {@code false} altrimenti.
          */
         public void setControls(boolean controls) {
             getElement().setAttribute("controls", controls);
         }
 
         /**
-         * Imposta la larghezza del video.
+         * Imposta l'attributo `width` dell'elemento video HTML.
          *
-         * @param width la larghezza del video
+         * @param width La larghezza del video (es. "100%", "640px").
          */
         public void setWidth(String width) {
             getElement().setAttribute("width", width);
@@ -773,38 +826,39 @@ public class ExamSupport {
     }
 
     /**
-     * Componente per la riproduzione di audio nativo
+     * Componente Vaadin personalizzato per la riproduzione di audio HTML5.
+     * Incapsula un elemento HTML `audio`.
      */
     private static class NativeAudio extends Component {
         /**
-         * Costruttore per l'audio nativo.
+         * Costruttore per il componente audio nativo.
          */
         public NativeAudio() {
             super(new Element("audio"));
         }
 
         /**
-         * Imposta l'attributo src dell'audio.
+         * Imposta l'attributo `src` dell'elemento audio HTML.
          *
-         * @param src il percorso dell'audio
+         * @param src Il percorso del file audio.
          */
         public void setSrc(String src) {
             getElement().setAttribute("src", src);
         }
 
         /**
-         * Imposta l'attributo controls dell'audio.
+         * Imposta l'attributo `controls` dell'elemento audio HTML.
          *
-         * @param controls true per mostrare i controlli, false altrimenti
+         * @param controls {@code true} per mostrare i controlli di riproduzione, {@code false} altrimenti.
          */
         public void setControls(boolean controls) {
             getElement().setAttribute("controls", controls);
         }
 
         /**
-         * Imposta la larghezza dell'audio.
+         * Imposta la larghezza dell'elemento audio HTML.
          *
-         * @param width la larghezza dell'audio
+         * @param width La larghezza dell'audio (es. "100%", "300px").
          */
         public void setWidth(String width) {
             getElement().getStyle().set("width", width);

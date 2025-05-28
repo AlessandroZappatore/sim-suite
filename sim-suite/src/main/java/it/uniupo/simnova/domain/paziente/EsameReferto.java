@@ -1,48 +1,34 @@
 package it.uniupo.simnova.domain.paziente;
 
 /**
- * Classe che rappresenta un esame con referto nel sistema.
- * <p>
+ * Classe che rappresenta un <strong>esame con referto</strong> nel sistema.
  * Contiene informazioni su un esame medico, inclusi:
- * - Identificativi dell'esame e dello scenario associato
- * - Tipo di esame
- * - Percorso del file multimediale (se presente)
- * - Referto testuale
- * </p>
+ * <ul>
+ * <li><strong>Identificativi</strong> dell'esame e dello scenario associato</li>
+ * <li><strong>Tipo di esame</strong> (es. Radiografia, Ecografia)</li>
+ * <li><strong>Percorso del file multimediale</strong> (se presente)</li>
+ * <li><strong>Referto testuale</strong></li>
+ * </ul>
  *
  * @author Alessandro Zappatore
  * @version 1.0
  */
 public class EsameReferto {
-    /**
-     * Identificativo univoco dell'esame.
-     */
-    private int idEsame;
-    /**
-     * Identificativo dello scenario associato all'esame.
-     */
-    private int id_scenario;
-    /**
-     * Tipologia dell'esame (es. "Radiografia", "Ecografia").
-     */
-    private String tipo;
-    /**
-     * Percorso del file multimediale associato all'esame (opzionale).
-     */
-    private String media;
-    /**
-     * Contenuto testuale del referto.
-     */
-    private String refertoTestuale;
+
+    private final int idEsame;      // Identificativo univoco dell'esame.
+    private final int id_scenario;  // Identificativo dello scenario associato all'esame.
+    private String tipo;            // Tipologia dell'esame (es. "Radiografia", "Ecografia").
+    private String media;           // Percorso del file multimediale associato all'esame (opzionale).
+    private String refertoTestuale; // Contenuto testuale del referto.
 
     /**
-     * Costruttore completo per creare un nuovo esame con referto.
+     * Costruttore completo per creare un nuovo oggetto <strong><code>EsameReferto</code></strong>.
      *
-     * @param idEsame         identificativo univoco dell'esame
-     * @param scenario        identificativo dello scenario associato
-     * @param tipo            tipologia dell'esame (es. "Radiografia", "Ecografia")
-     * @param media           percorso del file multimediale associato (opzionale)
-     * @param refertoTestuale contenuto testuale del referto
+     * @param idEsame         <strong>Identificativo univoco</strong> dell'esame.
+     * @param scenario        <strong>Identificativo</strong> dello scenario associato.
+     * @param tipo            <strong>Tipologia</strong> dell'esame (es. "Radiografia", "Ecografia").
+     * @param media           <strong>Percorso del file multimediale</strong> associato (opzionale).
+     * @param refertoTestuale <strong>Contenuto testuale</strong> del referto.
      */
     public EsameReferto(int idEsame, int scenario, String tipo, String media, String refertoTestuale) {
         this.idEsame = idEsame;
@@ -52,102 +38,83 @@ public class EsameReferto {
         this.refertoTestuale = refertoTestuale;
     }
 
-    // Metodi getter e setter
-
     /**
-     * Restituisce l'identificativo univoco dell'esame.
+     * Restituisce l'<strong>identificativo univoco</strong> dell'esame.
      *
-     * @return l'identificativo univoco dell'esame
+     * @return L'identificativo univoco dell'esame.
      */
     public int getIdEsame() {
         return idEsame;
     }
 
     /**
-     * Imposta un nuovo identificativo per l'esame.
+     * Restituisce l'<strong>identificativo dello scenario</strong> associato all'esame.
      *
-     * @param idEsame il nuovo identificativo dell'esame
-     */
-    public void setIdEsame(int idEsame) {
-        this.idEsame = idEsame;
-    }
-
-    /**
-     * Restituisce l'identificativo dello scenario associato all'esame.
-     *
-     * @return l'identificativo dello scenario associato
+     * @return L'identificativo dello scenario associato.
      */
     public int getScenario() {
         return id_scenario;
     }
 
     /**
-     * Imposta un nuovo identificativo per lo scenario associato all'esame.
+     * Restituisce la <strong>tipologia</strong> dell'esame.
      *
-     * @param id_scenario il nuovo identificativo dello scenario
-     */
-    public void setIdScenario(int id_scenario) {
-        this.id_scenario = id_scenario;
-    }
-
-    /**
-     * Restituisce la tipologia dell'esame.
-     *
-     * @return la tipologia dell'esame
+     * @return La tipologia dell'esame.
      */
     public String getTipo() {
         return tipo;
     }
 
     /**
-     * Imposta una nuova tipologia per l'esame.
+     * Imposta una nuova <strong>tipologia</strong> per l'esame.
      *
-     * @param tipo la nuova tipologia dell'esame
+     * @param tipo La nuova tipologia dell'esame.
      */
     public void setTipo(String tipo) {
         this.tipo = tipo;
     }
 
     /**
-     * Restituisce il percorso del file multimediale associato all'esame.
+     * Restituisce il <strong>percorso del file multimediale</strong> associato all'esame.
      *
-     * @return il percorso del file multimediale associato
+     * @return Il percorso del file multimediale associato.
      */
     public String getMedia() {
         return media;
     }
 
     /**
-     * Imposta un nuovo percorso per il file multimediale associato all'esame.
+     * Imposta un nuovo <strong>percorso per il file multimediale</strong> associato all'esame.
      *
-     * @param media il nuovo percorso del file multimediale
+     * @param media Il nuovo percorso del file multimediale.
      */
     public void setMedia(String media) {
         this.media = media;
     }
 
     /**
-     * Restituisce il contenuto testuale del referto.
+     * Restituisce il <strong>contenuto testuale</strong> del referto.
      *
-     * @return il contenuto testuale del referto
+     * @return Il contenuto testuale del referto.
      */
     public String getRefertoTestuale() {
         return refertoTestuale;
     }
 
     /**
-     * Imposta un nuovo contenuto testuale per il referto.
+     * Imposta un nuovo <strong>contenuto testuale</strong> per il referto.
      *
-     * @param refertoTestuale il nuovo contenuto testuale del referto
+     * @param refertoTestuale Il nuovo contenuto testuale del referto.
      */
     public void setRefertoTestuale(String refertoTestuale) {
         this.refertoTestuale = refertoTestuale;
     }
 
     /**
-     * Restituisce una rappresentazione stringa dell'oggetto.
+     * Fornisce una rappresentazione in formato stringa dell'oggetto {@code EsameReferto},
+     * utile per il debugging e la registrazione.
      *
-     * @return stringa con i valori di tutti i campi
+     * @return Una stringa che descrive l'ID dell'esame, lo scenario, il tipo, il media e il referto testuale.
      */
     @Override
     public String toString() {
