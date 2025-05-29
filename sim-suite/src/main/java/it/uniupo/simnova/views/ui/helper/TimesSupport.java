@@ -537,7 +537,8 @@ public class TimesSupport {
                 ruoloContentWrapper.add(ruoloParagraph);
 
                 TextArea ruoloTextArea = new TextArea("Testo Ruolo Genitore");
-                ruoloTextArea.setValue(tempo.getRuoloGenitore());
+                String tempRuolo = tempo.getRuoloGenitore() != null ? tempo.getRuoloGenitore() : "";
+                ruoloTextArea.setValue(tempRuolo);
                 ruoloTextArea.setWidthFull();
                 ruoloTextArea.getStyle().set("min-height", "80px");
                 ruoloTextArea.setVisible(false);

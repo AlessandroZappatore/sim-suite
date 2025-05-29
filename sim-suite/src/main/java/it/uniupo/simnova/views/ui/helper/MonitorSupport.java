@@ -79,6 +79,7 @@ public class MonitorSupport {
      * Utilizzato quando un parametro non ha un valore definito o è nullo.
      */
     private static final String NULL_DISPLAY_VALUE = "-";
+
     /**
      * Costruttore privato per evitare istanziazioni dirette della classe.
      */
@@ -1035,7 +1036,7 @@ public class MonitorSupport {
             valueSpan.getStyle().set("color", newDisplayColor); // Aggiorna il colore del valore
 
             // Gestione specifica di FiO2 e Litri O2 per lo stato "assente/spento"
-            boolean isFio2OrLitriO2 = "FiO₂".equals(label) || "Litri O₂".equals(label);
+            boolean isFio2OrLitriO2 = "FiO₂".equals(label) || "Litri O₂".equals(label) || "EtCO₂".equals(label);
             boolean isZeroOrNullEquivalent = valueToSave.equals("0") || valueToSave.equals("0.0") || valueToSave.equals(NULL_DISPLAY_VALUE) || valueToSave.isBlank();
 
             if (isFio2OrLitriO2) {
@@ -1046,9 +1047,7 @@ public class MonitorSupport {
                     valueSpan.getStyle().set("color", "var(--lumo-disabled-text-color)");
                     unitSpan.getStyle().set("color", "var(--lumo-disabled-text-color)");
                     labelSpan.getStyle().set("color", "var(--lumo-disabled-text-color)");
-                    if (valueToSave.isBlank()) {
-                        valueSpan.setText(NULL_DISPLAY_VALUE);
-                    }
+                    valueSpan.setText(NULL_DISPLAY_VALUE); // Forza "- " se il valore è 0
                 } else {
                     box.getStyle().remove("background-color");
                     box.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)"); // Ripristina bordo normale

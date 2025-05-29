@@ -225,18 +225,15 @@ public class InfoSupport extends HorizontalLayout {
             updateBadgeAppearance.run(); // Ripristina l'aspetto originale del badge
         });
 
-        // Listener per il pulsante "Salva"
         saveButton.addClickListener(e -> {
             String newValue = editField.getValue();
-            scenarioService.updateSingleField(scenario.getId(), label, newValue); // Aggiorna il campo nel servizio
+            scenarioService.updateSingleField(scenario.getId(), label, newValue);
 
-            updateBadgeAppearance.run(); // Aggiorna l'aspetto del badge dopo il salvataggio
             Notification.show(label + " aggiornata.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
-            editControlsLayout.setVisible(false);
-            badgeViewLayout.setVisible(true);
+            // Ricarica la pagina per riflettere le modifiche
+            UI.getCurrent().getPage().reload();
         });
-
         return itemContainer;
     }
 
@@ -370,8 +367,8 @@ public class InfoSupport extends HorizontalLayout {
             badgeViewLayout.setVisible(true);
             scenarioService.updateSingleField(scenario.getId(), label, valueToSaveAndDisplay); // Aggiorna il campo
 
-            updateBadgeAppearance.run(); // Aggiorna il badge con il nuovo valore
             Notification.show(label + " aggiornata.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            UI.getCurrent().getPage().reload();
         });
         return itemContainer;
     }
