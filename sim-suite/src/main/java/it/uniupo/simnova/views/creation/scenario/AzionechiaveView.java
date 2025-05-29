@@ -188,7 +188,6 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
         // Bottone per rimuovere il campo di testo.
         Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
         removeButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_ICON);
-        removeButton.setAriaLabel("Rimuovi azione chiave");
         removeButton.addClickListener(e -> {
             actionFields.remove(actionField);       // Rimuove il campo dalla lista.
             actionFieldsContainer.remove(fieldLayout); // Rimuove il layout del campo dalla vista.

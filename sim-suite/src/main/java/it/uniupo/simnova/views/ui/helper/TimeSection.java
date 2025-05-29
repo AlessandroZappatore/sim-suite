@@ -45,35 +45,99 @@ import static it.uniupo.simnova.views.constant.ColorsConst.BORDER_COLORS;
  * @version 1.0
  */
 public class TimeSection {
-
+    /**
+     * Logger per la classe {@link TimeSection}.
+     */
     private static final Logger logger = LoggerFactory.getLogger(TimeSection.class);
 
-    // Proprietà che definiscono la sezione temporale
-    public final int timeNumber; // Numero identificativo del tempo (es. 0 per T0, 1 per T1)
-    public final VerticalLayout layout; // Layout principale della sezione
+    /**
+     * Numero identificativo del tempo (es. 0 per T0, 1 per T1, ...).
+     */
+    public final int timeNumber;
+    /**
+     * Layout principale della sezione temporale, che contiene tutti i campi e le informazioni.
+     */
+    public final VerticalLayout layout;
 
-    // Campi di input per i parametri vitali e informazioni generali
-    public final TimePicker timerPicker; // Selettore per impostare un timer associato a questo tempo
-    public final TextField paField; // Pressione Arteriosa
-    public final NumberField fcField; // Frequenza Cardiaca
-    public final NumberField rrField; // Frequenza Respiratoria
-    public final NumberField tField; // Temperatura Corporea
-    public final NumberField spo2Field; // Saturazione dell'Ossigeno
-    public final NumberField fio2Field; // Frazione inspiratoria di Ossigeno
-    public final NumberField litriO2Field; // Litri di Ossigeno
-    public final NumberField etco2Field; // Capnometria di fine espirazione
-    public final TextArea actionDetailsArea; // Dettagli dell'azione richiesta/evento scatenante
-    public final IntegerField timeIfYesField; // ID del tempo successivo se la condizione è SI
-    public final IntegerField timeIfNoField; // ID del tempo successivo se la condizione è NO
-    public final TextArea additionalDetailsArea; // Dettagli aggiuntivi o note per questo tempo
-    public final TextArea ruoloGenitoreArea; // Ruolo del genitore (solo per scenari pediatrici)
-
-    // Layout e mappe per i parametri aggiuntivi
-    public final FormLayout medicalParamsForm; // Layout per i parametri medici base
-    public final VerticalLayout customParamsContainer; // Contenitore per i campi dei parametri aggiuntivi/personalizzati
-    public final Map<String, NumberField> customParameters = new HashMap<>(); // Mappa: chiave parametro -> campo input
-    public final Map<String, String> customParameterUnits = new HashMap<>(); // Mappa: chiave parametro -> unità di misura
-    public final Map<String, HorizontalLayout> customParameterLayouts = new HashMap<>(); // Mappa: chiave parametro -> layout del campo (con pulsante rimuovi)
+    /**
+     * Selettore per il timer associato a questo tempo, utile per gestire la durata di azioni o attese.
+     */
+    public final TimePicker timerPicker;
+    /**
+     * Campo di input per la Pressione Arteriosa (PA) in formato "Sist/Diast".
+     */
+    public final TextField paField;
+    /**
+     * Campo di input per la Frequenza Cardiaca (FC).
+     */
+    public final NumberField fcField;
+    /**
+     * Campo di input per la Frequenza Respiratoria (RR).
+     */
+    public final NumberField rrField;
+    /**
+     * Campo di input per la Temperatura Corporea (T), arrotondata a una cifra decimale.
+     */
+    public final NumberField tField;
+    /**
+     * Campo di input per la Saturazione dell'Ossigeno (SpO₂).
+     */
+    public final NumberField spo2Field;
+    /**
+     * Campo di input per la Frazione inspiratoria di Ossigeno (FiO₂).
+     */
+    public final NumberField fio2Field;
+    /**
+     * Campo di input per i Litri di Ossigeno (Litri O₂).
+     */
+    public final NumberField litriO2Field;
+    /**
+     * Campo di input per la Capnometria di fine espirazione (EtCO₂).
+     */
+    public final NumberField etco2Field;
+    /**
+     * Area di testo per descrivere l'azione richiesta o l'evento scatenante per questo tempo.
+     */
+    public final TextArea actionDetailsArea;
+    /**
+     * Campo per la navigazione condizionale al tempo successivo se la condizione è "SI".
+     */
+    public final IntegerField timeIfYesField;
+    /**
+     * Campo per la navigazione condizionale al tempo successivo se la condizione è "NO".
+     */
+    public final IntegerField timeIfNoField;
+    /**
+     * Area di testo per ulteriori dettagli o note specifiche per questo tempo.
+     */
+    public final TextArea additionalDetailsArea;
+    /**
+     * Area di testo per il ruolo del genitore, visibile solo in scenari pediatrici.
+     * Può contenere informazioni fornite dal genitore sul paziente.
+     */
+    public final TextArea ruoloGenitoreArea;
+    /**
+     * Layout che contiene i campi per i parametri medici base.
+     */
+    public final FormLayout medicalParamsForm;
+    /**
+     * Contenitore per i campi dei parametri aggiuntivi/personalizzati.
+     * Permette di aggiungere dinamicamente nuovi parametri con unità di misura specifiche.
+     */
+    public final VerticalLayout customParamsContainer;
+    /**
+     * Mappa che associa i parametri aggiuntivi (predefiniti o personalizzati) ai loro campi di input.
+     */
+    public final Map<String, NumberField> customParameters = new HashMap<>();
+    /**
+     * Mappa che associa i parametri aggiuntivi (predefiniti o personalizzati) alle loro unità di misura.
+     */
+    public final Map<String, String> customParameterUnits = new HashMap<>();
+    /**
+     * Mappa che associa i parametri aggiuntivi (predefiniti o personalizzati) ai loro layout di campo,
+     * inclusi i pulsanti per rimuoverli dinamicamente.
+     */
+    public final Map<String, HorizontalLayout> customParameterLayouts = new HashMap<>();
 
     /**
      * Costruttore per creare una nuova sezione temporale.

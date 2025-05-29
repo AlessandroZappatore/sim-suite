@@ -9,13 +9,30 @@ package it.uniupo.simnova.domain.common;
  * @version 1.0
  */
 public class ParametroAggiuntivo {
-
-    private final String unitaMisura; // Unità di misura del parametro (es. "mmHg", "%").
-    private int id;             // Identificativo univoco del parametro (ID assegnato dal database).
-    private int tempoId;        // Identificativo del tempo a cui appartiene il parametro.
-    private int scenarioId;     // Identificativo dello scenario a cui appartiene il parametro.
-    private String nome;        // Nome del parametro (es. "Pressione venosa centrale", "Glicemia").
-    private String valore;      // Valore del parametro, memorizzato come stringa (es. "12", "98.5").
+    /**
+     * Unità di misura del parametro (es. "mmHg", "%").
+     */
+    private final String unitaMisura;
+    /**
+     * Identificativo univoco del parametro, ID assegnato dal database.
+     */
+    private int id;
+    /**
+     * Identificativo del tempo a cui appartiene il parametro.
+     */
+    private int tempoId;
+    /**
+     * Identificativo dello scenario a cui appartiene il parametro.
+     */
+    private int scenarioId;
+    /**
+     * Nome del parametro (es. "Pressione venosa centrale", "Glicemia").
+     */
+    private String nome;
+    /**
+     * Valore del parametro, memorizzato come stringa (es. "12", "98.5").
+     */
+    private String valore;
 
     /**
      * Costruttore completo per creare un nuovo oggetto <strong><code>ParametroAggiuntivo</code></strong> con

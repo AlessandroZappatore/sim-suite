@@ -48,15 +48,33 @@ import org.vaadin.tinymce.TinyMce;
 @PageTitle("Esame Fisico")
 @Route(value = "esameFisico")
 public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-
+    /**
+     * Logger per la registrazione degli eventi e degli errori nella vista.
+     */
     private static final Logger logger = LoggerFactory.getLogger(EsamefisicoView.class);
 
+    /**
+     * Servizi utilizzati per la gestione degli scenari, degli esami fisici e del caricamento dei file.
+     */
     private final ScenarioService scenarioService;
+    /**
+     * Servizio per la gestione degli esami fisici.
+     */
     private final EsameFisicoService esameFisicoService;
+    /**
+     * Servizio per la gestione dei file, utilizzato per l'header dell'applicazione.
+     */
     private final FileStorageService fileStorageService;
 
-    private final Map<String, TinyMce> examSections = new HashMap<>(); // Mappa: nome sezione -> editor TinyMCE
-    private Integer scenarioId; // ID dello scenario corrente
+    /**
+     * Mappa che associa il nome di ogni sezione dell'esame fisico a un editor TinyMCE.
+     * Le sezioni sono: Generale, Pupille, Collo, Torace, Cuore, Addome, Retto, Cute, Estremità, Neurologico e FAST.
+     */
+    private final Map<String, TinyMce> examSections = new HashMap<>();
+    /**
+     * ID dello scenario corrente, utilizzato per caricare e salvare i dati dell'esame fisico.
+     */
+    private Integer scenarioId;
 
     /**
      * Costruttore della vista {@code EsamefisicoView}.

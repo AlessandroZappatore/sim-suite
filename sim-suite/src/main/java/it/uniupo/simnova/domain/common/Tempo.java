@@ -12,25 +12,78 @@ import java.util.List;
  * @version 1.0
  */
 public class Tempo {
-
-    private final int idTempo;                  // <strong>Identificativo univoco</strong> del tempo.
-    private final int advancedScenario;         // <strong>Identificativo</strong> dello scenario avanzato associato.
-    private final Integer RR;                   // Frequenza respiratoria del paziente (atti/min).
-    private final Integer SpO2;                 // Saturazione di ossigeno del paziente (%).
-    private final Integer FiO2;                 // Frazione di ossigeno inspirato dal paziente (%).
-    private final Double LitriO2;                // Litri di ossigeno somministrati al paziente (L/min).
-    private final Integer EtCO2;                // Pressione parziale di CO2 espirata del paziente (mmHg).
-    private final int TSi;                      // ID del tempo a cui andare se l'azione viene eseguita (tempo "se SI").
-    private final int TNo;                      // ID del tempo a cui andare se l'azione NON viene eseguita (tempo "se NO").
-    private final String altriDettagli;         // Altri dettagli o note rilevanti per questo tempo.
-    private final long timerTempo;              // Durata del timer associato a questo tempo, in secondi.
-    private final String ruoloGenitore;         // Ruolo del genitore associato a questo tempo, se lo scenario è pediatrico.
-    private String PA;                          // Pressione arteriosa del paziente (formato "sistolica/diastolica").
-    private Integer FC;                         // Frequenza cardiaca del paziente (bpm).
-    private double T;                           // Temperatura del paziente (°C).
-    private String Azione;                      // Azione o evento associato a questo tempo.
-    private List<ParametroAggiuntivo> parametriAggiuntivi; // Lista dei parametri aggiuntivi.
-
+    /**
+     * Identificativo univoco del tempo, assegnato dal database.
+     */
+    private final int idTempo;
+    /**
+     * <strong>Identificativo</strong> dello scenario avanzato associato.
+     */
+    private final int advancedScenario;
+    /**
+     * Frequenza respiratoria del paziente (atti/min).
+     */
+    private final Integer RR;
+    /**
+     * Saturazione di ossigeno del paziente (%).
+     */
+    private final Integer SpO2;
+    /**
+     * Frazione di ossigeno inspirato dal paziente (%).
+     */
+    private final Integer FiO2;
+    /**
+     * Litri di ossigeno somministrati al paziente (L/min).
+     */
+    private final Double LitriO2;
+    /**
+     * Pressione parziale di CO2 espirata del paziente (mmHg).
+     */
+    private final Integer EtCO2;
+    /**
+     * ID del tempo a cui andare se l'azione viene eseguita (tempo "se SI").
+     */
+    private final int TSi;
+    /**
+     * ID del tempo a cui andare se l'azione non viene eseguita (tempo "se NO").
+     */
+    private final int TNo;
+    /**
+     * Altri dettagli o note rilevanti per questo tempo.
+     */
+    private final String altriDettagli;
+    /**
+     * Durata del timer associato a questo tempo, in secondi.
+     */
+    private final long timerTempo;
+    /**
+     * Ruolo del genitore associato a questo tempo, se lo scenario è pediatrico.
+     * Può essere {@code null} se non applicabile o non definito.
+     */
+    private final String ruoloGenitore;
+    /**
+     * Pressione arteriosa del paziente nel formato "sistolica/diastolica" (es. "120/80").
+     */
+    private String PA;
+    /**
+     * Frequenza cardiaca del paziente (bpm).
+     */
+    private Integer FC;
+    /**
+     * Temperatura del paziente (°C).
+     */
+    private double T;
+    /**
+     * Azione o evento associato a questo tempo.
+     */
+    private String Azione;
+    /**
+     * Lista dei parametri aggiuntivi associati a questo tempo.
+     * Questi parametri possono essere utilizzati per estendere le informazioni
+     * disponibili per questo tempo, come ad esempio la pressione venosa centrale,
+     * la glicemia, ecc.
+     */
+    private List<ParametroAggiuntivo> parametriAggiuntivi;
 
     /**
      * Costruttore completo per creare un nuovo oggetto <strong><code>Tempo</code></strong> in uno scenario avanzato.

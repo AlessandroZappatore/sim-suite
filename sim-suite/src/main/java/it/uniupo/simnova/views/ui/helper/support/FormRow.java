@@ -42,30 +42,91 @@ import static it.uniupo.simnova.views.constant.ExamConst.ALLLABSEXAMS;
  * @version 1.0
  */
 public class FormRow {
-
+    /**
+     * Logger per il tracciamento degli eventi e degli errori.
+     */
     private static final Logger logger = LoggerFactory.getLogger(FormRow.class);
 
-    // Proprietà della riga del form
+    /**
+     * Numero identificativo della riga del form.
+     * Utilizzato per distinguere tra diverse righe di esami/referti.
+     */
     public final int rowNumber;
+    /**
+     * Paragrafo che funge da titolo per questa riga del form.
+     */
     public final Paragraph rowTitle;
+    /**
+     * Layout del form che contiene i campi di input per questa riga.
+     * Utilizza {@link FormLayout} per una disposizione responsiva e ordinata.
+     */
     public final FormLayout rowLayout;
 
-    // Componenti per la selezione dell'esame
+    /**
+     * Pulsante per selezionare un esame da un elenco predefinito o per inserire un esame personalizzato.
+     */
     public final Button selectExamButton = new Button("Seleziona", new Icon(VaadinIcon.SEARCH));
+    /**
+     * Lista di esami di laboratorio e strumentali predefiniti.
+     * Questi vengono mostrati in un dialog per la selezione dell'esame.
+     */
     public final Dialog examDialog = new Dialog();
+    /**
+     * Campo di testo per mostrare l'esame selezionato da un elenco predefinito.
+     * Diventa cliccabile per aprire il dialog di selezione esame.
+     */
     public final TextField selectedExamField = new TextField("Tipo Esame");
+    /**
+     * Campo di testo per inserire manualmente il nome di un esame personalizzato.
+     * Visibile solo se l'utente sceglie di inserire un esame manualmente.
+     */
     public final TextField customExamField = new TextField("Esame Personalizzato");
+    /**
+     * Gruppo di radio button per selezionare il tipo di esame da inserire.
+     * Permette di scegliere tra "Seleziona da elenco" o "Inserisci manualmente".
+     */
     public final RadioButtonGroup<String> examTypeGroup = new RadioButtonGroup<>();
 
-    // Componenti per la gestione del media
+    /**
+     * Componente di upload per caricare nuovi file multimediali associati all'esame.
+     * Utilizza {@link MemoryBuffer} per gestire i file caricati in memoria.
+     */
     public final Upload upload;
+    /**
+     * Campo di testo per inserire un referto testuale associato all'esame.
+     * Permette di aggiungere commenti o descrizioni dell'esame.
+     */
     public final TextField reportField;
+    /**
+     * Gruppo di radio button per selezionare la sorgente del media associato all'esame.
+     * Permette di scegliere tra "Carica nuovo file" o "Seleziona da esistenti".
+     */
     public final RadioButtonGroup<String> mediaSourceGroup = new RadioButtonGroup<>();
+    /**
+     * Pulsante per selezionare un file multimediale esistente da un elenco.
+     * Apre un dialog che mostra i file disponibili.
+     */
     public final Button selectMediaButton = new Button("Seleziona da esistenti", new Icon(VaadinIcon.FOLDER_OPEN));
+    /**
+     * Dialog per la selezione di file multimediali esistenti.
+     * Mostra un elenco di file già caricati e permette di selezionarne uno.
+     */
     public final Dialog mediaDialog = new Dialog();
+    /**
+     * Campo di testo per mostrare il nome del file multimediale selezionato da un elenco esistente.
+     * Diventa cliccabile per aprire il dialog di selezione media.
+     */
     public final TextField selectedMediaField = new TextField("Media Selezionato");
+    /**
+     * Servizio per la gestione dei file multimediali.
+     * Utilizzato per leggere, scrivere e ottenere i file disponibili.
+     */
     private final FileStorageService fileStorageService;
-    public String selectedExistingMedia = null; // Nome del media esistente selezionato
+    /**
+     * Nome del media esistente selezionato dall'utente.
+     * Viene impostato quando l'utente sceglie un file esistente dal dialog.
+     */
+    public String selectedExistingMedia = null;
 
     /**
      * Costruttore per una riga del form di esami/referti.

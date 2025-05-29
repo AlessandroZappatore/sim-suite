@@ -39,12 +39,24 @@ import org.vaadin.tinymce.TinyMce;
 @PageTitle("Moulage")
 @Route(value = "moulage")
 public class MoulageView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-
+    /**
+     * Logger per la registrazione degli eventi e degli errori nella vista Moulage.
+     */
     private static final Logger logger = LoggerFactory.getLogger(MoulageView.class);
 
+    /**
+     * Servizio per la gestione degli scenari, utilizzato per recuperare e aggiornare i dati del moulage.
+     */
     private final ScenarioService scenarioService;
-    private final TinyMce moulageEditor; // Editor WYSIWYG per la descrizione del moulage
-    private Integer scenarioId; // ID dello scenario corrente
+    /**
+     * Editor WYSIWYG TinyMCE per la descrizione del moulage.
+     * Permette di inserire testo formattato e immagini per rappresentare il trucco.
+     */
+    private final TinyMce moulageEditor;
+    /**
+     * ID dello scenario corrente, utilizzato per identificare quale moulage modificare o visualizzare.
+     */
+    private Integer scenarioId;
 
     /**
      * Costruttore della vista {@code MoulageView}.

@@ -53,20 +53,55 @@ import static it.uniupo.simnova.views.constant.ExamConst.ALLLABSEXAMS;
 @PageTitle("Esami e Referti")
 @Route(value = "esamiReferti")
 public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-
+    /**
+     * Logger per la registrazione delle attività e degli errori nella vista {@code EsamiRefertiView}.
+     */
     private static final Logger logger = LoggerFactory.getLogger(EsamiRefertiView.class);
 
+    /**
+     * Costanti per i colori dei bordi delle righe, utilizzate per differenziare visivamente le righe degli esami.
+     */
     private final ScenarioService scenarioService;
+    /**
+     * Servizio per la gestione degli esami e referti associati agli scenari.
+     */
     private final EsameRefertoService esameRefertoService;
+    /**
+     * Servizio per la gestione dei file, utilizzato per l'upload e il recupero dei media associati agli esami.
+     */
     private final FileStorageService fileStorageService;
 
-    private final VerticalLayout rowsContainer; // Contenitore per le righe dei form di esame/referto
-    private final List<FormRow> formRows = new ArrayList<>(); // Lista degli oggetti FormRow
-    private final Button nextButton = StyleApp.getNextButton(); // Pulsante per navigare alla vista successiva
+    /**
+     * Contenitore principale per le righe dei form di esame/referto.
+     * Ogni riga rappresenta un esame o referto da inserire o modificare.
+     */
+    private final VerticalLayout rowsContainer;
+    /**
+     * Lista che contiene gli oggetti {@link FormRow} per gestire le righe degli esami e referti.
+     * Ogni {@link FormRow} rappresenta un singolo esame o referto con i relativi campi di input.
+     */
+    private final List<FormRow> formRows = new ArrayList<>();
+    /**
+     * Pulsante per navigare alla vista successiva dopo il salvataggio degli esami e referti.
+     * Il testo e l'icona del pulsante cambiano a seconda della modalità corrente (create/edit).
+     */
+    private final Button nextButton = StyleApp.getNextButton();
 
-    private Integer scenarioId; // ID dello scenario corrente
-    private String mode; // Modalità corrente: "create" o "edit"
-    private int rowCount = 1; // Contatore per il numero di righe degli esami
+    /**
+     * ID dello scenario corrente, utilizzato per associare gli esami e referti allo scenario specifico.
+     * Viene impostato tramite il parametro dell'URL quando la vista viene caricata.
+     */
+    private Integer scenarioId;
+    /**
+     * Modalità corrente della vista, che può essere "create" per la creazione di nuovi esami/referti
+     * o "edit" per la modifica di esami/referti esistenti.
+     */
+    private String mode;
+    /**
+     * Contatore per il numero di righe degli esami, utilizzato per generare titoli univoci per ogni riga.
+     * Inizializzato a 1 per la prima riga.
+     */
+    private int rowCount = 1;
 
     /**
      * Costruttore della vista {@code EsamiRefertiView}.

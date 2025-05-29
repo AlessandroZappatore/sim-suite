@@ -26,10 +26,15 @@ import org.slf4j.LoggerFactory;
 @Route("media")
 @PageTitle("Visualizzatore File")
 public class MediaFullscreenView extends VerticalLayout implements HasUrlParameter<String> {
-
+    /**
+     * Logger per la registrazione degli eventi e degli errori.
+     */
     private static final Logger logger = LoggerFactory.getLogger(MediaFullscreenView.class);
-
-    private String filename; // Nome del file da visualizzare, incluso il percorso relativo.
+    /**
+     * Nome del file da visualizzare, incluso il percorso relativo.
+     * Viene impostato tramite il parametro dell'URL.
+     */
+    private String filename;
 
     /**
      * Costruttore che configura il layout di base per la visualizzazione a schermo intero.

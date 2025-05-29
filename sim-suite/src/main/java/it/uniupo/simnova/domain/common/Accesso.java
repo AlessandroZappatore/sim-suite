@@ -5,15 +5,29 @@ package it.uniupo.simnova.domain.common;
  * Definisce le proprietà chiave di un accesso, come tipologia, posizione, lato e misura.
  *
  * @author Alessandro Zappatore
- * @version 1.0
+ * @version 2.0
  */
 public class Accesso {
-
-    private final int idAccesso; // Identificativo univoco dell'accesso (ID assegnato dal database)
-    private String tipologia;   // Tipologia dell'accesso (es. "CVC", "Agocannula" per venoso; "Radiale" per arterioso)
-    private String posizione;   // Posizione anatomica dell'accesso (es. "Giugulare destra", "Cubitale sinistro")
-    private String lato;        // Lato dell'accesso ("DX" per destro o "SX" per sinistro)
-    private Integer misura;     // Misura dell'accesso (es. 14G, 16G, come valore numerico)
+    /**
+     * Identificativo univoco dell'accesso, assegnato dal database.
+     */
+    private final int idAccesso;
+    /**
+     * Tipologia dell'accesso (es. "CVC", "Agocannula" per venoso; "Radiale" per arterioso).
+     */
+    private String tipologia;
+    /**
+     * Posizione anatomica dell'accesso (es. "Giugulare destra", "Cubitale sinistro").
+     */
+    private String posizione;
+    /**
+     * Lato dell'accesso, che può essere "DX" (destro) o "SX" (sinistro).
+     */
+    private String lato;
+    /**
+     * Misura dell'accesso, espressa in Gauge (es. 14G, 16G).
+     */
+    private Integer misura;
 
     /**
      * Costruttore per creare un nuovo oggetto {@code Accesso}.

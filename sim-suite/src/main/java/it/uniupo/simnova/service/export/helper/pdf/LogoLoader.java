@@ -20,14 +20,35 @@ import java.io.InputStream;
  * @version 1.0
  */
 public class LogoLoader {
-
+    /**
+     * Logger per la classe {@link LogoLoader}.
+     */
     private static final Logger logger = LoggerFactory.getLogger(LogoLoader.class);
 
-    private static final String LOGO_URL = "/META-INF/resources/icons/LogoSimsuite.png"; // Percorso del logo predefinito di SIM SUITE.
-    private static final String CENTER_LOGO_FILENAME = "center_logo.png"; // Nome file standard per il logo del centro.
+    /**
+     * Percorso del logo predefinito di SIM SUITE, che viene caricato dal classpath.
+     */
+    private static final String LOGO_URL = "/static/icons/LogoSimsuite.png";
+    /**
+     * Nome del file del logo del centro, che viene caricato dalla directory di upload.
+     */
+    private static final String CENTER_LOGO_FILENAME = "center_logo.png";
 
-    public static float centerLogoWidth;  // Larghezza del logo del centro dopo il caricamento.
-    public static float centerLogoHeight; // Altezza del logo del centro dopo il caricamento.
+    /**
+     * Larghezza del logo del centro dopo il caricamento.
+     */
+    public static float centerLogoWidth;
+    /**
+     * Altezza del logo del centro dopo il caricamento.
+     */
+    public static float centerLogoHeight;
+
+    /**
+     * Costruttore privato per evitare l'istanza della classe, poiché contiene solo metodi statici.
+     */
+    private LogoLoader() {
+        // Costruttore privato per evitare l'istanza della classe.
+    }
 
     /**
      * Carica il <strong>logo predefinito di SIM SUITE</strong> da aggiungere nel documento PDF.

@@ -35,6 +35,14 @@ import java.util.List;
 public class FieldGenerator extends HorizontalLayout {
 
     /**
+     * Costruttore privato per evitare istanziazioni dirette.
+     */
+    private FieldGenerator() {
+        // Costruttore privato per evitare istanziazioni dirette.
+        // Tutti i metodi sono statici e non richiedono un'istanza della classe.
+    }
+
+    /**
      * Crea e configura un ***campo di testo ({@link TextField})** con stili avanzati.
      * Include effetti di ombra al passaggio del mouse e bordi colorati.
      *

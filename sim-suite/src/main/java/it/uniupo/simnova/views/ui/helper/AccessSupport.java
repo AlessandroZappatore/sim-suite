@@ -31,9 +31,17 @@ import java.util.List;
  * @version 1.0
  */
 public class AccessSupport {
-
+    /**
+     * Logger per la registrazione degli eventi e degli errori.
+     */
     private static final Logger logger = LoggerFactory.getLogger(AccessSupport.class);
 
+    /**
+     * Costruttore privato per evitare l'istanza della classe.
+     */
+    public AccessSupport() {
+        // Costruttore vuoto, non necessario per questa classe di utilità
+    }
     /**
      * Genera una card per la visualizzazione e gestione degli accessi venosi e arteriosi.
      * Include griglie per visualizzare gli accessi esistenti e form per aggiungerne di nuovi.

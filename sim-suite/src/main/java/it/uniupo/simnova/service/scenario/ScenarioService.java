@@ -29,6 +29,15 @@ public class ScenarioService {
     private static final Logger logger = LoggerFactory.getLogger(ScenarioService.class);
 
     /**
+     * Costruttore privato per prevenire l'istanza diretta del servizio.
+     * Utilizzare il contesto Spring per ottenere un'istanza di questo servizio.
+     */
+    private ScenarioService() {
+        // Costruttore privato per prevenire l'istanza diretta del servizio.
+        // Utilizzare il contesto Spring per ottenere un'istanza di questo servizio.
+    }
+
+    /**
      * Recupera un oggetto {@link Scenario} completo dal database utilizzando il suo identificativo.
      *
      * @param id L'identificativo (<code>Integer</code>) dello scenario da recuperare.

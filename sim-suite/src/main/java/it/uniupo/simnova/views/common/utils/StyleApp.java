@@ -25,8 +25,13 @@ import it.uniupo.simnova.views.common.components.CreditsComponent;
  * @version 1.0
  */
 public class StyleApp extends HorizontalLayout {
-    // Il costruttore vuoto indica che questa è una classe di utilità con metodi statici.
-    public StyleApp() {
+
+    /**
+     * Costruttore privato per evitare istanziazioni dirette della classe.
+     */
+    private StyleApp() {
+        // Costruttore privato per evitare istanziazioni dirette.
+        // Questa classe è pensata per essere utilizzata solo tramite metodi statici.
     }
 
     /**
@@ -290,7 +295,6 @@ public class StyleApp extends HorizontalLayout {
     public static Button getScrollButton() {
         Button scrollToTopButton = new Button(FontAwesome.Solid.ARROW_TURN_UP.create());
         scrollToTopButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ICON);
-        scrollToTopButton.setAriaLabel("Torna all'inizio della pagina");
         scrollToTopButton.setTooltipText("Torna all'inizio della pagina");
         scrollToTopButton.getStyle()
                 .set("position", "fixed") // Posizionamento fisso rispetto alla viewport.
@@ -315,7 +319,6 @@ public class StyleApp extends HorizontalLayout {
     public static Button getScrollDownButton() {
         Button scrollToBottomButton = new Button(FontAwesome.Solid.ARROW_TURN_DOWN.create());
         scrollToBottomButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ICON);
-        scrollToBottomButton.setAriaLabel("Vai alla fine della pagina");
         scrollToBottomButton.setTooltipText("Vai alla fine della pagina");
         scrollToBottomButton.getStyle()
                 .set("position", "fixed")

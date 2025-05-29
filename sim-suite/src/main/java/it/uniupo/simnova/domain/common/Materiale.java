@@ -9,9 +9,18 @@ package it.uniupo.simnova.domain.common;
  */
 public class Materiale {
 
-    private final int idMateriale;   // Identificativo univoco del materiale, assegnato dal database.
-    private final String nome;       // Il nome del materiale (es. "Siringa", "Defibrillatore").
-    private final String descrizione; // Una descrizione dettagliata del materiale.
+    /**
+     * Identificativo univoco del materiale, assegnato dal database.
+     */
+    private final int idMateriale;
+    /**
+     * Nome del materiale, ad esempio "Siringa", "Defibrillatore".
+     */
+    private final String nome;
+    /**
+     * Descrizione dettagliata del materiale, che fornisce ulteriori informazioni.
+     */
+    private final String descrizione;
 
     /**
      * Costruttore per creare un nuovo oggetto <strong><code>Materiale</code></strong>.

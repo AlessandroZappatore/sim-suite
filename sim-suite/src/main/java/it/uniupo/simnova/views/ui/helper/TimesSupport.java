@@ -40,11 +40,26 @@ import java.util.concurrent.atomic.AtomicReference;
  * @version 1.0
  */
 public class TimesSupport {
-
-    // Colori per i bordi delle sezioni interne (Azione, Dettagli, Ruolo Genitore)
+    /**
+     * Colore del bordo sinistro per la sezione Azione.
+     */
     private static final String AZIONE_BORDER_COLOR = "var(--lumo-primary-color)";
+    /**
+     * Colore del bordo sinistro per la sezione Dettagli Aggiuntivi.
+     */
     private static final String DETTAGLI_BORDER_COLOR = "var(--lumo-success-color)";
+    /**
+     * Colore del bordo sinistro per la sezione Ruolo Genitore (visibile solo per scenari pediatrici).
+     */
     private static final String RUOLO_BORDER_COLOR = "var(--lumo-warning-color)";
+
+    /**
+     * Costruttore privato per evitare istanziazione della classe.
+     * Questa classe è un utility e non dovrebbe essere istanziata.
+     */
+    private TimesSupport() {
+        // Costruttore privato per evitare istanziazione
+    }
 
     /**
      * Crea un contenitore stilizzato per le sezioni interne (Azione, Dettagli, Ruolo Genitore).

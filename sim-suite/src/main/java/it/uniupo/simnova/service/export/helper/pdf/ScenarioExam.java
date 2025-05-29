@@ -29,8 +29,18 @@ import static it.uniupo.simnova.service.export.helper.pdf.SectionDrawer.drawWrap
  * @version 1.0
  */
 public class ScenarioExam {
-
+    /**
+     * Logger per registrare le operazioni e gli errori durante la creazione della sezione.
+     */
     private static final Logger logger = LoggerFactory.getLogger(ScenarioExam.class);
+
+    /**
+     * Costruttore privato per evitare l'istanza della classe.
+     * Questa classe contiene solo metodi statici e non necessita di un'istanza.
+     */
+    public ScenarioExam() {
+        // Costruttore privato per evitare l'istanza della classe.
+    }
 
     /**
      * Crea la sezione "Esami e Referti" nel documento PDF.

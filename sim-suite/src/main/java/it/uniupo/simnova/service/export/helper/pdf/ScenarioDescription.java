@@ -22,6 +22,14 @@ import static it.uniupo.simnova.service.export.helper.pdf.SectionDrawer.drawSect
 public class ScenarioDescription {
 
     /**
+     * Costruttore privato per evitare l'istanza della classe.
+     * Questa classe contiene solo metodi statici e non necessita di un'istanza.
+     */
+    private ScenarioDescription() {
+        // Costruttore privato per evitare l'istanza della classe
+    }
+
+    /**
      * Crea e disegna le sezioni della descrizione di uno scenario nel documento PDF.
      * Ogni sezione viene inclusa solo se il corrispondente flag booleano è <code>true</code>
      * e il contenuto non è vuoto.

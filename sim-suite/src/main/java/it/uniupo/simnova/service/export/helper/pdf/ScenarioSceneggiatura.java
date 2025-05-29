@@ -23,8 +23,18 @@ import static it.uniupo.simnova.service.export.helper.pdf.SectionDrawer.renderHt
  * @version 1.0
  */
 public class ScenarioSceneggiatura {
-
+    /**
+     * Logger per registrare le operazioni e gli errori durante la creazione della sezione "Sceneggiatura".
+     */
     private static final Logger logger = LoggerFactory.getLogger(ScenarioSceneggiatura.class);
+
+    /**
+     * Costruttore privato per evitare l'istanza della classe, dato che è una classe di utilità.
+     * Non deve essere istanziata, ma solo utilizzata attraverso il metodo statico {@link #createSceneggiaturaSection(Scenario, boolean, PatientSimulatedScenarioService)}.
+     */
+    private ScenarioSceneggiatura() {
+        // Costruttore privato per evitare l'istanza della classe, dato che è una classe di utilità.
+    }
 
     /**
      * Crea la sezione "Sceneggiatura" nel documento PDF.

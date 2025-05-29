@@ -44,17 +44,22 @@ import java.util.stream.Stream;
  * @version 1.0
  */
 public class MonitorSupport {
-
+    /**
+     * Logger per il monitoraggio delle operazioni e degli errori.
+     */
     private static final Logger logger = LoggerFactory.getLogger(MonitorSupport.class);
-
-    // Colori predefiniti per i parametri aggiuntivi
+    /**
+     * Colori predefiniti per i parametri aggiuntivi.
+     * Questi colori vengono utilizzati per differenziare visivamente i parametri aggiuntivi nel monitor.
+     */
     private static final List<String> ADDITIONAL_PARAM_COLORS = List.of(
             "var(--lumo-contrast-70pct)",
             "var(--lumo-shade-50pct)",
             "var(--lumo-tertiary-color)"
     );
-
-    // Stile CSS per l'animazione di "flash" in caso di valori critici
+    /**
+     * Stile CSS per l'animazione di flash degli alert.
+     */
     private static final String FLASH_ANIMATION_CSS =
             "@keyframes flash-outline-anim {" +
                     "  0% { outline: 2px solid transparent; outline-offset: 0px; }" +
@@ -65,10 +70,21 @@ public class MonitorSupport {
                     "  animation: flash-outline-anim 1.2s infinite;" +
                     "  border-color: var(--lumo-error-color) !important;" +
                     "}";
-
-    private static final String FLASH_STYLE_ID = "global-flash-alert-style"; // ID per lo stile dinamico
-    private static final String NULL_DISPLAY_VALUE = "-"; // Valore di default per display vuoto
-
+    /**
+     * ID per lo stile dinamico dell'animazione di flash.
+     */
+    private static final String FLASH_STYLE_ID = "global-flash-alert-style";
+    /**
+     * Valore di default per i display vuoti nei parametri vitali.
+     * Utilizzato quando un parametro non ha un valore definito o è nullo.
+     */
+    private static final String NULL_DISPLAY_VALUE = "-";
+    /**
+     * Costruttore privato per evitare istanziazioni dirette della classe.
+     */
+    private MonitorSupport() {
+        // Costruttore privato per evitare istanziazioni
+    }
 
     /**
      * Converte un {@link Number} in {@link Double}.

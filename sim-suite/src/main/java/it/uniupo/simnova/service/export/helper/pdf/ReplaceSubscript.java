@@ -13,6 +13,14 @@ package it.uniupo.simnova.service.export.helper.pdf;
 public class ReplaceSubscript {
 
     /**
+     * Costruttore privato per impedire l'istanza della classe.
+     */
+    private ReplaceSubscript() {
+        // Costruttore privato per impedire l'istanza della classe
+        // poiché contiene solo metodi statici.
+    }
+
+    /**
      * Sostituisce i caratteri Unicode comunemente usati per gli apici e i pedici
      * con i loro equivalenti numerici o simboli normali. Questo assicura che il testo
      * sia compatibile con i font standard utilizzati nella generazione PDF.

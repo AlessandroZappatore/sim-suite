@@ -11,10 +11,13 @@ import java.util.Map;
  * @author Alessandro Zappatore
  * @version 1.0
  */
-@SuppressWarnings("NonAsciiCharacters") // Sopprime l'avviso per caratteri non-ASCII, se presenti (es. in descrizioni)
+@SuppressWarnings("NonAsciiCharacters") // Sopprime l'avviso per caratteri non-ASCII
 public class EsameFisico {
 
-    private final int idEsameFisico; // <strong>Identificativo univoco</strong> dell'esame fisico, assegnato dal database.
+    /**
+     * <strong>Identificativo univoco</strong> dell'esame fisico, assegnato dal database.
+     */
+    private final int idEsameFisico;
 
     /**
      * Mappa che associa il nome di ogni sezione dell'esame fisico (es. "Generale", "Torace")

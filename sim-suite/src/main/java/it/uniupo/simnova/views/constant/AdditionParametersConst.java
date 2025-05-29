@@ -81,4 +81,11 @@ public final class AdditionParametersConst {
         ADDITIONAL_PARAMETERS.put("pCO₂ cutanea", "pCO₂ cutanea (mmHg)");
         ADDITIONAL_PARAMETERS.put("NIRS", "Ossimetria cerebrale (%)");
     }
+
+    /**
+     * Costruttore privato per evitare l'istanza della classe.
+     */
+    public AdditionParametersConst() {
+        // Costruttore privato per evitare l'istanza della classe
+    }
 }

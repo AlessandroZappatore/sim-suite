@@ -31,8 +31,18 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
         iconPath = "/icons/favicon.ico" // Imposta esplicitamente l'icona per la PWA
 )
 public class Application implements AppShellConfigurator {
-
+    /**
+     * Logger per registrare eventi ed errori durante l'esecuzione dell'applicazione.
+     */
     private static final Logger logger = LoggerFactory.getLogger(Application.class);
+
+    /**
+     * Costruttore della classe Application.
+     * Può essere utilizzato per ulteriori inizializzazioni se necessario.
+     */
+    public Application() {
+        // Costruttore vuoto, può essere utilizzato per ulteriori inizializzazioni se necessario
+    }
 
     /**
      * Metodo principale che avvia l'applicazione.

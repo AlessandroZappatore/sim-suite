@@ -27,6 +27,14 @@ public class MediaHelper {
     private static final Logger logger = LoggerFactory.getLogger(MediaHelper.class);
 
     /**
+     * Costruttore privato per evitare l'istanza della classe, dato che contiene solo metodi statici.
+     */
+    private MediaHelper() {
+        // Costruttore privato per evitare l'istanza della classe.
+        // Questa classe contiene solo metodi statici.
+    }
+
+    /**
      * Verifica se un determinato file media è attualmente associato a un esame o referto nel database.
      * Questo è utile per determinare se un file può essere eliminato in sicurezza dallo storage.
      *

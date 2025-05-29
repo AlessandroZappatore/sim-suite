@@ -39,12 +39,25 @@ import org.vaadin.tinymce.TinyMce;
 @PageTitle("Liquidi e dosi farmaci")
 @Route(value = "liquidi")
 public class LiquidiView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-
+    /**
+     * Logger per la registrazione degli eventi e degli errori nella vista LiquidiView.
+     */
     private static final Logger logger = LoggerFactory.getLogger(LiquidiView.class);
 
+    /**
+     * Servizio per la gestione degli scenari, utilizzato per recuperare e aggiornare i dati dello scenario corrente.
+     */
     private final ScenarioService scenarioService;
-    private final TinyMce liquidiEditor; // Editor WYSIWYG per il testo su liquidi e farmaci
-    private Integer scenarioId; // ID dello scenario corrente
+    /**
+     * Editor WYSIWYG per la gestione del testo dei liquidi e delle dosi dei farmaci.
+     * Utilizza TinyMCE per fornire un'interfaccia di editing ricca e intuitiva.
+     */
+    private final TinyMce liquidiEditor;
+    /**
+     * ID dello scenario corrente, utilizzato per identificare quale scenario si sta modificando.
+     * Questo ID viene passato come parametro nell'URL della vista.
+     */
+    private Integer scenarioId;
 
     /**
      * Costruttore della vista {@code LiquidiView}.

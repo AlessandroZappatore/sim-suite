@@ -15,6 +15,13 @@ import com.vaadin.flow.component.tabs.Tab;
 public class TabsSupport {
 
     /**
+     * Costruttore privato per impedire l'istanza della classe.
+     */
+    private TabsSupport() {
+        // Costruttore privato per impedire l'istanza della classe.
+    }
+
+    /**
      * Crea un componente {@link Tab} con un'icona e un testo, centrati all'interno.
      * Questo metodo semplifica la creazione di tab visivamente accattivanti e coerenti.
      *

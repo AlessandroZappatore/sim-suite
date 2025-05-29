@@ -34,8 +34,17 @@ import static it.uniupo.simnova.service.export.helper.pdf.SectionDrawer.renderHt
  * @version 1.0
  */
 public class ScenarioPatient {
-
+    /**
+     * Logger per registrare le operazioni e gli errori durante la generazione del PDF.
+     */
     private static final Logger logger = LoggerFactory.getLogger(ScenarioPatient.class);
+
+    /**
+     * Costruttore privato per evitare l'istanza della classe, dato che contiene solo metodi statici.
+     */
+    private ScenarioPatient() {
+        // Costruttore privato per evitare l'istanza della classe.
+    }
 
     /**
      * Crea la sezione "Stato Paziente" nel documento PDF.

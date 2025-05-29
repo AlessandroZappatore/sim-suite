@@ -30,6 +30,14 @@ import java.util.List;
 public class PatientT0Support {
 
     /**
+     * Costruttore privato per evitare istanziazioni dirette della classe.
+     * Utilizzare i metodi statici per creare il layout del paziente T0.
+     */
+    public PatientT0Support() {
+        // Costruttore privato per evitare istanziazioni
+    }
+
+    /**
      * Crea un layout verticale che aggrega i componenti UI per visualizzare
      * i dati del paziente al tempo T0: parametri vitali, accessi ed esame fisico.
      * Fornisce anche un pulsante per l'aggiunta dei dati T0 se non presenti.

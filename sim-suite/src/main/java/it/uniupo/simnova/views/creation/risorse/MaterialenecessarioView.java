@@ -46,21 +46,64 @@ import java.util.stream.Collectors;
 @PageTitle("Materiale Necessario")
 @Route(value = "materialeNecessario")
 public class MaterialenecessarioView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-
+    /**
+     * Logger per la registrazione delle attività e degli errori nella vista {@code MaterialenecessarioView}.
+     */
     private static final Logger logger = LoggerFactory.getLogger(MaterialenecessarioView.class);
 
+    /**
+     * Servizi utilizzati per la gestione degli scenari.
+     */
     private final ScenarioService scenarioService;
+    /**
+     * Servizio per la gestione dei materiali, che consente di recuperare, aggiungere ed eliminare materiali.
+     */
     private final MaterialeService materialeService;
 
+    /**
+     * Griglie per visualizzare i materiali disponibili e quelli selezionati.
+     * La griglia dei materiali disponibili mostra tutti i materiali non ancora associati allo scenario,
+     * mentre la griglia dei materiali selezionati mostra solo quelli già associati.
+     */
     private final Grid<Materiale> materialiDisponibiliGrid;
+    /**
+     * Griglia per i materiali selezionati, che mostra solo quelli associati allo scenario corrente.
+     * Permette di rimuovere i materiali dalla selezione.
+     */
     private final Grid<Materiale> materialiSelezionatiGrid;
 
-    private final List<Materiale> materialiSelezionati = new ArrayList<>(); // Materiali associati allo scenario
+    /**
+     * Lista dei materiali selezionati per lo scenario corrente.
+     * Questa lista viene popolata con i materiali già associati allo scenario
+     * e aggiornata quando l'utente aggiunge o rimuove materiali.
+     */
+    private final List<Materiale> materialiSelezionati = new ArrayList<>();
+    /**
+     * Pulsante per navigare alla vista successiva (Esami e Referti).
+     * Viene utilizzato per salvare i materiali selezionati e procedere alla configurazione degli esami.
+     */
     private final Button nextButton = StyleApp.getNextButton();
-    private List<Materiale> tuttiMateriali = new ArrayList<>(); // Tutti i materiali disponibili nel DB
+    /**
+     * Lista di tutti i materiali disponibili nel database.
+     * Viene utilizzata per popolare la griglia dei materiali disponibili e per gestire le operazioni di ricerca.
+     */
+    private List<Materiale> tuttiMateriali = new ArrayList<>();
+    /**
+     * ID dello scenario corrente, che viene passato come parametro nell'URL.
+     * Viene utilizzato per caricare i materiali associati e per salvare le modifiche.
+     */
     private Integer scenarioId;
-    private TextField searchField; // Campo di ricerca per i materiali disponibili
-    private String mode; // Modalità della vista: "create" o "edit"
+    /**
+     * Campo di ricerca per filtrare i materiali disponibili.
+     * Permette all'utente di cercare materiali per nome o descrizione.
+     */
+    private TextField searchField;
+    /**
+     * Modalità della vista, che può essere "create" per la creazione di un nuovo scenario
+     * o "edit" per la modifica di uno scenario esistente.
+     * Viene determinata in base ai parametri dell'URL.
+     */
+    private String mode;
 
     /**
      * Costruttore della vista {@code MaterialenecessarioView}.

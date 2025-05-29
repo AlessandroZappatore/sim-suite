@@ -33,6 +33,14 @@ public class UnZipScenarioService {
     public static final String MEDIA_FOLDER_PREFIX = "esami/";
 
     /**
+     * Costruttore di default per il servizio di decompressione.
+     * Non richiede parametri e non esegue operazioni di inizializzazione.
+     */
+    private UnZipScenarioService() {
+        // Costruttore di default, non esegue operazioni di inizializzazione.
+    }
+
+    /**
      * Decomprime un {@link InputStream} che rappresenta un file ZIP di uno scenario.
      * Estrae il file <code>scenario.json</code> e tutti i file contenuti nella cartella {@value #MEDIA_FOLDER_PREFIX}.
      *

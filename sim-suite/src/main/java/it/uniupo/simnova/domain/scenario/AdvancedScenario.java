@@ -13,9 +13,14 @@ import java.util.ArrayList;
  * @version 1.0
  */
 public class AdvancedScenario extends Scenario {
-
-    private final int id_advanced_scenario; // <strong>Identificativo specifico</strong> per lo scenario avanzato.
-    private ArrayList<Tempo> tempi;         // <strong>Lista dei tempi/fasi</strong> dello scenario.
+    /**
+     * <strong>Identificativo specifico</strong> per lo scenario avanzato.
+     */
+    private final int id_advanced_scenario;
+    /**
+     * <strong>Lista dei tempi/fasi</strong> dello scenario.
+     */
+    private ArrayList<Tempo> tempi;
 
     /**
      * Costruttore completo per creare un nuovo oggetto <strong><code>AdvancedScenario</code></strong>.

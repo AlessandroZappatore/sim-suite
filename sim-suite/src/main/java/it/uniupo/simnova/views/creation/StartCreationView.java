@@ -47,22 +47,54 @@ import org.slf4j.LoggerFactory;
 @PageTitle("StartCreation")
 @Route("startCreation")
 public class StartCreationView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-
+    /**
+     * Logger per la registrazione degli eventi e degli errori nella vista di creazione dello scenario.
+     */
     private static final Logger logger = LoggerFactory.getLogger(StartCreationView.class);
 
+    /**
+     * Servizi utilizzati per la gestione degli scenari.
+     */
     private final ScenarioService scenarioService;
+    /**
+     * Servizio per la gestione degli scenari avanzati.
+     */
     private final AdvancedScenarioService advancedScenarioService;
+    /**
+     * Servizio per la gestione degli scenari con paziente simulato.
+     */
     private final PatientSimulatedScenarioService patientSimulatedScenarioService;
 
-    // Campi di input
+    /**
+     * Campo di input per il titolo dello scenario.
+     */
     private final TextField scenarioTitle;
+    /**
+     * Campo di input per il nome del paziente.
+     */
     private final TextField patientName;
+    /**
+     * Campo di input per la patologia o malattia del paziente.
+     */
     private final TextField pathology;
+    /**
+     * Campo di input per il nome dell'autore dello scenario.
+     */
     private final ComboBox<Integer> durationField;
+    /**
+     * Campo di input per il tipo di scenario (es. Adulto, Pediatrico, Neonatale, Prematuro).
+     */
     private final TextField authorField;
+    /**
+     * Campo di selezione per il tipo di scenario.
+     */
     private final Select<String> typeField;
 
-    private String scenarioType; // Tipo di scenario da creare (es. quickscenario, advancedscenario)
+    /**
+     * Tipo di scenario da creare, passato come parametro nell'URL.
+     * Può essere "quickscenario", "advancedscenario" o "patientsimulatedscenario".
+     */
+    private String scenarioType;
 
     /**
      * Costruttore che inizializza la vista e configura i campi di input.

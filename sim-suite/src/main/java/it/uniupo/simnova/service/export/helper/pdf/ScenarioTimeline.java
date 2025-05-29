@@ -32,6 +32,13 @@ import static it.uniupo.simnova.service.export.helper.pdf.SectionDrawer.drawWrap
 public class ScenarioTimeline {
 
     /**
+     * Costruttore privato per evitare l'istanza della classe.
+     */
+    public ScenarioTimeline() {
+        // Costruttore privato per evitare l'istanza della classe.
+    }
+
+    /**
      * Crea la sezione "Timeline" nel documento PDF.
      * Questa sezione include tutti i tempi definiti per lo scenario,
      * presentandoli con i loro parametri vitali, i parametri aggiuntivi,

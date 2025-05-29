@@ -29,6 +29,14 @@ public class PresidiService {
     private static final Logger logger = LoggerFactory.getLogger(PresidiService.class);
 
     /**
+     * Costruttore privato per evitare l'istanza diretta della classe.
+     */
+    private PresidiService() {
+        // Costruttore privato per evitare l'istanza diretta della classe.
+        // Utilizzare i metodi statici per accedere alle funzionalità del servizio.
+    }
+
+    /**
      * Recupera una lista di tutti i nomi dei presidi disponibili nel database.
      *
      * @return Una {@link List} di {@link String} contenente i nomi di tutti i presidi.

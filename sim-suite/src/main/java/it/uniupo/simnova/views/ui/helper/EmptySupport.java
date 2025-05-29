@@ -21,6 +21,13 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 public class EmptySupport extends HorizontalLayout {
 
     /**
+     * Costruttore vuoto per la classe EmptySupport.
+     */
+    public EmptySupport() {
+        // Costruttore vuoto per la classe EmptySupport
+    }
+
+    /**
      * Crea un componente visivo standard per segnalare contenuto vuoto o un errore.
      * Include un'icona, un titolo e un messaggio personalizzato, con effetti visivi al passaggio del mouse.
      *

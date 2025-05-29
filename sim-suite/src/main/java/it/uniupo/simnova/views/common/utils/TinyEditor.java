@@ -14,6 +14,15 @@ import org.vaadin.tinymce.TinyMce;
 public class TinyEditor extends HorizontalLayout {
 
     /**
+     * Costruttore privato per evitare l'istanza diretta della classe.
+     * Utilizzare il metodo statico {@link #getEditor()} per ottenere un'istanza configurata.
+     */
+    private TinyEditor() {
+        // Costruttore privato per evitare l'istanza diretta della classe.
+        // Utilizzare il metodo statico getEditor() per ottenere un'istanza configurata.
+    }
+
+    /**
      * Genera e configura un'istanza dell'editor di testo ***TinyMce** con un set di funzionalità standard.
      * La configurazione include plugin comuni per la formattazione, i link, le liste, le tabelle,
      * l'inserimento di immagini e la gestione delle pagine.

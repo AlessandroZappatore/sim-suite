@@ -29,6 +29,14 @@ public class EsameFisicoService {
     private static final Logger logger = LoggerFactory.getLogger(EsameFisicoService.class);
 
     /**
+     * Costruttore della classe {@link EsameFisicoService}.
+     * Viene utilizzato per l'iniezione delle dipendenze da parte di Spring.
+     */
+    public EsameFisicoService() {
+        // Costruttore vuoto, necessario per l'iniezione di dipendenze da parte di Spring.
+    }
+
+    /**
      * Recupera un oggetto {@link EsameFisico} dal database utilizzando il suo identificativo.
      *
      * @param id L'ID dell'esame fisico da recuperare. Questo ID corrisponde tipicamente all'ID dello scenario.

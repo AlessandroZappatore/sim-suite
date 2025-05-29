@@ -40,12 +40,22 @@ import java.util.function.Supplier;
  */
 public class InfoSupport extends HorizontalLayout {
 
-    // Mappe per associare icone a etichette e tipi di paziente
+    /**
+     * Mappa che associa etichette di campo a icone FontAwesome.
+     */
     private static final Map<String, Supplier<Icon>> labelIconMap = new HashMap<>();
+    /**
+     * Mappa che associa tipologie di paziente a icone FontAwesome.
+     */
     private static final Map<String, Supplier<Icon>> tipologiaIconMap = new HashMap<>();
-
-    // Opzioni predefinite per i ComboBox e Select
+    /**
+     * Lista delle opzioni disponibili per la tipologia di paziente.
+     */
     private static final List<String> TIPOLOGIA_OPTIONS = Arrays.asList("Adulto", "Pediatrico", "Neonatale", "Prematuro");
+    /**
+     * Lista delle opzioni disponibili per la durata del timer generale.
+     * Queste opzioni sono in minuti e possono essere utilizzate per selezionare la durata di un evento.
+     */
     private static final List<Integer> DURATION_OPTIONS = List.of(5, 10, 15, 20, 25, 30);
 
     // Inizializzazione statica delle mappe di icone
@@ -59,6 +69,14 @@ public class InfoSupport extends HorizontalLayout {
         tipologiaIconMap.put("Pediatrico", FontAwesome.Solid.CHILD::create);
         tipologiaIconMap.put("Neonatale", FontAwesome.Solid.BABY::create);
         tipologiaIconMap.put("Prematuro", FontAwesome.Solid.HANDS_HOLDING_CHILD::create);
+    }
+
+    /**
+     * Costruttore privato per evitare istanziazioni dirette della classe.
+     * Utilizzare i metodi statici per ottenere i badge informativi.
+     */
+    private InfoSupport() {
+        // Costruttore privato per evitare istanziazioni dirette
     }
 
     /**

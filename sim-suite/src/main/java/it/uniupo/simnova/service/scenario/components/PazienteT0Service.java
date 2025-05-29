@@ -27,6 +27,14 @@ public class PazienteT0Service {
     private static final Logger logger = LoggerFactory.getLogger(PazienteT0Service.class);
 
     /**
+     * Costruttore privato per evitare l'istanza diretta di questo servizio.
+     */
+    private PazienteT0Service() {
+        // Costruttore privato per evitare l'istanza diretta di questo servizio.
+        // Utilizzare il contesto Spring per ottenere un'istanza di questo servizio.
+    }
+
+    /**
      * Recupera un oggetto {@link PazienteT0} dal database, inclusi i suoi accessi venosi e arteriosi,
      * basandosi sull'ID dello scenario a cui è associato.
      *

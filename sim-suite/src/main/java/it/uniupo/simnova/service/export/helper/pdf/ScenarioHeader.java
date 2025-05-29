@@ -28,8 +28,17 @@ import static it.uniupo.simnova.service.export.helper.pdf.PdfConstant.TITLE_FONT
  * @version 1.2
  */
 public class ScenarioHeader {
-
+    /**
+     * Logger per registrare le operazioni e gli errori durante la creazione dell'intestazione.
+     */
     private static final Logger logger = LoggerFactory.getLogger(ScenarioHeader.class);
+
+    /**
+     * Costruttore privato per evitare l'istanza della classe, poiché contiene solo metodi statici.
+     */
+    private ScenarioHeader() {
+        // Costruttore privato per evitare l'istanza della classe, dato che contiene solo metodi statici.
+    }
 
     /**
      * Crea l'intestazione iniziale del documento PDF per uno scenario.

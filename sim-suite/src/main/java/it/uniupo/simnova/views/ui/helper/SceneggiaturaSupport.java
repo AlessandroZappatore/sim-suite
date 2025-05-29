@@ -29,6 +29,13 @@ import org.vaadin.tinymce.TinyMce;
 public class SceneggiaturaSupport extends HorizontalLayout {
 
     /**
+     * Costruttore privato per evitare istanziazioni dirette della classe.
+     */
+    private SceneggiaturaSupport() {
+        // Costruttore privato per evitare istanziazioni dirette.
+    }
+
+    /**
      * Crea un componente per visualizzare e modificare la sceneggiatura.
      * La sceneggiatura è presentata in una card con titolo, icona e pulsanti di modifica.
      *

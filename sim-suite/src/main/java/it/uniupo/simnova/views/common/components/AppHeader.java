@@ -32,16 +32,39 @@ import java.io.InputStream;
  * @version 1.5
  */
 public class AppHeader extends HorizontalLayout {
-
+    /**
+     * Logger per la registrazione degli eventi e degli errori.
+     */
     private static final Logger logger = LoggerFactory.getLogger(AppHeader.class);
+    /**
+     * Nome del file del logo del centro.
+     */
     private static final String CENTER_LOGO_FILENAME = "center_logo.png";
+    /**
+     * URL del logo dell'applicazione.
+     */
     private static final String LOGO_URL = "icons/icon.png";
 
+    /**
+     * Servizio per la gestione dei file, utilizzato per caricare e gestire il logo del centro.
+     */
     private final FileStorageService fileStorageService;
+
+    /**
+     * Contenitore per il logo del centro, che può essere un'immagine o un componente di upload.
+     */
     private final Div centerLogoContainer;
+    /**
+     * Pulsante per il cambio tema dell'applicazione (modalità scura/chiara).
+     * Mostra un'icona che cambia in base al tema attivo.
+     */
     private final Button toggleThemeButton;
 
-    private boolean isDarkMode = false; // Stato attuale del tema
+    /**
+     * Stato attuale del tema dell'applicazione.
+     * {@code true} se il tema è scuro, {@code false} se è chiaro.
+     */
+    private boolean isDarkMode = false;
 
     /**
      * Costruttore che inizializza l'header dell'applicazione.
@@ -97,7 +120,6 @@ public class AppHeader extends HorizontalLayout {
         // Pulsante per il cambio tema (modalità scura/chiara)
         toggleThemeButton = new Button();
         toggleThemeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        toggleThemeButton.setAriaLabel("Toggle dark mode");
         toggleThemeButton.getStyle()
                 .set("box-shadow", "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)")
                 .set("border-radius", "50%");
@@ -125,7 +147,6 @@ public class AppHeader extends HorizontalLayout {
 
             Button deleteButton = new Button(new Icon(VaadinIcon.CLOSE_SMALL));
             deleteButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_ERROR);
-            deleteButton.setAriaLabel("Elimina logo centro");
             deleteButton.getStyle().set("margin-left", LumoUtility.Margin.XSMALL);
             Tooltip.forComponent(deleteButton).withText("Elimina Logo Centro");
 

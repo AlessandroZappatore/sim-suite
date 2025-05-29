@@ -31,6 +31,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class DialogSupport {
 
     /**
+     * Costruttore privato per prevenire l'istanza della classe.
+     * Questa classe contiene solo metodi statici e non dovrebbe essere istanziata.
+     */
+    public DialogSupport() {
+        // Costruttore vuoto per prevenire l'istanza della classe
+    }
+
+    /**
      * Mostra un dialog modale per il caricamento di un file ZIP.
      * Questo dialog è utilizzato per importare nuovi scenari nell'applicazione.
      * L'operazione di importazione avviene in background.

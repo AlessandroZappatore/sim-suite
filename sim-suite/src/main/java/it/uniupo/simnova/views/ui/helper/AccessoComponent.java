@@ -24,12 +24,27 @@ import java.util.Optional;
  * @version 1.0
  */
 public class AccessoComponent extends HorizontalLayout {
-
+    /**
+     * Campo di selezione per il tipo di accesso.
+     */
     private final Select<String> tipoSelect;
+    /**
+     * Campo di testo per la posizione dell'accesso.
+     */
     private final TextField posizioneField;
+    /**
+     * Campo di selezione per il lato dell'accesso (DX/SX).
+     */
     private final Select<String> latoSelect;
+    /**
+     * Campo di selezione per la misura dell'accesso (Gauge).
+     */
     private final Select<Integer> misuraSelect;
-    private final Accesso accesso; // Oggetto Accesso associato a questo componente
+    /**
+     * Oggetto Accesso associato a questo componente.
+     * Contiene i dati dell'accesso selezionato.
+     */
+    private final Accesso accesso;
 
     /**
      * Costruttore per creare un nuovo componente AccessoComponent.

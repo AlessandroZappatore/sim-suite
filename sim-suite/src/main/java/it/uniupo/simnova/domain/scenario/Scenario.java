@@ -10,22 +10,66 @@ package it.uniupo.simnova.domain.scenario;
  * @version 1.0
  */
 public class Scenario {
-
-    private final String nome_paziente;   // <strong>Nome</strong> del paziente.
-    private final String patto_aula;      // <strong>Patto d'aula</strong> dello scenario.
-    private final String obiettivo;       // <strong>Obiettivo</strong> didattico dello scenario.
-    private final float timer_generale;   // <strong>Timer generale</strong> dello scenario (in secondi).
-    private final String infoGenitore;    // <strong>Informazioni per il genitore</strong> (se scenario pediatrico).
-    private int id;                 // <strong>Identificativo univoco</strong> dello scenario.
-    private String titolo;          // <strong>Titolo</strong> dello scenario.
-    private String patologia;       // <strong>Patologia</strong> del paziente.
-    private String descrizione;     // <strong>Descrizione</strong> dettagliata dello scenario.
-    private String briefing;        // <strong>Briefing</strong> (informazioni preliminari) dello scenario.
-    private String moulage;         // <strong>Moulage</strong> (trucco ed effetti speciali) dello scenario.
-    private String liquidi;         // <strong>Liquidi e dosi farmaci</strong> disponibili nello scenario.
-    private String autori;          // <strong>Autori</strong> che hanno creato lo scenario.
-    private String tipologia;       // <strong>Tipologia</strong> dello scenario (es. "Adulto", "Pediatrico").
-    private String target;          // <strong>Target</strong> di riferimento dello scenario (es. "Medici Specialisti").
+    /**
+     * <strong>Nome</strong> del paziente.
+     */
+    private final String nome_paziente;
+    /**
+     * <strong>Patto d'aula</strong> dello scenario.
+     */
+    private final String patto_aula;
+    /**
+     * <strong>Obiettivo</strong> didattico dello scenario.
+     */
+    private final String obiettivo;
+    /**
+     * <strong>Timer generale</strong> dello scenario (in secondi).
+     */
+    private final float timer_generale;
+    /**
+     * <strong>Informazioni per il genitore</strong> (se scenario pediatrico).
+     */
+    private final String infoGenitore;
+    /**
+     * <strong>Identificativo univoco</strong> dello scenario.
+     */
+    private int id;
+    /**
+     * <strong>Titolo</strong> dello scenario.
+     */
+    private String titolo;
+    /**
+     * <strong>Patologia</strong> del paziente.
+     */
+    private String patologia;
+    /**
+     * <strong>Descrizione</strong> dettagliata dello scenario.
+     */
+    private String descrizione;
+    /**
+     * <strong>Briefing</strong> (informazioni preliminari) dello scenario.
+     */
+    private String briefing;
+    /**
+     * <strong>Moulage</strong> (trucco ed effetti speciali) dello scenario.
+     */
+    private String moulage;
+    /**
+     * <strong>Liquidi e dosi farmaci</strong> disponibili nello scenario.
+     */
+    private String liquidi;
+    /**
+     * <strong>Autori</strong> che hanno creato lo scenario.
+     */
+    private String autori;
+    /**
+     * <strong>Tipologia</strong> dello scenario (es. "Adulto", "Pediatrico").
+     */
+    private String tipologia;
+    /**
+     * <strong>Target</strong> di riferimento dello scenario (es. "Medici Specialisti").
+     */
+    private String target;
 
     /**
      * Costruttore completo per creare un nuovo oggetto <strong><code>Scenario</code></strong> con tutti i campi.

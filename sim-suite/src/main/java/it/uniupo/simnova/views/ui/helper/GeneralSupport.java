@@ -38,6 +38,13 @@ import java.util.stream.Collectors;
 public class GeneralSupport extends HorizontalLayout {
 
     /**
+     * Costruttore privato per evitare istanziazioni dirette.
+     */
+    private GeneralSupport() {
+        // Costruttore privato per evitare istanziazioni dirette
+    }
+
+    /**
      * Crea e popola un layout verticale con le informazioni generali di uno scenario.
      * Include sezioni modificabili per descrizione, briefing, informazioni dai genitori (se pediatriche),
      * patto d'aula, azioni chiave, obiettivi didattici, moulage, liquidi e farmaci, e materiale necessario.

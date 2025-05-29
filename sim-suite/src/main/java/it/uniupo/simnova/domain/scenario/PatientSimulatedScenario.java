@@ -14,10 +14,18 @@ import java.util.ArrayList;
  * @version 1.0
  */
 public class PatientSimulatedScenario extends AdvancedScenario {
-
-    private final int idPatientSimulatedScenario; // <strong>Identificativo univoco</strong> dello scenario simulato con paziente.
-    private final int advancedScenario;           // <strong>Identificativo</strong> dello scenario avanzato associato.
-    private String sceneggiatura;                 // <strong>Sceneggiatura</strong> dettagliata per il paziente simulato.
+    /**
+     * <strong>Identificativo univoco</strong> dello scenario simulato con paziente.
+     */
+    private final int idPatientSimulatedScenario;
+    /**
+     * <strong>Identificativo</strong> dello scenario avanzato associato.
+     */
+    private final int advancedScenario;
+    /**
+     * <strong>Sceneggiatura</strong> dettagliata per il paziente simulato.
+     */
+    private String sceneggiatura;
 
     /**
      * Costruttore completo per creare un nuovo oggetto <strong><code>PatientSimulatedScenario</code></strong>.

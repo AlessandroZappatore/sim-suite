@@ -26,6 +26,13 @@ public class AzioneChiaveService {
     private static final Logger logger = LoggerFactory.getLogger(AzioneChiaveService.class);
 
     /**
+     * Costruttore vuoto per il servizio AzioneChiaveService.
+     */
+    public AzioneChiaveService() {
+        // Costruttore vuoto, può essere utilizzato per iniezione di dipendenze o inizializzazione.
+    }
+
+    /**
      * Recupera i nomi di tutte le azioni chiave associate a uno scenario specifico.
      * La query recupera i nomi delle azioni chiave dalla tabella <code>AzioniChiave</code>
      * tramite un'associazione con la tabella <code>AzioneScenario</code> basata sull'<code>id_scenario</code>.

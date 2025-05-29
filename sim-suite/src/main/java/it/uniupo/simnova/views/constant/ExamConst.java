@@ -22,7 +22,6 @@ public final class ExamConst {
             "INR, PTT, PT", "Gas arteriosi (pH, PaO₂, PaCO₂, HCO₃⁻, BE, Lactati)",
             "Emogas venoso", "Osmolarità sierica", "CPK", "Mioglobina"
     );
-
     /**
      * Lista di stringhe contenente tutti i ***tipi di esami strumentali** predefiniti.
      */
@@ -33,4 +32,12 @@ public final class ExamConst {
             "RM Encefalo", "TC Cranio (con mdc)", "TC Cranio (senza mdc)", "Doppler TSA (Tronchi Sovraortici)",
             "Angio-TC Polmonare", "Fundus oculi"
     );
+
+    /**
+     * Costruttore privato per evitare l'istanza della classe.
+     * Questa classe è pensata per essere utilizzata solo come contenitore di costanti.
+     */
+    private ExamConst() {
+        // Costruttore privato per evitare l'istanza della classe
+    }
 }

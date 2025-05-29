@@ -15,11 +15,26 @@ package it.uniupo.simnova.domain.paziente;
  */
 public class EsameReferto {
 
-    private final int idEsame;      // Identificativo univoco dell'esame.
-    private final int id_scenario;  // Identificativo dello scenario associato all'esame.
-    private String tipo;            // Tipologia dell'esame (es. "Radiografia", "Ecografia").
-    private String media;           // Percorso del file multimediale associato all'esame (opzionale).
-    private String refertoTestuale; // Contenuto testuale del referto.
+    /**
+     * <strong>Identificativo univoco</strong> dell'esame e referto, assegnato dal database.
+     */
+    private final int idEsame;
+    /**
+     * Identificativo dello scenario associato all'esame.
+     */
+    private final int id_scenario;
+    /**
+     * Tipologia dell'esame, ad esempio "Radiografia", "Ecografia".
+     */
+    private String tipo;
+    /**
+     * Percorso del file multimediale associato all'esame.
+     */
+    private String media;
+    /**
+     * Contenuto testuale del referto dell'esame.
+     */
+    private String refertoTestuale;
 
     /**
      * Costruttore completo per creare un nuovo oggetto <strong><code>EsameReferto</code></strong>.

@@ -33,6 +33,14 @@ import java.util.Map;
 public class PhysicalExamSupport {
 
     /**
+     * Costruttore privato per evitare l'istanza della classe.
+     * Questa classe è un utility e non dovrebbe essere istanziata.
+     */
+    private PhysicalExamSupport() {
+        // Costruttore privato per evitare l'istanza della classe.
+    }
+
+    /**
      * Crea una card riassuntiva che mostra tutte le sezioni dell'esame fisico.
      * Ogni sezione può essere modificata individualmente.
      *

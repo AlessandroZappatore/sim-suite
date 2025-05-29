@@ -34,6 +34,13 @@ import static it.uniupo.simnova.service.export.helper.pdf.PdfConstant.MARGIN;
 public class SectionDrawer {
 
     /**
+     * Costruttore privato per evitare l'istanza della classe.
+     */
+    private SectionDrawer() {
+        // Costruttore privato per evitare l'istanza della classe.
+    }
+
+    /**
      * Disegna una <strong>sezione principale</strong> nel documento PDF con un titolo e un contenuto.
      * Il titolo viene stampato in grassetto. Il contenuto viene renderizzato con formattazione
      * HTML (se applicabile per la sezione) o come testo semplice con wrapping automatico.

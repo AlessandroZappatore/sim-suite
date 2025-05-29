@@ -18,6 +18,15 @@ import java.io.InputStream;
 public class LoadFont {
 
     /**
+     * Costruttore privato per impedire l'istanziazione di questa classe di utilità.
+     * Tutti i metodi forniti sono statici e non richiedono un'istanza della classe.
+     */
+    private LoadFont() {
+        // Costruttore privato per prevenire l'istanziazione
+        throw new UnsupportedOperationException("Questa è una classe di utilità e non può essere istanziata");
+    }
+
+    /**
      * Carica un font TrueType da un file specificato, incorporandolo in un documento PDF.
      * Questo metodo cerca il file del font nel classpath dell'applicazione.
      *

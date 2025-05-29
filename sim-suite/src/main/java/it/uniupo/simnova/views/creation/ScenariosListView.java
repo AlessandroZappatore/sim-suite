@@ -77,45 +77,167 @@ import static it.uniupo.simnova.views.ui.helper.support.SanitizedFileName.saniti
 @Route(value = "scenari")
 public class ScenariosListView extends Composite<VerticalLayout> {
 
-    // Costanti per paginazione e limiti di lunghezza
+    /**
+     * Dimensione della pagina per la paginazione degli scenari.
+     * Indica quanti scenari visualizzare per pagina.
+     */
     private static final int PAGE_SIZE = 10;
-    public final AtomicBoolean detached; // Indica se la vista è stata distaccata
+    /**
+     * Indica se la vista è stata distaccata dall'UI.
+     * Utilizzato per evitare operazioni su UI distaccate.
+     */
+    public final AtomicBoolean detached;
+    /**
+     * Lunghezza massima per i campi di testo visualizzati nella griglia.
+     * Utilizzati per limitare la visualizzazione di titoli, descrizioni, autori e patologie.
+     */
     private final int MAX_TITLE_LENGTH = 20;
+    /**
+     * Lunghezza massima per la descrizione degli scenari.
+     */
     private final int MAX_DESCRIPTION_LENGTH = 30;
+    /**
+     * Lunghezza massima per i nomi degli autori e delle patologie.
+     * Utilizzati per limitare la visualizzazione di autori e patologie nella griglia.
+     */
     private final int MAX_AUTHORS_NAME_LENGTH = 20;
+    /**
+     * Lunghezza massima per il campo patologia.
+     * Utilizzato per limitare la visualizzazione della patologia nella griglia.
+     */
     private final int MAX_PATHOLOGY_LENGTH = 20;
-    // Servizi iniettati per la logica di business
+
+    /**
+     * Servizio per la gestione degli scenari.
+     */
     private final ScenarioService scenarioService;
+    /**
+     * Servizio per importazione degli scenari da file ZIP.
+     */
     private final ScenarioImportService scenarioImportService;
+    /**
+     * Servizi per le operazioni di esportazione e gestione degli scenari.
+     */
     private final ZipExportService zipExportService;
+    /**
+     * Servizi per la gestione di componenti specifici degli scenari.
+     */
     private final AzioneChiaveService azioneChiaveService;
+    /**
+     * Servizi per la gestione di pazienti ed esami fisici.
+     */
     private final PazienteT0Service pazienteT0Service;
+    /**
+     * Servizi per la gestione di esami fisici e referti.
+     */
     private final EsameFisicoService esameFisicoService;
+    /**
+     * Servizi per la gestione di esami e referti.
+     */
     private final EsameRefertoService esameRefertoService;
+    /**
+     * Servizi per la gestione di scenari avanzati e simulati.
+     */
     private final AdvancedScenarioService advancedScenarioService;
+    /**
+     * Servizio per la gestione di scenari simulati per pazienti.
+     */
     private final PatientSimulatedScenarioService patientSimulatedScenarioService;
+    /**
+     * Servizio per la cancellazione degli scenari.
+     */
     private final ScenarioDeletionService scenarioDeletionService;
+    /**
+     * Servizio per la gestione del materiale necessario per gli scenari.
+     */
     private final MaterialeService materialeService;
+    /**
+     * Servizio per la gestione dei file, utilizzato per operazioni di caricamento e download.
+     */
     private final FileStorageService fileStorageService;
-    // Componenti UI e variabili di stato
+
+    /**
+     * Griglia per la visualizzazione degli scenari.
+     */
     private final Grid<Scenario> scenariosGrid = new Grid<>();
+    /**
+     * ExecutorService per gestire operazioni asincrone e virtual threads.
+     * Utilizzato per evitare blocchi dell'UI durante operazioni lunghe come l'esportazione.
+     */
     private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
+    /**
+     * Barra di progresso per indicare operazioni in corso.
+     * Utilizzata per mostrare il caricamento dei dati o l'esportazione.
+     */
     private ProgressBar progressBar;
+    /**
+     * Controlli di paginazione per la griglia degli scenari.
+     * Permette di navigare tra le pagine di scenari visualizzati.
+     */
     private HorizontalLayout paginationControls;
+    /**
+     * Pagina corrente della griglia degli scenari.
+     * Utilizzata per gestire la paginazione e il caricamento dei dati.
+     */
     private int currentPage = 0;
+    /**
+     * Informazioni sulla pagina corrente visualizzate nella paginazione.
+     * Mostra il numero di pagina e il totale degli scenari.
+     */
     private Span pageInfo;
+    /**
+     * Campo di ricerca per tipologia del paziente.
+     */
     private ComboBox<String> searchPatientType;
+    /**
+     * Campo di ricerca per il titolo dello scenario.
+     */
     private TextField searchTitolo;
+    /**
+     * Campo di ricerca per gli autori dello scenario.
+     */
     private TextField searchAutori;
+    /**
+     * Campo di ricerca per il tipo di scenario.
+     * Permette di filtrare gli scenari in base al loro tipo (es. Advanced, Patient Simulated, Quick).
+     */
     private ComboBox<String> searchTipo;
+    /**
+     * Campo di ricerca per la patologia dello scenario.
+     * Permette di filtrare gli scenari in base alla patologia associata.
+     */
     private TextField searchPatologia;
+    /**
+     * Bottone per resettare i filtri di ricerca applicati.
+     * Permette di tornare alla visualizzazione completa degli scenari.
+     */
     private Button resetButton;
+    /**
+     * Lista di tutti gli scenari caricati.
+     * Utilizzata per applicare i filtri e popolare la griglia.
+     */
     private List<Scenario> allScenarios = new ArrayList<>();
+    /**
+     * Lista di scenari filtrati in base ai criteri di ricerca.
+     * Utilizzata per visualizzare solo gli scenari che soddisfano i filtri applicati.
+     */
     private List<Scenario> filteredScenarios = new ArrayList<>();
 
     /**
-     * Costruttore per la vista della lista scenari.
-     * I servizi vengono iniettati tramite Spring.
+     * Costruttore privato per evitare la creazione di istanze senza iniezione dei servizi.
+     *
+     * @param scenarioService                 servizio per la gestione degli scenari
+     * @param zipExportService                servizio per l'esportazione in formato ZIP
+     * @param fileStorageService              servizio per la gestione dei file
+     * @param scenarioImportService           servizio per l'importazione degli scenari
+     * @param azioneChiaveService             servizio per la gestione delle azioni chiave
+     * @param pazienteT0Service               servizio per la gestione dei pazienti T0
+     * @param esameFisicoService              servizio per la gestione degli esami fisici
+     * @param esameRefertoService             servizio per la gestione degli esami e referti
+     * @param advancedScenarioService         servizio per la gestione degli scenari avanzati
+     * @param patientSimulatedScenarioService servizio per la gestione degli scenari simulati per pazienti
+     * @param scenarioDeletionService         servizio per la cancellazione degli scenari
+     * @param materialeService                servizio per la gestione del materiale necessario
      */
     @Autowired
     public ScenariosListView(ScenarioService scenarioService,

@@ -15,6 +15,14 @@ import com.vaadin.flow.component.notification.NotificationVariant;
  * @version 1.0
  */
 public class ValidationError {
+    /**
+     * Costruttore privato per prevenire l'istanza della classe.
+     * Questa classe è pensata per essere utilizzata solo tramite metodi statici.
+     */
+    private ValidationError() {
+        // Costruttore privato per prevenire l'istanza della classe.
+        // Questa classe è pensata per essere utilizzata solo tramite metodi statici.
+    }
 
     /**
      * Mostra una ***notifica di errore** visibile all'utente.

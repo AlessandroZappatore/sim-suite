@@ -39,12 +39,26 @@ import org.vaadin.tinymce.TinyMce;
 @PageTitle("Informazioni per i Genitori")
 @Route(value = "infoGenitori")
 public class GenitoriView extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-
+    /**
+     * Logger per la registrazione degli eventi e degli errori nella vista {@code GenitoriView}.
+     */
     private static final Logger logger = LoggerFactory.getLogger(GenitoriView.class);
 
+    /**
+     * Servizio per la gestione degli scenari, utilizzato per recuperare e aggiornare le informazioni
+     * relative allo scenario corrente.
+     */
     private final ScenarioService scenarioService;
-    private final TinyMce genitoriEditor; // Editor WYSIWYG per il testo delle informazioni
-    private Integer scenarioId; // ID dello scenario corrente
+    /**
+     * Editor WYSIWYG TinyMCE per la modifica del testo delle informazioni per i genitori.
+     * Permette di inserire formattazioni e stili al testo in modo intuitivo.
+     */
+    private final TinyMce genitoriEditor;
+    /**
+     * ID dello scenario corrente, utilizzato per identificare quale scenario si sta modificando.
+     * Questo ID viene passato come parametro nell'URL della vista.
+     */
+    private Integer scenarioId;
 
     /**
      * Costruttore della vista {@code GenitoriView}.

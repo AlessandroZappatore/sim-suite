@@ -45,8 +45,17 @@ import java.util.ArrayList;
  * @version 1.0
  */
 public class ExamSupport {
-
+    /**
+     * Logger per la classe ExamSupport.
+     */
     private static final Logger logger = LoggerFactory.getLogger(ExamSupport.class);
+
+    /**
+     * Costruttore privato per evitare l'istanza della classe, dato che contiene solo metodi statici.
+     */
+    private ExamSupport() {
+        // Costruttore privato per evitare l'istanza della classe, dato che contiene solo metodi statici.
+    }
 
     /**
      * Crea un layout verticale contenente le card di tutti gli esami e referti associati a uno scenario.

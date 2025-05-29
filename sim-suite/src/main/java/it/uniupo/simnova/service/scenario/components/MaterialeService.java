@@ -26,6 +26,15 @@ public class MaterialeService {
     private static final Logger logger = LoggerFactory.getLogger(MaterialeService.class);
 
     /**
+     * Istanza singleton del servizio {@link MaterialeService}.
+     * Utilizza il pattern Singleton per garantire che ci sia una sola istanza di questo servizio.
+     */
+    private MaterialeService() {
+        // Costruttore privato per prevenire l'istanza diretta della classe.
+        // Utilizzare il metodo statico getInstance() per ottenere un'istanza del servizio.
+    }
+
+    /**
      * Recupera una lista di tutti i {@link Materiale Materiali} disponibili nel database.
      *
      * @return Una {@link List} di oggetti {@link Materiale} contenente tutti i materiali.

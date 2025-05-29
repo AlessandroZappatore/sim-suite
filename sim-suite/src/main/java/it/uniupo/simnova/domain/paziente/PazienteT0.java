@@ -12,20 +12,54 @@ import java.util.List;
  * @version 1.0
  */
 public class PazienteT0 {
-
-    private final int idPaziente;       // Identificativo univoco del paziente.
-    private final Integer RR;           // Frequenza respiratoria del paziente (atti/min).
-    private final Integer SpO2;         // Saturazione di ossigeno del paziente (%).
-    private final Integer FiO2;         // Percentuale di ossigeno somministrato al paziente (%).
-    private final Double LitriO2;        // Litri di ossigeno somministrati al paziente (L/min).
-    private final Integer EtCO2;        // Pressione parziale di CO2 espirata del paziente (mmHg).
-    private final String Monitor;       // Testo aggiuntivo per il monitoraggio del paziente.
-    private final List<Accesso> accessiVenosi;  // Lista degli accessi venosi del paziente.
-    private final List<Accesso> accessiArteriosi; // Lista degli accessi arteriosi del paziente.
-    private String PA;                  // Pressione arteriosa del paziente (formato "sistolica/diastolica").
-    private Integer FC;                 // Frequenza cardiaca del paziente (bpm).
-    private double T;                   // Temperatura del paziente (°C).
-
+    /**
+     * Identificativo univoco del paziente.
+     */
+    private final int idPaziente;
+    /**
+     * Frequenza respiratoria del paziente (atti/min).
+     */
+    private final Integer RR;
+    /**
+     * Saturazione di ossigeno del paziente (%).
+     */
+    private final Integer SpO2;
+    /**
+     * Percentuale di ossigeno somministrato al paziente (%).
+     */
+    private final Integer FiO2;
+    /**
+     * Litri di ossigeno somministrati al paziente (L/min).
+     */
+    private final Double LitriO2;
+    /**
+     * Pressione parziale di CO2 espirata del paziente (mmHg).
+     */
+    private final Integer EtCO2;
+    /**
+     * Testo aggiuntivo per il monitoraggio del paziente.
+     */
+    private final String Monitor;
+    /**
+     * Lista degli accessi venosi del paziente.
+     */
+    private final List<Accesso> accessiVenosi;
+    /**
+     * Lista degli accessi arteriosi del paziente.
+     */
+    private final List<Accesso> accessiArteriosi;
+    /**
+     * Pressione arteriosa del paziente (formato "sistolica/diastolica").
+     */
+    private String PA;
+    /**
+     * Frequenza cardiaca del paziente (bpm).
+     */
+    private Integer FC;
+    /**
+     * Temperatura del paziente (°C).
+     */
+    private double T;
 
     /**
      * Costruttore completo per creare un nuovo oggetto <strong><code>PazienteT0</code></strong>.

@@ -10,6 +10,13 @@ package it.uniupo.simnova.views.ui.helper.support;
 public class SanitizedFileName {
 
     /**
+     * Costante per il nome di file predefinito quando il nome fornito è null o vuoto.
+     */
+    private SanitizedFileName() {
+        // Costruttore privato per evitare l'istanza della classe
+    }
+
+    /**
      * Sanifica una stringa rimuovendo o sostituendo caratteri non validi per i nomi di file.
      * I caratteri invalidi includono: \, /, :, *, ?, ", &lt;, &gt;, |, e spazi.
      * Vengono sostituiti con underscore e gli underscore multipli vengono ridotti a uno singolo.

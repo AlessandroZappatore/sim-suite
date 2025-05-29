@@ -52,35 +52,104 @@ import org.slf4j.LoggerFactory;
 @PageTitle("Parametri Paziente T0")
 @Route(value = "pazienteT0")
 public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-
+    /**
+     * Logger per la registrazione delle operazioni e degli errori nella vista PazienteT0View.
+     */
     private static final Logger logger = LoggerFactory.getLogger(PazienteT0View.class);
 
-    // Liste e contenitori statici per gli AccessoComponent
+    /**
+     * Lista statica per gestire gli accessi venosi e arteriosi.
+     */
     private static final List<AccessoComponent> venosiAccessi = new ArrayList<>();
+    /**
+     * Lista statica per gestire gli accessi arteriosi.
+     */
     private static final List<AccessoComponent> arteriosiAccessi = new ArrayList<>();
+    /**
+     * Contenitori per gli accessi venosi e arteriosi, gestiti dinamicamente.
+     * Inizializzati a null per essere creati al momento della costruzione della vista.
+     */
     private static VerticalLayout venosiContainer = null;
+    /**
+     * Contenitore per gli accessi arteriosi, gestito dinamicamente.
+     * Inizializzato a null per essere creato al momento della costruzione della vista.
+     */
     private static VerticalLayout arteriosiContainer = null;
 
-    // Servizi iniettati
+    /**
+     * Servizi utilizzati per la gestione degli scenari, dei presidi e dei parametri del paziente T0.
+     */
     private final ScenarioService scenarioService;
+    /**
+     * Servizio per la gestione dei presidi (dispositivi medici e attrezzature).
+     */
     private final PresidiService presidiService;
+    /**
+     * Servizio per la gestione dei parametri del paziente al tempo T0.
+     * Utilizzato per salvare e recuperare i dati del paziente all'inizio dello scenario.
+     */
     private final PazienteT0Service pazienteT0Service;
 
-    // Campi di input per i parametri vitali
-    private final TextField paField; // Pressione Arteriosa
-    private final NumberField fcField; // Frequenza Cardiaca
-    private final NumberField rrField; // Frequenza Respiratoria
-    private final NumberField tempField; // Temperatura Corporea
-    private final NumberField spo2Field; // Saturazione di Ossigeno
-    private final NumberField fio2Field; // Frazione Inspiratoria di Ossigeno
-    private final NumberField litrio2Field; // Flusso di Ossigeno in Litri/min
-    private final NumberField etco2Field; // Pressione parziale di Anidride Carbonica di fine espirazione
-    private final TextArea monitorArea; // Area di testo per il monitoraggio
-    private final MultiSelectComboBox<String> presidiField; // Campo per la selezione multipla dei presidi
+    /**
+     * Campi per i parametri vitali principali del paziente al tempo T0.
+     */
+    private final TextField paField;
+    /**
+     * Campo per la Frequenza Cardiaca (FC) del paziente.
+     */
+    private final NumberField fcField;
+    /**
+     * Campo per la Frequenza Respiratoria (RR) del paziente.
+     */
+    private final NumberField rrField;
+    /**
+     * Campo per la Temperatura Corporea del paziente.
+     */
+    private final NumberField tempField;
+    /**
+     * Campo per la Saturazione di Ossigeno (SpO₂) del paziente.
+     */
+    private final NumberField spo2Field;
+    /**
+     * Campo per la Frazione Inspiratoria di Ossigeno (FiO₂) del paziente.
+     * Non obbligatorio, può essere nullo.
+     */
+    private final NumberField fio2Field;
+    /**
+     * Campo per il Flusso di Ossigeno in Litri/min (L/min) del paziente.
+     * Non obbligatorio, può essere nullo.
+     */
+    private final NumberField litrio2Field;
+    /**
+     * Campo per la Pressione parziale di Anidride Carbonica di fine espirazione (EtCO₂) del paziente.
+     * Non obbligatorio, può essere nullo.
+     */
+    private final NumberField etco2Field;
+    /**
+     * Area di testo per il monitoraggio del paziente, dove è possibile inserire dettagli come ECG o altri parametri.
+     */
+    private final TextArea monitorArea;
+    /**
+     * Campo per la selezione multipla dei presidi (dispositivi medici e attrezzature) associati al paziente.
+     * Utilizza un {@link MultiSelectComboBox} per permettere la selezione di più opzioni contemporaneamente.
+     */
+    private final MultiSelectComboBox<String> presidiField;
 
-    private final Button nextButton; // Pulsante per avanzare alla schermata successiva
-    private Integer scenarioId; // ID dello scenario corrente
-    private String mode; // Modalità della vista ("create" o "edit")
+    /**
+     * Pulsante per avanzare alla schermata successiva dopo aver inserito i dati del paziente T0.
+     * Utilizza un {@link Button} con stili e icone personalizzate.
+     */
+    private final Button nextButton;
+    /**
+     * ID dello scenario corrente, utilizzato per identificare lo scenario in cui si sta lavorando.
+     * Viene impostato tramite il parametro dell'URL e utilizzato per salvare i dati del paziente T0.
+     */
+    private Integer scenarioId;
+    /**
+     * Modalità della vista, che può essere "create" per la creazione di nuovi dati o "edit" per modificare dati esistenti.
+     * Viene determinata in base al parametro dell'URL e utilizzata per configurare l'interfaccia utente e le operazioni di salvataggio.
+     */
+    private String mode;
 
     /**
      * Costruttore della vista {@code PazienteT0View}.
