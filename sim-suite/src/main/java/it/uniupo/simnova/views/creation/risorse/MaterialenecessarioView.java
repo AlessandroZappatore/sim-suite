@@ -122,6 +122,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
 
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
+        backButton.setTooltipText("Torna agli obiettivi didattici");
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 

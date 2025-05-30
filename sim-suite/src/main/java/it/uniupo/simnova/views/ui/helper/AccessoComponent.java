@@ -141,6 +141,27 @@ public class AccessoComponent extends HorizontalLayout {
     }
 
     /**
+     * Costruttore che inizializza il componente con i dati di un oggetto Accesso esistente.
+     * @param accesso Oggetto Accesso da cui prendere i dati
+     * @param tipo Tipo generico dell'accesso ("Venoso" o "Arterioso")
+     * @param hasDelete Se true mostra il pulsante elimina
+     */
+    public AccessoComponent(Accesso accesso, String tipo, boolean hasDelete) {
+        this(tipo, hasDelete);
+        if (accesso != null) {
+            tipoSelect.setValue(accesso.getTipologia());
+            posizioneField.setValue(accesso.getPosizione());
+            latoSelect.setValue(accesso.getLato());
+            misuraSelect.setValue(accesso.getMisura());
+            // Aggiorna anche l'oggetto interno
+            this.accesso.setTipologia(accesso.getTipologia());
+            this.accesso.setPosizione(accesso.getPosizione());
+            this.accesso.setLato(accesso.getLato());
+            this.accesso.setMisura(accesso.getMisura());
+        }
+    }
+
+    /**
      * Rimuove questo componente dalla sua vista genitore.
      */
     private void removeSelf() {
@@ -166,3 +187,4 @@ public class AccessoComponent extends HorizontalLayout {
         return accesso;
     }
 }
+

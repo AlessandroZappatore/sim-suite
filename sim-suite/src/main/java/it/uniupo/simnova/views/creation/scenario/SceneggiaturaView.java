@@ -83,6 +83,7 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
         // Configura l'header personalizzato con un bottone "Indietro" e l'header dell'app.
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
+        backButton.setTooltipText("Torna ai tempi");
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
         // Sezione dell'intestazione visuale per la vista, con titolo, sottotitolo e icona.
@@ -116,16 +117,28 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
         // Listener per il bottone "Indietro".
         // Naviga alla vista "tempi" passando l'ID dello scenario corrente.
         backButton.addClickListener(e ->
-                backButton.getUI().ifPresent(ui -> ui.navigate("tempi/" + scenarioId + "/edit")));
+                backButton.getUI().ifPresent(ui -> ui.navigate("tempi/" + scenarioId)));
 
         // Listener per il bottone "Avanti".
         nextButton.addClickListener(e -> {
-            // Controlla se il contenuto della sceneggiatura è vuoto dopo aver rimosso gli spazi.
-            if (sceneggiaturaEditor.getValue().trim().isEmpty()) {
-                Notification.show("Per favore, inserisci la sceneggiatura per lo scenario prima di proseguire.", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
-                return; // Blocca la navigazione se il campo è vuoto.
+            String content = sceneggiaturaEditor.getValue();
+            // Controlla se il contenuto dell'editor è vuoto o contiene solo tag HTML vuoti.
+            boolean isEmpty = content == null || content.trim().isEmpty() ||
+                    content.trim().equals("<p><br></p>") || content.trim().equals("<p></p>");
+
+            if (isEmpty) {
+                // Se il patto d'aula è vuoto, chiede conferma all'utente prima di proseguire.
+                StyleApp.createConfirmDialog(
+                        "Sceneggiatura Vuota",
+                        "La sceneggiatura è vuota. Sei sicuro di voler procedere senza salvare?",
+                        "Prosegui", // Testo per il bottone di conferma.
+                        "Annulla",  // Testo per il bottone di annullamento.
+                        () -> saveSceneggiaturaAndNavigate(nextButton.getUI()) // Callback se l'utente conferma.
+                );
+            } else {
+                // Se il patto d'aula non è vuoto, procede direttamente al salvataggio e alla navigazione.
+                saveSceneggiaturaAndNavigate(nextButton.getUI());
             }
-            saveSceneggiaturaAndNavigate(nextButton.getUI());
         });
     }
 

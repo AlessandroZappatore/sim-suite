@@ -38,6 +38,7 @@ public class HomeView extends Composite<VerticalLayout> {
 
         AppHeader header = new AppHeader(fileStorageService);
 
+
         H1 title = new H1("SIM SUITE");
         title.addClassName(LumoUtility.TextAlignment.CENTER);
         title.addClassNames(
@@ -47,8 +48,8 @@ public class HomeView extends Composite<VerticalLayout> {
         );
         title.getStyle()
                 .set("color", "var(--lumo-primary-text-color)")
-                .set("text-shadow", "2px 2px 4px rgba(0,0,0,0.1)");
-
+                .set("text-shadow", "2px 2px 4px rgba(0,0,0,0.1)")
+                .set("margin-top", "1rem");
         H3 subtitle = new H3("Piattaforma per la creazione ed esecuzione di scenari di simulazione avanzati");
         subtitle.addClassName(LumoUtility.TextAlignment.CENTER);
         subtitle.addClassNames(

@@ -74,6 +74,7 @@ public class GenitoriView extends Composite<VerticalLayout> implements HasUrlPar
 
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
+        backButton.setTooltipText("Torna al briefing");
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 

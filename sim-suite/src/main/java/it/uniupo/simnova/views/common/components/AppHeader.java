@@ -125,6 +125,7 @@ public class AppHeader extends HorizontalLayout {
                 .set("border-radius", "50%");
 
         checkInitialTheme(); // Controlla il tema all'avvio e imposta l'icona
+        toggleThemeButton.setTooltipText("Cambia Tema");
         toggleThemeButton.addClickListener(e -> toggleTheme()); // Listener per cambiare tema al click
 
         // Aggiunge le sezioni all'header principale

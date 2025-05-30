@@ -23,6 +23,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.WildcardParameter;
 import it.uniupo.simnova.domain.common.Accesso;
+import it.uniupo.simnova.domain.paziente.PazienteT0;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.service.scenario.components.PazienteT0Service;
 import it.uniupo.simnova.service.scenario.components.PresidiService;
@@ -141,6 +142,16 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
      */
     private final Button nextButton;
     /**
+     * Checkbox per gestire la visibilità e l'aggiunta di accessi venosi.
+     * Permette di mostrare o nascondere la sezione degli accessi venosi nella vista.
+     */
+    Checkbox venosiCheckbox = FieldGenerator.createCheckbox("Accessi venosi");
+    /**
+     * Checkbox per gestire la visibilità e l'aggiunta di accessi arteriosi.
+     * Permette di mostrare o nascondere la sezione degli accessi arteriosi nella vista.
+     */
+    Checkbox arteriosiCheckbox = FieldGenerator.createCheckbox("Accessi arteriosi");
+    /**
      * ID dello scenario corrente, utilizzato per identificare lo scenario in cui si sta lavorando.
      * Viene impostato tramite il parametro dell'URL e utilizzato per salvare i dati del paziente T0.
      */
@@ -170,6 +181,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
 
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
+        backButton.setTooltipText("Torna ai liquidi e dosi farmaci");
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
@@ -215,7 +227,6 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         addArteriosiButton.addClickListener(e -> addAccessoArterioso());
 
         // Checkbox per mostrare/nascondere le sezioni degli accessi
-        Checkbox venosiCheckbox = FieldGenerator.createCheckbox("Accessi venosi");
         venosiCheckbox.addValueChangeListener(e -> {
             venosiContainer.setVisible(e.getValue());
             addVenosiButton.setVisible(e.getValue());
@@ -225,7 +236,6 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
             }
         });
 
-        Checkbox arteriosiCheckbox = FieldGenerator.createCheckbox("Accessi arteriosi");
         arteriosiCheckbox.addValueChangeListener(e -> {
             arteriosiContainer.setVisible(e.getValue());
             addArteriosiButton.setVisible(e.getValue());
@@ -324,6 +334,7 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
             } else {
                 logger.info("Modalità CREATE: caricamento dati iniziali T0 e preparazione per nuovi tempi per scenario {}", this.scenarioId);
             }
+            loadData();
         } catch (NumberFormatException e) {
             logger.error("Errore nel parsing o validazione dell'ID Scenario: '{}'", parameter, e);
             event.rerouteToError(NotFoundException.class, "ID scenario non valido o mancante.");
@@ -451,4 +462,57 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
             }
         });
     }
+
+    private void loadData() {
+        // Carica i dati del paziente T0 se in modalità "edit"
+        PazienteT0 p = pazienteT0Service.getPazienteT0ById(scenarioId);
+        if (p != null) {
+            paField.setValue(p.getPA());
+            fcField.setValue((double) p.getFC());
+            rrField.setValue((double) p.getRR());
+            tempField.setValue(Math.round(p.getT() * 10.0) / 10.0);
+            spo2Field.setValue((double) p.getSpO2());
+            fio2Field.setValue((double) p.getFiO2());
+            litrio2Field.setValue(p.getLitriO2());
+            etco2Field.setValue((double) p.getEtCO2());
+            monitorArea.setValue(p.getMonitor());
+
+            // Carica gli accessi venosi e arteriosi
+            venosiAccessi.clear();
+            venosiContainer.removeAll();
+            if (!p.getAccessiVenosi().isEmpty()) {
+                venosiCheckbox.setValue(true);
+                for (Accesso a : p.getAccessiVenosi()) {
+                    AccessoComponent comp = new AccessoComponent(a, "Venoso", true);
+                    venosiAccessi.add(comp);
+                    venosiContainer.add(comp);
+                }
+                venosiContainer.setVisible(true);
+            } else {
+                venosiCheckbox.setValue(false);
+                venosiContainer.setVisible(false);
+            }
+
+            arteriosiAccessi.clear();
+            arteriosiContainer.removeAll();
+            if (!p.getAccessiArteriosi().isEmpty()) {
+                arteriosiCheckbox.setValue(true);
+                for (Accesso a : p.getAccessiArteriosi()) {
+                    AccessoComponent comp = new AccessoComponent(a, "Arterioso", true);
+                    arteriosiAccessi.add(comp);
+                    arteriosiContainer.add(comp);
+                }
+                arteriosiContainer.setVisible(true);
+            } else {
+                arteriosiCheckbox.setValue(false);
+                arteriosiContainer.setVisible(false);
+            }
+
+            // Carica i presidi selezionati
+            presidiField.setValue(PresidiService.getPresidiByScenarioId(scenarioId));
+        } else {
+            logger.warn("Nessun dato T0 trovato per lo scenario con ID: {}", scenarioId);
+        }
+    }
 }
+

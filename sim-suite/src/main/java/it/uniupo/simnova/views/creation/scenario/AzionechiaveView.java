@@ -98,6 +98,8 @@ public class AzionechiaveView extends Composite<VerticalLayout> implements HasUr
         // Configura l'header personalizzato con un bottone "Indietro" e l'header dell'app.
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
+        backButton.setTooltipText("Torna al patto d'aula");
+
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
         // Configura il layout per il contenuto centrale.

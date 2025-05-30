@@ -350,42 +350,66 @@ public class StyleApp extends HorizontalLayout {
                                            String confirmText, String cancelText,
                                            Runnable confirmAction) {
         Dialog dialog = new Dialog();
-        dialog.setCloseOnEsc(true); // Permette di chiudere il dialog con il tasto ESC.
-        dialog.setCloseOnOutsideClick(false); // Non chiude il dialog cliccando fuori.
+        dialog.setCloseOnEsc(true);
+        dialog.setCloseOnOutsideClick(false);
+        dialog.setWidth("450px"); // Larghezza definita per un aspetto consistente
+        // Applica bordi arrotondati direttamente all'elemento del dialogo per un look più morbido
+        dialog.getElement().getStyle().set("border-radius", "var(--lumo-border-radius-l)");
+
+        // --- Sezione Intestazione ---
+        Icon titleIcon = VaadinIcon.QUESTION_CIRCLE_O.create(); // Icona per contestualizzare il titolo
+        titleIcon.setSize("var(--lumo-icon-size-l)"); // Dimensione icona standard Lumo
+        titleIcon.getStyle()
+                .set("color", "var(--lumo-primary-color)") // Colore primario per l'icona
+                .set("margin-right", "var(--lumo-space-s)"); // Spazio tra icona e testo del titolo
 
         H3 titleComponent = new H3(title);
         titleComponent.getStyle()
-                .set("margin-top", "0")
-                .set("margin-bottom", "var(--lumo-space-m)");
+                .set("margin", "0") // Rimuove margini predefiniti di H3 per controllo più fine
+                .set("font-size", "var(--lumo-font-size-xl)") // Titolo più grande e prominente
+                .set("font-weight", "600") // Grassetto standard per titoli
+                .set("color", "var(--lumo-header-text-color)"); // Colore standard per testo di intestazione
 
+        HorizontalLayout headerLayout = new HorizontalLayout(titleIcon, titleComponent);
+        headerLayout.setAlignItems(FlexComponent.Alignment.CENTER); // Allinea verticalmente icona e testo
+
+        // --- Corpo del Messaggio ---
         Paragraph messageComponent = new Paragraph(message);
         messageComponent.getStyle()
-                .set("color", "var(--lumo-secondary-text-color)")
-                .set("margin-bottom", "var(--lumo-space-l)");
+                .set("color", "var(--lumo-secondary-text-color)") // Colore per testo secondario, meno enfasi
+                .set("font-size", "var(--lumo-font-size-m)") // Dimensione font standard per testo
+                .set("line-height", "var(--lumo-line-height-m)"); // Altezza linea per leggibilità
+        // Il margine inferiore sarà gestito dalla spaziatura del VerticalLayout
 
+        // --- Pulsanti di Azione ---
         Button confirmButton = new Button(confirmText);
-        confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        confirmButton.getStyle().set("margin-right", "var(--lumo-space-s)");
+        confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY); // Stile primario per l'azione principale
+        confirmButton.setIcon(VaadinIcon.CHECK_CIRCLE_O.create()); // Icona di conferma più evidente
         confirmButton.addClickListener(e -> {
-            dialog.close(); // Chiude il dialog.
+            dialog.close();
             if (confirmAction != null) {
-                confirmAction.run(); // Esegue l'azione di conferma.
+                confirmAction.run();
             }
         });
 
         Button cancelButton = new Button(cancelText);
-        cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        cancelButton.addClickListener(e -> dialog.close()); // Chiude il dialog.
+        cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY); // Stile terziario per minor enfasi
+        cancelButton.setIcon(VaadinIcon.CLOSE_CIRCLE_O.create()); // Icona di annullamento corrispondente
+        cancelButton.addClickListener(e -> dialog.close());
 
         HorizontalLayout buttonLayout = new HorizontalLayout(cancelButton, confirmButton);
-        buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END); // Allinea i pulsanti a destra.
-        buttonLayout.setWidthFull();
+        buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END); // Allinea i pulsanti a destra
+        buttonLayout.setWidthFull(); // Occupa tutta la larghezza per permettere la giustificazione
+        buttonLayout.setSpacing(true); // Aggiunge spazio tra i pulsanti (cancelButton e confirmButton)
 
-        VerticalLayout mainLayout = new VerticalLayout(titleComponent, messageComponent, buttonLayout);
-        mainLayout.setPadding(true);
-        mainLayout.setSpacing(true);
+        // --- Layout Principale del Dialogo ---
+        VerticalLayout mainLayout = new VerticalLayout(headerLayout, messageComponent, buttonLayout);
+
+        mainLayout.getStyle().set("padding", "var(--lumo-space-l)");
+        mainLayout.setSpacing(true); // Gestisce la spaziatura verticale tra header, messaggio e pulsanti
+        mainLayout.setAlignItems(FlexComponent.Alignment.STRETCH); // Assicura che i figli si estendano se necessario
 
         dialog.add(mainLayout);
-        dialog.open(); // Apre il dialog.
+        dialog.open();
     }
 }

@@ -227,6 +227,7 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
         // Configura l'header dell'applicazione e il bottone "Indietro".
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
+        backButton.setTooltipText("Torna alla schermata di creazione dello scenario");
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
         // Sezione dell'intestazione visuale per la vista, con titolo, sottotitolo e icona.
@@ -824,11 +825,11 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
                 nextButton.setText("Salva Modifiche"); // Cambia testo del bottone.
                 nextButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS); // Aggiunge stile di successo.
                 nextButton.setIcon(new Icon(VaadinIcon.CHECK)); // Cambia icona.
-                loadExistingTargets(); // Carica i dati esistenti dello scenario.
             } else {
                 logger.info("Modalità CREATE attiva per scenario {}.", this.scenarioId);
                 // In modalità creazione, i campi sono già vuoti per default.
             }
+            loadExistingTargets(); // Carica i dati esistenti dello scenario.
         } catch (NumberFormatException e) {
             logger.error("Errore di parsing o validazione dello Scenario ID '{}': {}", parameter, e.getMessage(), e);
             event.rerouteToError(NotFoundException.class, "ID scenario non valido o mancante. Assicurati che l'URL sia corretto.");

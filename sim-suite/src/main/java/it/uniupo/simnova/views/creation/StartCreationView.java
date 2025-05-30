@@ -114,6 +114,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
 
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
+        backButton.setTooltipText("Torna alla pagina di creazione");
 
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "INIZIO CREAZIONE SCENARIO",

@@ -120,6 +120,7 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
 
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
+        backButton.setTooltipText("Torna ai materiali necessari");
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 

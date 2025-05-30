@@ -74,6 +74,8 @@ public class PattoaulaView extends Composite<VerticalLayout> implements HasUrlPa
         // Configura l'header personalizzato con un bottone "Indietro" e l'header dell'app.
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
+        backButton.setTooltipText("Torna alla pagina precedente");
+
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
         // Sezione dell'intestazione visuale per la vista, con titolo, sottotitolo e icona.

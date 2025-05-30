@@ -73,6 +73,7 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
 
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
+        backButton.setTooltipText("Torna al moulage");
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 

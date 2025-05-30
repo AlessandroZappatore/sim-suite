@@ -67,10 +67,21 @@ public class DialogSupport {
         H4 title = new H4("Carica un file ZIP per importare un nuovo scenario");
         title.getStyle().set("margin-top", "0");
 
-        Paragraph description = new Paragraph(
-                "Seleziona un file ZIP (.zip) da caricare. " +
-                        "Il file ZIP deve contenere un file 'scenario.json' alla radice " +
-                        "e una cartella 'esami/' con eventuali file multimediali associati.");
+        Paragraph description = new Paragraph();
+        description.add("Seleziona un file ZIP (.zip) da caricare. Il file ZIP deve essere nominato nel formato ");
+
+        Span boldFileName = new Span("Execution_scenario_nome.zip");
+        boldFileName.getStyle().set("font-weight", "bold");
+        description.add(boldFileName);
+        description.add(", deve contenere il file ");
+        Span italicScenario = new Span("scenario.json");
+        italicScenario.getStyle().set("font-style", "italic");
+        description.add(italicScenario);
+        description.add(" alla radice e la cartella ");
+        Span italicEsami = new Span("esami/");
+        italicEsami.getStyle().set("font-style", "italic");
+        description.add(italicEsami);
+        description.add(" con eventuali file multimediali associati.");
         description.addClassName(LumoUtility.FontSize.SMALL);
 
         // Configurazione del componente Upload
@@ -138,6 +149,7 @@ public class DialogSupport {
                         }
                     }
                 });
+                UI.getCurrent().getPage().reload();
             } catch (IOException ex) {
                 // Gestisce errori di lettura del file
                 Notification.show("Errore lettura file: " + ex.getMessage(), 5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);

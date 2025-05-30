@@ -123,6 +123,7 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
 
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
+        backButton.setTooltipText("Torna al paziente in T0");
 
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "ESAME FISICO",

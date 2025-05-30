@@ -121,6 +121,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
         // Configura l'header dell'applicazione e il bottone "Indietro".
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
+        backButton.setTooltipText("Torna all'esame fisico");
 
         // Listener per il bottone "Indietro": naviga alla vista "esameFisico".
         backButton.addClickListener(e -> {
@@ -233,13 +234,11 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                 nextButton.setText("Salva Modifiche"); // Cambia testo del bottone.
                 nextButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS); // Aggiunge stile di successo.
                 nextButton.setIcon(new Icon(VaadinIcon.CHECK)); // Cambia icona.
-                // Carica prima i dati iniziali di T0, poi tutti gli altri tempi esistenti.
-                loadInitialData();
-                loadExistingTimes();
             } else {
                 logger.info("Modalità CREATE attiva: caricamento dati iniziali T0 e preparazione per nuovi tempi per lo scenario {}.", this.scenarioId);
-                loadInitialData(); // Carica solo i dati iniziali di T0 per la modalità di creazione.
             }
+            loadInitialData();
+            loadExistingTimes();
         } catch (NumberFormatException e) {
             logger.error("Errore nel parsing o validazione dell'ID Scenario: '{}'. Dettagli: {}", parameter, e.getMessage(), e);
             event.rerouteToError(NotFoundException.class, "ID scenario non valido o mancante. Assicurati che l'URL sia corretto.");
@@ -429,11 +428,6 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
      * Popola le sezioni temporali della UI con i dati recuperati, gestendo anche i parametri aggiuntivi.
      */
     private void loadExistingTimes() {
-        if (!"edit".equals(mode)) {
-            logger.debug("Non in modalità 'edit'. Saltato il caricamento dei tempi esistenti (T1, T2...).");
-            return;
-        }
-
         List<Tempo> existingTempi = advancedScenarioService.getTempiByScenarioId(scenarioId);
 
         if (!existingTempi.isEmpty()) {

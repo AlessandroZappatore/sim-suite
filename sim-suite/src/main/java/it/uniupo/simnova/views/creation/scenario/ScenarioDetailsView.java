@@ -278,6 +278,8 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
 
         // Bottone "Indietro" per tornare alla lista degli scenari.
         Button backButton = StyleApp.getBackButton();
+        backButton.setTooltipText("Torna alla lista degli scenari");
+
         backButton.addClickListener(e -> UI.getCurrent().navigate("scenari"));
 
         // Sezione dell'intestazione visuale per la vista.

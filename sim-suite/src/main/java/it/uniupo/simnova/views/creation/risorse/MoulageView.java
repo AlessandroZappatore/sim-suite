@@ -72,6 +72,7 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
 
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
+        backButton.setTooltipText("Torna agli esami e referti");
 
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 

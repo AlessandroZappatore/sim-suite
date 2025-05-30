@@ -154,17 +154,20 @@ public class PazienteT0Service {
             }
 
             // 2. Salva gli accessi venosi.
-            if (saveAccessi(conn, scenarioId, venosiData, true)) {
-                conn.rollback();
-                logger.warn("Rollback della transazione: impossibile salvare gli accessi venosi per lo scenario con ID {}.", scenarioId);
-                return false;
+            if (!venosiData.isEmpty()) {
+                if (saveAccessi(conn, scenarioId, venosiData, true)) {
+                    conn.rollback();
+                    logger.warn("Rollback della transazione: impossibile salvare gli accessi venosi per lo scenario con ID {}.", scenarioId);
+                    return false;
+                }
             }
-
-            // 3. Salva gli accessi arteriosi.
-            if (saveAccessi(conn, scenarioId, arteriosiData, false)) {
-                conn.rollback();
-                logger.warn("Rollback della transazione: impossibile salvare gli accessi arteriosi per lo scenario con ID {}.", scenarioId);
-                return false;
+            //3. Salva gli accessi arteriosi.
+            if (!arteriosiData.isEmpty()) {
+                if (saveAccessi(conn, scenarioId, arteriosiData, false)) {
+                    conn.rollback();
+                    logger.warn("Rollback della transazione: impossibile salvare gli accessi arteriosi per lo scenario con ID {}.", scenarioId);
+                    return false;
+                }
             }
 
             conn.commit(); // Conferma la transazione se tutte le operazioni sono riuscite.

@@ -73,6 +73,7 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
         // Configura l'header personalizzato con un bottone "Indietro" e l'header dell'app.
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
+        backButton.setTooltipText("Torna ai target e gruppi di apprendimento");
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
         // Sezione dell'intestazione visuale per la vista, con titolo, sottotitolo e icona.

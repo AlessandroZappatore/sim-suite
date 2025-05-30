@@ -74,6 +74,7 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
         // Configura l'header personalizzato con un bottone "Indietro" e l'header dell'app.
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
+        backButton.setTooltipText("Torna alla descrizione");
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
         // Configura il layout per il contenuto centrale.

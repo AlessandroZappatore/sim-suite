@@ -74,6 +74,7 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> implements
         // Configura l'header personalizzato con un bottone "Indietro" e l'header dell'app.
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
+        backButton.setTooltipText("Torna alle azioni chiave");
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
 
         // Sezione dell'intestazione visuale per la vista, con titolo, sottotitolo e icona.
