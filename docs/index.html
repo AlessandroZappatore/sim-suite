@@ -10,6 +10,9 @@
         - Come Eseguire: Text, steps, code blocks. Goal: Instruct. Method: HTML, JS for sub-tabs and copy buttons. Interaction: Tab switching, copy command. Justification: Improves usability for following instructions.
         - Requisiti: Text, code block. Goal: Inform, aid verification. Method: HTML, JS for info pop-up and copy command. Interaction: Info display, copy command. Justification: Clarifies requirements, aids user.
         - Accesso: Text, link. Goal: Guide. Method: HTML, JS for copy URL. Interaction: Clickable link, copy URL. Justification: Quick access.
+        - Guida all'Uso: Detailed text, image placeholders. Goal: Educate on app usage. Method: HTML. Interaction: None. Justification: Explains core functionalities.
+        - Crediti: Text display. Goal: Acknowledge. Method: HTML. Interaction: None. Justification: Provides author information.
+        - Licenza: Text display. Goal: Inform on usage rights. Method: HTML. Interaction: None. Justification: Clarifies licensing terms.
         - CONFIRMING NO SVG/Mermaid, supporting the DESIGNED structure. -->
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8f7f4; color: #333; }
@@ -78,6 +81,10 @@
         code {
             font-family: monospace;
         }
+        .guide-image {
+            border: 1px solid #e2e8f0; /* Tailwind gray-300 */
+            padding: 0.25rem; /* p-1 */
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4 selection:bg-blue-200">
@@ -85,7 +92,7 @@
     <div class="bg-white shadow-xl rounded-lg w-full max-w-3xl p-6 md:p-8">
         <header class="text-center mb-8">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-800">🚀 Guida Interattiva a Sim Suite v1.0</h1>
-            <p class="text-gray-600 mt-2">Benvenuto! Questa guida ti aiuterà a installare ed eseguire Sim Suite. Esplora le sezioni per familiarizzare con il software.</p>
+            <p class="text-gray-600 mt-2">Benvenuto! Questa guida ti aiuterà a installare, eseguire e utilizzare Sim Suite. Esplora le sezioni per familiarizzare con il software.</p>
         </header>
 
         <nav class="mb-8">
@@ -94,6 +101,9 @@
                 <li><button class="tab-button text-sm md:text-base py-3 px-3 md:px-6 border-b-2 border-transparent hover:border-gray-300 focus:outline-none" data-tab="esegui">Come Eseguire</button></li>
                 <li><button class="tab-button text-sm md:text-base py-3 px-3 md:px-6 border-b-2 border-transparent hover:border-gray-300 focus:outline-none" data-tab="requisiti">Requisiti</button></li>
                 <li><button class="tab-button text-sm md:text-base py-3 px-3 md:px-6 border-b-2 border-transparent hover:border-gray-300 focus:outline-none" data-tab="accesso">Accesso</button></li>
+                <li><button class="tab-button text-sm md:text-base py-3 px-3 md:px-6 border-b-2 border-transparent hover:border-gray-300 focus:outline-none" data-tab="guida-uso">Guida all'Uso</button></li>
+                <li><button class="tab-button text-sm md:text-base py-3 px-3 md:px-6 border-b-2 border-transparent hover:border-gray-300 focus:outline-none" data-tab="crediti">Crediti</button></li>
+                <li><button class="tab-button text-sm md:text-base py-3 px-3 md:px-6 border-b-2 border-transparent hover:border-gray-300 focus:outline-none" data-tab="licenza">Licenza</button></li>
             </ul>
         </nav>
 
@@ -102,7 +112,7 @@
                 <h2 class="text-2xl font-semibold text-gray-700 mb-4">Benvenuto in Sim Suite v1.0! 🎉</h2>
                 <p class="text-gray-600 leading-relaxed">
                     Questa sezione ti introduce alla prima versione stabile di Sim Suite.
-                    Sim Suite è ora pronto per offrirti un'esperienza completa e affidabile.
+                    Sim Suite è ora pronto per offrirti un'esperienza completa e affidabile per la creazione dei tuoi scenari di simulazione.
                 </p>
                 <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <p class="text-blue-700">"Questa è la prima versione stabile del software."</p>
@@ -195,6 +205,128 @@
                     </div>
                 </div>
             </section>
+
+            <section id="guida-uso" class="content-section p-2 md:p-4">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">📖 Guida all'Uso di Sim Suite</h2>
+                <p class="text-gray-600 mb-6 leading-relaxed">
+                    Benvenuto nella guida utente di Sim Suite! Questa sezione ti aiuterà a comprendere le funzionalità principali e come utilizzarle al meglio per creare i tuoi scenari di simulazione. Sim Suite è una Web App progettata per la creazione intuitiva e flessibile di scenari di simulazione.
+                </p>
+
+                <div class="space-y-8">
+                    <div>
+                        <h3 class="text-xl font-medium text-gray-600 mb-3">1. Panoramica dell'Interfaccia Principale</h3>
+                        <p class="text-gray-600 mb-2">Dopo aver avviato Sim Suite e aperto l'indirizzo <a href="http://localhost:8080" target="_blank" class="text-blue-500 hover:underline">http://localhost:8080</a> nel browser, ti troverai di fronte alla dashboard principale. Da qui potrai accedere a tutte le funzionalità chiave:</p>
+                        <img src="img/dashboard.png" alt="Schermata della dashboard principale di Sim Suite" class="mx-auto my-4 rounded-lg shadow-md w-full max-w-lg guide-image">
+                        <ul class="list-disc list-inside text-gray-600 space-y-1 pl-4">
+                            <li>Creazione di un nuovo scenario.</li>
+                            <li>Visualizzazione e gestione degli scenari esistenti.</li>
+                            <li>Accesso alle impostazioni (se disponibili).</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-medium text-gray-600 mb-3">2. Creazione di un Nuovo Scenario</h3>
+                        <p class="text-gray-600 mb-2">Per iniziare, clicca sul pulsante "Crea Nuovo Scenario" (o simile) presente sulla dashboard. Ti verrà chiesto di scegliere la tipologia di scenario che desideri creare:</p>
+                        <img src="img/scenario_selection.png" alt="Schermata di selezione del tipo di scenario" class="mx-auto my-4 rounded-lg shadow-md w-full max-w-lg guide-image">
+                        <p class="text-gray-600 mb-2">Sim Suite supporta tre tipi principali di scenari:</p>
+                        <ul class="list-disc list-inside text-gray-600 space-y-1 pl-4">
+                            <li><strong>Quick Scenario:</strong> Per definire rapidamente simulazioni semplici con parametri essenziali.</li>
+                            <li><strong>Advanced Scenario:</strong> Per costruire scenari complessi con logiche avanzate, variabili multiple e condizioni dettagliate.</li>
+                            <li><strong>Patient Simulated Scenario:</strong> Focalizzato sulla creazione di scenari di simulazione paziente-specifici, ideale per la formazione in ambito medico.</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-medium text-gray-600 mb-3">3. Lavorare con i Tipi di Scenario</h3>
+                        
+                        <h4 class="text-lg font-medium text-gray-500 mt-4 mb-2">3.1 Quick Scenario</h4>
+                        <p class="text-gray-600 mb-2">Il "Quick Scenario" è ideale per iniziare o per simulazioni che non richiedono una logica complessa. L'interfaccia ti guiderà nell'inserimento dei parametri fondamentali per il tuo scenario.</p>
+                        <img src="img/quick_scenario_ui.png" alt="Interfaccia di creazione Quick Scenario" class="mx-auto my-4 rounded-lg shadow-md w-full max-w-lg guide-image">
+                        <p class="text-gray-600 mb-2">Ricorda di salvare il tuo scenario una volta completata la configurazione.</p>
+
+                        <h4 class="text-lg font-medium text-gray-500 mt-6 mb-2">3.2 Advanced Scenario</h4>
+                        <p class="text-gray-600 mb-2">Per simulazioni più strutturate, l'"Advanced Scenario" offre un maggiore controllo. Potrai definire parametri dettagliati, condizioni logiche, eventi e variabili che influenzano l'evoluzione dello scenario.</p>
+                        <img src="img/advanced_scenario_ui.png" alt="Interfaccia di creazione Advanced Scenario" class="mx-auto my-4 rounded-lg shadow-md w-full max-w-lg guide-image">
+                        <p class="text-gray-600 mb-2">Questo tipo di scenario è potente ma richiede una pianificazione più attenta dei vari elementi che lo compongono.</p>
+
+                        <h4 class="text-lg font-medium text-gray-500 mt-6 mb-2">3.3 Patient Simulated Scenario</h4>
+                        <p class="text-gray-600 mb-2">Specificamente pensato per l'ambito formativo sanitario, il "Patient Simulated Scenario" ti permette di creare profili paziente dettagliati e di simulare l'evoluzione clinica in base a interventi o decisioni.</p>
+                        <img src="img/patient_scenario_ui.png" alt="Interfaccia di creazione Patient Simulated Scenario" class="mx-auto my-4 rounded-lg shadow-md w-full max-w-lg guide-image">
+                        <p class="text-gray-600 mb-2">Potrai inserire parametri vitali, anamnesi, e definire risposte fisiologiche simulate.</p>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-medium text-gray-600 mb-3">4. Gestione degli Scenari Esistenti</h3>
+                        <p class="text-gray-600 mb-2">Dalla dashboard o da una sezione dedicata ("I miei Scenari", "Elenco Scenari", o simile), potrai visualizzare tutti gli scenari che hai creato. Avrai la possibilità di:</p>
+                        <img src="img/manage_scenarios.png" alt="Schermata di gestione degli scenari esistenti" class="mx-auto my-4 rounded-lg shadow-md w-full max-w-lg guide-image">
+                        <ul class="list-disc list-inside text-gray-600 space-y-1 pl-4">
+                            <li><strong>Visualizzare</strong> i dettagli di uno scenario.</li>
+                            <li><strong>Modificare</strong> uno scenario esistente per apportare correzioni o miglioramenti.</li>
+                            <li><strong>Duplicare</strong> uno scenario per usarlo come base per uno nuovo.</li>
+                            <li><strong>Eliminare</strong> scenari che non ti servono più.</li>
+                            <li><strong>Esportare in PDF</strong> uno scenario per poterlo condividere più facilmente.</li>
+                            <li><strong>Esportare in modalità execution</strong> uno scenario per utilizzarlo su un altro computer.</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-medium text-gray-600 mb-3">5. Prossimamente: Esecuzione degli Scenari (Sim Execution)</h3>
+                        <p class="text-gray-600 mb-2">Siamo entusiasti di annunciare che una futura versione di Sim Suite includerà la funzionalità <strong>Sim Execution</strong>. Questo ti permetterà non solo di creare, ma anche di <strong>eseguire</strong> i tuoi scenari di simulazione direttamente all'interno dell'applicazione, osservandone l'evoluzione e interagendo con essi (a seconda del tipo di scenario).</p>
+                        <p class="text-gray-600">Questa funzionalità aprirà nuove possibilità per testare, validare e utilizzare attivamente le simulazioni create.</p>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-medium text-gray-600 mb-3">6. Consigli per un Buon Scenario di Simulazione</h3>
+                        <ul class="list-disc list-inside text-gray-600 space-y-2 pl-4">
+                            <li><strong>Definisci obiettivi chiari:</strong> Cosa vuoi che gli utenti imparino o testino con questa simulazione?</li>
+                            <li><strong>Inizia semplice:</strong> Soprattutto se sei nuovo, parti con scenari meno complessi per familiarizzare con gli strumenti.</li>
+                            <li><strong>Sii consistente:</strong> Mantieni una logica interna coerente nello scenario.</li>
+                            <li><strong>Testa e itera:</strong> Prova il tuo scenario più volte. Se possibile, fallo testare anche ad altri per raccogliere feedback e migliorarlo.</li>
+                            <li><strong>Documenta (se necessario):</strong> Per scenari molto complessi, potrebbe essere utile tenere traccia delle logiche e dei parametri chiave esternamente.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="crediti" class="content-section p-2 md:p-4">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">🧑‍💻 Crediti e Autori</h2>
+                <div class="space-y-4 text-gray-600 leading-relaxed">
+                    <div>
+                        <h4 class="text-lg font-medium text-gray-500">Ideatore del Progetto:</h4>
+                        <p>Antonio Scalogna</p>
+                        </div>
+                    <div>
+                        <h4 class="text-lg font-medium text-gray-500">Sviluppatore Principale:</h4>
+                        <p>Alessandro Zappatore</p>
+                        </div>
+                    <p>Per contatti, segnalazioni di bug o proposte di miglioramento, fare riferimento alla sezione "Contatti" del README del progetto su GitHub.</p>
+                </div>
+            </section>
+
+            <section id="licenza" class="content-section p-2 md:p-4">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">📄 Licenza d'Uso</h2>
+                <div class="space-y-4 text-gray-600 leading-relaxed">
+                    <p>Sim Suite è rilasciato sotto i termini della licenza <strong>Creative Commons Attribution 4.0 International (CC BY 4.0)</strong></p>
+                    <img src="img/cc_by.png" alt="Logo Creative Commons BY" class="mx-auto my-3 h-12">
+                    <p>Questo significa che sei libero di:</p>
+                    <ul class="list-disc list-inside pl-4 space-y-1">
+                        <li><strong>Condividere</strong> — copiare e ridistribuire il materiale in qualsiasi formato o mezzo.</li>
+                        <li><strong>Adattare</strong> — remixare, trasformare il materiale e basarti su di esso per qualsiasi scopo, anche commerciale.</li>
+                    </ul>
+                    <p class="mt-2">Il licenziante non può revocare queste libertà fintanto che tu rispetti i termini della licenza.</p>
+                    <h4 class="text-lg font-medium text-gray-500 mt-3 mb-1">Alle seguenti condizioni:</h4>
+                    <ul class="list-disc list-inside pl-4 space-y-1">
+                        <li><strong>Attribuzione</strong> — Devi garantire un'adeguata attribuzione ad <strong>Antonio Scalogna</strong> (Ideatore) e <strong>Alessandro Zappatore</strong> (Sviluppatore Principale), fornire un link a questa licenza (<a href="https://creativecommons.org/licenses/by/4.0/deed.it" target="_blank" class="text-blue-500 hover:underline">CC BY 4.0</a>) e indicare se sono state effettuate modifiche. Puoi farlo in qualsiasi modo ragionevole, ma non in alcun modo che suggerisca che i licenzianti approvino te o il tuo utilizzo del materiale.</li>
+                    </ul>
+                    <p class="mt-2"><strong>Nessuna restrizione aggiuntiva</strong> — Non puoi applicare termini legali o misure tecnologiche che impongano ad altri soggetti dei vincoli giuridici su quanto la licenza permette loro di fare.</p>
+                    <div class="mt-4 p-3 bg-gray-100 rounded-md border border-gray-200">
+                        <p class="text-sm">Per visualizzare una copia completa e ufficiale di questa licenza, visita: <a href="https://creativecommons.org/licenses/by/4.0/deed.it" target="_blank" class="text-blue-500 hover:underline">https://creativecommons.org/licenses/by/4.0/deed.it</a></p>
+                        <p class="text-sm mt-1">Quando utilizzi, modifichi o fai riferimento a Sim Suite in lavori derivati, documentazione o pubblicazioni, ti chiediamo gentilmente di includere una chiara attribuzione agli autori originali come sopra specificato.</p>
+                    </div>
+                </div>
+            </section>
+
+
         </main>
 
         <footer class="mt-10 text-center border-t pt-6">
@@ -220,7 +352,11 @@
                 button.classList.add('active');
 
                 contentSections.forEach(section => section.classList.remove('active'));
-                document.getElementById(button.dataset.tab).classList.add('active');
+                const targetSectionId = button.dataset.tab;
+                const targetSection = document.getElementById(targetSectionId);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                }
             });
         });
 
@@ -230,9 +366,13 @@
                 button.classList.add('active');
 
                 osInstructions.forEach(instruction => instruction.classList.add('hidden'));
-                osInstructions.forEach(instruction => instruction.classList.remove('active'));
-                document.getElementById(button.dataset.os + '-instructions').classList.remove('hidden');
-                document.getElementById(button.dataset.os + '-instructions').classList.add('active');
+                osInstructions.forEach(instruction => instruction.classList.remove('active')); 
+                const targetOsInstructionId = button.dataset.os + '-instructions';
+                const targetOsInstruction = document.getElementById(targetOsInstructionId);
+                if (targetOsInstruction) {
+                    targetOsInstruction.classList.remove('hidden');
+                    targetOsInstruction.classList.add('active');
+                }
             });
         });
         
@@ -245,7 +385,9 @@
         }
 
         function copyToClipboard(elementId, message) {
-            const textToCopy = document.getElementById(elementId).innerText;
+            const codeElement = document.getElementById(elementId);
+            if (!codeElement) return;
+            const textToCopy = codeElement.innerText;
             const textArea = document.createElement('textarea');
             textArea.value = textToCopy;
             document.body.appendChild(textArea);
