@@ -69,5 +69,5 @@ public class ExecutionView extends Composite<VerticalLayout> {
  *    - Utilizzare il componente text editor già disponibile (@TinyEditor in views.utils)
  *
  * 3. Per il timer dei vari tempi:
- *    - Si può utilizzare un addon di Vaadin (https:
+ *    - Si può utilizzare un addon di Vaadin
  */

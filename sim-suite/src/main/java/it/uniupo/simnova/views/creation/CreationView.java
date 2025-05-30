@@ -28,7 +28,7 @@ import it.uniupo.simnova.views.common.utils.StyleApp;
  * @version 1.0
  */
 @PageTitle("Creation")
-@Route("creation")
+@Route("")
 public class CreationView extends Composite<VerticalLayout> {
 
     /**
@@ -41,6 +41,8 @@ public class CreationView extends Composite<VerticalLayout> {
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
         backButton.setTooltipText("Torna alla Home");
+        //Settato a false per nascondere il pulsante di ritorno fino a quando non sarà implementata la execution
+        backButton.setVisible(false);
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "Creazione Scenario",
                 "Seleziona il tipo di scenario da creare o visualizza gli scenari salvati",

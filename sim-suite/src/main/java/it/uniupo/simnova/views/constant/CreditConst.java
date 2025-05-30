@@ -16,11 +16,15 @@ public final class CreditConst {
     /**
      * La versione corrente del progetto, espressa come stringa semantica.
      */
-    public static final String VERSION = "0.4.2";
+    public static final String VERSION = "1.0.0";
     /**
      * Il link diretto al profilo LinkedIn dell'ideatore del progetto.
      */
     public static final String IDEATORLINK = "https://www.linkedin.com/in/antoscalogna/";
+    /**
+     * L'indirizzo email dell'ideatore del progetto, formattato come un link "mailto:".
+     */
+    public static final String IDEATORMAIL = "mailto:antonio.scalogna@uniupo.it";
     /**
      * Il link diretto al profilo LinkedIn del programmatore principale del progetto.
      */

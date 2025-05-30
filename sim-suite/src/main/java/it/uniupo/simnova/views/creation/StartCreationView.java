@@ -204,7 +204,7 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
         mainLayout.add(customHeader, contentLayout, footerLayout);
 
         // Listener per la navigazione
-        backButton.addClickListener(e -> backButton.getUI().ifPresent(ui -> ui.navigate("creation")));
+        backButton.addClickListener(e -> backButton.getUI().ifPresent(ui -> ui.navigate("")));
         nextButton.addClickListener(e -> {
             if (validateFields()) {
                 saveScenarioAndNavigate(nextButton.getUI());

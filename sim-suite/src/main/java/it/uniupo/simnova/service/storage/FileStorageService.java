@@ -236,19 +236,30 @@ public class FileStorageService {
      *
      * @param centerLogoFilename Nome del file da leggere.
      * @return InputStream del file letto.
+     * @throws IOException Se si verifica un errore durante la lettura del file, inclusa la non esistenza del file.
      */
-    public InputStream readFile(String centerLogoFilename) {
-        try {
-            Path filePath = rootLocation.resolve(centerLogoFilename).normalize();
+    public InputStream readFile(String centerLogoFilename) throws IOException {
+        Path filePath = this.rootLocation.resolve(centerLogoFilename).normalize();
 
-            if (!filePath.getParent().equals(rootLocation)) {
-                logger.error("Tentativo di leggere il file fuori dalla directory consentita: {}", filePath);
-                throw new RuntimeException("Cannot read file outside current directory");
-            }
+        // Controllo di sicurezza per assicurarsi che il file sia direttamente nella directory root
+        // Mantenendo la logica di controllo del percorso originale
+        if (!filePath.getParent().equals(this.rootLocation)) {
+            logger.error("Tentativo di leggere il file '{}' fuori dalla directory consentita. Percorso risolto: {}", centerLogoFilename, filePath);
+            // Modificato da RuntimeException a IOException per essere gestito correttamente da LogoLoader
+            throw new IOException("Accesso al file non consentito (file non direttamente nella directory root): " + centerLogoFilename);
+        }
+
+        try {
             return Files.newInputStream(filePath);
+        } catch (NoSuchFileException e) {
+            // Logga un avviso specifico per file non trovato, poiché potrebbe essere uno scenario atteso per file opzionali.
+            // LogoLoader gestirà questo e tenterà un fallback.
+            logger.warn("File non trovato durante il tentativo di lettura: '{}' (percorso completo: '{}')", centerLogoFilename, filePath);
+            throw e; // Rilancia NoSuchFileException (che è una FileNotFoundException)
         } catch (IOException e) {
-            logger.error("Errore durante la lettura del file {}", centerLogoFilename, e);
-            throw new RuntimeException("Failed to read file " + centerLogoFilename, e);
+            // Per altri errori I/O imprevisti (es. permessi, errori disco)
+            logger.error("Errore I/O imprevisto durante la lettura del file '{}': {}", centerLogoFilename, e.getMessage(), e);
+            throw e; // Rilancia l'IOException originale
         }
     }
 
@@ -275,3 +286,4 @@ public class FileStorageService {
         return files;
     }
 }
+
