@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guida Interattiva a Sim Suite v1.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Visualization & Content Choices:
+        - Benvenuto: Text display. Goal: Inform. Method: HTML. Interaction: None. Justification: Direct info.
+        - Come Eseguire: Text, steps, code blocks. Goal: Instruct. Method: HTML, JS for sub-tabs and copy buttons. Interaction: Tab switching, copy command. Justification: Improves usability for following instructions.
+        - Requisiti: Text, code block. Goal: Inform, aid verification. Method: HTML, JS for info pop-up and copy command. Interaction: Info display, copy command. Justification: Clarifies requirements, aids user.
+        - Accesso: Text, link. Goal: Guide. Method: HTML, JS for copy URL. Interaction: Clickable link, copy URL. Justification: Quick access.
+        - CONFIRMING NO SVG/Mermaid, supporting the DESIGNED structure. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8f7f4; color: #333; }
+        .tab-button { transition: all 0.3s ease; }
+        .tab-button.active { border-color: #4A90E2; color: #4A90E2; background-color: #e0eaf6; }
+        .tab-button:not(.active):hover { background-color: #e9e8e5; }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        .os-tab-button.active { background-color: #4A90E2; color: white; }
+        .os-tab-button:not(.active):hover { background-color: #d1d5db; }
+        .info-popup {
+            display: none;
+            position: absolute;
+            left: 100%;
+            top: 0;
+            margin-left: 10px;
+            width: 250px;
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+        .has-popup:hover .info-popup { display: block; }
+        .copy-button {
+            background-color: #60a5fa; /* Tailwind blue-400 */
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem; /* rounded-md */
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 500; /* font-medium */
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .copy-button:hover {
+            background-color: #3b82f6; /* Tailwind blue-500 */
+        }
+        .copy-button:active {
+            background-color: #2563eb; /* Tailwind blue-600 */
+        }
+        .toast-message {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .toast-message.show {
+            opacity: 1;
+        }
+         pre {
+            background-color: #1f2937; /* Tailwind gray-800 */
+            color: #e5e7eb; /* Tailwind gray-200 */
+            padding: 1rem;
+            border-radius: 0.375rem; /* rounded-md */
+            overflow-x: auto;
+            font-family: monospace;
+        }
+        code {
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 selection:bg-blue-200">
+
+    <div class="bg-white shadow-xl rounded-lg w-full max-w-3xl p-6 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800">🚀 Guida Interattiva a Sim Suite v1.0</h1>
+            <p class="text-gray-600 mt-2">Benvenuto! Questa guida ti aiuterà a installare ed eseguire Sim Suite. Esplora le sezioni per familiarizzare con il software.</p>
+        </header>
+
+        <nav class="mb-8">
+            <ul class="flex flex-wrap justify-center border-b border-gray-200">
+                <li><button class="tab-button active text-sm md:text-base py-3 px-3 md:px-6 border-b-2 border-transparent hover:border-gray-300 focus:outline-none" data-tab="benvenuto">Benvenuto</button></li>
+                <li><button class="tab-button text-sm md:text-base py-3 px-3 md:px-6 border-b-2 border-transparent hover:border-gray-300 focus:outline-none" data-tab="esegui">Come Eseguire</button></li>
+                <li><button class="tab-button text-sm md:text-base py-3 px-3 md:px-6 border-b-2 border-transparent hover:border-gray-300 focus:outline-none" data-tab="requisiti">Requisiti</button></li>
+                <li><button class="tab-button text-sm md:text-base py-3 px-3 md:px-6 border-b-2 border-transparent hover:border-gray-300 focus:outline-none" data-tab="accesso">Accesso</button></li>
+            </ul>
+        </nav>
+
+        <main>
+            <section id="benvenuto" class="content-section active p-2 md:p-4">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">Benvenuto in Sim Suite v1.0! 🎉</h2>
+                <p class="text-gray-600 leading-relaxed">
+                    Questa sezione ti introduce alla prima versione stabile di Sim Suite.
+                    Sim Suite è ora pronto per offrirti un'esperienza completa e affidabile.
+                </p>
+                <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p class="text-blue-700">"Questa è la prima versione stabile del software."</p>
+                </div>
+            </section>
+
+            <section id="esegui" class="content-section p-2 md:p-4">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">🖥️ Come eseguire Sim Suite</h2>
+                <p class="text-gray-600 mb-6 leading-relaxed">
+                    Segui le istruzioni specifiche per il tuo sistema operativo per avviare Sim Suite. Troverai i passaggi per Windows, Linux/macOS e un metodo alternativo valido per qualsiasi sistema con Java installato.
+                </p>
+                <div class="mb-4 flex flex-wrap gap-2">
+                    <button class="os-tab-button active py-2 px-4 bg-gray-200 rounded-md text-sm" data-os="windows">🪟 Windows</button>
+                    <button class="os-tab-button py-2 px-4 bg-gray-200 rounded-md text-sm" data-os="linux_macos">🐧 Linux & 🍎 macOS</button>
+                    <button class="os-tab-button py-2 px-4 bg-gray-200 rounded-md text-sm" data-os="alternativa">🌐 Alternativa (Java)</button>
+                </div>
+
+                <div id="windows-instructions" class="os-instructions active">
+                    <h3 class="text-xl font-medium text-gray-600 mb-2">Istruzioni per Windows</h3>
+                    <ol class="list-decimal list-inside text-gray-600 space-y-2">
+                        <li>📦 Scarica e decomprimi la cartella 
+                            <a href="https://github.com/AlessandroZappatore/sim-suite/releases/download/untagged-2ea776f09ed19ead6cab/Sim_suite.zip" target="_blank" class="text-blue-500 hover:underline">Sim_suite.zip</a>.
+                        </li>
+                        <li>▶️ All'interno della cartella, <strong>fai doppio clic su <code>run.bat</code></strong> per avviare l'applicazione.</li>
+                    </ol>
+                </div>
+
+                <div id="linux_macos-instructions" class="os-instructions hidden">
+                    <h3 class="text-xl font-medium text-gray-600 mb-2">Istruzioni per Linux e macOS</h3>
+                     <ol class="list-decimal list-inside text-gray-600 space-y-2">
+                        <li>📦 Scarica e decomprimi la cartella 
+                            <a href="https://github.com/AlessandroZappatore/sim-suite/releases/download/untagged-2ea776f09ed19ead6cab/Sim_suite.zip" target="_blank" class="text-blue-500 hover:underline">Sim_suite.zip</a>.
+                        </li>
+                        <li>🖱️ Apri un terminale nella cartella e <strong>esegui</strong> il comando:</li>
+                    </ol>
+                    <div class="mt-2 flex items-center gap-2">
+                        <pre><code id="linux-command">bash ./run.sh</code></pre>
+                        <button class="copy-button" onclick="copyToClipboard('linux-command', 'Comando copiato!')">Copia</button>
+                    </div>
+                </div>
+
+                <div id="alternativa-instructions" class="os-instructions hidden">
+                    <h3 class="text-xl font-medium text-gray-600 mb-2">Alternativa (qualsiasi sistema operativo con Java)</h3>
+                    <ol class="list-decimal list-inside text-gray-600 space-y-2">
+                        <li>📦 Scarica e decomprimi la cartella 
+                            <a href="https://github.com/AlessandroZappatore/sim-suite/releases/download/untagged-2ea776f09ed19ead6cab/Sim_suite.zip" target="_blank" class="text-blue-500 hover:underline">Sim_suite.zip</a>.
+                        </li>
+                        <li>💻 Apri un terminale nella cartella ed esegui:</li>
+                    </ol>
+                    <div class="mt-2 flex items-center gap-2">
+                        <pre><code id="java-command">java -jar sim.suite-1.0-SNAPSHOT.jar</code></pre>
+                        <button class="copy-button" onclick="copyToClipboard('java-command', 'Comando copiato!')">Copia</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="requisiti" class="content-section p-2 md:p-4">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">⚙️ Requisiti di Sistema</h2>
+                <p class="text-gray-600 mb-6 leading-relaxed">
+                    Assicurati che il tuo sistema soddisfi i seguenti requisiti per un funzionamento ottimale di Sim Suite. Il requisito principale è avere Java installato.
+                </p>
+                <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div class="flex items-center">
+                        <p class="text-yellow-800 text-lg">☕ <strong>Java 21</strong> o superiore installato nel sistema.</p>
+                        <div class="relative ml-2 has-popup">
+                            <span class="cursor-pointer text-blue-500">ℹ️</span>
+                            <div class="info-popup">
+                                Java 21 (o versioni successive) è raccomandato per garantire la compatibilità con le ultime funzionalità del software e per beneficiare degli aggiornamenti di sicurezza più recenti.
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-yellow-700 mt-2">Puoi verificare la versione di Java installata eseguendo il comando:</p>
+                    <div class="mt-2 flex items-center gap-2">
+                        <pre><code id="java-version-command">java -version</code></pre>
+                        <button class="copy-button" onclick="copyToClipboard('java-version-command', 'Comando copiato!')">Copia</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="accesso" class="content-section p-2 md:p-4">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">🔗 Accesso all'Interfaccia</h2>
+                <p class="text-gray-600 mb-6 leading-relaxed">
+                    Dopo aver avviato Sim Suite seguendo le istruzioni per il tuo sistema operativo, potrai accedere alla sua interfaccia utente tramite il tuo browser web.
+                </p>
+                <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <p class="text-green-700">Una volta avviata l'applicazione, apri il tuo browser e vai all'indirizzo:</p>
+                    <div class="mt-2 flex items-center gap-x-2 flex-wrap">
+                        <a href="http://localhost:8080" target="_blank" class="text-blue-600 hover:underline text-lg font-medium">👉 http://localhost:8080</a>
+                        <button class="copy-button" onclick="copyToClipboardStatic('http://localhost:8080', 'Indirizzo copiato!')">Copia Indirizzo</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="mt-10 text-center border-t pt-6">
+             <p class="text-gray-600">📜 <strong>Full Changelog</strong>: 
+                <a href="https://github.com/AlessandroZappatore/sim-suite/commits/SimSuite_1.0" target="_blank" class="text-blue-500 hover:underline">Visualizza su GitHub</a>
+            </p>
+            <p class="text-sm text-gray-500 mt-2">Grazie per aver scelto Sim Suite!</p>
+        </footer>
+    </div>
+
+    <div id="toast" class="toast-message">Messaggio Toast!</div>
+
+    <script>
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const contentSections = document.querySelectorAll('.content-section');
+        const osTabButtons = document.querySelectorAll('.os-tab-button');
+        const osInstructions = document.querySelectorAll('.os-instructions');
+        const toastElement = document.getElementById('toast');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                contentSections.forEach(section => section.classList.remove('active'));
+                document.getElementById(button.dataset.tab).classList.add('active');
+            });
+        });
+
+        osTabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                osTabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                osInstructions.forEach(instruction => instruction.classList.add('hidden'));
+                osInstructions.forEach(instruction => instruction.classList.remove('active'));
+                document.getElementById(button.dataset.os + '-instructions').classList.remove('hidden');
+                document.getElementById(button.dataset.os + '-instructions').classList.add('active');
+            });
+        });
+        
+        function showToast(message) {
+            toastElement.textContent = message;
+            toastElement.classList.add('show');
+            setTimeout(() => {
+                toastElement.classList.remove('show');
+            }, 3000);
+        }
+
+        function copyToClipboard(elementId, message) {
+            const textToCopy = document.getElementById(elementId).innerText;
+            const textArea = document.createElement('textarea');
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast(message || 'Copiato negli appunti!');
+            } catch (err) {
+                showToast('Errore durante la copia.');
+                console.error('Errore durante la copia: ', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function copyToClipboardStatic(textToCopy, message) {
+            const textArea = document.createElement('textarea');
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast(message || 'Copiato negli appunti!');
+            } catch (err)
+            {
+                showToast('Errore durante la copia.');
+                 console.error('Errore durante la copia: ', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+    </script>
+</body>
+</html>
