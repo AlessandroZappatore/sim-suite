@@ -1,53 +1,118 @@
 <!DOCTYPE html>
 <html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SimSuite v1.0 - Simulazioni Avanzate</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<head>    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>SimSuite v1.0 - Simulazioni Avanzate</title>    
+    <link rel="icon" href="img/favicon.ico" type="image/x-icon">
     <script>
+        // Sopprimi l'avviso di produzione per Tailwind CDN PRIMA del caricamento
+        if (typeof console !== 'undefined' && console.warn) {
+            const originalWarn = console.warn;
+            console.warn = function(...args) {
+                if (args[0] && typeof args[0] === 'string' && 
+                    (args[0].includes('tailwindcss.com should not be used in production') ||
+                     args[0].includes('cdn.tailwindcss.com should not be used'))) {
+                    return; // Sopprimi questi avvisi specifici
+                }
+                originalWarn.apply(console, args);
+            };
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>    
+    <script>
+        
         tailwind.config = {
             theme: {
                 extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
                     colors: {
-                        primary: '#6366F1',
-                        secondary: '#8B5CF6',
-                        accent: '#EC4899',
-                        dark: '#0F172A',
-                        light: '#F8FAFC'
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
                     },
                     animation: {
-                        'bounce-slow': 'bounce 2s infinite',
-                        'pulse-slow': 'pulse 3s infinite',
                         'float': 'float 3s ease-in-out infinite',
                         'gradient': 'gradient 8s ease infinite',
                         'slide-up': 'slideUp 0.5s ease-out',
-                        'fade-in': 'fadeIn 0.8s ease-out'
-                    },
-                    keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0px)' },
-                            '50%': { transform: 'translateY(-10px)' }
-                        },
-                        gradient: {
-                            '0%, 100%': { backgroundPosition: '0% 50%' },
-                            '50%': { backgroundPosition: '100% 50%' }
-                        },
-                        slideUp: {
-                            '0%': { transform: 'translateY(20px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' }
-                        },
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' }
-                        }
+                        'fade-in': 'fadeIn 0.8s ease-out',
                     }
                 }
             }
         }
     </script>
-    <style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"><style>
+        /* Custom animations and keyframes */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes gradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        @keyframes slideUp {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+          .animate-float { animation: float 3s ease-in-out infinite; }
+        .animate-gradient { animation: gradient 8s ease infinite; }
+        .animate-slide-up { animation: slideUp 0.5s ease-out; }
+        .animate-fade-in { animation: fadeIn 0.8s ease-out; }
+
+        /* Classi di utilità personalizzate per dimensioni */
+        .w-5 { width: 1.25rem; }
+        .h-5 { height: 1.25rem; }
+        .w-12 { width: 3rem; }
+        .h-12 { height: 3rem; }
+        .w-16 { width: 4rem; }
+        .h-16 { height: 4rem; }
+        
+        /* Classi per icone SVG */
+        svg {
+            width: inherit;
+            height: inherit;
+            fill: currentColor;
+        }        /* Fix per dimensioni contenitori icone */
+        .tech-icons {
+            width: 4rem;
+            height: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Classi di gradiente per colori */
+        .bg-gradient-to-br { background-image: linear-gradient(to bottom right, var(--tw-gradient-stops)); }
+        .from-cyan-400 { --tw-gradient-from: #22d3ee; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(34, 211, 238, 0)); }
+        .to-cyan-600 { --tw-gradient-to: #0891b2; }
+        .from-emerald-400 { --tw-gradient-from: #34d399; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(52, 211, 153, 0)); }
+        .to-emerald-600 { --tw-gradient-to: #059669; }
+        .from-violet-400 { --tw-gradient-from: #a78bfa; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(167, 139, 250, 0)); }
+        .to-violet-600 { --tw-gradient-to: #7c3aed; }
+        .from-pink-400 { --tw-gradient-from: #f472b6; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(244, 114, 182, 0)); }
+        .to-pink-600 { --tw-gradient-to: #db2777; }
+        .from-orange-400 { --tw-gradient-from: #fb923c; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(251, 146, 60, 0)); }
+        .to-orange-600 { --tw-gradient-to: #ea580c; }
+        .from-green-400 { --tw-gradient-from: #4ade80; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(74, 222, 128, 0)); }
+        .to-green-600 { --tw-gradient-to: #16a34a; }
+
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(-45deg, #667eea, #764ba2, #6b73ff, #9644ff);
@@ -276,9 +341,7 @@
         @keyframes countUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
-        }
-
-        .tech-icons {
+        }        .tech-icons {
             animation: float 6s ease-in-out infinite;
         }
 
@@ -293,10 +356,92 @@
                         linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.05) 75%);
             background-size: 20px 20px;
             background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }        .modern-shadow {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }        /* Download Modal Styles */
+        #downloadModal {
+            backdrop-filter: blur(8px);
+            animation: fadeIn 0.3s ease-out;
+            padding: 1rem;
+            overflow-y: auto;
+            max-height: 100vh;
         }
 
-        .modern-shadow {
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        #downloadModal.hidden {
+            display: none !important;
+        }
+
+        #downloadModal .glass-morphism {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.4s ease-out;
+            max-width: 500px;
+            width: 100%;
+            margin: auto;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        /* Responsive adjustments for modal */
+        @media (max-width: 640px) {
+            #downloadModal {
+                padding: 0.5rem;
+            }
+            
+            #downloadModal .glass-morphism {
+                max-height: 95vh;
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-height: 700px) {
+            #downloadModal .glass-morphism {
+                max-height: 85vh;
+                padding: 1rem;
+            }
+        }
+
+        #downloadModal input,
+        #downloadModal select,
+        #downloadModal textarea {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        #downloadModal input::placeholder,
+        #downloadModal textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        #downloadModal select option {
+            background: #1e293b;
+            color: white;
+        }
+
+        #downloadModal input:focus,
+        #downloadModal select:focus,
+        #downloadModal textarea:focus {
+            border-color: #10B981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .download-loader {
+            display: flex;
+            align-items: center;
+        }
+
+        @keyframes slideUpModal {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
         .gradient-text {
@@ -671,16 +816,14 @@
                                     <div class="space-y-4">
                                         <div class="flex items-start">
                                             <div class="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold mr-4 mt-1">1</div>
-                                            <div class="flex-1">
-                                                <p class="text-gray-700 mb-3">🚀 Scarica l'installer automatico</p>
-                                                <a href="https://github.com/AlessandroZappatore/sim-suite/releases/download/SimSuite_1.0/SimSuite_Installer_1.0.0.exe"
-                                                   target="_blank"
+                                            <div class="flex-1">                                                <p class="text-gray-700 mb-3">🚀 Scarica l'installer automatico</p>
+                                                <button onclick="openDownloadModal('installer')"
                                                    class="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-300">
                                                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                                         <path d="M19 12V19H5V12H3V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12H19ZM13 12.67L15.59 10.09L17 11.5L12 16.5L7 11.5L8.41 10.09L11 12.67V3H13V12.67Z"/>
                                                     </svg>
                                                     Scarica SimSuite_Installer_1.0.0.exe
-                                                </a>
+                                                </button>
                                             </div>
                                         </div>
                                         <div class="flex items-start">
@@ -701,21 +844,19 @@
                                 </div>
 
                                 <!-- Manual Option -->
-                                <div class="border-t border-gray-200 pt-6">
-                                    <h4 class="text-lg font-semibold text-gray-700 mb-4">Opzione Alternativa: Installazione Manuale</h4>
+                                <div class="border-t border-gray-200 pt-6">                                    <h4 class="text-lg font-semibold text-gray-700 mb-4">Opzione Alternativa: Installazione Manuale</h4>
                                     <div class="space-y-6">
                                         <div class="flex items-start">
                                             <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold mr-4 mt-1">1</div>
                                             <div class="flex-1">
                                                 <p class="text-gray-700 mb-3">📦 Scarica e decomprimi SimSuite</p>
-                                                <a href="https://github.com/AlessandroZappatore/sim-suite/releases/download/SimSuite_1.0/Sim_suite.zip"
-                                                   target="_blank"
+                                                <button onclick="openDownloadModal('zip')"
                                                    class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-300">
                                                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                                         <path d="M19 12V19H5V12H3V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12H19ZM13 12.67L15.59 10.09L17 11.5L12 16.5L7 11.5L8.41 10.09L11 12.67V3H13V12.67Z"/>
                                                     </svg>
                                                     Scarica Sim_suite.zip
-                                                </a>
+                                                </button>
                                             </div>
                                         </div>
                                         <div class="flex items-start">
@@ -727,9 +868,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div id="linux_macos-instructions" class="os-instructions">
+                        </div>                        <div id="linux_macos-instructions" class="os-instructions">
                             <div class="feature-card p-8 rounded-2xl">
                                 <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
                                     <span class="text-3xl mr-3">🐧</span>
@@ -740,14 +879,13 @@
                                         <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold mr-4 mt-1">1</div>
                                         <div class="flex-1">
                                             <p class="text-gray-700 mb-3">📦 Scarica e decomprimi SimSuite</p>
-                                            <a href="https://github.com/AlessandroZappatore/sim-suite/releases/download/SimSuite_1.0/Sim_suite.zip"
-                                               target="_blank"
+                                            <button onclick="openDownloadModal('zip')"
                                                class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-300">
                                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                                     <path d="M19 12V19H5V12H3V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12H19ZM13 12.67L15.59 10.09L17 11.5L12 16.5L7 11.5L8.41 10.09L11 12.67V3H13V12.67Z"/>
                                                 </svg>
                                                 Scarica Sim_suite.zip
-                                            </a>
+                                            </button>
                                         </div>
                                     </div>
                                     <div class="flex items-start">
@@ -766,9 +904,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div id="alternativa-instructions" class="os-instructions">
+                        </div>                        <div id="alternativa-instructions" class="os-instructions">
                             <div class="feature-card p-8 rounded-2xl">
                                 <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
                                     <span class="text-3xl mr-3">☕</span>
@@ -779,14 +915,13 @@
                                         <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold mr-4 mt-1">1</div>
                                         <div class="flex-1">
                                             <p class="text-gray-700 mb-3">📦 Scarica e decomprimi SimSuite</p>
-                                            <a href="https://github.com/AlessandroZappatore/sim-suite/releases/download/SimSuite_1.0/Sim_suite.zip"
-                                               target="_blank"
+                                            <button onclick="openDownloadModal('zip')"
                                                class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-300">
                                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                                     <path d="M19 12V19H5V12H3V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12H19ZM13 12.67L15.59 10.09L17 11.5L12 16.5L7 11.5L8.41 10.09L11 12.67V3H13V12.67Z"/>
                                                 </svg>
                                                 Scarica Sim_suite.zip
-                                            </a>
+                                            </button>
                                         </div>
                                     </div>
                                     <div class="flex items-start">
@@ -849,7 +984,6 @@
                             <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:animate-bounce-slow">
                                 <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M13 3C9.23 3 6.19 5.95 6 9.66L4.8 12.6C4.3 13.84 5.18 15.14 6.5 15.14H8.58C9.25 16.76 10.83 18 12.72 18S16.19 16.76 16.86 15.14H18.5C19.82 15.14 20.7 13.84 20.2 12.6L19 9.66C18.81 5.95 15.77 3 12 3H13Z"/>
-                                </svg>
                             </div>
                             <h3 class="text-2xl font-bold text-gray-800 mb-4">Quick Scenario</h3>
                             <p class="text-gray-600 mb-4">Crea rapidamente simulazioni semplici con parametri essenziali. Perfetto per iniziare o per scenari base.</p>
@@ -959,20 +1093,14 @@
                             <span class="flex items-center">
                                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M8 5V7H16V5H8ZM8 11H16V9H8V11ZM8 15H16V13H8V15ZM2 17H22V19H2V17Z"/>
-                                </svg>
-                                Esecuzione Real-time
                             </span>
                             <span class="flex items-center">
                                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
-                                </svg>
-                                Interazione Dinamica
                             </span>
                             <span class="flex items-center">
                                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2Z"/>
-                                </svg>
-                                Testing Avanzato
                             </span>
                         </div>
                     </div>
@@ -1085,7 +1213,6 @@
                                 <div class="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
                                     <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 5.5V8.5L21 9ZM3 7V9L9 8.5V5.5L3 7ZM12 19C13.1 19 14 18.1 14 17C14 15.9 13.1 15 12 15C10.9 15 10 15.9 10 17C10 18.1 10.9 19 12 19Z"/>
-                                    </svg>
                                 </div>
                                 <h3 class="text-2xl font-bold text-gray-800 mb-3">💡 Ideatore del Progetto</h3>
                                 <p class="text-xl font-semibold text-primary mb-2">Antonio Scalogna</p>
@@ -1096,7 +1223,6 @@
                                 <div class="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
                                     <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M19.14 12.94C19.73 12.34 20.06 11.54 20.06 10.66C20.06 9.78 19.73 8.98 19.14 8.38L15.62 4.86C15.02 4.27 14.22 3.94 13.34 3.94C12.46 3.94 11.66 4.27 11.06 4.86L7.54 8.38C6.95 8.98 6.62 9.78 6.62 10.66C6.62 11.54 6.95 12.34 7.54 12.94L11.06 16.46C11.66 17.05 12.46 17.38 13.34 17.38C14.22 17.38 15.02 17.05 15.62 16.46L19.14 12.94Z"/>
-                                    </svg>
                                 </div>
                                 <h3 class="text-2xl font-bold text-gray-800 mb-3">👨‍💻 Sviluppatore Principale</h3>
                                 <p class="text-xl font-semibold text-secondary mb-2">Alessandro Zappatore</p>
@@ -1121,7 +1247,7 @@
                                 <div>
                                     <h4 class="text-xl font-bold text-green-600 mb-4 flex items-center">
                                         <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z"/>
+                                            <path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7l-1.4-1.4L9 16.17z"/>
                                         </svg>
                                         Sei Libero Di:
                                     </h4>
@@ -1160,16 +1286,14 @@
                                 </div>
                             </div>
                         </div>                        <div class="glass-morphism p-8 rounded-2xl text-center">
-                            <h3 class="text-2xl font-bold text-white mb-6">🔗 Collegamenti Utili</h3>
-                            <div class="flex flex-wrap justify-center gap-4">
-                                <a href="https://github.com/AlessandroZappatore/sim-suite/releases/download/SimSuite_1.0/SimSuite_Installer_1.0.0.exe"
-                                   target="_blank"
+                            <h3 class="text-2xl font-bold text-white mb-6">🔗 Collegamenti Utili</h3>                            <div class="flex flex-wrap justify-center gap-4">
+                                <button onclick="openDownloadModal('installer')"
                                    class="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-green-700 transition-all duration-300">
                                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M19 12V19H5V12H3V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12H19ZM13 12.67L15.59 10.09L17 11.5L12 16.5L7 11.5L8.41 10.09L11 12.67V3H13V12.67Z"/>
                                     </svg>
                                     🚀 Installer Windows
-                                </a>
+                                </button>
                                 <a href="https://github.com/AlessandroZappatore/sim-suite/commits/SimSuite_1.0"
                                    target="_blank"
                                    class="inline-flex items-center gap-2 bg-gray-800 text-white px-6 py-3 rounded-xl font-medium hover:bg-gray-700 transition-all duration-300">
@@ -1209,18 +1333,15 @@
                             Creata con passione per democratizzare l'accesso alle tecnologie di simulazione.
                         </p>
                     </div>                    <div>
-                        <h4 class="text-xl font-bold text-white mb-4">🚀 Collegamenti Rapidi</h4>
-                        <div class="space-y-3">
-                            <a href="https://github.com/AlessandroZappatore/sim-suite/releases/download/SimSuite_1.0/SimSuite_Installer_1.0.0.exe"
-                               target="_blank"
-                               class="block text-white/80 hover:text-white transition-colors duration-300">
+                        <h4 class="text-xl font-bold text-white mb-4">🚀 Collegamenti Rapidi</h4>                        <div class="space-y-3">
+                            <button onclick="openDownloadModal('installer')"
+                               class="block text-white/80 hover:text-white transition-colors duration-300 bg-transparent border-none cursor-pointer">
                                 🚀 Installer Windows
-                            </a>
-                            <a href="https://github.com/AlessandroZappatore/sim-suite/releases/download/SimSuite_1.0/Sim_suite.zip"
-                               target="_blank"
-                               class="block text-white/80 hover:text-white transition-colors duration-300">
+                            </button>
+                            <button onclick="openDownloadModal('zip')"
+                               class="block text-white/80 hover:text-white transition-colors duration-300 bg-transparent border-none cursor-pointer">
                                 📦 Download SimSuite
-                            </a>
+                            </button>
                             <a href="https://github.com/AlessandroZappatore/sim-suite/commits/SimSuite_1.0"
                                target="_blank"
                                class="block text-white/80 hover:text-white transition-colors duration-300">
@@ -1271,213 +1392,93 @@
                             <span class="text-yellow-400 text-lg">☕</span>
                         </div>
                     </div>
-                    <p class="text-white/60 text-xs mt-4 italic">
-                        🌟 "L'innovazione è la capacità di vedere il cambiamento come un'opportunità, non come una minaccia" 🌟
-                    </p>
                 </div>
             </footer>
+        </div>        <div id="toast" class="toast-message">Messaggio Toast!</div>        <!-- Download Form Modal -->
+        <div id="downloadModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center">
+            <div class="glass-morphism p-6 rounded-2xl">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 12V19H5V12H3V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12H19ZM13 12.67L15.59 10.09L17 11.5L12 16.5L7 11.5L8.41 10.09L11 12.67V3H13V12.67Z"/>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">📋 Prima di scaricare SimSuite</h3>
+                    <p class="text-white/80">Aiutaci a migliorare SimSuite con le tue informazioni</p>
+                </div>
+
+                <form id="downloadForm" class="space-y-4">
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Nome e Cognome *</label>
+                        <input type="text" id="userName" name="name" required 
+                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:border-green-400 focus:outline-none transition-colors"
+                               placeholder="Il tuo nome e cognome">
+                    </div>
+
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Email *</label>
+                        <input type="email" id="userEmail" name="email" required 
+                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:border-green-400 focus:outline-none transition-colors"
+                               placeholder="la-tua-email@esempio.com">
+                    </div>
+
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Organizzazione</label>
+                        <input type="text" id="userOrganization" name="organization" 
+                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:border-green-400 focus:outline-none transition-colors"
+                               placeholder="Università, Ospedale, Azienda...">
+                    </div>
+
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Come utilizzerai SimSuite?</label>
+                        <select id="userUsage" name="usage" 
+                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:border-green-400 focus:outline-none transition-colors">
+                            <option value="">Seleziona un'opzione</option>
+                            <option value="formazione-medica">Formazione medica</option>
+                            <option value="ricerca">Ricerca e sviluppo</option>
+                            <option value="education">Educazione/Insegnamento</option>
+                            <option value="training-aziendale">Training aziendale</option>
+                            <option value="personale">Uso personale</option>
+                            <option value="altro">Altro</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Note aggiuntive</label>
+                        <textarea id="userNotes" name="notes" rows="3"
+                                  class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:border-green-400 focus:outline-none transition-colors resize-none"
+                                  placeholder="Feedback, suggerimenti o come hai conosciuto SimSuite..."></textarea>
+                    </div>
+
+                    <div class="flex items-start space-x-3 pt-2">
+                        <input type="checkbox" id="privacyConsent" name="privacy" required
+                               class="mt-1 w-4 h-4 text-green-400 border-white/20 rounded focus:ring-green-400">
+                        <label for="privacyConsent" class="text-white/80 text-sm">
+                            Accetto che i miei dati vengano utilizzati esclusivamente per migliorare SimSuite e ricevere aggiornamenti importanti. 
+                            <span class="text-green-400">I dati non verranno mai condivisi con terze parti.</span>
+                        </label>
+                    </div>
+
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" id="cancelDownload" 
+                                class="flex-1 px-6 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-medium hover:bg-white/20 transition-colors">
+                            Annulla
+                        </button>
+                        <button type="submit" id="submitDownload"
+                                class="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-medium hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center">
+                            <span class="download-text">Invia e Scarica</span>
+                            <div class="download-loader hidden">
+                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Invio...
+                            </div>
+                        </button>
+                    </div>
+                </form>            </div>
         </div>
-
-        <div id="toast" class="toast-message">Messaggio Toast!</div>
-    <script>
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const contentSections = document.querySelectorAll('.content-section');
-        const osTabButtons = document.querySelectorAll('.os-tab-button');
-        const osInstructions = document.querySelectorAll('.os-instructions');
-        const toastElement = document.getElementById('toast');
-
-        // Animazione contatori
-        function animateCounters() {
-            const counters = document.querySelectorAll('.animated-counter');
-            counters.forEach(counter => {
-                const target = counter.textContent;
-                if (target.includes('∞') || target.includes('%') || target.includes('min') || target.includes('MB') || target.includes('Java') || target.includes('Web') || target.includes('Open')) {
-                    return; // Skip non-numeric counters
-                }
-
-                const finalValue = parseInt(target);
-                if (isNaN(finalValue)) return;
-
-                let current = 0;
-                const increment = finalValue / 30; // Adjust speed of animation
-                const timer = setInterval(() => {
-                    current += increment;
-                    if (current >= finalValue) {
-                        counter.textContent = finalValue;
-                        clearInterval(timer);
-                    } else {
-                        counter.textContent = Math.floor(current);
-                    }
-                }, 50); // Interval time
-            });
-        }
-
-        // Effetti di parallax per le particelle (rimosso per semplicità se non richiesto attivamente)
-        /* function updateParticles() {
-            const particles = document.querySelectorAll('.particle');
-            particles.forEach((particle, index) => {
-                const speed = (index + 1) * 0.05; // Reduced speed for less aggressive parallax
-                const yPos = window.pageYOffset * speed;
-                // Apply transform if particle is in view or relevant
-                particle.style.transform = `translateY(${yPos}px)`;
-            });
-        } */
-
-
-        // Effetto hover cards con tilt 3D
-        function init3DEffects() {
-            const cards = document.querySelectorAll('.interactive-card, .feature-card');
-            cards.forEach(card => {
-                card.addEventListener('mousemove', (e) => {
-                    const rect = card.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-
-                    const centerX = rect.width / 2;
-                    const centerY = rect.height / 2;
-
-                    const rotateX = (y - centerY) / 1000; // Reduced intensity
-                    const rotateY = (centerX - x) / 1000; // Reduced intensity
-
-                    card.style.transform = `perspective(1500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.03)`; // Added slight scale
-                });
-
-                card.addEventListener('mouseleave', () => {
-                    card.style.transform = 'perspective(1500px) rotateX(0) rotateY(0) scale(1)';
-                });
-            });
-        }
-
-
-        // Intersection Observer per animazioni al scroll
-        function initScrollAnimations() {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                        // observer.unobserve(entry.target); // Optional: unobserve after animation
-                    }
-                });
-            }, {
-                threshold: 0.1, // Trigger when 10% of the element is visible
-                rootMargin: '0px 0px -30px 0px' // Start animation a bit before it's fully in view
-            });
-
-            document.querySelectorAll('.animate-slide-up, .animate-fade-in').forEach(el => {
-                el.style.opacity = '0'; // Initial state for animation
-                el.style.transform = el.classList.contains('animate-slide-up') ? 'translateY(30px)' : 'translateY(0)';
-                el.style.transition = 'all 0.7s cubic-bezier(0.25, 0.8, 0.25, 1)'; // Smoother transition
-                observer.observe(el);
-            });
-        }
-
-
-        // Inizializzazione eventi tab
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-
-                contentSections.forEach(section => section.classList.remove('active'));
-                const targetSectionId = button.dataset.tab;
-                const targetSection = document.getElementById(targetSectionId);
-                if (targetSection) {
-                    targetSection.classList.add('active');
-                    // Re-trigger animations for the new section if necessary
-                    setTimeout(() => {
-                       if (targetSectionId === 'benvenuto' || targetSectionId === 'installazione') { // Only re-animate counters on specific tabs if needed
-                           animateCounters();
-                       }
-                       // Re-initialize scroll animations for newly shown elements if they are set up to run once
-                       // initScrollAnimations(); // This might be too much, depends on setup.
-                    }, 100);
-                }
-            });
-        });
-
-        osTabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                osTabButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-
-                osInstructions.forEach(instruction => instruction.classList.remove('active')); // ensure all are hidden first
-                const targetOsInstructionId = button.dataset.os + '-instructions';
-                const targetOsInstruction = document.getElementById(targetOsInstructionId);
-                if (targetOsInstruction) {
-                    targetOsInstruction.classList.add('active');
-                }
-            });
-        });
-
-        function showToast(message) {
-            toastElement.textContent = message;
-            toastElement.classList.add('show');
-            setTimeout(() => {
-                toastElement.classList.remove('show');
-            }, 3000);
-        }
-
-        function copyToClipboard(elementId, message) {
-            const codeElement = document.getElementById(elementId);
-            if (!codeElement) return;
-            const textToCopy = codeElement.innerText;
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                showToast(message || 'Copiato negli appunti! ✨');
-            }).catch(err => {
-                showToast('Errore durante la copia.');
-                console.error('Errore durante la copia: ', err);
-            });
-        }
-
-        function copyToClipboardStatic(textToCopy, message) {
-             navigator.clipboard.writeText(textToCopy).then(() => {
-                showToast(message || 'Copiato negli appunti! ✨');
-            }).catch(err => {
-                showToast('Errore durante la copia.');
-                console.error('Errore durante la copia: ', err);
-            });
-        }
-
-        // Inizializzazione al caricamento della pagina
-        document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => { // Delay for smoother initial load
-                animateCounters();
-                init3DEffects();
-                initScrollAnimations();
-            }, 300); // Reduced delay
-
-            // Effetto parallax al scroll
-            // window.addEventListener('scroll', updateParticles); // Uncomment if parallax is desired
-
-            // Aggiunge particelle dinamiche
-            function createFloatingParticle() {
-                const particleContainer = document.querySelector('.fixed.inset-0.overflow-hidden');
-                if (!particleContainer) return;
-
-                const particle = document.createElement('div');
-                particle.className = 'particle'; // Ensure this class matches your CSS for particles
-                particle.style.top = Math.random() * 100 + '%'; // Start at random vertical position
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 5 + 's'; // Randomize start
-                particle.style.animationDuration = (4 + Math.random() * 6) + 's'; // Randomize speed/duration
-                // Optional: vary size or opacity
-                // particle.style.width = (2 + Math.random() * 3) + 'px';
-                // particle.style.height = particle.style.width;
-                // particle.style.opacity = 0.3 + Math.random() * 0.5;
-
-                particleContainer.appendChild(particle);
-
-                setTimeout(() => {
-                    particle.remove();
-                }, parseFloat(particle.style.animationDuration) * 1000 + parseFloat(particle.style.animationDelay) * 1000); // Remove after animation finishes
-            }
-
-            // Crea particelle ogni tot secondi
-             if (document.querySelectorAll('.particle').length < 15) { // Limit initial static particles if dynamically adding many
-                setInterval(createFloatingParticle, 2500); // Create new particles less frequently
-             }
-        });
-    </script>
+        
+    <!-- Script esterno -->
+    <script src="js/main.js"></script>
 </body>
 </html>
