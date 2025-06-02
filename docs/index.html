@@ -384,20 +384,64 @@
             overflow-y: auto;
         }
 
-        /* Responsive adjustments for modal */
+        /* Feedback Modal Styles */
+        #feedbackModal {
+            backdrop-filter: blur(8px);
+            animation: fadeIn 0.3s ease-out;
+            padding: 1rem;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+
+        #feedbackModal.hidden {
+            display: none !important;
+        }
+
+        #feedbackModal .glass-morphism {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.4s ease-out;
+            max-width: 550px;
+            width: 100%;
+            margin: auto;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        /* Star Rating Styles */
+        .star-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .star-button:hover {
+            transform: scale(1.1);
+        }
+
+        .star-button.active {
+            color: #fbbf24 !important;
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+        }
+
+        /* Responsive adjustments for modals */
         @media (max-width: 640px) {
-            #downloadModal {
+            #downloadModal, #feedbackModal {
                 padding: 0.5rem;
             }
             
-            #downloadModal .glass-morphism {
+            #downloadModal .glass-morphism, #feedbackModal .glass-morphism {
                 max-height: 95vh;
                 padding: 1.5rem;
             }
         }
 
         @media (max-height: 700px) {
-            #downloadModal .glass-morphism {
+            #downloadModal .glass-morphism, #feedbackModal .glass-morphism {
                 max-height: 85vh;
                 padding: 1rem;
             }
@@ -413,10 +457,27 @@
 
         #downloadModal input::placeholder,
         #downloadModal textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);        }
+
+        #downloadModal select option {
+            background: #1e293b;
+            color: white;
+        }
+
+        #feedbackModal input,
+        #feedbackModal select,
+        #feedbackModal textarea {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        #feedbackModal input::placeholder,
+        #feedbackModal textarea::placeholder {
             color: rgba(255, 255, 255, 0.5);
         }
 
-        #downloadModal select option {
+        #feedbackModal select option {
             background: #1e293b;
             color: white;
         }
@@ -425,12 +486,34 @@
         #downloadModal select:focus,
         #downloadModal textarea:focus {
             border-color: #10B981;
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         }
 
-        .download-loader {
+        #feedbackModal input:focus,
+        #feedbackModal select:focus,
+        #feedbackModal textarea:focus {
+            border-color: #10B981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }        .download-loader {
             display: flex;
             align-items: center;
+        }
+
+        /* Fix per centrare il loading spinner nel feedback modal */
+        .feedback-loader {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        /* Fix per allineamento collegamenti rapidi */
+        .quick-links-container button,
+        .quick-links-container a {
+            text-align: left;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            line-height: 1.5;
         }
 
         @keyframes slideUpModal {
@@ -1333,7 +1416,7 @@
                             Creata con passione per democratizzare l'accesso alle tecnologie di simulazione.
                         </p>
                     </div>                    <div>
-                        <h4 class="text-xl font-bold text-white mb-4">🚀 Collegamenti Rapidi</h4>                        <div class="space-y-3">
+                        <h4 class="text-xl font-bold text-white mb-4">🚀 Collegamenti Rapidi</h4>                        <div class="space-y-3 quick-links-container">
                             <button onclick="openDownloadModal('installer')"
                                class="block text-white/80 hover:text-white transition-colors duration-300 bg-transparent border-none cursor-pointer">
                                 🚀 Installer Windows
@@ -1377,6 +1460,19 @@
                                 </a>
                             </div>
                         </div>
+                    </div>
+                </div>                <!-- Sezione Feedback -->
+                <div class="mb-6">
+                    <div class="text-center">
+                        <h4 class="text-xl font-bold text-white mb-4">💬 Hai già usato SimSuite?</h4>
+                        <p class="text-white/80 mb-4">La tua opinione è importante! Condividi la tua esperienza per aiutarci a migliorare.</p>
+                        <button onclick="openFeedbackModal()" 
+                                class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-medium hover:from-orange-600 hover:to-orange-700 transition-all duration-300 shadow-lg hover:shadow-xl">
+                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16 12.5H13V16H11V12.5H8L12 8.5L16 12.5Z"/>
+                            </svg>
+                            Lascia un Feedback
+                        </button>
                     </div>
                 </div>
 
@@ -1474,11 +1570,127 @@
                                 Invio...
                             </div>
                         </button>
-                    </div>
-                </form>            </div>
+                    </div>                </form>            </div>
         </div>
-        
-    <!-- Script esterno -->
+
+        <!-- Feedback Form Modal -->
+        <div id="feedbackModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center">
+            <div class="glass-morphism p-6 rounded-2xl">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 11H7V13H9V11ZM13 11H11V13H13V11ZM17 11H15V13H17V11ZM19 3H18V1H16V3H8V1H6V3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM19 19H5V8H19V19Z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">💬 Condividi la tua esperienza</h3>
+                    <p class="text-white/80">Il tuo feedback ci aiuta a migliorare SimSuite per tutti</p>
+                </div>
+
+                <form id="feedbackForm" class="space-y-4">
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Nome e Cognome *</label>
+                        <input type="text" id="feedbackName" name="name" required 
+                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:border-orange-400 focus:outline-none transition-colors"
+                               placeholder="Il tuo nome e cognome">
+                    </div>
+
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Email *</label>
+                        <input type="email" id="feedbackEmail" name="email" required 
+                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:border-orange-400 focus:outline-none transition-colors"
+                               placeholder="la-tua-email@esempio.com">
+                    </div>
+
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Tipo di feedback</label>
+                        <select id="feedbackType" name="feedbackType" 
+                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:border-orange-400 focus:outline-none transition-colors">
+                            <option value="generale">Feedback generale</option>
+                            <option value="bug">Segnalazione bug</option>
+                            <option value="feature">Richiesta funzionalità</option>
+                            <option value="usabilita">Usabilità</option>
+                            <option value="performance">Performance</option>
+                            <option value="documentazione">Documentazione</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Valutazione complessiva *</label>
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="text-white/70 text-sm">Pessimo</span>
+                            <div class="flex space-x-1" id="starRating">
+                                <button type="button" class="star-button w-8 h-8 text-2xl text-white/30 hover:text-yellow-400 transition-colors" data-rating="1">★</button>
+                                <button type="button" class="star-button w-8 h-8 text-2xl text-white/30 hover:text-yellow-400 transition-colors" data-rating="2">★</button>
+                                <button type="button" class="star-button w-8 h-8 text-2xl text-white/30 hover:text-yellow-400 transition-colors" data-rating="3">★</button>
+                                <button type="button" class="star-button w-8 h-8 text-2xl text-white/30 hover:text-yellow-400 transition-colors" data-rating="4">★</button>
+                                <button type="button" class="star-button w-8 h-8 text-2xl text-white/30 hover:text-yellow-400 transition-colors" data-rating="5">★</button>
+                            </div>
+                            <span class="text-white/70 text-sm">Ottimo</span>
+                        </div>
+                        <input type="hidden" id="feedbackRating" name="rating" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Commento dettagliato *</label>
+                        <textarea id="feedbackComment" name="comment" rows="4" required
+                                  class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:border-orange-400 focus:outline-none transition-colors resize-none"
+                                  placeholder="Descrivi la tua esperienza con SimSuite: cosa ti è piaciuto, cosa si potrebbe migliorare, problemi riscontrati..."></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Funzionalità preferita</label>
+                        <select id="favoriteFeature" name="favoriteFeature" 
+                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:border-orange-400 focus:outline-none transition-colors">
+                            <option value="">Seleziona...</option>
+                            <option value="patient-simulated">Creazione scenario</option>
+                            <option value="clinical-case">Gestione tempi</option>
+                            <option value="scenario-builder">Gestione esami e referti</option>
+                            <option value="interfaccia">Interfaccia utente</option>
+                            <option value="performance">Performance</option>
+                            <option value="documentazione">Documentazione</option>
+                            <option value="modifica">Modifica dello scenario</option>
+                            <option value="esportazione">Esportazione degli scenari in PDF</option>
+                            <option value="altro">Altro</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Suggerimenti per miglioramenti</label>
+                        <textarea id="feedbackSuggestions" name="suggestions" rows="3"
+                                  class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:border-orange-400 focus:outline-none transition-colors resize-none"
+                                  placeholder="Quali funzionalità vorresti vedere aggiunte? Come potremmo migliorare l'esperienza utente?"></textarea>
+                    </div>
+
+                    <div class="flex items-start space-x-3 pt-2">
+                        <input type="checkbox" id="feedbackPrivacy" name="privacy" required
+                               class="mt-1 w-4 h-4 text-orange-400 border-white/20 rounded focus:ring-orange-400">
+                        <label for="feedbackPrivacy" class="text-white/80 text-sm">
+                            Accetto che il mio feedback venga utilizzato per migliorare SimSuite. 
+                            <span class="text-orange-400">I dati non verranno mai condivisi con terze parti.</span>
+                        </label>
+                    </div>
+
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" id="cancelFeedback" 
+                                class="flex-1 px-6 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-medium hover:bg-white/20 transition-colors">
+                            Annulla
+                        </button>
+                        <button type="submit" id="submitFeedback"
+                                class="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-medium hover:from-orange-600 hover:to-orange-700 transition-all duration-300 flex items-center justify-center">
+                            <span class="feedback-text">Invia Feedback</span>
+                            <div class="feedback-loader hidden">
+                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Invio...
+                            </div>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Script esterno -->
     <script src="js/main.js"></script>
 </body>
 </html>

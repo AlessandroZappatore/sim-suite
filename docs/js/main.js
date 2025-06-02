@@ -28,6 +28,7 @@ let currentDownloadType = '';
 
 // Elementi DOM - saranno inizializzati quando il DOM è pronto
 let tabButtons, contentSections, osTabButtons, osInstructions, toastElement, downloadModal, downloadForm, cancelButton, submitButton;
+let feedbackModal, feedbackForm, feedbackCancelButton, feedbackSubmitButton, starButtons, ratingInput;
 
 // ==========================================
 // ANIMAZIONI E EFFETTI VISIVI
@@ -318,9 +319,9 @@ async function handleFormSubmit(e) {
     downloadLoader.classList.remove('hidden');
     submitButton.disabled = true;
 
-    try {
-        // Raccogli dati del form
+    try {        // Raccogli dati del form
         const formData = {
+            type: 'download', // Identificatore per il tipo di dati
             name: document.getElementById('userName').value,
             email: document.getElementById('userEmail').value,
             organization: document.getElementById('userOrganization').value || 'Non specificato',
@@ -331,7 +332,7 @@ async function handleFormSubmit(e) {
             userAgent: navigator.userAgent,
             language: navigator.language,
             referrer: document.referrer || 'Diretto'
-        };        // Invia dati a Google Spreadsheet
+        };// Invia dati a Google Spreadsheet
         await sendDataToGoogleSheets(formData);
         
         // Salva il tipo di download prima di chiudere il modal
@@ -363,6 +364,182 @@ async function handleFormSubmit(e) {
         downloadText.classList.remove('hidden');
         downloadLoader.classList.add('hidden');
         submitButton.disabled = false;
+    }
+}
+
+// ==========================================
+// GESTIONE MODAL DI FEEDBACK
+// ==========================================
+
+/**
+ * Apre il modal di feedback
+ */
+function openFeedbackModal() {
+    console.log('🔍 openFeedbackModal chiamata');
+    
+    feedbackModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    
+    // Reset form
+    feedbackForm.reset();
+    resetStarRating();
+    
+    // Focus sul primo campo
+    setTimeout(() => {
+        document.getElementById('feedbackName').focus();
+    }, 300);
+}
+
+/**
+ * Chiude il modal di feedback
+ */
+function closeFeedbackModal() {
+    feedbackModal.classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+/**
+ * Inizializza gli eventi del modal di feedback
+ */
+function initFeedbackModalEvents() {
+    // Evento click su pulsante annulla
+    feedbackCancelButton.addEventListener('click', closeFeedbackModal);
+
+    // Chiudi modal cliccando fuori
+    feedbackModal.addEventListener('click', (e) => {
+        if (e.target === feedbackModal) {
+            closeFeedbackModal();
+        }
+    });
+
+    // Chiudi modal con ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !feedbackModal.classList.contains('hidden')) {
+            closeFeedbackModal();
+        }
+    });
+
+    // Gestione rating a stelle
+    starButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            const rating = parseInt(button.dataset.rating);
+            setStarRating(rating);
+        });
+
+        button.addEventListener('mouseenter', () => {
+            const rating = parseInt(button.dataset.rating);
+            highlightStars(rating);
+        });
+    });
+
+    // Reset stelle quando si esce dall'area rating
+    document.getElementById('starRating').addEventListener('mouseleave', () => {
+        const currentRating = parseInt(ratingInput.value) || 0;
+        highlightStars(currentRating);
+    });
+
+    // Validazione email real-time
+    document.getElementById('feedbackEmail').addEventListener('input', (e) => {
+        const email = e.target.value;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+        if (email && !emailRegex.test(email)) {
+            e.target.style.borderColor = '#ef4444';
+        } else {
+            e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+        }
+    });
+
+    // Gestione invio form
+    feedbackForm.addEventListener('submit', handleFeedbackSubmit);
+}
+
+/**
+ * Imposta il rating delle stelle
+ */
+function setStarRating(rating) {
+    ratingInput.value = rating;
+    highlightStars(rating);
+}
+
+/**
+ * Evidenzia le stelle fino al rating specificato
+ */
+function highlightStars(rating) {
+    starButtons.forEach((button, index) => {
+        if (index < rating) {
+            button.classList.add('active');
+        } else {
+            button.classList.remove('active');
+        }
+    });
+}
+
+/**
+ * Resetta il rating delle stelle
+ */
+function resetStarRating() {
+    ratingInput.value = '';
+    starButtons.forEach(button => {
+        button.classList.remove('active');
+    });
+}
+
+/**
+ * Gestisce l'invio del form di feedback
+ * @param {Event} e - Evento di submit
+ */
+async function handleFeedbackSubmit(e) {
+    e.preventDefault();
+    
+    // Verifica che sia stata data una valutazione
+    if (!ratingInput.value) {
+        showToast('⚠️ Per favore, dai una valutazione con le stelle');
+        return;
+    }
+
+    // Mostra loading
+    const feedbackText = feedbackSubmitButton.querySelector('.feedback-text');
+    const feedbackLoader = feedbackSubmitButton.querySelector('.feedback-loader');
+    
+    feedbackText.classList.add('hidden');
+    feedbackLoader.classList.remove('hidden');
+    feedbackSubmitButton.disabled = true;
+
+    try {
+        // Raccogli dati del form
+        const formData = {
+            type: 'feedback', // Identificatore per il tipo di dati
+            name: document.getElementById('feedbackName').value,
+            email: document.getElementById('feedbackEmail').value,
+            feedbackType: document.getElementById('feedbackType').value,
+            rating: parseInt(ratingInput.value),
+            comment: document.getElementById('feedbackComment').value,
+            favoriteFeature: document.getElementById('favoriteFeature').value || '',
+            suggestions: document.getElementById('feedbackSuggestions').value || '',
+            timestamp: new Date().toISOString(),
+            userAgent: navigator.userAgent,
+            language: navigator.language
+        };
+
+        // Invia dati a Google Spreadsheet
+        await sendDataToGoogleSheets(formData);
+        
+        // Mostra successo
+        showToast('✅ Grazie per il tuo feedback! È molto importante per noi 🙏');
+        
+        // Chiudi modal
+        closeFeedbackModal();
+        
+    } catch (error) {
+        console.error('Errore nell\'invio del feedback:', error);
+        showToast('⚠️ Errore nell\'invio del feedback. Riprova più tardi.');
+    } finally {
+        // Reset button state
+        feedbackText.classList.remove('hidden');
+        feedbackLoader.classList.add('hidden');
+        feedbackSubmitButton.disabled = false;
     }
 }
 
@@ -504,8 +681,7 @@ function initiateDownload(downloadType) {
 /**
  * Inizializza tutte le funzionalità quando il DOM è caricato
  */
-function initializeApp() {
-    // Inizializza elementi DOM
+function initializeApp() {    // Inizializza elementi DOM
     tabButtons = document.querySelectorAll('.tab-button');
     contentSections = document.querySelectorAll('.content-section');
     osTabButtons = document.querySelectorAll('.os-tab-button');
@@ -515,6 +691,14 @@ function initializeApp() {
     downloadForm = document.getElementById('downloadForm');
     cancelButton = document.getElementById('cancelDownload');
     submitButton = document.getElementById('submitDownload');
+    
+    // Inizializza elementi DOM per feedback modal
+    feedbackModal = document.getElementById('feedbackModal');
+    feedbackForm = document.getElementById('feedbackForm');
+    feedbackCancelButton = document.getElementById('cancelFeedback');
+    feedbackSubmitButton = document.getElementById('submitFeedback');
+    starButtons = document.querySelectorAll('.star-button');
+    ratingInput = document.getElementById('feedbackRating');
 
     // Debug: verifica che gli elementi siano trovati
     console.log('🔍 Elementi DOM trovati:', {
@@ -522,19 +706,20 @@ function initializeApp() {
         contentSections: contentSections.length,
         osTabButtons: osTabButtons.length,
         toastElement: !!toastElement,
-        downloadModal: !!downloadModal
+        downloadModal: !!downloadModal,
+        feedbackModal: !!feedbackModal,
+        starButtons: starButtons.length
     });
 
     setTimeout(() => {
         animateCounters();
         init3DEffects();
         initScrollAnimations();
-    }, 300);
-
-    // Inizializza eventi
+    }, 300);    // Inizializza eventi
     initTabEvents();
     initOsTabEvents();
     initDownloadModalEvents();
+    initFeedbackModalEvents();
 
     // Crea particelle ogni tot secondi
     if (document.querySelectorAll('.particle').length < 15) {
@@ -548,6 +733,7 @@ function initializeApp() {
 
 // Esporta le funzioni per uso globale nel HTML
 window.openDownloadModal = openDownloadModal;
+window.openFeedbackModal = openFeedbackModal;
 window.copyToClipboard = copyToClipboard;
 window.copyToClipboardStatic = copyToClipboardStatic;
 window.showToast = showToast;
