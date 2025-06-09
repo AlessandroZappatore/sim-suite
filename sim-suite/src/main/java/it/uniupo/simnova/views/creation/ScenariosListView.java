@@ -28,7 +28,6 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.domain.scenario.Scenario;
 import it.uniupo.simnova.service.export.ZipExportService;
@@ -48,7 +47,6 @@ import it.uniupo.simnova.views.common.utils.FieldGenerator;
 import it.uniupo.simnova.views.common.utils.StyleApp;
 import it.uniupo.simnova.views.ui.helper.DialogSupport;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -59,8 +57,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.vaadin.olli.FileDownloadWrapper;
+import org.vaadin.firitin.components.DynamicFileDownloader;
 
 import static it.uniupo.simnova.views.ui.helper.support.SanitizedFileName.sanitizeFileName;
 
@@ -223,6 +222,8 @@ public class ScenariosListView extends Composite<VerticalLayout> {
      */
     private List<Scenario> filteredScenarios = new ArrayList<>();
 
+    private final Logger logger = org.slf4j.LoggerFactory.getLogger(ScenariosListView.class);
+
     /**
      * Costruttore privato per evitare la creazione di istanze senza iniezione dei servizi.
      *
@@ -264,7 +265,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         this.patientSimulatedScenarioService = patientSimulatedScenarioService;
         this.scenarioDeletionService = scenarioDeletionService;
         this.materialeService = materialeService;
-        this.detached = new AtomicBoolean(false); // Inizializza lo stato di distacco
+        this.detached = new AtomicBoolean(false);
         initView();
         loadData();
     }
@@ -872,7 +873,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
      * @param azioni           True se includere le azioni chiave, false altrimenti.
      * @param obiettivi        True se includere gli obiettivi didattici, false altrimenti.
      * @param moula            True se includere il moulage, false altrimenti.
-     * @param liqui            True se includere i liquidi e farmaci in T0, false altrimenti.
+     * @param liquidi            True se includere i liquidi e farmaci in T0, false altrimenti.
      * @param matNec           True se includere il materiale necessario, false altrimenti.
      * @param param            True se includere i parametri vitali, false altrimenti.
      * @param acces            True se includere gli accessi, false altrimenti.
@@ -883,33 +884,75 @@ public class ScenariosListView extends Composite<VerticalLayout> {
      * @param zipExportService Il servizio per l'esportazione in ZIP.
      */
     private void executeExport(Scenario scenario, boolean desc, boolean brief, boolean infoGen,
-                               boolean patto, boolean azioni, boolean obiettivi, boolean moula, boolean liqui,
+                               boolean patto, boolean azioni, boolean obiettivi, boolean moula, boolean liquidi,
                                boolean matNec, boolean param, boolean acces, boolean fisic,
                                boolean esam, boolean time, boolean scen,
                                ZipExportService zipExportService) {
         Notification.show("Generazione del PDF...", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+        logger.info("Inizio generazione PDF per lo scenario {}", scenario.getId());
         try {
-            StreamResource resource = new StreamResource(
-                    "Pdf_scenario_" + limitLength(sanitizeFileName(scenario.getTitolo())) + ".zip",
-                    () -> {
+            String fileName = "Pdf_scenario_" + limitLength(sanitizeFileName(scenario.getTitolo())) + ".zip";
+
+            DynamicFileDownloader downloader = new DynamicFileDownloader(
+                    "Clicca qui per scaricare: " + fileName,
+                    fileName,
+                    outputStream -> {
                         try {
+                            logger.info("Generazione PDF per lo scenario {}", scenario.getId());
                             byte[] pdfBytes = zipExportService.exportScenarioPdfToZip(
                                     scenario.getId(), desc, brief, infoGen, patto,
-                                    azioni, obiettivi, moula, liqui, matNec, param, acces,
+                                    azioni, obiettivi, moula, liquidi, matNec, param, acces,
                                     fisic, esam, time, scen);
-                            return new ByteArrayInputStream(pdfBytes);
+                            logger.info("PDF generato con successo per lo scenario {}", scenario.getId());
+                            if (pdfBytes == null || pdfBytes.length == 0) {
+                                logger.error("Generato lo scenario {}", scenario.getId());
+                                throw new RuntimeException("Generated PDF bytes are null or empty.");
+                            }
+                            outputStream.write(pdfBytes);
+                            logger.info("File ZIP generato con successo per lo scenario {}", scenario.getId());
                         } catch (IOException | RuntimeException e) {
-                            System.err.println("Errore generazione PDF per lo scenario " + scenario.getId() + ": " + e.getMessage());
-                            getUI().ifPresent(ui -> ui.access(() ->
-                                    Notification.show(e.getMessage(), 5000, Notification.Position.MIDDLE)
-                                            .addThemeVariants(NotificationVariant.LUMO_ERROR)));
-                            return new ByteArrayInputStream(new byte[0]);
+                            logger.error("Errore durante la generazione del file ZIP per lo scenario {}: {}", scenario.getId(), e.getMessage(), e);
+                            throw new RuntimeException("Errore durante la generazione del file ZIP: " + e.getMessage(), e);
                         }
                     }
             );
-            resource.setContentType("application/zip");
-            triggerDownload(resource);
+
+            downloader.withContentTypeGenerator(() -> "application/zip");
+
+            downloader.addDownloadStartedListener(event -> {
+                logger.info("Download iniziato per lo scenario {}", scenario.getId());
+                getUI().ifPresent(ui -> ui.access(() -> Notification.show("Download iniziato...", 2000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_SUCCESS)));
+            });
+
+            downloader.addDownloadFailedListener(event -> {
+                logger.error("Download fallito per lo scenario {}: {}", scenario.getId(), event.getException().getMessage(), event.getException());
+                getUI().ifPresent(ui -> ui.access(() -> {
+                    if (downloader.getParent().isPresent()) {
+                        ScenariosListView.this.getContent().remove(downloader);
+                    }
+                    Notification.show("Download fallito: " + event.getException().getMessage(), 5000, Notification.Position.MIDDLE)
+                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }));
+            });
+
+            downloader.addDownloadFinishedListener(event -> {
+                logger.info("Download completato per lo scenario {}", scenario.getId());
+                getUI().ifPresent(ui -> ui.access(() -> {
+                    if (downloader.getParent().isPresent()) {
+                        ScenariosListView.this.getContent().remove(downloader);
+                    }
+                    Notification.show("Download completato.", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                }));
+            });
+
+            ScenariosListView.this.getContent().add(downloader);
+            getUI().ifPresent(ui -> {
+                if (!ui.isClosing()) {
+                    ui.access(() -> downloader.getElement().callJsFunction("click"));
+                }
+            });
         } catch (Exception e) {
+            logger.error("Errore durante la preparazione del PDF per lo scenario {}: {}", scenario.getId(), e.getMessage(), e);
             handleExportError("Errore preparazione PDF", e);
         }
     }
@@ -925,54 +968,42 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         }
         Notification.show("Generazione dell'archivio ZIP...", 3000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_PRIMARY);
         try {
-            StreamResource resource = new StreamResource(
-                    "Execution_scenario_" + limitLength(sanitizeFileName(scenario.getTitolo())) + ".zip",
-                    () -> {
-                        try {
-                            byte[] zipBytes = zipExportService.exportScenarioToZip(scenario.getId());
-                            return new ByteArrayInputStream(zipBytes);
-                        } catch (IOException | RuntimeException e) {
-                            System.err.println("Error generating ZIP for scenario " + scenario.getId() + ": " + e.getMessage());
-                            getUI().ifPresent(ui -> ui.access(() -> Notification.show("Errore creazione ZIP", 5000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR)));
-                            return new ByteArrayInputStream(new byte[0]);
-                        }
+            String fileName = "Execution_scenario_" + limitLength(sanitizeFileName(scenario.getTitolo())) + ".zip";
+            DynamicFileDownloader downloader = new DynamicFileDownloader(
+                "Clicca qui per scaricare: " + fileName,
+                fileName,
+                outputStream -> {
+                    try {
+                        byte[] zipBytes = zipExportService.exportScenarioToZip(scenario.getId());
+                        outputStream.write(zipBytes);
+                    } catch (IOException | RuntimeException e) {
+                        throw new RuntimeException("Errore durante la generazione dello ZIP: " + e.getMessage(), e);
                     }
-            );
-            resource.setContentType("application/zip");
-            triggerDownload(resource);
+                }
+            ).withContentTypeGenerator(() -> "application/zip");
+
+            downloader.addDownloadFinishedListener(event -> getUI().ifPresent(ui -> ui.access(() -> {
+                if (downloader.getParent().isPresent()) {
+                    ScenariosListView.this.getContent().remove(downloader);
+                }
+                Notification.show("Download ZIP completato.", 2000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            })));
+            downloader.addDownloadFailedListener(event -> getUI().ifPresent(ui -> ui.access(() -> {
+                if (downloader.getParent().isPresent()) {
+                    ScenariosListView.this.getContent().remove(downloader);
+                }
+                Notification.show("Download ZIP fallito: " + event.getException().getMessage(), 4000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
+            })));
+
+            ScenariosListView.this.getContent().add(downloader);
+            getUI().ifPresent(ui -> {
+                if (!ui.isClosing()) {
+                    ui.access(() -> downloader.getElement().callJsFunction("click"));
+                }
+            });
         } catch (Exception e) {
             handleExportError("Errore preparazione ZIP", e);
         }
-    }
-
-    /**
-     * Attiva il download di una risorsa tramite un pulsante nascosto.
-     *
-     * @param resource La risorsa (StreamResource) da scaricare.
-     */
-    private void triggerDownload(StreamResource resource) {
-        UI ui = UI.getCurrent();
-        if (ui == null || detached.get() || ui.isClosing()) {
-            return;
-        }
-
-        Button downloadButton = new Button();
-        downloadButton.getStyle().set("display", "none"); // Nasconde il pulsante
-
-        FileDownloadWrapper downloadWrapper = new FileDownloadWrapper(resource);
-        downloadWrapper.wrapComponent(downloadButton);
-
-        ui.access(() -> {
-            this.getContent().add(downloadWrapper);
-            // Clicca programmaticamente il pulsante per avviare il download
-            downloadButton.getElement().executeJs("this.click()")
-                    .then(result -> ui.access(() -> {
-                        // Rimuove il wrapper dopo l'avvio del download
-                        if (!detached.get()) {
-                            this.getContent().remove(downloadWrapper);
-                        }
-                    }));
-        });
     }
 
     /**
@@ -982,7 +1013,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
      * @param e       Eccezione che ha causato l'errore.
      */
     private void handleExportError(String message, Exception e) {
-        System.err.println(message + ": " + e.getMessage());
+        logger.error("{}: {}", message, e.getMessage(), e);
         if (!detached.get()) {
             getUI().ifPresent(ui -> ui.access(() ->
                     Notification.show(message + ": " + e.getMessage(), 5000, Position.MIDDLE)
@@ -1058,7 +1089,6 @@ public class ScenariosListView extends Composite<VerticalLayout> {
             progressBar.setVisible(true);
             scenariosGrid.setVisible(false);
             paginationControls.setVisible(false);
-            // Disabilita i filtri durante il caricamento
             searchPatientType.setEnabled(false);
             searchTitolo.setEnabled(false);
             searchAutori.setEnabled(false);
@@ -1094,7 +1124,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                     }
                 });
             } catch (Exception e) {
-                System.err.println("Error loading scenarios: " + e.getMessage());
+                logger.error("Errore durante il caricamento degli scenari: {}", e.getMessage(), e);
                 if (!detached.get() && !ui.isClosing()) {
                     ui.access(() -> {
                         Notification.show("Errore caricamento dati: " + e.getMessage(), 3000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -1133,3 +1163,4 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         return text.substring(0, 30);
     }
 }
+
