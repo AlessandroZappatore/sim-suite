@@ -322,7 +322,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         // Listener per i bottoni di navigazione e creazione
         backButton.addClickListener(e -> {
             if (!detached.get()) {
-                getUI().ifPresent(ui -> ui.navigate("creation"));
+                getUI().ifPresent(ui -> ui.navigate(""));
             }
         });
 
