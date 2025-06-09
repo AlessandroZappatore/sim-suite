@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>SimSuite v1.0 - Simulazioni Avanzate</title>    
+    <link rel="icon" href="img/favicon.ico" type="image/x-icon">
+    <script>
+        // Sopprimi l'avviso di produzione per Tailwind CDN PRIMA del caricamento
+        if (typeof console !== 'undefined' && console.warn) {
+            const originalWarn = console.warn;
+            console.warn = function(...args) {
+                if (args[0] && typeof args[0] === 'string' && 
+                    (args[0].includes('tailwindcss.com should not be used in production') ||
+                     args[0].includes('cdn.tailwindcss.com should not be used'))) {
+                    return; // Sopprimi questi avvisi specifici
+                }
+                originalWarn.apply(console, args);
+            };
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>    
+    <script>
+        
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'gradient': 'gradient 8s ease infinite',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                        'fade-in': 'fadeIn 0.8s ease-out',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"><style>
+        /* Custom animations and keyframes */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes gradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        @keyframes slideUp {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+          .animate-float { animation: float 3s ease-in-out infinite; }
+        .animate-gradient { animation: gradient 8s ease infinite; }
+        .animate-slide-up { animation: slideUp 0.5s ease-out; }
+        .animate-fade-in { animation: fadeIn 0.8s ease-out; }
+
+        /* Classi di utilità personalizzate per dimensioni */
+        .w-5 { width: 1.25rem; }
+        .h-5 { height: 1.25rem; }
+        .w-12 { width: 3rem; }
+        .h-12 { height: 3rem; }
+        .w-16 { width: 4rem; }
+        .h-16 { height: 4rem; }
+        
+        /* Classi per icone SVG */
+        svg {
+            width: inherit;
+            height: inherit;
+            fill: currentColor;
+        }        /* Fix per dimensioni contenitori icone */
+        .tech-icons {
+            width: 4rem;
+            height: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Classi di gradiente per colori */
+        .bg-gradient-to-br { background-image: linear-gradient(to bottom right, var(--tw-gradient-stops)); }
+        .from-cyan-400 { --tw-gradient-from: #22d3ee; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(34, 211, 238, 0)); }
+        .to-cyan-600 { --tw-gradient-to: #0891b2; }
+        .from-emerald-400 { --tw-gradient-from: #34d399; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(52, 211, 153, 0)); }
+        .to-emerald-600 { --tw-gradient-to: #059669; }
+        .from-violet-400 { --tw-gradient-from: #a78bfa; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(167, 139, 250, 0)); }
+        .to-violet-600 { --tw-gradient-to: #7c3aed; }
+        .from-pink-400 { --tw-gradient-from: #f472b6; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(244, 114, 182, 0)); }
+        .to-pink-600 { --tw-gradient-to: #db2777; }
+        .from-orange-400 { --tw-gradient-from: #fb923c; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(251, 146, 60, 0)); }
+        .to-orange-600 { --tw-gradient-to: #ea580c; }
+        .from-green-400 { --tw-gradient-from: #4ade80; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(74, 222, 128, 0)); }
+        .to-green-600 { --tw-gradient-to: #16a34a; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(-45deg, #667eea, #764ba2, #6b73ff, #9644ff);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            color: #0F172A;
+        }
+
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        .tab-button {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .tab-button:hover::before {
+            left: 100%;
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        .tab-button:not(.active):hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .content-section {
+            display: none;
+            animation: fadeIn 0.8s ease-out;
+        }
+        .content-section.active { display: block; }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.9); /* Default background for feature cards */
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        /* Specific styling for guide's feature cards if needed, e.g., text color */
+        #guida .feature-card {
+             color: #0F172A; /* Ensure text is readable on light background */
+        }
+         #guida .feature-card h2, #guida .feature-card h3, #guida .feature-card h4 {
+            color: #1f2937; /* Darker headings for contrast */
+        }
+        #guida .feature-card p, #guida .feature-card li {
+            color: #4b5563; /* Slightly lighter text for paragraphs */
+        }
+         #guida .feature-card a {
+            color: #6366F1; /* Primary color for links */
+        }
+         #guida .feature-card a:hover {
+            text-decoration: underline;
+        }
+         #guida .feature-card strong {
+            color: #0F172A;
+        }
+
+
+        .copy-button {
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .copy-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .toast-message {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 15px;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateX(100px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .toast-message.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        pre {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 15px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo-text {
+            background: linear-gradient(135deg, #6366F1, #8B5CF6, #EC4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient 3s ease infinite;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .os-instructions { display: none; }
+        .os-instructions.active { display: block; animation: slideUp 0.5s ease-out; }
+
+        .os-tab-button {
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .os-tab-button.active {
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .os-tab-button:not(.active):hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .info-popup {
+            display: none;
+            position: absolute;
+            left: 100%;
+            top: 0;
+            margin-left: 15px;
+            width: 280px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 10;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .has-popup:hover .info-popup { display: block; }
+
+        .guide-image {
+            border: 1px solid rgba(255, 255, 255, 0.2); /* Original border, might need to change for light background */
+            /* If feature-card background is light, this border might be too light. Let's make it darker. */
+            border-color: rgba(0,0,0,0.1);
+            padding: 0.5rem;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .guide-image:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .hero-bg {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            backdrop-filter: blur(20px);
+        }
+
+        .animated-counter {
+            animation: countUp 2s ease-out;
+        }
+
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }        .tech-icons {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .tech-icons:nth-child(2) { animation-delay: 1s; }
+        .tech-icons:nth-child(3) { animation-delay: 2s; }
+        .tech-icons:nth-child(4) { animation-delay: 3s; }
+
+        .modern-grid {
+            background: linear-gradient(45deg, rgba(255,255,255,0.05) 25%, transparent 25%),
+                        linear-gradient(-45deg, rgba(255,255,255,0.05) 25%, transparent 25%),
+                        linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.05) 75%),
+                        linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.05) 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }        .modern-shadow {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }        /* Download Modal Styles */
+        #downloadModal {
+            backdrop-filter: blur(8px);
+            animation: fadeIn 0.3s ease-out;
+            padding: 1rem;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+
+        #downloadModal.hidden {
+            display: none !important;
+        }
+
+        #downloadModal .glass-morphism {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.4s ease-out;
+            max-width: 500px;
+            width: 100%;
+            margin: auto;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        /* Feedback Modal Styles */
+        #feedbackModal {
+            backdrop-filter: blur(8px);
+            animation: fadeIn 0.3s ease-out;
+            padding: 1rem;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+
+        #feedbackModal.hidden {
+            display: none !important;
+        }
+
+        #feedbackModal .glass-morphism {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.4s ease-out;
+            max-width: 550px;
+            width: 100%;
+            margin: auto;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        /* Star Rating Styles */
+        .star-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .star-button:hover {
+            transform: scale(1.1);
+        }
+
+        .star-button.active {
+            color: #fbbf24 !important;
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+        }
+
+        /* Responsive adjustments for modals */
+        @media (max-width: 640px) {
+            #downloadModal, #feedbackModal {
+                padding: 0.5rem;
+            }
+            
+            #downloadModal .glass-morphism, #feedbackModal .glass-morphism {
+                max-height: 95vh;
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-height: 700px) {
+            #downloadModal .glass-morphism, #feedbackModal .glass-morphism {
+                max-height: 85vh;
+                padding: 1rem;
+            }
+        }
+
+        #downloadModal input,
+        #downloadModal select,
+        #downloadModal textarea {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        #downloadModal input::placeholder,
+        #downloadModal textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);        }
+
+        #downloadModal select option {
+            background: #1e293b;
+            color: white;
+        }
+
+        #feedbackModal input,
+        #feedbackModal select,
+        #feedbackModal textarea {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        #feedbackModal input::placeholder,
+        #feedbackModal textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        #feedbackModal select option {
+            background: #1e293b;
+            color: white;
+        }
+
+        #downloadModal input:focus,
+        #downloadModal select:focus,
+        #downloadModal textarea:focus {
+            border-color: #10B981;
+        }
+
+        #feedbackModal input:focus,
+        #feedbackModal select:focus,
+        #feedbackModal textarea:focus {
+            border-color: #10B981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }        .download-loader {
+            display: flex;
+            align-items: center;
+        }
+
+        /* Fix per centrare il loading spinner nel feedback modal */
+        .feedback-loader {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        /* Fix per allineamento collegamenti rapidi */
+        .quick-links-container button,
+        .quick-links-container a {
+            text-align: left;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        @keyframes slideUpModal {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea, #764ba2, #6b73ff, #9644ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            background-size: 200% 200%;
+            animation: gradient 4s ease infinite;
+        }
+
+        .interactive-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .interactive-card:hover {
+            transform: translateY(-20px) scale(1.05);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+        }
+
+        .stats-animation {
+            animation: pulse 2s infinite alternate;
+        }
+
+        .tech-badge {
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .tech-badge:hover {
+            background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.2));
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="particle" style="top: 10%; left: 10%; animation-delay: 0s;"></div>
+        <div class="particle" style="top: 20%; left: 80%; animation-delay: 1s;"></div>
+        <div class="particle" style="top: 60%; left: 20%; animation-delay: 2s;"></div>
+        <div class="particle" style="top: 80%; left: 70%; animation-delay: 3s;"></div>
+        <div class="particle" style="top: 30%; left: 50%; animation-delay: 4s;"></div>
+    </div>
+
+    <div class="min-h-screen flex flex-col items-center justify-center p-4">
+        <div class="glass-morphism w-full max-w-6xl p-8 md:p-12 relative">
+                        <header class="text-center mb-12 hero-bg p-8 rounded-2xl relative overflow-hidden">
+                <div class="relative z-10">
+                    <div class="flex items-center justify-center mb-6">
+                        <div class="w-16 h-16 flex items-center justify-center mr-4 animate-float overflow-hidden">
+                            <img src="img/Logo.png" alt="SimSuite Logo" class="w-full h-full object-contain">
+                        </div>
+                        <h1 class="text-4xl md:text-6xl font-bold logo-text">SimSuite</h1>
+                    </div>
+                    <p class="text-xl md:text-2xl text-white/90 mb-6 animate-fade-in">
+                        La piattaforma definitiva per simulazioni avanzate
+                    </p>
+                    <div class="text-lg text-white/80 animate-fade-in" style="animation-delay: 0.2s;">
+                        Crea, gestisci ed esegui scenari di simulazione con facilità assoluta
+                    </div>
+                </div>
+            </header>
+
+            <nav class="mb-12">
+                <ul class="flex flex-wrap justify-center gap-2 p-2 glass-morphism rounded-2xl">
+                    <li><button class="tab-button active text-sm md:text-base py-4 px-6 rounded-xl font-medium transition-all duration-300" data-tab="benvenuto">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7V10C2 16 6 20.5 12 22C18 20.5 22 16 22 10V7L12 2Z"/></svg>
+                            Benvenuto
+                        </span>
+                    </button></li>
+                    <li><button class="tab-button text-sm md:text-base py-4 px-6 rounded-xl font-medium transition-all duration-300" data-tab="installazione">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 12V19H5V12H3V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12H19ZM13 12.67L15.59 10.09L17 11.5L12 16.5L7 11.5L8.41 10.09L11 12.67V3H13V12.67Z"/></svg>
+                            Installazione
+                        </span>
+                    </button></li>
+                    <li><button class="tab-button text-sm md:text-base py-4 px-6 rounded-xl font-medium transition-all duration-300" data-tab="funzionalita">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/></svg>
+                            Funzionalità
+                        </span>
+                    </button></li>
+                    <li><button class="tab-button text-sm md:text-base py-4 px-6 rounded-xl font-medium transition-all duration-300" data-tab="guida">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM14 17H7V15H14V17ZM17 13H7V11H17V13ZM17 9H7V7H17V9Z"/></svg>
+                            Guida
+                        </span>
+                    </button></li>
+                    <li><button class="tab-button text-sm md:text-base py-4 px-6 rounded-xl font-medium transition-all duration-300" data-tab="info">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M11 7H13V9H11V7ZM11 11H13V17H11V11ZM12 2C6.48 2 2 6.48 2 12S6.48 22 12 22S22 17.52 22 12S17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12S7.59 4 12 4S20 7.59 20 12S16.41 20 12 20Z"/></svg>
+                            Info
+                        </span>
+                    </button></li>
+                </ul>
+            </nav>
+            <main>
+                <section id="benvenuto" class="content-section active">
+                    <div class="text-center mb-12">
+                        <h2 class="text-4xl font-bold text-white mb-6 animate-fade-in">Benvenuto in SimSuite v1.0! 🎉</h2>
+                        <p class="text-xl text-white/90 leading-relaxed max-w-4xl mx-auto animate-fade-in" style="animation-delay: 0.2s;">
+                            SimSuite rappresenta una rivoluzione nel mondo delle simulazioni. Una piattaforma completamente gratuita,
+                            open source e infinitamente personalizzabile che trasforma la creazione di scenari in un'esperienza intuitiva e potente.
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+                        <div class="stat-card p-6 rounded-2xl text-center animate-slide-up interactive-card" style="animation-delay: 0.1s;">
+                            <div class="text-4xl font-bold text-white mb-2 animated-counter stats-animation">∞</div>
+                            <div class="text-white/80 font-medium">Scenari Illimitati</div>
+                        </div>
+                        <div class="stat-card p-6 rounded-2xl text-center animate-slide-up interactive-card" style="animation-delay: 0.2s;">
+                            <div class="text-4xl font-bold text-white mb-2 animated-counter stats-animation">3</div>
+                            <div class="text-white/80 font-medium">Tipi di Simulazione</div>
+                        </div>
+                        <div class="stat-card p-6 rounded-2xl text-center animate-slide-up interactive-card" style="animation-delay: 0.3s;">
+                            <div class="text-4xl font-bold text-white mb-2 animated-counter stats-animation">100%</div>
+                            <div class="text-white/80 font-medium">Personalizzabile</div>
+                        </div>
+                        <div class="stat-card p-6 rounded-2xl text-center animate-slide-up interactive-card" style="animation-delay: 0.4s;">
+                            <div class="text-4xl font-bold text-white mb-2 animated-counter stats-animation">0</div>
+                            <div class="text-white/80 font-medium">Limitazioni Creative</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-morphism p-8 rounded-2xl mb-12 modern-grid">
+                        <h3 class="text-3xl font-bold text-white text-center mb-8 gradient-text">⚡ Potenza di SimSuite in Numeri</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-full flex items-center justify-center mx-auto mb-3 tech-icons">
+                                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M13 3C9.23 3 6.19 5.95 6 9.66L4.8 12.6C4.3 13.84 5.18 15.14 6.5 15.14H8.58C9.25 16.76 10.83 18 12.72 18S16.19 16.76 16.86 15.14H18.5C19.82 15.14 20.7 13.84 20.2 12.6L19 9.66C18.81 5.95 15.77 3 12 3H13Z"/>
+                                    </svg>
+                                </div>
+                                <div class="text-2xl font-bold text-white mb-1 animated-counter">&lt; 2min</div>
+                                <div class="text-white/80 text-sm">Setup Completo</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 tech-icons">
+                                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M19 12V19H5V12H3V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12H19ZM13 12.67L15.59 10.09L17 11.5L12 16.5L7 11.5L8.41 10.09L11 12.67V3H13V12.67Z"/>
+                                    </svg>
+                                </div>
+                                <div class="text-2xl font-bold text-white mb-1 animated-counter">&lt; 300MB</div>
+                                <div class="text-white/80 text-sm">Download Leggero</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-gradient-to-br from-violet-400 to-violet-600 rounded-full flex items-center justify-center mx-auto mb-3 tech-icons">
+                                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
+                                    </svg>
+                                </div>
+                                <div class="text-2xl font-bold text-white mb-1 animated-counter">Java 21</div>
+                                <div class="text-white/80 text-sm">Tecnologia Moderna</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-3 tech-icons">
+                                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M14 6V4H10V6H14ZM4 8V21H20V8H4ZM8 18H6V16H8V18ZM8 14H6V12H8V14ZM8 10H6V8H8V10ZM18 18H10V16H18V18ZM18 14H10V12H18V14ZM18 10H10V8H18V10Z"/>
+                                    </svg>
+                                </div>
+                                <div class="text-2xl font-bold text-white mb-1 animated-counter">Web UI</div>
+                                <div class="text-white/80 text-sm">Interfaccia Moderna</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-3 tech-icons">
+                                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12S6.48 22 12 22S22 17.52 22 12S17.52 2 12 2ZM17 13H13V17H11V13H7V11H11V7H13V11H17V13Z"/>
+                                    </svg>
+                                </div>
+                                <div class="text-2xl font-bold text-white mb-1 animated-counter">Open</div>
+                                <div class="text-white/80 text-sm">Source Code</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap justify-center gap-4 mb-12">
+                        <div class="tech-badge px-4 py-2 rounded-full text-white font-medium">☕ Java 21</div>
+                        <div class="tech-badge px-4 py-2 rounded-full text-white font-medium">🌐 Spring Boot</div>
+                        <div class="tech-badge px-4 py-2 rounded-full text-white font-medium">🎨 Modern UI</div>
+                        <div class="tech-badge px-4 py-2 rounded-full text-white font-medium">📱 Responsive</div>
+                        <div class="tech-badge px-4 py-2 rounded-full text-white font-medium">⚡ Lightweight</div>
+                        <div class="tech-badge px-4 py-2 rounded-full text-white font-medium">🔒 Secure</div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+                        <div class="feature-card p-8 rounded-2xl animate-slide-up" style="animation-delay: 0.5s;">
+                            <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center mb-4">
+                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 5.5V8.5L21 9ZM3 7V9L9 8.5V5.5L3 7ZM12 19C13.1 19 14 18.1 14 17C14 15.9 13.1 15 12 15C10.9 15 10 15.9 10 17C10 18.1 10.9 19 12 19Z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-3">Completamente Gratuito</h3>
+                            <p class="text-gray-600">SimSuite è 100% gratuito. Nessun costo nascosto, nessuna limitazione. Accesso completo a tutte le funzionalità.</p>
+                        </div>
+
+                        <div class="feature-card p-8 rounded-2xl animate-slide-up" style="animation-delay: 0.6s;">
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center mb-4">
+                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2L2 7V10C2 16 6 20.5 12 22C18 20.5 22 16 22 10V7L12 2Z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-3">Open Source</h3>
+                            <p class="text-gray-600">Codice aperto, trasparente e modificabile. Contribuisci allo sviluppo e personalizza secondo le tue esigenze.</p>
+                        </div>
+
+                        <div class="feature-card p-8 rounded-2xl animate-slide-up" style="animation-delay: 0.7s;">
+                            <div class="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center mb-4">
+                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M11 7H13V9H11V7ZM12 17C12.55 17 13 16.55 13 16V12C13 11.45 12.55 11 12 11S11 11.45 11 12V16C11 16.55 11.45 17 12 17ZM12 2C6.48 2 2 6.48 2 12S6.48 22 12 22S22 17.52 22 12S17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12S7.59 4 12 4S20 7.59 20 12S16.41 20 12 20Z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-3">Facilità d'Uso</h3>
+                            <p class="text-gray-600">Interfaccia intuitiva e moderna. Crea scenari complessi in pochi minuti con la nostra interfaccia user-friendly.</p>
+                        </div>
+
+                        <div class="feature-card p-8 rounded-2xl animate-slide-up" style="animation-delay: 0.8s;">
+                            <div class="w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center mb-4">
+                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M13 3C9.23 3 6.19 5.95 6 9.66L4.8 12.6C4.3 13.84 5.18 15.14 6.5 15.14H8.58C9.25 16.76 10.83 18 12.72 18S16.19 16.76 16.86 15.14H18.5C19.82 15.14 20.7 13.84 20.2 12.6L19 9.66C18.81 5.95 15.77 3 12 3H13Z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-3">Velocità Estrema</h3>
+                            <p class="text-gray-600">Prestazioni ottimizzate per gestire scenari complessi senza rallentamenti. Velocità di creazione e esecuzione impareggiabili.</p>
+                        </div>
+
+                        <div class="feature-card p-8 rounded-2xl animate-slide-up" style="animation-delay: 0.9s;">
+                            <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl flex items-center justify-center mb-4">
+                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-3">Innovazione Continua</h3>
+                            <p class="text-gray-600">Aggiornamenti costanti con nuove funzionalità. Una piattaforma in continua evoluzione per soddisfare ogni esigenza.</p>
+                        </div>
+
+                        <div class="feature-card p-8 rounded-2xl animate-slide-up" style="animation-delay: 1s;">
+                            <div class="w-12 h-12 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-xl flex items-center justify-center mb-4">
+                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M14 6V4H10V6H14ZM4 8V21H20V8H4ZM8 18H6V16H8V18ZM8 14H6V12H8V14ZM8 10H6V8H8V10ZM18 18H10V16H18V18ZM18 14H10V12H18V14ZM18 10H10V8H18V10Z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-3">Multiformato</h3>
+                            <p class="text-gray-600">Esporta in PDF, modalità execution e condividi facilmente i tuoi scenari con colleghi e studenti.</p>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="glass-morphism p-8 rounded-2xl inline-block">
+                            <p class="text-xl text-white/90 font-medium mb-4">🎯 La Prima Versione Stabile è Qui!</p>
+                            <p class="text-white/80">SimSuite v1.0 è pronto per trasformare il tuo modo di creare simulazioni</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="installazione" class="content-section">
+                    <div class="text-center mb-12">
+                        <h2 class="text-4xl font-bold text-white mb-6">🚀 Installazione Rapida</h2>
+                        <p class="text-xl text-white/90 leading-relaxed max-w-4xl mx-auto">
+                            Inizia in meno di 2 minuti! Scegli il metodo di installazione più adatto al tuo sistema operativo.
+                        </p>
+                    </div>                    <div class="glass-morphism p-8 rounded-2xl mb-8">
+                        <div class="flex items-center mb-6">
+                            <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl flex items-center justify-center mr-4">
+                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M11 7H13V9H11V7ZM11 11H13V17H11V11ZM12 2C6.48 2 2 6.48 2 12S6.48 22 12 22S22 17.52 22 12S17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12S7.59 4 12 4S20 7.59 20 12S16.41 20 12 20Z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white">Requisiti Sistema</h3>
+                                <p class="text-white/80">Tutto quello che ti serve per iniziare</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Installer Requirements -->
+                        <div class="bg-gradient-to-r from-green-400/10 to-green-600/10 border border-green-400/20 rounded-xl p-6 mb-4">
+                            <div class="flex items-center mb-4">
+                                <span class="text-2xl mr-3">🚀</span>
+                                <span class="text-xl font-bold text-white">Con l'Installer (Windows)</span>
+                                <div class="ml-3 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                                    CONSIGLIATO
+                                </div>
+                            </div>
+                            <div class="flex items-center text-white/90">
+                                <svg class="w-5 h-5 text-green-400 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+                                </svg>
+                                <span class="font-medium">Nessun requisito aggiuntivo!</span>
+                            </div>
+                            <p class="text-white/80 mt-2 text-sm">L'installer include tutto il necessario (JDK integrato). Funziona su qualsiasi sistema Windows.</p>
+                        </div>
+
+                        <!-- Manual Installation Requirements -->
+                        <div class="bg-gradient-to-r from-yellow-400/10 to-yellow-600/10 border border-yellow-400/20 rounded-xl p-6">
+                            <div class="flex items-center mb-4">
+                                <span class="text-2xl mr-3">☕</span>
+                                <span class="text-xl font-bold text-white">Per l'Installazione Manuale</span>
+                            </div>
+                            <div class="flex items-center mb-2">
+                                <span class="text-white/90 font-medium">Java 21 o superiore</span>
+                                <div class="relative ml-3 has-popup">
+                                    <span class="cursor-pointer text-yellow-400 text-xl">ℹ️</span>
+                                    <div class="info-popup">
+                                        <strong>Perché Java 21?</strong><br>
+                                        Java 21 garantisce le migliori prestazioni, sicurezza aggiornata e compatibilità con tutte le funzionalità avanzate di SimSuite.
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-white/80 mb-4 text-sm">Richiesto solo se scegli di scaricare il file ZIP e avviare manualmente SimSuite</p>
+                            <div class="bg-gray-800/30 rounded-lg p-3">
+                                <p class="text-white/80 text-sm mb-2">Verifica la tua versione con questo comando:</p>
+                                <div class="flex items-center gap-3">
+                                    <pre class="flex-1"><code id="java-version-command">java -version</code></pre>
+                                    <button class="copy-button" onclick="copyToClipboard('java-version-command', 'Comando copiato!')">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M16 1H4C2.9 1 2 1.9 2 3V17H4V3H16V1ZM19 5H8C6.9 5 6 5.9 6 7V21C6 22.1 6.9 23 8 23H19C20.1 23 21 22.1 21 21V7C21 5.9 20.1 5 19 5ZM19 21H8V7H19V21Z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <div class="flex flex-wrap justify-center gap-4 mb-8">
+                            <button class="os-tab-button active py-3 px-6 rounded-xl font-medium transition-all duration-300" data-os="windows">
+                                <span class="flex items-center gap-2">
+                                    🪟 Windows
+                                </span>
+                            </button>
+                            <button class="os-tab-button py-3 px-6 rounded-xl font-medium transition-all duration-300" data-os="linux_macos">
+                                <span class="flex items-center gap-2">
+                                    🐧 Linux & 🍎 macOS
+                                </span>
+                            </button>
+                            <button class="os-tab-button py-3 px-6 rounded-xl font-medium transition-all duration-300" data-os="alternativa">
+                                <span class="flex items-center gap-2">
+                                    ☕ Metodo Universale Java
+                                </span>
+                            </button>
+                        </div>                        <div id="windows-instructions" class="os-instructions active">                            <div class="feature-card p-8 rounded-2xl">
+                                <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                                    <div class="w-8 h-8 mr-3 flex items-center justify-center">
+                                        <svg viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8 text-blue-600">
+                                            <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-13.051-1.351"/>
+                                        </svg>
+                                    </div>
+                                    Istruzioni per Windows
+                                </h3>
+                                  <!-- Installer Option -->
+                                <div class="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl p-6 mb-8">
+                                    <div class="flex items-center mb-4">
+                                        <span class="text-2xl mr-3">✨</span>
+                                        <h4 class="text-xl font-bold text-gray-800">Opzione Raccomandata: Installer Automatico</h4>
+                                        <div class="ml-3 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                                            JDK INCLUSO
+                                        </div>
+                                    </div>
+                                    <div class="bg-green-100 border border-green-300 rounded-lg p-4 mb-4">
+                                        <div class="flex items-center text-green-800">
+                                            <svg class="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+                                            </svg>
+                                            <span class="font-bold">Nessun Java richiesto!</span>
+                                        </div>
+                                        <p class="text-green-700 text-sm mt-1">L'installer include un JDK completo - funziona su qualsiasi sistema Windows!</p>
+                                    </div>
+                                    <p class="text-gray-700 mb-4">Installa SimSuite una volta sola e sarà sempre accessibile all'avvio del computer!</p>
+                                    <div class="space-y-4">
+                                        <div class="flex items-start">
+                                            <div class="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold mr-4 mt-1">1</div>
+                                            <div class="flex-1">                                                <p class="text-gray-700 mb-3">🚀 Scarica l'installer automatico</p>
+                                                <button onclick="openDownloadModal('installer')"
+                                                   class="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-300">
+                                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M19 12V19H5V12H3V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12H19ZM13 12.67L15.59 10.09L17 11.5L12 16.5L7 11.5L8.41 10.09L11 12.67V3H13V12.67Z"/>
+                                                    </svg>
+                                                    Scarica SimSuite_Installer_1.0.0.exe
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold mr-4 mt-1">2</div>
+                                            <div class="flex-1">
+                                                <p class="text-gray-700 mb-3">⚙️ Esegui l'installer e segui le istruzioni</p>
+                                                <p class="text-gray-600 text-sm">L'installer configurerà automaticamente SimSuite sul tuo sistema</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold mr-4 mt-1">3</div>
+                                            <div class="flex-1">
+                                                <p class="text-gray-700 mb-3">🎯 Accedi sempre a <a href="http://localhost:8080" target="_blank" class="text-green-600 hover:underline font-medium">localhost:8080</a></p>
+                                                <p class="text-gray-600 text-sm">SimSuite sarà sempre disponibile appena avvii il computer!</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Manual Option -->
+                                <div class="border-t border-gray-200 pt-6">                                    <h4 class="text-lg font-semibold text-gray-700 mb-4">Opzione Alternativa: Installazione Manuale</h4>
+                                    <div class="space-y-6">
+                                        <div class="flex items-start">
+                                            <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold mr-4 mt-1">1</div>
+                                            <div class="flex-1">
+                                                <p class="text-gray-700 mb-3">📦 Scarica e decomprimi SimSuite</p>
+                                                <button onclick="openDownloadModal('zip')"
+                                                   class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-300">
+                                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M19 12V19H5V12H3V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12H19ZM13 12.67L15.59 10.09L17 11.5L12 16.5L7 11.5L8.41 10.09L11 12.67V3H13V12.67Z"/>
+                                                    </svg>
+                                                    Scarica Sim_suite.zip
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold mr-4 mt-1">2</div>
+                                            <div class="flex-1">
+                                                <p class="text-gray-700">▶️ Fai doppio clic su <code class="bg-gray-100 px-2 py-1 rounded font-mono">run.bat</code> per avviare l'applicazione</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>                        <div id="linux_macos-instructions" class="os-instructions">
+                            <div class="feature-card p-8 rounded-2xl">
+                                <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                                    <span class="text-3xl mr-3">🐧</span>
+                                    Istruzioni per Linux & macOS
+                                </h3>
+                                <div class="space-y-6">
+                                    <div class="flex items-start">
+                                        <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold mr-4 mt-1">1</div>
+                                        <div class="flex-1">
+                                            <p class="text-gray-700 mb-3">📦 Scarica e decomprimi SimSuite</p>
+                                            <button onclick="openDownloadModal('zip')"
+                                               class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-300">
+                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M19 12V19H5V12H3V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12H19ZM13 12.67L15.59 10.09L17 11.5L12 16.5L7 11.5L8.41 10.09L11 12.67V3H13V12.67Z"/>
+                                                </svg>
+                                                Scarica Sim_suite.zip
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <div class="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold mr-4 mt-1">2</div>
+                                        <div class="flex-1">
+                                            <p class="text-gray-700 mb-3">🖥️ Apri un terminale nella cartella ed esegui:</p>
+                                            <div class="flex items-center gap-3">
+                                                <pre class="flex-1"><code id="linux-command">bash ./run.sh</code></pre>
+                                                <button class="copy-button" onclick="copyToClipboard('linux-command', 'Comando copiato!')">
+                                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M16 1H4C2.9 1 2 1.9 2 3V17H4V3H16V1ZM19 5H8C6.9 5 6 5.9 6 7V21C6 22.1 6.9 23 8 23H19C20.1 23 21 22.1 21 21V7C21 5.9 20.1 5 19 5ZM19 21H8V7H19V21Z"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>                        <div id="alternativa-instructions" class="os-instructions">
+                            <div class="feature-card p-8 rounded-2xl">
+                                <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                                    <span class="text-3xl mr-3">☕</span>
+                                    Metodo Universale Java
+                                </h3>
+                                <div class="space-y-6">
+                                    <div class="flex items-start">
+                                        <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold mr-4 mt-1">1</div>
+                                        <div class="flex-1">
+                                            <p class="text-gray-700 mb-3">📦 Scarica e decomprimi SimSuite</p>
+                                            <button onclick="openDownloadModal('zip')"
+                                               class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-300">
+                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M19 12V19H5V12H3V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12H19ZM13 12.67L15.59 10.09L17 11.5L12 16.5L7 11.5L8.41 10.09L11 12.67V3H13V12.67Z"/>
+                                                </svg>
+                                                Scarica Sim_suite.zip
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <div class="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold mr-4 mt-1">2</div>
+                                        <div class="flex-1">
+                                            <p class="text-gray-700 mb-3">💻 Apri un terminale nella cartella ed esegui:</p>
+                                            <div class="flex items-center gap-3">
+                                                <pre class="flex-1"><code id="java-command">java -jar sim.suite-1.0-SNAPSHOT.jar</code></pre>
+                                                <button class="copy-button" onclick="copyToClipboard('java-command', 'Comando copiato!')">
+                                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M16 1H4C2.9 1 2 1.9 2 3V17H4V3H16V1ZM19 5H8C6.9 5 6 5.9 6 7V21C6 22.1 6.9 23 8 23H19C20.1 23 21 22.1 21 21V7C21 5.9 20.1 5 19 5ZM19 21H8V7H19V21Z"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-morphism p-8 rounded-2xl">
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                                <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 5.5V8.5L21 9ZM3 7V9L9 8.5V5.5L3 7ZM10 22C8.9 22 8 21.1 8 20C8 18.9 8.9 18 10 18C11.1 18 12 18.9 12 20C12 21.1 11.1 22 10 22Z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-2xl font-bold text-white mb-4">🎯 Accedi a SimSuite</h3>
+                            <p class="text-white/90 mb-6">Una volta avviata l'applicazione, apri il browser e vai all'indirizzo:</p>
+                            <div class="flex items-center justify-center gap-4 flex-wrap">
+                                <a href="http://localhost:8080" target="_blank"
+                                   class="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-lg transition-all duration-300">
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M16.36 14C16.44 13.34 16.5 12.68 16.5 12C16.5 11.32 16.44 10.66 16.36 10H19.74C19.9 10.64 20 11.31 20 12C20 12.69 19.9 13.36 19.74 14M14.59 19.56C15.19 18.45 15.65 17.25 15.97 16H18.92C17.96 17.65 16.43 18.93 14.59 19.56M14.34 14H9.66C9.56 13.34 9.5 12.68 9.5 12C9.5 11.32 9.56 10.65 9.66 10H14.34C14.43 10.65 14.5 11.32 14.5 12C14.5 12.68 14.43 13.34 14.34 14M12 19.96C11.17 18.76 10.5 17.43 10.09 16H13.91C13.5 17.43 12.83 18.76 12 19.96M8 8H5.08C6.03 6.34 7.57 5.06 9.4 4.44C8.8 5.55 8.35 6.75 8 8H5.08ZM5.08 16H8C8.35 17.25 8.8 18.45 9.4 19.56C7.57 18.93 6.03 17.65 5.08 16ZM4.26 14C4.1 13.36 4 12.69 4 12C4 11.31 4.1 10.64 4.26 10H7.64C7.56 10.66 7.5 11.32 7.5 12C7.5 12.68 7.56 13.34 7.64 14M12 4.03C12.83 5.23 13.5 6.57 13.91 8H10.09C10.5 6.57 11.17 5.23 12 4.03M18.92 8H15.97C15.65 6.75 15.19 5.55 14.59 4.44C16.43 5.07 17.96 6.34 18.92 8M12 2C6.47 2 2 6.5 2 12A10 10 0 0012 22A10 10 0 0022 12A10 10 0 0012 2Z"/>
+                                    </svg>
+                                    🚀 http://localhost:8080
+                                </a>
+                                <button class="copy-button" onclick="copyToClipboardStatic('http://localhost:8080', 'Indirizzo copiato!')">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M16 1H4C2.9 1 2 1.9 2 3V17H4V3H16V1ZM19 5H8C6.9 5 6 5.9 6 7V21C6 22.1 6.9 23 8 23H19C20.1 23 21 22.1 21 21V7C21 5.9 20.1 5 19 5ZM19 21H8V7H19V21Z"/>
+                                    </svg>
+                                    Copia
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="funzionalita" class="content-section">
+                    <div class="text-center mb-12">
+                        <h2 class="text-4xl font-bold text-white mb-6">⭐ Funzionalità Avanzate</h2>
+                        <p class="text-xl text-white/90 leading-relaxed max-w-4xl mx-auto">
+                            Scopri tutte le potenti funzionalità che rendono SimSuite la scelta ideale per la creazione di simulazioni professionali.
+                        </p>
+                    </div>
+
+                    <div class="grid lg:grid-cols-3 gap-8 mb-12">
+                        <div class="feature-card p-8 rounded-2xl text-center group hover:scale-105 transition-all duration-300">
+                            <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:animate-bounce-slow">
+                                <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M13 3C9.23 3 6.19 5.95 6 9.66L4.8 12.6C4.3 13.84 5.18 15.14 6.5 15.14H8.58C9.25 16.76 10.83 18 12.72 18S16.19 16.76 16.86 15.14H18.5C19.82 15.14 20.7 13.84 20.2 12.6L19 9.66C18.81 5.95 15.77 3 12 3H13Z"/>
+                            </div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-4">Quick Scenario</h3>
+                            <p class="text-gray-600 mb-4">Crea rapidamente simulazioni semplici con parametri essenziali. Perfetto per iniziare o per scenari base.</p>
+                            <div class="flex items-center justify-center space-x-2 text-sm text-blue-600">
+                                <span>✓ Setup rapido</span>
+                                <span>✓ Intuitivo</span>
+                                <span>✓ Efficace</span>
+                            </div>
+                        </div>
+
+                        <div class="feature-card p-8 rounded-2xl text-center group hover:scale-105 transition-all duration-300">
+                            <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:animate-bounce-slow">
+                                <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-4">Advanced Scenario</h3>
+                            <p class="text-gray-600 mb-4">Costruisci scenari complessi con logiche avanzate, variabili multiple e condizioni dettagliate.</p>
+                            <div class="flex items-center justify-center space-x-2 text-sm text-purple-600">
+                                <span>✓ Logiche complesse</span>
+                                <span>✓ Variabili multiple</span>
+                                <span>✓ Potente</span>
+                            </div>
+                        </div>
+
+                        <div class="feature-card p-8 rounded-2xl text-center group hover:scale-105 transition-all duration-300">
+                            <div class="w-16 h-16 bg-gradient-to-br from-red-400 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:animate-bounce-slow">
+                                <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M14 6V4H10V6H14ZM4 8V21H20V8H4ZM8 18H6V16H8V18ZM8 14H6V12H8V14ZM8 10H6V8H8V10ZM18 18H10V16H18V18ZM18 14H10V12H18V14ZM18 10H10V8H18V10Z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-4">Patient Simulated</h3>
+                            <p class="text-gray-600 mb-4">Scenari avanzati con la possibilità di aggiungere una sceneggiatura da far seguire al paziente simulato.</p>
+                            <div class="flex items-center justify-center space-x-2 text-sm text-red-600">
+                                <span>✓ Formazione medica</span>
+                                <span>✓ Profili dettagliati</span>
+                                <span>✓ Realistico</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-8 mb-12">
+                        <div class="glass-morphism p-8 rounded-2xl">
+                            <h3 class="text-2xl font-bold text-white mb-6 flex items-center">
+                                <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center mr-3">
+                                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM14 17H7V15H14V17ZM17 13H7V11H17V13ZM17 9H7V7H17V9Z"/>
+                                    </svg>
+                                </div>
+                                Gestione Completa
+                            </h3>
+                            <ul class="space-y-3 text-white/90">
+                                <li class="flex items-center">
+                                    <span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
+                                    Visualizza e modifica scenari esistenti
+                                </li>
+                                <li class="flex items-center">
+                                    <span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
+                                    Duplica scenari come template
+                                </li>
+                                <li class="flex items-center">
+                                    <span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
+                                    Elimina scenari non necessari
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="glass-morphism p-8 rounded-2xl">
+                            <h3 class="text-2xl font-bold text-white mb-6 flex items-center">
+                                <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center mr-3">
+                                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2ZM18 20H6V4H13V9H18V20Z"/>
+                                    </svg>
+                                </div>
+                                Export Avanzato
+                            </h3>
+                            <ul class="space-y-3 text-white/90">
+                                <li class="flex items-center">
+                                    <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
+                                    Esportazione in PDF per condivisione
+                                </li>
+                                <li class="flex items-center">
+                                    <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
+                                    Modalità execution per deployment
+                                </li>
+                                <li class="flex items-center">
+                                    <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
+                                    Formati compatibili cross-platform
+                                </li>
+                              
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="feature-card p-8 rounded-2xl text-center">
+                        <div class="w-20 h-20 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-6 animate-pulse-slow">
+                            <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-3xl font-bold text-gray-800 mb-4">🚀 SimExecution - Prossimamente!</h3>
+                        <p class="text-gray-600 text-lg mb-6">
+                            La prossima rivoluzione arriva presto: <strong>SimExecution</strong> ti permetterà di eseguire le tue simulazioni
+                            direttamente nell'applicazione, osservandone l'evoluzione in tempo reale e interagendo dinamicamente con gli scenari.
+                        </p>
+                        <div class="flex items-center justify-center space-x-4 text-orange-600 font-medium">
+                            <span class="flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5V7H16V5H8ZM8 11H16V9H8V11ZM8 15H16V13H8V15ZM2 17H22V19H2V17Z"/>
+                            </span>
+                            <span class="flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
+                            </span>
+                            <span class="flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2Z"/>
+                            </span>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="guida" class="content-section">
+                    <div class="text-center mb-12">
+                        <h2 class="text-4xl font-bold text-white mb-6">📚 Guida Completa</h2>
+                        <p class="text-xl text-white/90 leading-relaxed max-w-4xl mx-auto">
+                           Benvenuto nella guida utente di Sim Suite! Questa sezione ti aiuterà a comprendere le funzionalità principali e come utilizzarle al meglio per creare i tuoi scenari di simulazione, conoscere i crediti e la licenza d'uso.
+                        </p>
+                    </div>
+
+                    <div class="space-y-8">
+
+                        <div class="feature-card p-6 md:p-8 rounded-2xl">
+                            <h2 class="text-2xl font-semibold text-gray-800 mb-4">📖 Guida all'Uso di Sim Suite</h2>
+                            <p class="text-gray-600 mb-6 leading-relaxed">
+                                Sim Suite è una Web App progettata per la creazione intuitiva e flessibile di scenari di simulazione.
+                            </p>
+                            <div class="space-y-8">
+                                <div>
+                                    <h3 class="text-xl font-medium text-gray-700 mb-3">1. Panoramica dell'Interfaccia Principale</h3>
+                                    <p class="text-gray-600 mb-2">Dopo aver avviato Sim Suite e aperto l'indirizzo <a href="http://localhost:8080" target="_blank" class="text-primary hover:underline">http://localhost:8080</a> nel browser, ti troverai di fronte alla dashboard principale. Da qui potrai accedere a tutte le funzionalità chiave:</p>
+                                    <img src="img/dashboard.png" alt="Schermata della dashboard principale di Sim Suite" class="mx-auto my-4 rounded-lg shadow-md w-full max-w-lg guide-image">
+                                    <ul class="list-disc list-inside text-gray-600 space-y-1 pl-4">
+                                        <li>Creazione di un nuovo scenario.</li>
+                                        <li>Visualizzazione e gestione degli scenari esistenti.</li>
+                                    </ul>
+                                </div>
+
+                                <div>
+                                    <h3 class="text-xl font-medium text-gray-700 mb-3">2. Creazione di un Nuovo Scenario</h3>
+                                    <p class="text-gray-600 mb-2">Per iniziare, scegli la tipologia di scenario che vuoi creare:</p>
+                                    <img src="img/scenario_selection.png" alt="Schermata di selezione del tipo di scenario" class="mx-auto my-4 rounded-lg shadow-md w-full max-w-lg guide-image">
+                                    <p class="text-gray-600 mb-2">Sim Suite supporta tre tipi principali di scenari:</p>
+                                    <ul class="list-disc list-inside text-gray-600 space-y-1 pl-4">
+                                        <li><strong>Quick Scenario:</strong> Per definire rapidamente simulazioni semplici con parametri essenziali.</li>
+                                        <li><strong>Advanced Scenario:</strong> Per costruire scenari complessi con logiche avanzate, variabili multiple e condizioni dettagliate.</li>
+                                        <li><strong>Patient Simulated Scenario:</strong> Focalizzato sulla creazione di scenari di simulazione paziente-specifici, permette di aggiungere una sceneggiatura da far seguire al paziente.</li>
+                                    </ul>
+                                </div>
+
+                                <div>
+                                    <h3 class="text-xl font-medium text-gray-700 mb-3">3. Lavorare con i Tipi di Scenario</h3>
+
+                                    <h4 class="text-lg font-medium text-gray-600 mt-4 mb-2">3.1 Quick Scenario</h4>
+                                    <p class="text-gray-600 mb-2">Il "Quick Scenario" è ideale per iniziare o per simulazioni che non richiedono una logica complessa. L'interfaccia ti guiderà nell'inserimento dei parametri fondamentali per il tuo scenario.</p>
+
+                                    <h4 class="text-lg font-medium text-gray-600 mt-6 mb-2">3.2 Advanced Scenario</h4>
+                                    <p class="text-gray-600 mb-2">Per simulazioni più strutturate, l'"Advanced Scenario" offre un maggiore controllo. Potrai definire parametri dettagliati, condizioni logiche, eventi e variabili che influenzano l'evoluzione dello scenario.</p>
+                                    <img src="img/advanced_scenario_ui.png" alt="Interfaccia di creazione Advanced Scenario" class="mx-auto my-4 rounded-lg shadow-md w-full max-w-lg guide-image">
+                                    <p class="text-gray-600 mb-2">Questo tipo di scenario è potente ma richiede una pianificazione più attenta dei vari elementi che lo compongono.</p>
+
+                                    <h4 class="text-lg font-medium text-gray-600 mt-6 mb-2">3.3 Patient Simulated Scenario</h4>
+                                    <p class="text-gray-600 mb-2">Specificamente pensato per l'ambito formativo sanitario, il "Patient Simulated Scenario" ti permette di aggiungere la sceneggiatura per il paziente simulato.</p>
+                                    <img src="img/patient_scenario_ui.png" alt="Interfaccia di creazione Patient Simulated Scenario" class="mx-auto my-4 rounded-lg shadow-md w-full max-w-lg guide-image">
+                                </div>
+
+                                <div>
+                                    <h3 class="text-xl font-medium text-gray-700 mb-3">4. Gestione degli Scenari Esistenti</h3>
+                                    <p class="text-gray-600 mb-2">Dalla dashboard o da una sezione dedicata ("I miei Scenari", "Elenco Scenari", o simile), potrai visualizzare tutti gli scenari che hai creato. Avrai la possibilità di:</p>
+                                    <img src="img/manage_scenarios.png" alt="Schermata di gestione degli scenari esistenti" class="mx-auto my-4 rounded-lg shadow-md w-full max-w-lg guide-image">
+                                    <ul class="list-disc list-inside text-gray-600 space-y-1 pl-4">
+                                        <li><strong>Visualizzare</strong> i dettagli di uno scenario.</li>
+                                        <li><strong>Modificare</strong> uno scenario esistente per apportare correzioni o miglioramenti.</li>
+                                        <li><strong>Duplicare</strong> uno scenario per usarlo come base per uno nuovo.</li>
+                                        <li><strong>Eliminare</strong> scenari che non ti servono più.</li>
+                                        <li><strong>Esportare in PDF</strong> uno scenario per poterlo condividere più facilmente.</li>
+                                        <li><strong>Esportare in modalità execution</strong> uno scenario per utilizzarlo su un altro computer.</li>
+                                    </ul>
+                                </div>
+
+                                <div>
+                                    <h3 class="text-xl font-medium text-gray-700 mb-3">5. Prossimamente: Esecuzione degli Scenari (Sim Execution)</h3>
+                                    <p class="text-gray-600 mb-2">Siamo entusiasti di annunciare che una futura versione di Sim Suite includerà la funzionalità <strong>Sim Execution</strong>. Questo ti permetterà non solo di creare, ma anche di <strong>eseguire</strong> i tuoi scenari di simulazione direttamente all'interno dell'applicazione, osservandone l'evoluzione e interagendo con essi (a seconda del tipo di scenario).</p>
+                                    <p class="text-gray-600">Questa funzionalità aprirà nuove possibilità per testare, validare e utilizzare attivamente le simulazioni create.</p>
+                                </div>
+
+                                <div>
+                                    <h3 class="text-xl font-medium text-gray-700 mb-3">6. Consigli per un Buon Scenario di Simulazione</h3>
+                                    <ul class="list-disc list-inside text-gray-600 space-y-2 pl-4">
+                                        <li><strong>Definisci obiettivi chiari:</strong> Cosa vuoi che gli utenti imparino o testino con questa simulazione?</li>
+                                        <li><strong>Inizia semplice:</strong> Soprattutto se sei nuovo, parti con scenari meno complessi per familiarizzare con gli strumenti.</li>
+                                        <li><strong>Sii consistente:</strong> Mantieni una logica interna coerente nello scenario.</li>
+                                        <li><strong>Testa e itera:</strong> Prova il tuo scenario più volte. Se possibile, fallo testare anche ad altri per raccogliere feedback e migliorarlo.</li>
+                                        <li><strong>Documenta (se necessario):</strong> Per scenari molto complessi, potrebbe essere utile tenere traccia delle logiche e dei parametri chiave esternamente.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+        
+
+                    
+                    </div>
+                </section>
+
+                <section id="info" class="content-section">
+                    <div class="text-center mb-12">
+                        <h2 class="text-4xl font-bold text-white mb-6">ℹ️ Informazioni & Crediti</h2>
+                        <p class="text-xl text-white/90 leading-relaxed max-w-4xl mx-auto">
+                            Scopri chi c'è dietro SimSuite, la licenza d'uso e come contribuire al progetto.
+                        </p>
+                    </div>
+
+                    <div class="space-y-8">
+                        <div class="grid md:grid-cols-2 gap-8 mb-12">
+                            <div class="feature-card p-8 rounded-2xl text-center">
+                                <div class="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 5.5V8.5L21 9ZM3 7V9L9 8.5V5.5L3 7ZM12 19C13.1 19 14 18.1 14 17C14 15.9 13.1 15 12 15C10.9 15 10 15.9 10 17C10 18.1 10.9 19 12 19Z"/>
+                                </div>
+                                <h3 class="text-2xl font-bold text-gray-800 mb-3">💡 Ideatore del Progetto</h3>
+                                <p class="text-xl font-semibold text-primary mb-2">Antonio Scalogna</p>
+                                <p class="text-gray-600">Visionario e ideatore di SimSuite, ha concepito l'architettura e le funzionalità principali della piattaforma.</p>
+                            </div>
+
+                            <div class="feature-card p-8 rounded-2xl text-center">
+                                <div class="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M19.14 12.94C19.73 12.34 20.06 11.54 20.06 10.66C20.06 9.78 19.73 8.98 19.14 8.38L15.62 4.86C15.02 4.27 14.22 3.94 13.34 3.94C12.46 3.94 11.66 4.27 11.06 4.86L7.54 8.38C6.95 8.98 6.62 9.78 6.62 10.66C6.62 11.54 6.95 12.34 7.54 12.94L11.06 16.46C11.66 17.05 12.46 17.38 13.34 17.38C14.22 17.38 15.02 17.05 15.62 16.46L19.14 12.94Z"/>
+                                </div>
+                                <h3 class="text-2xl font-bold text-gray-800 mb-3">👨‍💻 Sviluppatore Principale</h3>
+                                <p class="text-xl font-semibold text-secondary mb-2">Alessandro Zappatore</p>
+                                <p class="text-gray-600">Lead developer responsabile dell'implementazione tecnica, architettura software e user experience.</p>
+                            </div>
+                        </div>
+
+                        <div class="feature-card p-8 rounded-2xl">
+                            <div class="text-center mb-8">
+                                <div class="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2ZM18 20H6V4H13V9H18V20Z"/>
+                                    </svg>
+                                </div>
+                                <h3 class="text-3xl font-bold text-gray-800 mb-4">📄 Licenza Creative Commons BY 4.0</h3>
+                                <div class="w-32 h-12 mx-auto mb-6 bg-gray-100 rounded-xl flex items-center justify-center">
+                                    <span class="text-2xl font-bold text-gray-600">CC BY</span>
+                                </div>
+                            </div>
+
+                            <div class="grid md:grid-cols-2 gap-8">
+                                <div>
+                                    <h4 class="text-xl font-bold text-green-600 mb-4 flex items-center">
+                                        <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7l-1.4-1.4L9 16.17z"/>
+                                        </svg>
+                                        Sei Libero Di:
+                                    </h4>
+                                    <ul class="space-y-3 text-gray-600">
+                                        <li class="flex items-start">
+                                            <span class="w-2 h-2 bg-green-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+                                            <span><strong>Condividere:</strong> Copiare e ridistribuire il materiale in qualsiasi formato</span>
+                                        </li>
+                                        <li class="flex items-start">
+                                            <span class="w-2 h-2 bg-green-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+                                            <span><strong>Adattare:</strong> Remixare, trasformare e utilizzare per scopi commerciali</span>
+                                        </li>
+                                        <li class="flex items-start">
+                                            <span class="w-2 h-2 bg-green-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+                                            <span><strong>Nessuna limitazione temporale:</strong> Questi diritti non possono essere revocati</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="text-xl font-bold text-blue-600 mb-4 flex items-center">
+                                        <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M11 7H13V9H11V7ZM11 11H13V17H11V11ZM12 2C6.48 2 2 6.48 2 12S6.48 22 12 22S22 17.52 22 12S17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12S7.59 4 12 4S20 7.59 20 12S16.41 20 12 20Z"/>
+                                        </svg>
+                                        Condizione Richiesta:
+                                    </h4>
+                                    <div class="bg-blue-50 p-6 rounded-xl">
+                                        <p class="text-gray-700 mb-3">
+                                            <strong>Attribuzione:</strong> Devi fornire credito appropriato agli autori originali:
+                                        </p>
+                                        <ul class="space-y-2 text-gray-600">
+                                            <li>• <strong>Ideatore:</strong> Antonio Scalogna</li>
+                                            <li>• <strong>Sviluppatore:</strong> Alessandro Zappatore</li>
+                                            <li>• <strong>Link licenza:</strong> <a href="https://creativecommons.org/licenses/by/4.0/deed.it" target="_blank" class="text-blue-600 hover:underline">CC BY 4.0</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>                        <div class="glass-morphism p-8 rounded-2xl text-center">
+                            <h3 class="text-2xl font-bold text-white mb-6">🔗 Collegamenti Utili</h3>                            <div class="flex flex-wrap justify-center gap-4">
+                                <button onclick="openDownloadModal('installer')"
+                                   class="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-green-700 transition-all duration-300">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M19 12V19H5V12H3V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12H19ZM13 12.67L15.59 10.09L17 11.5L12 16.5L7 11.5L8.41 10.09L11 12.67V3H13V12.67Z"/>
+                                    </svg>
+                                    🚀 Installer Windows
+                                </button>
+                                <a href="https://github.com/AlessandroZappatore/sim-suite/commits/SimSuite_1.0"
+                                   target="_blank"
+                                   class="inline-flex items-center gap-2 bg-gray-800 text-white px-6 py-3 rounded-xl font-medium hover:bg-gray-700 transition-all duration-300">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12C2 16.42 4.87 20.17 8.84 21.5C9.34 21.58 9.5 21.27 9.5 21C9.5 20.77 9.5 20.14 9.5 19.31C6.73 19.91 6.14 17.97 6.14 17.97C5.68 16.81 5.03 16.5 5.03 16.5C4.12 15.88 5.1 15.9 5.1 15.9C6.1 15.97 6.63 16.93 6.63 16.93C7.5 18.45 8.97 18 9.54 17.76C9.63 17.11 9.89 16.67 10.17 16.42C7.95 16.17 5.62 15.31 5.62 11.5C5.62 10.39 6 9.5 6.65 8.79C6.55 8.54 6.2 7.5 6.75 6.15C6.75 6.15 7.59 5.88 9.5 7.17C10.29 6.95 11.15 6.84 12 6.84C12.85 6.84 13.71 6.95 14.5 7.17C16.41 5.88 17.25 6.15 17.25 6.15C17.8 7.5 17.45 8.54 17.35 8.79C18 9.5 18.38 10.39 18.38 11.5C18.38 15.32 16.04 16.16 13.81 16.41C14.17 16.72 14.5 17.33 14.5 18.26C14.5 19.6 14.5 20.68 14.5 21C14.5 21.27 14.66 21.59 15.17 21.5C19.14 20.16 22 16.42 22 12C22 6.48 17.52 2 12 2Z"/>
+                                    </svg>
+                                    📜 Full Changelog
+                                </a>
+                                <a href="https://creativecommons.org/licenses/by/4.0/deed.it"
+                                   target="_blank"
+                                   class="inline-flex items-center gap-2 bg-orange-500 text-white px-6 py-3 rounded-xl font-medium hover:bg-orange-600 transition-all duration-300">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2ZM18 20H6V4H13V9H18V20Z"/>
+                                    </svg>
+                                    📄 Licenza Completa
+                                </a>
+                            </div>
+                            <p class="text-white/80 mt-6 text-lg">
+                                💝 <strong>Grazie per aver scelto SimSuite!</strong> <br>
+                                La tua creatività è il nostro carburante per l'innovazione.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            </main>
+            <footer class="mt-16 glass-morphism rounded-2xl p-8 text-center modern-shadow">
+                <div class="grid md:grid-cols-3 gap-8 mb-8">
+                                        <div>
+                        <div class="flex items-center justify-center mb-4">
+                            <div class="w-12 h-12 flex items-center justify-center mr-3 overflow-hidden">
+                                <img src="img/Logo.png" alt="SimSuite Logo" class="w-full h-full object-contain">
+                            </div>
+                            <span class="text-2xl font-bold gradient-text">SimSuite v1.0</span>
+                        </div>
+                        <p class="text-white/80 text-sm leading-relaxed">
+                            La piattaforma definitiva per simulazioni avanzate.
+                            Creata con passione per democratizzare l'accesso alle tecnologie di simulazione.
+                        </p>
+                    </div>                    <div>
+                        <h4 class="text-xl font-bold text-white mb-4">🚀 Collegamenti Rapidi</h4>                        <div class="space-y-3 quick-links-container">
+                            <button onclick="openDownloadModal('installer')"
+                               class="block text-white/80 hover:text-white transition-colors duration-300 bg-transparent border-none cursor-pointer">
+                                🚀 Installer Windows
+                            </button>
+                            <button onclick="openDownloadModal('zip')"
+                               class="block text-white/80 hover:text-white transition-colors duration-300 bg-transparent border-none cursor-pointer">
+                                📦 Download SimSuite
+                            </button>
+                            <a href="https://github.com/AlessandroZappatore/sim-suite/commits/SimSuite_1.0"
+                               target="_blank"
+                               class="block text-white/80 hover:text-white transition-colors duration-300">
+                                📜 Full Changelog
+                            </a>
+                            <a href="http://localhost:8080"
+                               target="_blank"
+                               class="block text-white/80 hover:text-white transition-colors duration-300">
+                                🌐 Apri Applicazione
+                            </a>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xl font-bold text-white mb-4">👥 Team</h4>
+                        <div class="space-y-3 text-white/80">
+                            <div class="flex items-center justify-center">
+                                <span class="text-blue-400 mr-2">💡</span>
+                                <span>Antonio Scalogna - <em>Ideatore</em></span>
+                            </div>
+                            <div class="flex items-center justify-center">
+                                <span class="text-green-400 mr-2">👨‍💻</span>
+                                <span>Alessandro Zappatore - <em>Developer</em></span>
+                            </div>
+                            <div class="mt-4">
+                                <a href="https://creativecommons.org/licenses/by/4.0/deed.it"
+                                   target="_blank"
+                                   class="inline-flex items-center gap-2 bg-orange-500/20 text-orange-300 px-4 py-2 rounded-lg text-sm hover:bg-orange-500/30 transition-all duration-300">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2ZM18 20H6V4H13V9H18V20Z"/>
+                                    </svg>
+                                    CC BY 4.0
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>                <!-- Sezione Feedback -->
+                <div class="mb-6">
+                    <div class="text-center">
+                        <h4 class="text-xl font-bold text-white mb-4">💬 Hai già usato SimSuite?</h4>
+                        <p class="text-white/80 mb-4">La tua opinione è importante! Condividi la tua esperienza per aiutarci a migliorare.</p>
+                        <button onclick="openFeedbackModal()" 
+                                class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-medium hover:from-orange-600 hover:to-orange-700 transition-all duration-300 shadow-lg hover:shadow-xl">
+                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16 12.5H13V16H11V12.5H8L12 8.5L16 12.5Z"/>
+                            </svg>
+                            Lascia un Feedback
+                        </button>
+                    </div>
+                </div>
+
+                <div class="border-t border-white/20 pt-6">
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <p class="text-white/80 text-sm">
+                            © 2025 SimSuite - Simulazioni Avanzate per Tutti
+                        </p>
+                        <div class="flex items-center gap-4 text-sm">
+                            <span class="text-white/60">Realizzato con</span>
+                            <span class="text-red-400 text-lg animate-pulse">❤️</span>
+                            <span class="text-white/60">e</span>
+                            <span class="text-yellow-400 text-lg">☕</span>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>        <div id="toast" class="toast-message">Messaggio Toast!</div>        <!-- Download Form Modal -->
+        <div id="downloadModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center">
+            <div class="glass-morphism p-6 rounded-2xl">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 12V19H5V12H3V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12H19ZM13 12.67L15.59 10.09L17 11.5L12 16.5L7 11.5L8.41 10.09L11 12.67V3H13V12.67Z"/>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">📋 Prima di scaricare SimSuite</h3>
+                    <p class="text-white/80">Aiutaci a migliorare SimSuite con le tue informazioni</p>
+                </div>
+
+                <form id="downloadForm" class="space-y-4">
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Nome e Cognome *</label>
+                        <input type="text" id="userName" name="name" required 
+                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:border-green-400 focus:outline-none transition-colors"
+                               placeholder="Il tuo nome e cognome">
+                    </div>
+
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Email *</label>
+                        <input type="email" id="userEmail" name="email" required 
+                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:border-green-400 focus:outline-none transition-colors"
+                               placeholder="la-tua-email@esempio.com">
+                    </div>
+
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Organizzazione</label>
+                        <input type="text" id="userOrganization" name="organization" 
+                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:border-green-400 focus:outline-none transition-colors"
+                               placeholder="Università, Ospedale, Azienda...">
+                    </div>
+
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Come utilizzerai SimSuite?</label>
+                        <select id="userUsage" name="usage" 
+                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:border-green-400 focus:outline-none transition-colors">
+                            <option value="">Seleziona un'opzione</option>
+                            <option value="formazione-medica">Formazione medica</option>
+                            <option value="ricerca">Ricerca e sviluppo</option>
+                            <option value="education">Educazione/Insegnamento</option>
+                            <option value="training-aziendale">Training aziendale</option>
+                            <option value="personale">Uso personale</option>
+                            <option value="altro">Altro</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Note aggiuntive</label>
+                        <textarea id="userNotes" name="notes" rows="3"
+                                  class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:border-green-400 focus:outline-none transition-colors resize-none"
+                                  placeholder="Feedback, suggerimenti o come hai conosciuto SimSuite..."></textarea>
+                    </div>
+
+                    <div class="flex items-start space-x-3 pt-2">
+                        <input type="checkbox" id="privacyConsent" name="privacy" required
+                               class="mt-1 w-4 h-4 text-green-400 border-white/20 rounded focus:ring-green-400">
+                        <label for="privacyConsent" class="text-white/80 text-sm">
+                            Accetto che i miei dati vengano utilizzati esclusivamente per migliorare SimSuite e ricevere aggiornamenti importanti. 
+                            <span class="text-green-400">I dati non verranno mai condivisi con terze parti.</span>
+                        </label>
+                    </div>
+
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" id="cancelDownload" 
+                                class="flex-1 px-6 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-medium hover:bg-white/20 transition-colors">
+                            Annulla
+                        </button>
+                        <button type="submit" id="submitDownload"
+                                class="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-medium hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center">
+                            <span class="download-text">Invia e Scarica</span>
+                            <div class="download-loader hidden">
+                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Invio...
+                            </div>
+                        </button>
+                    </div>                </form>            </div>
+        </div>
+
+        <!-- Feedback Form Modal -->
+        <div id="feedbackModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center">
+            <div class="glass-morphism p-6 rounded-2xl">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 11H7V13H9V11ZM13 11H11V13H13V11ZM17 11H15V13H17V11ZM19 3H18V1H16V3H8V1H6V3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM19 19H5V8H19V19Z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">💬 Condividi la tua esperienza</h3>
+                    <p class="text-white/80">Il tuo feedback ci aiuta a migliorare SimSuite per tutti</p>
+                </div>
+
+                <form id="feedbackForm" class="space-y-4">
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Nome e Cognome *</label>
+                        <input type="text" id="feedbackName" name="name" required 
+                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:border-orange-400 focus:outline-none transition-colors"
+                               placeholder="Il tuo nome e cognome">
+                    </div>
+
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Email *</label>
+                        <input type="email" id="feedbackEmail" name="email" required 
+                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:border-orange-400 focus:outline-none transition-colors"
+                               placeholder="la-tua-email@esempio.com">
+                    </div>
+
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Tipo di feedback</label>
+                        <select id="feedbackType" name="feedbackType" 
+                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:border-orange-400 focus:outline-none transition-colors">
+                            <option value="generale">Feedback generale</option>
+                            <option value="bug">Segnalazione bug</option>
+                            <option value="feature">Richiesta funzionalità</option>
+                            <option value="usabilita">Usabilità</option>
+                            <option value="performance">Performance</option>
+                            <option value="documentazione">Documentazione</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Valutazione complessiva *</label>
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="text-white/70 text-sm">Pessimo</span>
+                            <div class="flex space-x-1" id="starRating">
+                                <button type="button" class="star-button w-8 h-8 text-2xl text-white/30 hover:text-yellow-400 transition-colors" data-rating="1">★</button>
+                                <button type="button" class="star-button w-8 h-8 text-2xl text-white/30 hover:text-yellow-400 transition-colors" data-rating="2">★</button>
+                                <button type="button" class="star-button w-8 h-8 text-2xl text-white/30 hover:text-yellow-400 transition-colors" data-rating="3">★</button>
+                                <button type="button" class="star-button w-8 h-8 text-2xl text-white/30 hover:text-yellow-400 transition-colors" data-rating="4">★</button>
+                                <button type="button" class="star-button w-8 h-8 text-2xl text-white/30 hover:text-yellow-400 transition-colors" data-rating="5">★</button>
+                            </div>
+                            <span class="text-white/70 text-sm">Ottimo</span>
+                        </div>
+                        <input type="hidden" id="feedbackRating" name="rating" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Commento dettagliato *</label>
+                        <textarea id="feedbackComment" name="comment" rows="4" required
+                                  class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:border-orange-400 focus:outline-none transition-colors resize-none"
+                                  placeholder="Descrivi la tua esperienza con SimSuite: cosa ti è piaciuto, cosa si potrebbe migliorare, problemi riscontrati..."></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Funzionalità preferita</label>
+                        <select id="favoriteFeature" name="favoriteFeature" 
+                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:border-orange-400 focus:outline-none transition-colors">
+                            <option value="">Seleziona...</option>
+                            <option value="patient-simulated">Creazione scenario</option>
+                            <option value="clinical-case">Gestione tempi</option>
+                            <option value="scenario-builder">Gestione esami e referti</option>
+                            <option value="interfaccia">Interfaccia utente</option>
+                            <option value="performance">Performance</option>
+                            <option value="documentazione">Documentazione</option>
+                            <option value="modifica">Modifica dello scenario</option>
+                            <option value="esportazione">Esportazione degli scenari in PDF</option>
+                            <option value="altro">Altro</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-white/90 font-medium mb-2">Suggerimenti per miglioramenti</label>
+                        <textarea id="feedbackSuggestions" name="suggestions" rows="3"
+                                  class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:border-orange-400 focus:outline-none transition-colors resize-none"
+                                  placeholder="Quali funzionalità vorresti vedere aggiunte? Come potremmo migliorare l'esperienza utente?"></textarea>
+                    </div>
+
+                    <div class="flex items-start space-x-3 pt-2">
+                        <input type="checkbox" id="feedbackPrivacy" name="privacy" required
+                               class="mt-1 w-4 h-4 text-orange-400 border-white/20 rounded focus:ring-orange-400">
+                        <label for="feedbackPrivacy" class="text-white/80 text-sm">
+                            Accetto che il mio feedback venga utilizzato per migliorare SimSuite. 
+                            <span class="text-orange-400">I dati non verranno mai condivisi con terze parti.</span>
+                        </label>
+                    </div>
+
+                    <div class="flex gap-3 pt-4">
+                        <button type="button" id="cancelFeedback" 
+                                class="flex-1 px-6 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-medium hover:bg-white/20 transition-colors">
+                            Annulla
+                        </button>
+                        <button type="submit" id="submitFeedback"
+                                class="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-medium hover:from-orange-600 hover:to-orange-700 transition-all duration-300 flex items-center justify-center">
+                            <span class="feedback-text">Invia Feedback</span>
+                            <div class="feedback-loader hidden">
+                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Invio...
+                            </div>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Script esterno -->
+    <script src="js/main.js"></script>
+</body>
+</html>
