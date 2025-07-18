@@ -1,6 +1,8 @@
 package it.uniupo.simnova.domain.scenario;
 
 import it.uniupo.simnova.domain.common.Tempo;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 
@@ -13,6 +15,8 @@ import java.util.ArrayList;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@Getter
+@Setter
 public class PatientSimulatedScenario extends AdvancedScenario {
     /**
      * <strong>Identificativo univoco</strong> dello scenario simulato con paziente.
@@ -60,25 +64,6 @@ public class PatientSimulatedScenario extends AdvancedScenario {
         this.advancedScenario = advancedScenario;
         this.sceneggiatura = sceneggiatura;
     }
-
-    /**
-     * Restituisce la <strong>sceneggiatura</strong> dello scenario.
-     *
-     * @return La sceneggiatura dello scenario.
-     */
-    public String getSceneggiatura() {
-        return sceneggiatura;
-    }
-
-    /**
-     * Imposta la <strong>sceneggiatura</strong> dello scenario.
-     *
-     * @param sceneggiatura La nuova sceneggiatura.
-     */
-    public void setSceneggiatura(String sceneggiatura) {
-        this.sceneggiatura = sceneggiatura;
-    }
-
     /**
      * Fornisce una rappresentazione in formato stringa dell'oggetto <strong><code>PatientSimulatedScenario</code></strong>.
      * Estende la rappresentazione della superclass con i campi specifici di questa classe.

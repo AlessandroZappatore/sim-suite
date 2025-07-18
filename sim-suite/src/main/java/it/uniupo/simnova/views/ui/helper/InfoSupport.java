@@ -297,7 +297,7 @@ public class InfoSupport extends HorizontalLayout {
 
         // ComboBox per la selezione della durata
         ComboBox<Integer> durationSelect = FieldGenerator.createComboBox("Durata", DURATION_OPTIONS,
-                (scenario.getTimerGenerale() > 0) ? Math.round(scenario.getTimerGenerale()) : null,
+                (scenario.getTimer_generale() > 0) ? Math.round(scenario.getTimer_generale()) : null,
                 true);
 
         Button saveButton = new Button("Salva", new Icon(VaadinIcon.CHECK));
@@ -609,7 +609,7 @@ public class InfoSupport extends HorizontalLayout {
 
         // Aggiunta dei badge per le diverse informazioni dello scenario
         badgesContainer.add(createStringEditableBadge(scenario, "Paziente",
-                Scenario::getNomePaziente, // Getter per il valore grezzo
+                Scenario::getNome_paziente, // Getter per il valore grezzo
                 emptyDefaultText, badgeColor, scenarioService));
 
         badgesContainer.add(createTipologiaSelectBadge(scenario,
@@ -621,7 +621,7 @@ public class InfoSupport extends HorizontalLayout {
                 emptyDefaultText, badgeColor, scenarioService));
 
         badgesContainer.add(createDurationSelectBadge(scenario,
-                Scenario::getTimerGenerale,
+                Scenario::getTimer_generale,
                 emptyDefaultText, badgeColor, scenarioService));
 
         badgesContainer.add(createTargetDialogBadge(scenario,

@@ -67,11 +67,11 @@ public class ScenarioHeader {
         drawTextWithWrapping(FONTREGULAR, "Autori: ", scenario.getAutori());
         drawTextWithWrapping(FONTREGULAR, "Target: ", scenario.getTarget());
         drawTextWithWrapping(FONTREGULAR, "Tipologia: ", scenario.getTipologia());
-        drawTextWithWrapping(FONTREGULAR, "Paziente: ", scenario.getNomePaziente());
+        drawTextWithWrapping(FONTREGULAR, "Paziente: ", scenario.getNome_paziente());
         // Gestisce il caso in cui la patologia sia nulla o vuota.
         drawTextWithWrapping(FONTREGULAR, "Patologia: ", scenario.getPatologia() != null && !scenario.getPatologia().isEmpty() ? scenario.getPatologia() : "-");
         // Gestisce il caso in cui la durata sia zero o negativa.
-        drawTextWithWrapping(FONTREGULAR, "Durata: ", scenario.getTimerGenerale() > 0 ? scenario.getTimerGenerale() + " minuti" : "-");
+        drawTextWithWrapping(FONTREGULAR, "Durata: ", scenario.getTimer_generale() > 0 ? scenario.getTimer_generale() + " minuti" : "-");
 
         // Aggiorna la posizione verticale corrente dopo l'header.
         PdfExportService.currentYPosition -= LEADING;

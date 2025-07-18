@@ -1,6 +1,7 @@
 package it.uniupo.simnova.domain.paziente;
 
 import it.uniupo.simnova.domain.common.Accesso;
+import lombok.Data;
 
 import java.util.List;
 
@@ -11,11 +12,12 @@ import java.util.List;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@Data
 public class PazienteT0 {
     /**
      * Identificativo univoco del paziente.
      */
-    private final int idPaziente;
+    private final Integer idPaziente;
     /**
      * Frequenza respiratoria del paziente (atti/min).
      */
@@ -59,7 +61,7 @@ public class PazienteT0 {
     /**
      * Temperatura del paziente (°C).
      */
-    private double T;
+    private Double T;
 
     /**
      * Costruttore completo per creare un nuovo oggetto <strong><code>PazienteT0</code></strong>.
@@ -144,15 +146,6 @@ public class PazienteT0 {
     }
 
     /**
-     * Restituisce la <strong>pressione arteriosa</strong> del paziente.
-     *
-     * @return La pressione arteriosa del paziente.
-     */
-    public String getPA() {
-        return PA;
-    }
-
-    /**
      * Imposta la <strong>pressione arteriosa</strong> del paziente.
      *
      * @param PA La nuova pressione arteriosa.
@@ -171,15 +164,6 @@ public class PazienteT0 {
     }
 
     /**
-     * Restituisce la <strong>frequenza cardiaca</strong> del paziente.
-     *
-     * @return La frequenza cardiaca del paziente.
-     */
-    public Integer getFC() {
-        return FC;
-    }
-
-    /**
      * Imposta la <strong>frequenza cardiaca</strong> del paziente.
      *
      * @param FC La nuova frequenza cardiaca.
@@ -191,96 +175,6 @@ public class PazienteT0 {
         } else {
             this.FC = FC;
         }
-    }
-
-    /**
-     * Restituisce la <strong>frequenza respiratoria</strong> del paziente.
-     *
-     * @return La frequenza respiratoria del paziente.
-     */
-    public Integer getRR() {
-        return RR;
-    }
-
-    /**
-     * Restituisce la <strong>temperatura</strong> del paziente.
-     *
-     * @return La temperatura del paziente.
-     */
-    public double getT() {
-        return T;
-    }
-
-    /**
-     * Imposta la <strong>temperatura</strong> del paziente.
-     *
-     * @param t La nuova temperatura.
-     */
-    public void setT(double t) {
-        T = t;
-    }
-
-    /**
-     * Restituisce la <strong>saturazione di ossigeno</strong> del paziente.
-     *
-     * @return La saturazione di ossigeno del paziente.
-     */
-    public Integer getSpO2() {
-        return SpO2;
-    }
-
-    /**
-     * Restituisce la <strong>pressione parziale di CO2 espirata</strong> del paziente.
-     *
-     * @return La pressione parziale di CO2 espirata del paziente.
-     */
-    public Integer getEtCO2() {
-        return EtCO2;
-    }
-
-    /**
-     * Restituisce il <strong>monitoraggio</strong> del paziente (testo aggiuntivo).
-     *
-     * @return Il testo di monitoraggio del paziente.
-     */
-    public String getMonitor() {
-        return Monitor;
-    }
-
-    /**
-     * Restituisce la <strong>lista degli accessi venosi</strong> del paziente.
-     *
-     * @return La lista degli accessi venosi del paziente.
-     */
-    public List<Accesso> getAccessiVenosi() {
-        return accessiVenosi;
-    }
-
-    /**
-     * Restituisce la <strong>lista degli accessi arteriosi</strong> del paziente.
-     *
-     * @return La lista degli accessi arteriosi del paziente.
-     */
-    public List<Accesso> getAccessiArteriosi() {
-        return accessiArteriosi;
-    }
-
-    /**
-     * Restituisce la <strong>percentuale di ossigeno somministrato</strong> al paziente.
-     *
-     * @return La percentuale di ossigeno somministrato al paziente.
-     */
-    public Integer getFiO2() {
-        return FiO2;
-    }
-
-    /**
-     * Restituisce i <strong>litri di ossigeno somministrati</strong> al paziente.
-     *
-     * @return I litri di ossigeno somministrati al paziente.
-     */
-    public Double getLitriO2() {
-        return LitriO2;
     }
 
     /**

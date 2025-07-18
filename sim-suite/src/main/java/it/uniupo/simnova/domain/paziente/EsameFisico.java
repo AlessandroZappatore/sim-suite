@@ -1,5 +1,7 @@
 package it.uniupo.simnova.domain.paziente;
 
+import lombok.Data;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,13 +13,14 @@ import java.util.Map;
  * @author Alessandro Zappatore
  * @version 1.0
  */
-@SuppressWarnings("NonAsciiCharacters") // Sopprime l'avviso per caratteri non-ASCII
+@SuppressWarnings("NonAsciiCharacters")
+@Data
 public class EsameFisico {
 
     /**
      * <strong>Identificativo univoco</strong> dell'esame fisico, assegnato dal database.
      */
-    private final int idEsameFisico;
+    private final Integer idEsameFisico;
 
     /**
      * Mappa che associa il nome di ogni sezione dell'esame fisico (es. "Generale", "Torace")
@@ -57,25 +60,5 @@ public class EsameFisico {
         sections.put("Estremità", estremità);
         sections.put("Neurologico", neurologico);
         sections.put("FAST", fast);
-    }
-
-    /**
-     * Recupera la <strong>mappa completa</strong> di tutte le sezioni dell'esame fisico
-     * con i rispettivi risultati testuali.
-     *
-     * @return Una mappa dove le chiavi sono i nomi delle sezioni e i valori sono le descrizioni dei risultati.
-     */
-    public Map<String, String> getSections() {
-        return sections;
-    }
-
-    /**
-     * Restituisce l'<strong>identificativo univoco</strong> dell'esame fisico.
-     *
-     * @return L'ID dell'esame fisico.
-     */
-    @SuppressWarnings("unused") // Sopprime l'avviso se il metodo non viene usato direttamente nel codice Java.
-    public int getIdEsameFisico() {
-        return idEsameFisico;
     }
 }

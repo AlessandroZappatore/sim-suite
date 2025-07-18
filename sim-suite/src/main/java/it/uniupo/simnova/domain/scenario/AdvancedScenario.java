@@ -1,6 +1,8 @@
 package it.uniupo.simnova.domain.scenario;
 
 import it.uniupo.simnova.domain.common.Tempo;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 
@@ -12,6 +14,8 @@ import java.util.ArrayList;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@Getter
+@Setter
 public class AdvancedScenario extends Scenario {
     /**
      * <strong>Identificativo specifico</strong> per lo scenario avanzato.
@@ -55,24 +59,6 @@ public class AdvancedScenario extends Scenario {
                 patto_aula, obiettivo, moulage,
                 liquidi, timer_generale, autori, tipologia, infoGenitore, target);
         this.id_advanced_scenario = id_advanced_scenario;
-        this.tempi = tempi;
-    }
-
-    /**
-     * Restituisce la <strong>lista dei tempi/fasi</strong> dello scenario.
-     *
-     * @return L'{@link ArrayList} di oggetti {@link Tempo} che definiscono le fasi dello scenario.
-     */
-    public ArrayList<Tempo> getTempi() {
-        return tempi;
-    }
-
-    /**
-     * Imposta la <strong>lista dei tempi/fasi</strong> dello scenario.
-     *
-     * @param tempi La nuova {@link ArrayList} di oggetti {@link Tempo} da associare allo scenario.
-     */
-    public void setTempi(ArrayList<Tempo> tempi) {
         this.tempi = tempi;
     }
 

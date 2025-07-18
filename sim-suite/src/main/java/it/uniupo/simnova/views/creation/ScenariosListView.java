@@ -790,7 +790,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         if (scenarioNew.getObiettivo() == null || scenarioNew.getObiettivo().isEmpty()) obiettiviChk.setEnabled(false);
         if (scenarioNew.getInfoGenitore() == null || scenarioNew.getInfoGenitore().isEmpty())
             infoGenChk.setEnabled(false);
-        if (scenarioNew.getPattoAula() == null || scenarioNew.getPattoAula().isEmpty()) pattoChk.setEnabled(false);
+        if (scenarioNew.getPatto_aula() == null || scenarioNew.getPatto_aula().isEmpty()) pattoChk.setEnabled(false);
         if (scenarioNew.getMoulage() == null || scenarioNew.getMoulage().isEmpty()) moulageChk.setEnabled(false);
         if (scenarioNew.getLiquidi() == null || scenarioNew.getLiquidi().isEmpty()) liquidiChk.setEnabled(false);
         if (azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenarioNew.getId()) == null || azioneChiaveService.getNomiAzioniChiaveByScenarioId(scenarioNew.getId()).isEmpty()) {

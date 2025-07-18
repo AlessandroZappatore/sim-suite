@@ -102,7 +102,7 @@ public class GeneralSupport extends HorizontalLayout {
             addInfoItemIfNotEmpty(scenario.getId(), cardContentLayout, "Informazioni dai genitori", infoGenitore, VaadinIcon.FAMILY, scenarioService);
         }
 
-        addInfoItemIfNotEmpty(scenario.getId(), cardContentLayout, "Patto Aula", scenario.getPattoAula(), VaadinIcon.HANDSHAKE, scenarioService);
+        addInfoItemIfNotEmpty(scenario.getId(), cardContentLayout, "Patto Aula", scenario.getPatto_aula(), VaadinIcon.HANDSHAKE, scenarioService);
 
         addAzioniChiaveItem(scenario.getId(), cardContentLayout, azioneChiaveService);
         addInfoItemIfNotEmpty(scenario.getId(), cardContentLayout, "Obiettivi Didattici", scenario.getObiettivo(), VaadinIcon.BOOK, scenarioService);

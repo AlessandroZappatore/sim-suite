@@ -146,13 +146,13 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                         new ComponentRenderer<>(materiale -> {
                             Div buttonContainer = new Div();
                             // Mostra il pulsante "Aggiungi" solo se il materiale non è già selezionato
-                            boolean isSelected = materialiSelezionati.stream().anyMatch(m -> m.getId().equals(materiale.getId()));
+                            boolean isSelected = materialiSelezionati.stream().anyMatch(m -> m.getIdMateriale().equals(materiale.getIdMateriale()));
                             if (!isSelected) {
                                 Button addButton = new Button(new Icon(VaadinIcon.PLUS));
                                 addButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
                                 addButton.addClickListener(e -> {
                                     // Aggiunge solo se non duplicato (gestione visuale)
-                                    if (materialiSelezionati.stream().noneMatch(m -> m.getId().equals(materiale.getId()))) {
+                                    if (materialiSelezionati.stream().noneMatch(m -> m.getIdMateriale().equals(materiale.getIdMateriale()))) {
                                         materialiSelezionati.add(materiale);
                                         aggiornaGrids(); // Aggiorna entrambe le griglie
                                     }
@@ -188,7 +188,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                             Button removeButton = new Button(new Icon(VaadinIcon.TRASH));
                             removeButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
                             removeButton.addClickListener(e -> {
-                                materialiSelezionati.removeIf(m -> m.getId().equals(materiale.getId()));
+                                materialiSelezionati.removeIf(m -> m.getIdMateriale().equals(materiale.getIdMateriale()));
                                 aggiornaGrids(); // Aggiorna entrambe le griglie
                             });
                             return removeButton;
@@ -330,13 +330,13 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
      */
     private void aggiornaGrids() {
         Set<Integer> idsSelezionati = materialiSelezionati.stream()
-                .map(Materiale::getId)
+                .map(Materiale::getIdMateriale)
                 .filter(Objects::nonNull) // Filtra gli ID nulli
                 .collect(Collectors.toSet());
 
         // Materiali disponibili sono quelli totali meno quelli già selezionati
         List<Materiale> materialiDisponibiliNonSelezionati = tuttiMateriali.stream()
-                .filter(m -> m.getId() != null && !idsSelezionati.contains(m.getId()))
+                .filter(m -> m.getIdMateriale() != null && !idsSelezionati.contains(m.getIdMateriale()))
                 .collect(Collectors.toList());
 
         // Applica il filtro di ricerca se il campo searchField è popolato
@@ -425,7 +425,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
                 );
 
                 Materiale savedMateriale = materialeService.saveMateriale(nuovoMateriale); // Salva il materiale
-                if (savedMateriale != null && savedMateriale.getId() != null) {
+                if (savedMateriale != null && savedMateriale.getIdMateriale() != null) {
                     tuttiMateriali.add(savedMateriale); // Aggiunge alla lista di tutti i materiali
                     materialiSelezionati.add(savedMateriale); // Seleziona automaticamente il nuovo materiale
                     aggiornaGrids(); // Aggiorna le griglie
@@ -480,7 +480,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
             try {
                 // Estrae gli ID dei materiali selezionati per l'associazione
                 List<Integer> idsMateriali = materialiSelezionati.stream()
-                        .map(Materiale::getId)
+                        .map(Materiale::getIdMateriale)
                         .filter(Objects::nonNull) // Assicura che l'ID non sia nullo
                         .collect(Collectors.toList());
 
@@ -519,7 +519,7 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
      * @param materiale Il materiale da eliminare.
      */
     private void showDeleteConfirmDialog(Materiale materiale) {
-        if (materiale == null || materiale.getId() == null) {
+        if (materiale == null || materiale.getIdMateriale() == null) {
             logger.warn("Tentativo di eliminare materiale nullo o senza ID.");
             return;
         }
@@ -563,16 +563,16 @@ public class MaterialenecessarioView extends Composite<VerticalLayout> implement
      * @param materiale Il materiale da eliminare.
      */
     private void deleteMateriale(Materiale materiale) {
-        if (materiale == null || materiale.getId() == null) {
+        if (materiale == null || materiale.getIdMateriale() == null) {
             return;
         }
-        Integer materialeId = materiale.getId();
+        Integer materialeId = materiale.getIdMateriale();
 
         try {
             boolean success = materialeService.deleteMateriale(materialeId); // Elimina il materiale dal DB
             if (success) {
-                tuttiMateriali.removeIf(m -> materialeId.equals(m.getId())); // Rimuove dalla lista globale
-                materialiSelezionati.removeIf(m -> materialeId.equals(m.getId())); // Rimuove dalla lista selezionata
+                tuttiMateriali.removeIf(m -> materialeId.equals(m.getIdMateriale())); // Rimuove dalla lista globale
+                materialiSelezionati.removeIf(m -> materialeId.equals(m.getIdMateriale())); // Rimuove dalla lista selezionata
 
                 aggiornaGrids(); // Aggiorna le UI delle griglie
 

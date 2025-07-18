@@ -1,5 +1,7 @@
 package it.uniupo.simnova.domain.common;
 
+import lombok.Data;
+
 import java.util.List;
 
 
@@ -11,6 +13,7 @@ import java.util.List;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@Data
 public class Tempo {
     /**
      * Identificativo univoco del tempo, assegnato dal database.
@@ -181,24 +184,6 @@ public class Tempo {
     }
 
     /**
-     * Restituisce l'<strong>identificativo univoco</strong> del tempo.
-     *
-     * @return L'identificativo univoco del tempo.
-     */
-    public int getIdTempo() {
-        return idTempo;
-    }
-
-    /**
-     * Restituisce la <strong>pressione arteriosa</strong> del paziente.
-     *
-     * @return La pressione arteriosa del paziente.
-     */
-    public String getPA() {
-        return PA;
-    }
-
-    /**
      * Imposta la <strong>pressione arteriosa</strong> del paziente.
      *
      * @param PA La nuova pressione arteriosa nel formato "sistolica/diastolica".
@@ -217,15 +202,6 @@ public class Tempo {
     }
 
     /**
-     * Restituisce la <strong>frequenza cardiaca</strong> del paziente.
-     *
-     * @return La frequenza cardiaca del paziente.
-     */
-    public Integer getFC() {
-        return FC;
-    }
-
-    /**
      * Imposta la <strong>frequenza cardiaca</strong> del paziente.
      *
      * @param FC La nuova frequenza cardiaca.
@@ -238,16 +214,6 @@ public class Tempo {
             this.FC = FC;
         }
     }
-
-    /**
-     * Restituisce la <strong>frequenza respiratoria</strong> del paziente.
-     *
-     * @return La frequenza respiratoria del paziente.
-     */
-    public Integer getRR() {
-        return RR;
-    }
-
     /**
      * Imposta la <strong>frequenza respiratoria</strong> del paziente.
      *
@@ -258,146 +224,6 @@ public class Tempo {
         if (RR != null && RR < 0) {
             throw new IllegalArgumentException("RR non può essere negativa.");
         }
-        // Nota: Il campo RR è final nel costruttore, quindi questo setter non avrà effetto pratico a meno che non si modifichi la dichiarazione del campo.
-        // Se si intende che RR possa essere modificato, il campo non deve essere final.
-    }
-
-
-    /**
-     * Restituisce la <strong>temperatura</strong> del paziente.
-     *
-     * @return La temperatura del paziente.
-     */
-    public double getT() {
-        return T;
-    }
-
-    /**
-     * Imposta la <strong>temperatura</strong> del paziente.
-     *
-     * @param t La nuova temperatura.
-     */
-    public void setT(double t) {
-        T = t;
-    }
-
-    /**
-     * Restituisce la <strong>saturazione di ossigeno</strong> del paziente.
-     *
-     * @return La saturazione di ossigeno del paziente.
-     */
-    public Integer getSpO2() {
-        return SpO2;
-    }
-
-    /**
-     * Restituisce la <strong>frazione di ossigeno inspirato</strong> del paziente.
-     *
-     * @return La frazione di ossigeno inspirato del paziente.
-     */
-    public Integer getFiO2() {
-        return FiO2;
-    }
-
-    /**
-     * Restituisce i <strong>litri di ossigeno</strong> somministrati al paziente.
-     *
-     * @return I litri di ossigeno somministrati al paziente.
-     */
-    public Double getLitriO2() {
-        return LitriO2;
-    }
-
-    /**
-     * Restituisce la <strong>pressione parziale di CO2 espirata</strong> del paziente.
-     *
-     * @return La pressione parziale di CO2 espirata del paziente.
-     */
-    public Integer getEtCO2() {
-        return EtCO2;
-    }
-
-
-    /**
-     * Restituisce l'<strong>azione</strong> associata a questo tempo.
-     *
-     * @return L'azione associata a questo tempo.
-     */
-    public String getAzione() {
-        return Azione;
-    }
-
-    /**
-     * Imposta l'<strong>azione</strong> associata a questo tempo.
-     *
-     * @param azione La nuova azione.
-     */
-    public void setAzione(String azione) {
-        Azione = azione;
-    }
-
-    /**
-     * Restituisce l'<strong>ID del tempo "se SI"</strong> (il tempo successivo se l'azione viene eseguita).
-     *
-     * @return L'ID del tempo "se SI".
-     */
-    public int getTSi() {
-        return TSi;
-    }
-
-    /**
-     * Restituisce l'<strong>ID del tempo "se NO"</strong> (il tempo successivo se l'azione NON viene eseguita).
-     *
-     * @return L'ID del tempo "se NO".
-     */
-    public int getTNo() {
-        return TNo;
-    }
-
-    /**
-     * Restituisce gli <strong>altri dettagli</strong> rilevanti per questo tempo.
-     *
-     * @return Gli altri dettagli rilevanti per questo tempo.
-     */
-    public String getAltriDettagli() {
-        return altriDettagli;
-    }
-
-    /**
-     * Restituisce il valore del <strong>timer</strong> associato a questo tempo, in secondi.
-     *
-     * @return Il timer del tempo in secondi.
-     */
-    public long getTimerTempo() {
-        return timerTempo;
-    }
-
-    /**
-     * Restituisce la lista dei <strong>parametri aggiuntivi</strong> associati a questo tempo.
-     *
-     * @return La lista dei parametri aggiuntivi.
-     */
-    public List<ParametroAggiuntivo> getParametriAggiuntivi() {
-        return parametriAggiuntivi;
-    }
-
-    /**
-     * Imposta la lista dei <strong>parametri aggiuntivi</strong> associati a questo tempo.
-     *
-     * @param parametriAggiuntivi La nuova lista di parametri aggiuntivi.
-     */
-    public void setParametriAggiuntivi(List<ParametroAggiuntivo> parametriAggiuntivi) {
-        this.parametriAggiuntivi = parametriAggiuntivi;
-    }
-
-    /**
-     * Restituisce il <strong>ruolo del genitore</strong> associato a questo tempo,
-     * se lo scenario è pediatrico e il ruolo è definito.
-     *
-     * @return Il ruolo del genitore, o {@code null} se non applicabile o non definito.
-     */
-    public String getRuoloGenitore() {
-        return ruoloGenitore;
     }
 
     /**

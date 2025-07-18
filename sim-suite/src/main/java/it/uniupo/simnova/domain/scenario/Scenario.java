@@ -1,5 +1,7 @@
 package it.uniupo.simnova.domain.scenario;
 
+import lombok.Data;
+
 /**
  * Classe che rappresenta uno <strong>scenario di simulazione</strong>.
  * Contiene i dettagli principali dello scenario come titolo, nome del paziente,
@@ -9,6 +11,7 @@ package it.uniupo.simnova.domain.scenario;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@Data
 public class Scenario {
     /**
      * <strong>Nome</strong> del paziente.
@@ -150,185 +153,6 @@ public class Scenario {
         this.target = null;
     }
 
-    /**
-     * Restituisce l'<strong>identificativo univoco</strong> dello scenario.
-     *
-     * @return L'ID dello scenario.
-     */
-    public int getId() {
-        return id;
-    }
-
-    /**
-     * Imposta l'<strong>identificativo univoco</strong> dello scenario.
-     *
-     * @param id Il nuovo ID dello scenario.
-     */
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    /**
-     * Restituisce il <strong>titolo</strong> dello scenario.
-     *
-     * @return Il titolo dello scenario.
-     */
-    public String getTitolo() {
-        return titolo;
-    }
-
-    /**
-     * Imposta il <strong>titolo</strong> dello scenario.
-     *
-     * @param titolo Il nuovo titolo dello scenario.
-     */
-    public void setTitolo(String titolo) {
-        this.titolo = titolo;
-    }
-
-    /**
-     * Restituisce il <strong>nome del paziente</strong> associato allo scenario.
-     *
-     * @return Il nome del paziente.
-     */
-    public String getNomePaziente() {
-        return nome_paziente;
-    }
-
-    /**
-     * Restituisce la <strong>patologia</strong> del paziente.
-     *
-     * @return La patologia del paziente.
-     */
-    public String getPatologia() {
-        return patologia;
-    }
-
-    /**
-     * Imposta la <strong>patologia</strong> del paziente.
-     *
-     * @param patologia La nuova patologia.
-     */
-    public void setPatologia(String patologia) {
-        this.patologia = patologia;
-    }
-
-    /**
-     * Restituisce la <strong>descrizione</strong> dello scenario.
-     *
-     * @return La descrizione dello scenario.
-     */
-    public String getDescrizione() {
-        return descrizione;
-    }
-
-    /**
-     * Imposta la <strong>descrizione</strong> dello scenario.
-     *
-     * @param descrizione La nuova descrizione.
-     */
-    public void setDescrizione(String descrizione) {
-        this.descrizione = descrizione;
-    }
-
-    /**
-     * Restituisce il <strong>briefing</strong> dello scenario.
-     *
-     * @return Il briefing dello scenario.
-     */
-    public String getBriefing() {
-        return briefing;
-    }
-
-    /**
-     * Imposta il <strong>briefing</strong> dello scenario.
-     *
-     * @param briefing Il nuovo briefing.
-     */
-    public void setBriefing(String briefing) {
-        this.briefing = briefing;
-    }
-
-    /**
-     * Restituisce il <strong>patto d'aula</strong> dello scenario.
-     *
-     * @return Il patto d'aula dello scenario.
-     */
-    public String getPattoAula() {
-        return patto_aula;
-    }
-
-    /**
-     * Restituisce l'<strong>obiettivo</strong> didattico dello scenario.
-     *
-     * @return L'obiettivo didattico dello scenario.
-     */
-    public String getObiettivo() {
-        return obiettivo;
-    }
-
-    /**
-     * Restituisce la descrizione del <strong>moulage</strong> dello scenario.
-     *
-     * @return Il moulage dello scenario.
-     */
-    public String getMoulage() {
-        return moulage;
-    }
-
-    /**
-     * Imposta la descrizione del <strong>moulage</strong> dello scenario.
-     *
-     * @param moulage La nuova descrizione del moulage.
-     */
-    public void setMoulage(String moulage) {
-        this.moulage = moulage;
-    }
-
-    /**
-     * Restituisce la descrizione dei <strong>liquidi e dosi farmaci</strong> dello scenario.
-     *
-     * @return I liquidi e dosi farmaci dello scenario.
-     */
-    public String getLiquidi() {
-        return liquidi;
-    }
-
-    /**
-     * Imposta la descrizione dei <strong>liquidi e dosi farmaci</strong> dello scenario.
-     *
-     * @param liquidi La nuova descrizione di liquidi e dosi farmaci.
-     */
-    public void setLiquidi(String liquidi) {
-        this.liquidi = liquidi;
-    }
-
-    /**
-     * Restituisce il valore del <strong>timer generale</strong> dello scenario.
-     *
-     * @return Il timer generale dello scenario (in secondi).
-     */
-    public float getTimerGenerale() {
-        return timer_generale;
-    }
-
-    /**
-     * Restituisce gli <strong>autori</strong> dello scenario.
-     *
-     * @return Gli autori dello scenario.
-     */
-    public String getAutori() {
-        return autori;
-    }
-
-    /**
-     * Imposta gli <strong>autori</strong> dello scenario.
-     *
-     * @param autori I nuovi autori.
-     */
-    public void setAutori(String autori) {
-        this.autori = autori;
-    }
 
     /**
      * Restituisce la <strong>tipologia</strong> dello scenario.
@@ -337,43 +161,6 @@ public class Scenario {
      */
     public String getTipologia() {
         return tipologia != null ? tipologia : "";
-    }
-
-    /**
-     * Imposta la <strong>tipologia</strong> dello scenario.
-     *
-     * @param tipologia La nuova tipologia dello scenario.
-     */
-    public void setTipologia(String tipologia) {
-        this.tipologia = tipologia;
-    }
-
-    /**
-     * Restituisce le <strong>informazioni per il genitore</strong> dello scenario.
-     * Questo campo è rilevante solo per scenari pediatrici.
-     *
-     * @return Le informazioni per il genitore.
-     */
-    public String getInfoGenitore() {
-        return infoGenitore;
-    }
-
-    /**
-     * Restituisce le <strong>informazioni sul target</strong> dello scenario.
-     *
-     * @return Le informazioni sul target dello scenario.
-     */
-    public String getTarget() {
-        return target;
-    }
-
-    /**
-     * Imposta le <strong>informazioni sul target</strong> dello scenario.
-     *
-     * @param target Le nuove informazioni sul target.
-     */
-    public void setTarget(String target) {
-        this.target = target;
     }
 
     /**
