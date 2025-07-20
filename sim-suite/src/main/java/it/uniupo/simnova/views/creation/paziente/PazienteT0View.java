@@ -218,11 +218,11 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         arteriosiContainer.setVisible(false); // Nascosto di default
 
         // Pulsanti per aggiungere nuovi accessi
-        Button addVenosiButton = StyleApp.getButton("Aggiungi accesso venoso", VaadinIcon.PLUS, ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
+        Button addVenosiButton = StyleApp.getButton("Aggiungi accesso venoso", VaadinIcon.PLUS.create(), ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
         addVenosiButton.setVisible(false); // Nascosto di default
         addVenosiButton.addClickListener(e -> addAccessoVenoso());
 
-        Button addArteriosiButton = StyleApp.getButton("Aggiungi accesso arterioso", VaadinIcon.PLUS, ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
+        Button addArteriosiButton = StyleApp.getButton("Aggiungi accesso arterioso", VaadinIcon.PLUS.create(), ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
         addArteriosiButton.setVisible(false); // Nascosto di default
         addArteriosiButton.addClickListener(e -> addAccessoArterioso());
 

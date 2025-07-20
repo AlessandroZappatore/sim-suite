@@ -103,7 +103,7 @@ public class SceneggiaturaSupport extends HorizontalLayout {
         scriptTitle.addClassNames(LumoUtility.Margin.NONE, LumoUtility.TextColor.PRIMARY);
         scriptTitle.getStyle().set("font-weight", "600");
 
-        Button editButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+        Button editButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
         editButton.setTooltipText("Modifica la sceneggiatura");
         editButton.getStyle().set("margin-left", "auto"); // Spinge il pulsante a destra.
 

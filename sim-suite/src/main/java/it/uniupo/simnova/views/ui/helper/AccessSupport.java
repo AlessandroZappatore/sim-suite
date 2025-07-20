@@ -102,7 +102,7 @@ public class AccessSupport {
         addVenosoFormContainer.setVisible(false);
 
         Button addVenosoButton = StyleApp.getButton("Aggiungi Accesso Venoso",
-                VaadinIcon.PLUS, ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
+                VaadinIcon.PLUS.create(), ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
         addVenosoButton.getStyle()
                 .set("margin-top", "var(--lumo-space-s)")
                 .set("margin-bottom", "var(--lumo-space-m)");
@@ -113,8 +113,8 @@ public class AccessSupport {
             AccessoComponent nuovoAccessoVenosoComp = new AccessoComponent("Venoso", false);
             addVenosoFormContainer.add(nuovoAccessoVenosoComp);
 
-            Button saveVenosoButton = StyleApp.getButton("Salva", VaadinIcon.CHECK, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
-            Button cancelVenosoButton = StyleApp.getButton("Annulla", VaadinIcon.CLOSE, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color)");
+            Button saveVenosoButton = StyleApp.getButton("Salva", VaadinIcon.CHECK.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+            Button cancelVenosoButton = StyleApp.getButton("Annulla", VaadinIcon.CLOSE.create(), ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color)");
 
             saveVenosoButton.addClickListener(saveEvent -> {
                 Accesso nuovoAccesso = nuovoAccessoVenosoComp.getAccesso();
@@ -202,7 +202,7 @@ public class AccessSupport {
         addArteriosoFormContainer.setVisible(false);
 
         Button addArtButton = StyleApp.getButton("Aggiungi Accesso Arterioso",
-                VaadinIcon.PLUS, ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
+                VaadinIcon.PLUS.create(), ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
         addArtButton.getStyle()
                 .set("margin-top", "var(--lumo-space-s)")
                 .set("margin-bottom", "var(--lumo-space-m)");
@@ -213,8 +213,8 @@ public class AccessSupport {
             AccessoComponent nuovoAccessoArteriosoComp = new AccessoComponent("Arterioso", false);
             addArteriosoFormContainer.add(nuovoAccessoArteriosoComp);
 
-            Button saveArteriosoButton = StyleApp.getButton("Salva", VaadinIcon.CHECK, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
-            Button cancelArteriosoButton = StyleApp.getButton("Cancella", VaadinIcon.CLOSE, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color)");
+            Button saveArteriosoButton = StyleApp.getButton("Salva", VaadinIcon.CHECK.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+            Button cancelArteriosoButton = StyleApp.getButton("Cancella", VaadinIcon.CLOSE.create(), ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color)");
 
             saveArteriosoButton.addClickListener(saveEvent -> {
                 Accesso nuovoAccesso = nuovoAccessoArteriosoComp.getAccesso();

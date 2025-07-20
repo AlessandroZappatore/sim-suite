@@ -161,7 +161,7 @@ public class PhysicalExamSupport {
         titleLabel.getStyle().set("font-weight", "600");
         titleGroup.add(sectionIcon, titleLabel);
 
-        Button editButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT, ButtonVariant.LUMO_SMALL, "var(--lumo-base-color");
+        Button editButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SMALL, "var(--lumo-base-color");
         editButton.setTooltipText("Modifica " + title);
         editButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_SMALL);
 

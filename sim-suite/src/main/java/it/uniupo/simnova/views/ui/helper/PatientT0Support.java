@@ -103,7 +103,7 @@ public class PatientT0Support {
             buttonContainer.setWidthFull();
             buttonContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
-            Button creatT0Button = StyleApp.getButton("Aggiungi i dati per T0", VaadinIcon.PLUS, ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
+            Button creatT0Button = StyleApp.getButton("Aggiungi i dati per T0", VaadinIcon.PLUS.create(), ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
             creatT0Button.addThemeVariants(ButtonVariant.LUMO_LARGE);
             creatT0Button.getStyle().set("background-color", "var(--lumo-success-color");
             // Naviga alla pagina di modifica/creazione del paziente T0

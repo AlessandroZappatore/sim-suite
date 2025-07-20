@@ -100,7 +100,7 @@ public class ExamSupport {
                         .set("color", "var(--lumo-primary-text-color)")
                         .set("flex-grow", "1");
 
-                Button editMediaButton = StyleApp.getButton("Modifica Media", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+                Button editMediaButton = StyleApp.getButton("Modifica Media", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
                 editMediaButton.setTooltipText("Modifica file multimediale per " + esame.getTipo());
                 editMediaButton.getElement().setAttribute("aria-label", "Modifica file multimediale per " + esame.getTipo());
 
@@ -208,8 +208,8 @@ public class ExamSupport {
                     mediaSourceGroupEdit.setValue("Carica nuovo file");
                 }
 
-                Button saveMediaButton = StyleApp.getButton("Salva Media", VaadinIcon.CHECK, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
-                Button cancelMediaButton = StyleApp.getButton("Annulla", VaadinIcon.CLOSE, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color)");
+                Button saveMediaButton = StyleApp.getButton("Salva Media", VaadinIcon.CHECK.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+                Button cancelMediaButton = StyleApp.getButton("Annulla", VaadinIcon.CLOSE.create(), ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color)");
 
                 HorizontalLayout mediaEditActions = new HorizontalLayout(saveMediaButton, cancelMediaButton);
                 mediaEditActions.setSpacing(true);
@@ -367,7 +367,7 @@ public class ExamSupport {
                 refertoTitleLayout.setAlignItems(FlexComponent.Alignment.CENTER);
                 refertoTitleLayout.setSpacing(true);
 
-                Button editRefertoButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+                Button editRefertoButton = StyleApp.getButton("", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
                 editRefertoButton.setTooltipText("Modifica Referto");
 
                 refertoHeader.add(refertoTitleLayout, editRefertoButton);
@@ -401,8 +401,8 @@ public class ExamSupport {
                 editRefertoArea.setMinHeight("150px");
                 editRefertoArea.setValue(esame.getRefertoTestuale());
 
-                Button saveRefertoButton = StyleApp.getButton("Salva Referto", VaadinIcon.CHECK, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
-                Button cancelRefertoButton = StyleApp.getButton("Annulla", VaadinIcon.CLOSE, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color)");
+                Button saveRefertoButton = StyleApp.getButton("Salva Referto", VaadinIcon.CHECK.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+                Button cancelRefertoButton = StyleApp.getButton("Annulla", VaadinIcon.CLOSE.create(), ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color)");
                 HorizontalLayout refertoEditActions = new HorizontalLayout(saveRefertoButton, cancelRefertoButton);
                 refertoEditActions.setSpacing(true);
 
@@ -453,7 +453,7 @@ public class ExamSupport {
         buttonContainer.setWidthFull();
         buttonContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
-        Button addNewExamButton = StyleApp.getButton("Aggiungi Nuovo Esame", VaadinIcon.PLUS, ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
+        Button addNewExamButton = StyleApp.getButton("Aggiungi Nuovo Esame", VaadinIcon.PLUS.create(), ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
         addNewExamButton.addThemeVariants(ButtonVariant.LUMO_LARGE);
         addNewExamButton.getStyle().set("background-color", "var(--lumo-success-color"); // Colore del pulsante
         // Naviga alla pagina di creazione di un nuovo esame

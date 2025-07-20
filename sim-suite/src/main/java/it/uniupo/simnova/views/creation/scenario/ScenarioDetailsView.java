@@ -349,7 +349,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         authorsEdit.setVisible(false);
 
         // Bottone per attivare la modalità di modifica.
-        editTitleAuthorsButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+        editTitleAuthorsButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
         editTitleAuthorsButton.setTooltipText("Modifica titolo e autori dello scenario.");
         editTitleAuthorsButton.getStyle().set("margin-left", "auto"); // Allinea a destra.
 

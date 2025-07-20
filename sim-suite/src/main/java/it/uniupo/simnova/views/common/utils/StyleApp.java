@@ -215,10 +215,10 @@ public class StyleApp extends HorizontalLayout {
      * @param iconColor Colore di riferimento per lo sfondo e il testo dell'icona (variabile CSS Lumo).
      * @return Un'istanza di {@link Button} configurata con gli stili specificati.
      */
-    public static Button getButton(String label, VaadinIcon icon, ButtonVariant variant, String iconColor) {
+    public static Button getButton(String label, Icon icon, ButtonVariant variant, String iconColor) {
         Button newButton;
         if (icon != null) {
-            newButton = new Button(label, new Icon(icon));
+            newButton = new Button(label, icon);
         } else {
             newButton = new Button(label);
         }

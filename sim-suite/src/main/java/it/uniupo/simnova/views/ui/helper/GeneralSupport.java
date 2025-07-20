@@ -165,7 +165,7 @@ public class GeneralSupport extends HorizontalLayout {
         titleLabel.getStyle().set("font-weight", "600");
         titleGroup.add(icon, titleLabel);
 
-        Button editButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+        Button editButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
         editButton.setTooltipText("Modifica " + title);
         headerRow.add(titleGroup, editButton);
         itemLayout.add(headerRow);
@@ -344,7 +344,7 @@ public class GeneralSupport extends HorizontalLayout {
         titleLabel.getStyle().set("font-weight", "600");
         titleGroup.add(icon, titleLabel);
 
-        Button editButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+        Button editButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
         editButton.setTooltipText("Modifica " + TITLE);
         headerRow.add(titleGroup, editButton);
         itemLayout.add(headerRow);
@@ -564,7 +564,7 @@ public class GeneralSupport extends HorizontalLayout {
         titleLabel.getStyle().set("font-weight", "600");
         titleGroup.add(icon, titleLabel);
 
-        Button editButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+        Button editButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
         editButton.setTooltipText("Modifica Materiale necessario");
         headerRow.add(titleGroup, editButton);
         itemLayout.add(headerRow);
@@ -601,7 +601,7 @@ public class GeneralSupport extends HorizontalLayout {
         iframe.setVisible(false); // Nascosto di default
         iframe.getStyle().set("border", "none");
 
-        Button closeIframeButton = StyleApp.getButton("Chiudi Editor", VaadinIcon.CLOSE, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color)");
+        Button closeIframeButton = StyleApp.getButton("Chiudi Editor", VaadinIcon.CLOSE.create(), ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color)");
         closeIframeButton.setVisible(false);
 
         HorizontalLayout iframeControls = new HorizontalLayout(closeIframeButton);

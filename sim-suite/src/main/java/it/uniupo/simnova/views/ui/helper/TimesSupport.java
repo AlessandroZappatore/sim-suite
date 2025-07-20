@@ -274,7 +274,7 @@ public class TimesSupport {
 
             // Sezione Azione
             Div azioneSection = createStyledSectionContainer(AZIONE_BORDER_COLOR);
-            Button editAzioneButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+            Button editAzioneButton = StyleApp.getButton("", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
             editAzioneButton.setTooltipText("Modifica Azione per T" + tempo.getIdTempo());
             HorizontalLayout azioneTitleLayout = createSectionTitle(VaadinIcon.PLAY_CIRCLE_O.create(), "Azione", editAzioneButton);
             azioneSection.add(azioneTitleLayout);
@@ -341,7 +341,7 @@ public class TimesSupport {
                 Hr transitionSeparator = new Hr();
                 transitionSeparator.getStyle().set("margin-top", "var(--lumo-space-m)").set("margin-bottom", "var(--lumo-space-s)");
 
-                Button editTransitionsButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+                Button editTransitionsButton = StyleApp.getButton("", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
                 editTransitionsButton.setTooltipText("Modifica Transizioni per T" + tempo.getIdTempo());
                 HorizontalLayout transitionsHeaderLayout = new HorizontalLayout();
                 transitionsHeaderLayout.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -373,13 +373,7 @@ public class TimesSupport {
                 if (hasNoTransition) {
                     transitionsLayout.add(createTransitionTag("Se NO", "T" + tempo.getTNo(), "--lumo-error-color"));
                 } else if (tempo.getTNo() == 0) { // Se TNo è 0 e non è stato gestito, indica "Fine simulazione"
-                    if (tempo.getTSi() == 0 && !hasSiTransition) { // Se TSi è 0 e non c'è SiTransition, indica fine
-                        transitionsLayout.add(createTransitionTag("Se NO", "Fine simulazione", "--lumo-error-color"));
-                    } else if (hasSiTransition && tempo.getTNo() == 0) {
-                        transitionsLayout.add(createTransitionTag("Se NO", "Fine simulazione", "--lumo-error-color"));
-                    } else if (!hasSiTransition && tempo.getTNo() == 0) {
-                        transitionsLayout.add(createTransitionTag("Se NO", "Fine simulazione", "--lumo-error-color"));
-                    }
+                    transitionsLayout.add(createTransitionTag("Se NO", "Fine simulazione", "--lumo-error-color"));
                 }
 
                 Paragraph noTransitionsDefinedMsg = new Paragraph("Nessuna transizione esplicita definita (potrebbe terminare o andare a T0).");
@@ -453,7 +447,7 @@ public class TimesSupport {
 
             // Sezione Dettagli Aggiuntivi
             Div dettagliSection = createStyledSectionContainer(DETTAGLI_BORDER_COLOR);
-            Button editDettagliButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+            Button editDettagliButton = StyleApp.getButton("", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
             editDettagliButton.setTooltipText("Modifica Dettagli Aggiuntivi per T" + tempo.getIdTempo());
             HorizontalLayout dettagliTitleLayout = createSectionTitle(VaadinIcon.INFO_CIRCLE_O.create(), "Dettagli Aggiuntivi", editDettagliButton);
             dettagliSection.add(dettagliTitleLayout);
@@ -520,7 +514,7 @@ public class TimesSupport {
             // Sezione Ruolo Genitore (visibile solo per scenari pediatrici)
             if (isPediatric) {
                 Div ruoloSection = createStyledSectionContainer(RUOLO_BORDER_COLOR);
-                Button editRuoloButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+                Button editRuoloButton = StyleApp.getButton("", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
                 editRuoloButton.setTooltipText("Modifica Ruolo Genitore per T" + tempo.getIdTempo());
                 HorizontalLayout ruoloTitleLayout = createSectionTitle(FontAwesome.Solid.CHILD_REACHING.create(), "Ruolo Genitore", editRuoloButton);
                 ruoloSection.add(ruoloTitleLayout);
@@ -598,7 +592,7 @@ public class TimesSupport {
         buttonContainer.setWidthFull();
         buttonContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
-        Button addNewTimesButton = StyleApp.getButton("Aggiungi Nuovi Tempi", VaadinIcon.PLUS, ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
+        Button addNewTimesButton = StyleApp.getButton("Aggiungi Nuovi Tempi", VaadinIcon.PLUS.create(), ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
         addNewTimesButton.addThemeVariants(ButtonVariant.LUMO_LARGE);
         addNewTimesButton.getStyle().set("background-color", "var(--lumo-success-color"); // Colore verde per l'aggiunta
         addNewTimesButton.addClickListener(ev -> UI.getCurrent().navigate("tempi/" + scenarioId + "/edit")); // Naviga alla pagina di modifica tempi

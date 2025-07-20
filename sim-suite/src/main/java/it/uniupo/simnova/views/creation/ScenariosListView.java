@@ -295,7 +295,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         Button backButton = StyleApp.getBackButton();
         backButton.setTooltipText("Torna alla pagina di creazione");
 
-        Button newScenarioButton = StyleApp.getButton("Nuovo scenario", VaadinIcon.PLUS, ButtonVariant.LUMO_PRIMARY, "--lumo-primary-color");
+        Button newScenarioButton = StyleApp.getButton("Nuovo scenario", VaadinIcon.PLUS.create(), ButtonVariant.LUMO_PRIMARY, "--lumo-primary-color");
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
         customHeader.add(newScenarioButton);
 

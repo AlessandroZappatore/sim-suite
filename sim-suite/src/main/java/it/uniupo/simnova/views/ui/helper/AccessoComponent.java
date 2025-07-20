@@ -125,7 +125,7 @@ public class AccessoComponent extends HorizontalLayout {
         if (hasDelete) {
             Button removeButton = StyleApp.getButton(
                     "Rimuovi",
-                    VaadinIcon.TRASH,
+                    VaadinIcon.TRASH.create(),
                     ButtonVariant.LUMO_ERROR,
                     "var(--lumo-error-color)"
             );

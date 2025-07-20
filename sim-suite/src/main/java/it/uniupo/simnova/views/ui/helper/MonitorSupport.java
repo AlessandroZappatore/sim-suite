@@ -386,7 +386,7 @@ public class MonitorSupport {
                     .set("font-size", "var(--lumo-font-size-m)")
                     .set("color", "var(--lumo-tertiary-text-color)");
 
-            Button editMonitorButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color");
+            Button editMonitorButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color");
             editMonitorButton.setTooltipText("Modifica il monitoraggio");
             HorizontalLayout titleAndIconMonitor = new HorizontalLayout(monitorIcon, monitorTextTitle);
             titleAndIconMonitor.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -408,8 +408,8 @@ public class MonitorSupport {
             monitorTextArea.setWidthFull();
             monitorTextArea.setVisible(false); // Nascosto di default
             monitorTextArea.setValue(additionalText);
-            Button saveMonitorButton = StyleApp.getButton("Salva", VaadinIcon.CHECK, ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color");
-            Button cancelMonitorButton = StyleApp.getButton("Annulla", VaadinIcon.CLOSE, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color");
+            Button saveMonitorButton = StyleApp.getButton("Salva", VaadinIcon.CHECK.create(), ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color");
+            Button cancelMonitorButton = StyleApp.getButton("Annulla", VaadinIcon.CLOSE.create(), ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color");
             HorizontalLayout monitorActions = new HorizontalLayout(saveMonitorButton, cancelMonitorButton);
             monitorActions.setVisible(false); // Nascosto di default
             monitorTextContainer.add(monitorTextArea, monitorActions);
@@ -482,7 +482,7 @@ public class MonitorSupport {
                     .set("font-size", "var(--lumo-font-size-m)")
                     .set("color", "var(--lumo-tertiary-text-color)");
 
-            Button editPresidiButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color");
+            Button editPresidiButton = StyleApp.getButton("Modifica", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color");
             editPresidiButton.setTooltipText("Modifica i presidi");
             HorizontalLayout titleAndIconPresidi = new HorizontalLayout(presidiIcon, presidiTitle);
             titleAndIconPresidi.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -528,8 +528,8 @@ public class MonitorSupport {
             presidiComboBox.setVisible(false); // Nascosto di default
             presidiComboBox.setValue(Set.copyOf(presidiList)); // Imposta i valori attuali
 
-            Button savePresidiButton = StyleApp.getButton("Salva", VaadinIcon.CHECK, ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color");
-            Button cancelPresidiButton = StyleApp.getButton("Annulla", VaadinIcon.CLOSE, ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color");
+            Button savePresidiButton = StyleApp.getButton("Salva", VaadinIcon.CHECK.create(), ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color");
+            Button cancelPresidiButton = StyleApp.getButton("Annulla", VaadinIcon.CLOSE.create(), ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color");
             HorizontalLayout presidiActions = new HorizontalLayout(savePresidiButton, cancelPresidiButton);
             presidiActions.setVisible(false); // Nascosto di default
             presidiInnerContainer.add(presidiComboBox, presidiActions);
@@ -867,7 +867,7 @@ public class MonitorSupport {
         topRightControls.setAlignItems(FlexComponent.Alignment.CENTER);
         topRightControls.getStyle().set("margin-left", "auto");
 
-        Button editButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color");
+        Button editButton = StyleApp.getButton("", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color");
         editButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL);
         editButton.setTooltipText("Modifica " + label);
 

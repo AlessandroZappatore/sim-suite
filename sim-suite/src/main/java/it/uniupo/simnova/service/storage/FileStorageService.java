@@ -1,5 +1,6 @@
 package it.uniupo.simnova.service.storage;
 
+import com.vaadin.flow.server.StreamResource;
 import it.uniupo.simnova.service.scenario.helper.MediaHelper;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -284,6 +285,44 @@ public class FileStorageService {
             logger.error("Errore durante la lettura dei file nella directory {}", rootLocation, e);
         }
         return files;
+    }
+
+    public StreamResource getFileAsResource(String filename) {
+        if (filename == null || filename.isBlank()) {
+            logger.warn("Richiesta risorsa con nome file nullo o vuoto.");
+            return null;
+        }
+
+        try {
+            Path filePath = this.rootLocation.resolve(filename).normalize();
+
+            // Controllo di sicurezza: il file deve trovarsi nella directory di archiviazione principale.
+            if (!filePath.getParent().equals(this.rootLocation)) {
+                logger.error("Tentativo di accesso al file '{}' fuori dalla directory consentita.", filename);
+                return null;
+            }
+
+            if (!Files.exists(filePath)) {
+                logger.warn("Richiesta risorsa per un file non esistente: {}", filename);
+                return null;
+            }
+
+            // Crea la StreamResource. Il secondo parametro è una "factory" che fornisce l'InputStream
+            // solo quando il browser lo richiede effettivamente.
+            return new StreamResource(filename, () -> {
+                try {
+                    return Files.newInputStream(filePath);
+                } catch (IOException e) {
+                    logger.error("Impossibile leggere il file per la risorsa stream: {}", filename, e);
+                    // Ritorna uno stream vuoto in caso di errore per evitare problemi nel browser.
+                    return new ByteArrayInputStream(new byte[0]);
+                }
+            });
+
+        } catch (InvalidPathException e) {
+            logger.error("Percorso del file non valido a causa di caratteri illegali nel nome: {}", filename, e);
+            return null;
+        }
     }
 }
 

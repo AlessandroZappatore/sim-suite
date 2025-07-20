@@ -181,7 +181,7 @@ public class InfoSupport extends HorizontalLayout {
         }
 
         Span actualBadgeTextSpan = new Span();
-        Button editButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+        Button editButton = StyleApp.getButton("", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
 
         badgeViewLayout.add(actualBadgeTextSpan, editButton);
         badgeViewLayout.expand(actualBadgeTextSpan);
@@ -290,7 +290,7 @@ public class InfoSupport extends HorizontalLayout {
         }
 
         Span actualBadgeTextSpan = new Span();
-        Button editButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+        Button editButton = StyleApp.getButton("", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
 
         badgeViewLayout.add(actualBadgeTextSpan, editButton);
         badgeViewLayout.expand(actualBadgeTextSpan);
@@ -403,7 +403,7 @@ public class InfoSupport extends HorizontalLayout {
         badgeViewLayout.getStyle().set("cursor", "default");
 
         Span actualBadgeTextSpan = new Span();
-        Button editButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+        Button editButton = StyleApp.getButton("", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
 
         // Icona iniziale basata sulla tipologia corrente dello scenario
         Icon tipologiaIcon = tipologiaIconMap.getOrDefault(displayValueGetter.apply(scenario), FontAwesome.Solid.USERS::create).get();
@@ -513,7 +513,7 @@ public class InfoSupport extends HorizontalLayout {
         icon.addClassName(LumoUtility.TextColor.PRIMARY);
 
         Span actualBadgeTextSpan = new Span();
-        Button openDialogButton = StyleApp.getButton("", VaadinIcon.EDIT, ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+        Button openDialogButton = StyleApp.getButton("", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
         openDialogButton.getStyle().set("margin-left", "auto"); // Spinge il pulsante a destra
         openDialogButton.getElement().setAttribute("title", "Modifica Target in finestra");
 
