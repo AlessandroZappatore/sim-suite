@@ -66,8 +66,8 @@ public class ScenarioDescription {
         }
 
         // Sezione: Patto d'aula
-        if (scenario.getPatto_aula() != null && !scenario.getPatto_aula().isEmpty() && patto) {
-            drawSection("Patto d'Aula", scenario.getPatto_aula());
+        if (scenario.getPattoAula() != null && !scenario.getPattoAula().isEmpty() && patto) {
+            drawSection("Patto d'Aula", scenario.getPattoAula());
         }
 
         // Sezione: Azioni chiave

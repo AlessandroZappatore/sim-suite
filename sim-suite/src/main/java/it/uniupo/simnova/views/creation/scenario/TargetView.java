@@ -844,12 +844,17 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
      * e popola i componenti dell'interfaccia utente di conseguenza.
      */
     private void loadExistingTargets() {
-        Scenario scenario = scenarioService.getScenarioById(scenarioId);
-        // Se lo scenario o il suo target sono nulli/vuoti, resetta tutti i campi.
-        if (scenario == null || scenario.getTarget() == null || scenario.getTarget().trim().isEmpty()) {
-            logger.debug("Nessun target esistente o scenario nullo per ID: {}. Resettando tutti i campi.", scenarioId);
-            resetAllFields();
+        Optional<Scenario> scenarioOptional = scenarioService.getScenarioById(scenarioId);
+        Scenario scenario;
+        if (scenarioOptional.isEmpty()) {
+            logger.warn("Scenario con ID {} non trovato. Non è possibile caricare i dati del target.", scenarioId);
+            Notification.show("Scenario non trovato. Impossibile caricare i dati del target.", 3000, Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_ERROR);
+            resetAllFields(); // Resetta i campi se lo scenario non esiste.
             return;
+        } else {
+            scenario = scenarioOptional.get();
+            logger.info("Caricamento dati esistenti per lo scenario ID: {}", scenarioId);
         }
 
         String targetString = scenario.getTarget().trim();

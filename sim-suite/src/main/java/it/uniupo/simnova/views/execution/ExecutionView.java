@@ -1,73 +1,105 @@
 package it.uniupo.simnova.views.execution;
 
+import com.flowingcode.vaadin.addons.simpletimer.SimpleTimer;
 import com.vaadin.flow.component.Composite;
+import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.service.storage.FileStorageService;
 import it.uniupo.simnova.views.common.components.AppHeader;
 import it.uniupo.simnova.views.common.utils.StyleApp;
 
-/**
- * Vista di esecuzione dell'applicazione SIM SUITE.
- * Fornisce la struttura base della pagina, indicando che la funzionalità non è ancora implementata.
- *
- * @author Alessandro Zappatore
- * @version 1.0
- */
 @PageTitle("Execution")
 @Route("execution")
+@CssImport("./themes/sim.suite/views/header-style.css")
 public class ExecutionView extends Composite<VerticalLayout> {
 
-    /**
-     * Costruttore della vista di esecuzione.
-     * Inizializza la pagina con header, pulsante di ritorno e un messaggio centrale.
-     *
-     * @param fileStorageService Servizio per la gestione dei file, utilizzato per l'AppHeader.
-     */
     public ExecutionView(FileStorageService fileStorageService) {
 
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
-
         AppHeader header = new AppHeader(fileStorageService);
-
         Button backButton = StyleApp.getBackButton();
-        // Listener per navigare alla home page al click del pulsante "Indietro"
         backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("")));
 
+        SimpleTimer timer = new SimpleTimer();
+        timer.setStartTime(60);
+        timer.setFractions(false);
+        timer.getStyle().set("font-size", "var(--lumo-font-size-xxl)").set("font-weight", "600");
+
+        Button toggleButton = new Button(VaadinIcon.PLAY.create());
+        toggleButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        toggleButton.setTooltipText("Fai partire il timer");
+
+        Button restartButton = new Button(VaadinIcon.REFRESH.create());
+        restartButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        restartButton.setTooltipText("Riavvia il timer");
+
+        Div timerContainer = new Div();
+        timerContainer.addClassName("card-style");
+
+        toggleButton.addClickListener(e -> {
+            if (timer.isRunning()) {
+                timer.pause();
+                toggleButton.setIcon(VaadinIcon.PLAY.create());
+                toggleButton.setTooltipText("Riprendi");
+            } else {
+                timer.start();
+                toggleButton.setIcon(VaadinIcon.PAUSE.create());
+                toggleButton.setTooltipText("Metti in pausa");
+            }
+        });
+
+        restartButton.addClickListener(e -> {
+            timerContainer.getStyle().remove("background");
+
+            timer.reset();
+            toggleButton.setIcon(VaadinIcon.PLAY.create());
+            toggleButton.setTooltipText("Fai partire il timer");
+        });
+
+        timer.addTimerEndEvent(e -> {
+            Notification.show("Il timer generale è terminato.", 3000, Notification.Position.MIDDLE)
+                    .addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+
+            timerContainer.getStyle().set("background", "var(--lumo-error-color-50pct)");
+        });
+
+        Span title = new Span("Timer Generale");
+        title.addClassNames(LumoUtility.FontSize.SMALL, LumoUtility.TextColor.SECONDARY);
+
+        HorizontalLayout buttonsLayout = new HorizontalLayout(toggleButton, restartButton);
+        VerticalLayout contentWrapper = new VerticalLayout(title, timer, buttonsLayout);
+        contentWrapper.setAlignItems(FlexComponent.Alignment.CENTER);
+        contentWrapper.setPadding(false);
+        contentWrapper.setSpacing(false);
+
+        timerContainer.add(contentWrapper);
+
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
+        customHeader.add(timerContainer);
+        customHeader.expand(header);
 
         VerticalLayout contentLayout = StyleApp.getContentLayout();
-
-        // Sezione dell'header specifico per questa vista con titolo e sottotitolo informativo
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
-                "SIM EXECUTION", // Titolo della sezione
-                "Funzionalità non implementata", // Sottotitolo informativo
-                VaadinIcon.BUILDING.create(), // Icona rappresentativa
-                "var(--lumo-primary-color)" // Colore dell'icona/titolo
+                "SIM EXECUTION",
+                "Funzionalità non implementata",
+                VaadinIcon.BUILDING.create(),
+                "var(--lumo-primary-color)"
         );
 
         contentLayout.add(headerSection);
-
         HorizontalLayout footerSection = StyleApp.getFooterLayout(null);
-
-        // Aggiunge i componenti principali al layout radice della vista
         mainLayout.add(customHeader, contentLayout, footerSection);
     }
 }
-
-/*
- * Note per l'implementazione futura:
- *
- * 1. Per visualizzare parametri e informazioni temporali:
- *    - Utilizzare l'implementazione esistente in detailView (vedere @MonitorSupport in ui.helper)
- *
- * 2. Per l'editor di note:
- *    - Utilizzare il componente text editor già disponibile (@TinyEditor in views.utils)
- *
- * 3. Per il timer dei vari tempi:
- *    - Si può utilizzare un addon di Vaadin
- */

@@ -1,14 +1,17 @@
 package it.uniupo.simnova.service.scenario;
 
 import it.uniupo.simnova.domain.scenario.Scenario;
+import it.uniupo.simnova.dto.ScenarioSummaryDTO;
+import it.uniupo.simnova.repository.ScenarioRepository;
 import it.uniupo.simnova.utils.DBConnect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Servizio per la gestione degli scenari.
@@ -28,13 +31,11 @@ public class ScenarioService {
      */
     private static final Logger logger = LoggerFactory.getLogger(ScenarioService.class);
 
-    /**
-     * Costruttore privato per prevenire l'istanza diretta del servizio.
-     * Utilizzare il contesto Spring per ottenere un'istanza di questo servizio.
-     */
-    private ScenarioService() {
-        // Costruttore privato per prevenire l'istanza diretta del servizio.
-        // Utilizzare il contesto Spring per ottenere un'istanza di questo servizio.
+    private final ScenarioRepository scenarioRepository;
+
+    @Autowired
+    private ScenarioService(ScenarioRepository scenarioRepository) {
+        this.scenarioRepository = scenarioRepository;
     }
 
     /**
@@ -44,43 +45,9 @@ public class ScenarioService {
      * @return L'oggetto {@link Scenario} corrispondente all'identificativo fornito; <code>null</code> se non trovato
      * o in caso di errore SQL.
      */
-    public Scenario getScenarioById(Integer id) {
-        final String sql = "SELECT * FROM Scenario WHERE id_scenario = ?";
-        Scenario scenario = null;
-
-        try (Connection conn = DBConnect.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, id); // Imposta l'ID dello scenario come parametro.
-            ResultSet rs = stmt.executeQuery(); // Esegue la query.
-
-            if (rs.next()) {
-                // Costruisce l'oggetto Scenario popolando tutti i campi dal ResultSet.
-                scenario = new Scenario(
-                        rs.getInt("id_scenario"),
-                        rs.getString("titolo"),
-                        rs.getString("nome_paziente"),
-                        rs.getString("patologia"),
-                        rs.getString("descrizione"),
-                        rs.getString("briefing"),
-                        rs.getString("patto_aula"),
-                        rs.getString("obiettivo"),
-                        rs.getString("moulage"),
-                        rs.getString("liquidi"),
-                        rs.getFloat("timer_generale"),
-                        rs.getString("autori"),
-                        rs.getString("tipologia_paziente"),
-                        rs.getString("info_genitore"),
-                        rs.getString("target")
-                );
-                logger.info("Scenario con ID {} recuperato con successo.", id);
-            } else {
-                logger.warn("Nessuno scenario trovato con ID {}.", id);
-            }
-        } catch (SQLException e) {
-            logger.error("Errore SQL durante il recupero dello scenario con ID {}: {}", id, e.getMessage(), e);
-        }
-        return scenario;
+    public Optional<Scenario> getScenarioById(Integer id) {
+        logger.info("Recupero scenario con ID: {}", id);
+        return scenarioRepository.findById(id);
     }
 
     /**
@@ -90,30 +57,17 @@ public class ScenarioService {
      * @return Una {@link List} di oggetti {@link Scenario} contenente gli scenari principali.
      * Restituisce una lista vuota in caso di errore o se non sono presenti scenari.
      */
-    public List<Scenario> getAllScenarios() {
-        final String sql = "SELECT id_scenario, titolo, autori, patologia, descrizione, tipologia_paziente FROM Scenario";
-        List<Scenario> scenarios = new ArrayList<>();
+    public List<ScenarioSummaryDTO> getAllScenarios() {
+        List<ScenarioSummaryDTO> summaries = scenarioRepository.findAllSummaries();
 
-        try (Connection conn = DBConnect.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                // Costruisce oggetti Scenario con un sottoinsieme di campi.
-                Scenario scenario = new Scenario(
-                        rs.getInt("id_scenario"),
-                        rs.getString("titolo"),
-                        rs.getString("autori"),
-                        rs.getString("patologia"),
-                        rs.getString("descrizione"),
-                        rs.getString("tipologia_paziente"));
-                scenarios.add(scenario);
+        if(summaries != null) {
+            for (ScenarioSummaryDTO summary : summaries) {
+                String tipo = getScenarioType(summary.getId());
+                summary.setTipoScenario(tipo);
             }
-            logger.info("Recuperati {} scenari dal database.", scenarios.size());
-        } catch (SQLException e) {
-            logger.error("Errore SQL durante il recupero di tutti gli scenari: {}", e.getMessage(), e);
         }
-        return scenarios;
+        logger.info("Recuperati e arricchiti {} scenari", summaries != null ? summaries.size() : 0);
+        return summaries;
     }
 
     /**
@@ -381,21 +335,9 @@ public class ScenarioService {
      * @return <code>true</code> se la tipologia paziente dello scenario è "Pediatrico" (case-insensitive); <code>false</code> altrimenti.
      */
     public boolean isPediatric(int scenarioId) {
-        final String sql = "SELECT tipologia_paziente FROM Scenario WHERE id_scenario = ?";
-        try (Connection conn = DBConnect.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, scenarioId);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                String tipologiaPaziente = rs.getString("tipologia_paziente");
-                return "Pediatrico".equalsIgnoreCase(tipologiaPaziente);
-            }
-        } catch (SQLException e) {
-            logger.error("Errore SQL durante il recupero della tipologia paziente per lo scenario con ID {}: {}", scenarioId, e.getMessage(), e);
-        }
-        return false;
+        return scenarioRepository.findById(scenarioId)
+                .map(s -> "Pediatrico".equalsIgnoreCase(s.getTipologiaPaziente()))
+                .orElse(false);
     }
 
     /**

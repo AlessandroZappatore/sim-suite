@@ -144,9 +144,9 @@ public class GenitoriView extends Composite<VerticalLayout> implements HasUrlPar
      * Popola l'editor TinyMCE con il testo recuperato dal database.
      */
     private void loadExistingGenitoriInfo() {
-        Scenario scenario = scenarioService.getScenarioById(scenarioId);
-        if (scenario != null && scenario.getInfoGenitore() != null && !scenario.getInfoGenitore().isEmpty()) {
-            genitoriEditor.setValue(scenario.getInfoGenitore());
+        Optional<Scenario> scenario = scenarioService.getScenarioById(scenarioId);
+        if (scenario.isPresent() && scenario.get().getInfoGenitore() != null && !scenario.get().getInfoGenitore().isEmpty()) {
+            genitoriEditor.setValue(scenario.get().getInfoGenitore());
         }
     }
 

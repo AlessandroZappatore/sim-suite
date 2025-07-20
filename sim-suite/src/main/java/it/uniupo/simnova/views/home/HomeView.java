@@ -25,7 +25,7 @@ import it.uniupo.simnova.views.common.components.CreditsComponent;
  * @version 1.0
  */
 @PageTitle("Home")
-@Route("Home")
+@Route("")
 public class HomeView extends Composite<VerticalLayout> {
 
     /**
@@ -46,6 +46,7 @@ public class HomeView extends Composite<VerticalLayout> {
                 LumoUtility.FontWeight.BOLD,
                 LumoUtility.Margin.Bottom.SMALL
         );
+
         title.getStyle()
                 .set("color", "var(--lumo-primary-text-color)")
                 .set("text-shadow", "2px 2px 4px rgba(0,0,0,0.1)")
@@ -68,10 +69,6 @@ public class HomeView extends Composite<VerticalLayout> {
         // Creazione dei pulsanti principali
         Button creationButton = createMainButton("SIM CREATION", "vaadin:cogs");
         Button executionButton = createMainButton("SIM EXECUTION", "vaadin:play");
-
-        // Funzionalità non implementata per il pulsante "SIM EXECUTION"
-        executionButton.setEnabled(false);
-        executionButton.setTooltipText("Funzionalità non implementata");
 
         // Listener per la navigazione al click dei pulsanti
         creationButton.addClickListener(e -> creationButton.getUI().ifPresent(ui -> ui.navigate("creation")));

@@ -13,6 +13,7 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Servizio per l'esportazione di scenari in formato JSON.
@@ -116,7 +117,13 @@ public class JSONExportService implements Serializable {
      */
     public byte[] exportScenarioToJSON(Integer scenarioId) {
         // Recupera l'oggetto Scenario principale e il suo tipo.
-        Scenario scenario = scenarioService.getScenarioById(scenarioId);
+        Optional<Scenario> scenarioOptional = scenarioService.getScenarioById(scenarioId);
+        Scenario scenario;
+        if (scenarioOptional.isEmpty()) {
+            throw new IllegalArgumentException("Scenario with ID " + scenarioId + " not found.");
+        } else {
+            scenario = scenarioOptional.get();
+        }
         String scenarioType = scenarioService.getScenarioType(scenarioId);
 
         // Mappa per aggregare tutti i dati da esportare.

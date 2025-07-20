@@ -154,9 +154,18 @@ public class LiquidiView extends Composite<VerticalLayout> implements HasUrlPara
      * Popola l'editor TinyMCE con il testo recuperato dal database.
      */
     private void loadExistingLiquidi() {
-        Scenario scenario = scenarioService.getScenarioById(scenarioId);
-        if (scenario != null && scenario.getLiquidi() != null && !scenario.getLiquidi().isEmpty()) {
-            liquidiEditor.setValue(scenario.getLiquidi());
+        Optional<Scenario> scenarioOptional = scenarioService.getScenarioById(scenarioId);
+
+        if (scenarioOptional.isPresent()) {
+            Scenario scenario = scenarioOptional.get();
+            if (scenario.getLiquidi() != null && !scenario.getLiquidi().isEmpty()) {
+                logger.debug("Caricamento liquidi per lo scenario con ID: {}", scenarioId);
+                liquidiEditor.setValue(scenario.getLiquidi());
+            } else {
+                logger.debug("Scenario con ID {} non ha liquidi definiti.", scenarioId);
+            }
+        } else {
+            logger.warn("Scenario con ID {} non trovato durante il caricamento dei liquidi.", scenarioId);
         }
     }
 

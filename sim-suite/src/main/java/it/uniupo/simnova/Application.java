@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
  * Classe principale dell'applicazione Spring Boot per SIM Suite.
@@ -23,7 +23,8 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
  * @author Alessandro Zappatore
  * @version 1.1
  */
-@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
+@SpringBootApplication
+@EnableJpaRepositories("it.uniupo.simnova.repository")
 @Theme(value = "sim.suite") // Specifica il tema Vaadin utilizzato dall'applicazione
 @PWA(
         name = "Sim Suite", // Nome completo dell'applicazione per la PWA

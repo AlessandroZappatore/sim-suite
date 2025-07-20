@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Optional;
 
 import static it.uniupo.simnova.service.export.helper.pdf.LoadFont.loadFont;
 import static it.uniupo.simnova.service.export.helper.pdf.LogoLoader.loadCenterLogo;
@@ -330,7 +331,15 @@ public class PdfExportService {
             initNewPage();
 
             // Recupera l'oggetto Scenario principale.
-            Scenario scenario = scenarioService.getScenarioById(scenarioId);
+            Optional<Scenario> scenarioOptional = scenarioService.getScenarioById(scenarioId);
+
+            Scenario scenario;
+            if (scenarioOptional.isEmpty()) {
+                logger.error("Scenario con ID {} non trovato.", scenarioId);
+                throw new IOException("Scenario non trovato con ID: " + scenarioId);
+            } else {
+                scenario = scenarioOptional.get();
+            }
             logger.info("Recuperato scenario con titolo: {}", scenario.getTitolo());
 
             // Crea la sezione dell'intestazione dello scenario.

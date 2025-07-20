@@ -4,6 +4,7 @@
   "type": "module",
   "dependencies": {
     "@flowingcode/font-awesome-iron-iconset": "5.2.0",
+    "@lit-labs/preact-signals": "^1.0.2",
     "@polymer/polymer": "3.5.2",
     "@vaadin/bundles": "24.7.6",
     "@vaadin/common-frontend": "0.0.19",
@@ -47,6 +48,7 @@
   "vaadin": {
     "dependencies": {
       "@flowingcode/font-awesome-iron-iconset": "5.2.0",
+      "@lit-labs/preact-signals": "^1.0.2",
       "@polymer/polymer": "3.5.2",
       "@vaadin/bundles": "24.7.1",
       "@vaadin/common-frontend": "0.0.19",
@@ -87,7 +89,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "ea60523a9d7eac9f13867e5ffc8aec3c80e20cac3245857ce331ebcefe4e8ccb"
+    "hash": "d0df58da78e009e83dc818b8cc65e2dd621ec06e94a4ef659cb12e57fcdfc198"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -108,6 +110,7 @@
     "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin",
     "@vaadin/vaadin-lumo-styles": "$@vaadin/vaadin-lumo-styles",
     "@vaadin/vaadin-material-styles": "$@vaadin/vaadin-material-styles",
-    "@flowingcode/font-awesome-iron-iconset": "$@flowingcode/font-awesome-iron-iconset"
+    "@flowingcode/font-awesome-iron-iconset": "$@flowingcode/font-awesome-iron-iconset",
+    "@lit-labs/preact-signals": "$@lit-labs/preact-signals"
   }
 }

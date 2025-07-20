@@ -1,6 +1,6 @@
 @import url('./views/home-view.css');
 @import url('./views/creation-view.css');
-@import url('./views/execution-view.css');
+@import url('views/header-style.css');
 /* styles.css */
 :host([theme~="dark"]) {
     --lumo-base-color: #1d1d1d;

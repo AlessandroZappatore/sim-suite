@@ -28,7 +28,7 @@ import it.uniupo.simnova.views.common.utils.StyleApp;
  * @version 1.0
  */
 @PageTitle("Creation")
-@Route("")
+@Route("creation")
 public class CreationView extends Composite<VerticalLayout> {
 
     /**

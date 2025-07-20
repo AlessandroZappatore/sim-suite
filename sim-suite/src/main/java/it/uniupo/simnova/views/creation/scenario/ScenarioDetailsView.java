@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static it.uniupo.simnova.views.ui.helper.TabsSupport.createTabWithIcon;
 
@@ -254,11 +255,13 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
             return;
         }
         // Carica l'oggetto Scenario completo dal servizio.
-        this.scenario = scenarioService.getScenarioById(scenarioId);
-        if (this.scenario == null) {
-            logger.error("Scenario non trovato con ID: {} durante beforeEnter. Re indirizzamento a pagina di errore.", scenarioId);
-            event.rerouteToError(NotFoundException.class, "Scenario con ID " + scenarioId + " non trovato. Impossibile visualizzare i dettagli.");
-            return;
+        Optional<Scenario> scenarioOptional = scenarioService.getScenarioById(scenarioId);
+
+        if (scenarioOptional.isEmpty()) {
+            logger.error("Scenario con ID {} non trovato.", scenarioId);
+            throw new NotFoundException("Scenario con ID " + scenarioId + " non trovato.");
+        } else {
+            this.scenario = scenarioOptional.get();
         }
         logger.info("Scenario con ID {} caricato con successo per la visualizzazione dettagliata.", scenarioId);
         initView(); // Inizializza i componenti dell'UI con i dati dello scenario.

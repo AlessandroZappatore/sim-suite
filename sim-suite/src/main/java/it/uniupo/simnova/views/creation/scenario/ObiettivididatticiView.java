@@ -171,13 +171,20 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> implements
      * e lo imposta nell'editor TinyMCE.
      */
     private void loadExistingObiettivi() {
-        Scenario scenario = scenarioService.getScenarioById(scenarioId);
-        // Se lo scenario esiste e ha obiettivi didattici non nulli e non vuoti, li imposta nell'editor.
-        if (scenario != null && scenario.getObiettivo() != null && !scenario.getObiettivo().isEmpty()) {
-            obiettiviEditor.setValue(scenario.getObiettivo());
-            logger.debug("Obiettivi didattici esistenti caricati per lo scenario ID {}.", scenarioId);
+        Optional<Scenario> scenarioOptional = scenarioService.getScenarioById(scenarioId);
+
+        if (scenarioOptional.isPresent()) {
+            Scenario scenario = scenarioOptional.get();
+
+            if(scenario.getBriefing() != null && !scenario.getBriefing().isEmpty()) {
+                obiettiviEditor.setValue(scenario.getBriefing());
+                logger.debug("Obiettivi didattici caricati per lo scenario ID: {}.", scenarioId);
+            }
+            else {
+                logger.warn("Nessun obiettivo didattico trovato per lo scenario ID: {}. L'editor sarà vuoto.", scenarioId);
+            }
         } else {
-            logger.debug("Nessun obiettivo didattico esistente trovato per lo scenario ID {}. L'editor sarà vuoto.", scenarioId);
+            logger.debug("Scenario con ID: {} non trovato durante il caricamento degli obiettivi didattici.", scenarioId);
         }
     }
 
