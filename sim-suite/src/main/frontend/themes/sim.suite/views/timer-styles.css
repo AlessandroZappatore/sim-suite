@@ -1,0 +1,9 @@
+@keyframes blink-background {
+    50% {
+        background: var(--lumo-error-color-50pct);
+    }
+}
+
+.timer-ended-blinking {
+    animation: blink-background 1s step-end infinite;
+}
