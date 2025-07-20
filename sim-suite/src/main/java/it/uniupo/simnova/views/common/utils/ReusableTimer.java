@@ -22,7 +22,7 @@ public class ReusableTimer extends Composite<Div> {
     private final String titleText;
     private final Notification.Position notificationPosition;
 
-    public ReusableTimer(String title, int durationInMinutes, Notification.Position notificationPosition) {
+    public ReusableTimer(String title, Integer durationInMinutes, Notification.Position notificationPosition) {
         this.titleText = title;
         this.notificationPosition = notificationPosition;
 
@@ -30,13 +30,12 @@ public class ReusableTimer extends Composite<Div> {
 
         Div root = getContent();
         root.addClassName("card-style");
+        root.setWidthFull();
+        root.setMaxWidth("250px");
 
         timer = new SimpleTimer();
-
         timer.setStartTime(totalSeconds);
-
         timer.setMinutes(true);
-
         timer.setFractions(false);
         timer.getStyle().set("font-size", "var(--lumo-font-size-xxl)").set("font-weight", "600");
 
@@ -85,7 +84,7 @@ public class ReusableTimer extends Composite<Div> {
         timer.addTimerEndEvent(e -> {
             String message = String.format("Il timer '%s' è terminato.", this.titleText);
             Notification.show(message, 3000, this.notificationPosition)
-                    .addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
             getContent().addClassName("timer-ended-blinking");
         });

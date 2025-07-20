@@ -275,14 +275,13 @@ public class StyleApp extends HorizontalLayout {
      */
     public static VerticalLayout getContentLayout() {
         VerticalLayout contentLayout = new VerticalLayout();
-        contentLayout.setWidth("100%");
-        contentLayout.setMaxWidth("1200px"); // Larghezza massima per evitare layout troppo larghi.
+        contentLayout.setMaxWidth("80%");
         contentLayout.setPadding(true);
         contentLayout.setSpacing(false);
-        contentLayout.setAlignItems(FlexComponent.Alignment.CENTER); // Centra orizzontalmente i componenti.
+
         contentLayout.getStyle()
-                .set("margin", "0 auto") // Centra il layout orizzontalmente.
-                .set("flex-grow", "1"); // Permette al layout di espandersi e riempire lo spazio verticale.
+                .set("flex-grow", "1")
+                .set("margin", "0 auto"); // Aggiunge il centering orizzontale
         return contentLayout;
     }
 
@@ -413,3 +412,4 @@ public class StyleApp extends HorizontalLayout {
         dialog.open();
     }
 }
+

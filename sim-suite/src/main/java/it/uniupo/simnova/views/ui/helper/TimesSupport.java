@@ -24,7 +24,7 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.domain.common.ParametroAggiuntivo;
 import it.uniupo.simnova.domain.common.Tempo;
-import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
+import it.uniupo.simnova.service.scenario.helper.TimelineConfiguration;
 import it.uniupo.simnova.views.common.utils.StyleApp;
 
 import java.util.Comparator;
@@ -161,22 +161,10 @@ public class TimesSupport {
         return tag;
     }
 
-    /**
-     * Crea un layout verticale che visualizza la timeline di uno scenario.
-     * Ogni tempo della timeline è rappresentato da una card che include:
-     * titolo del tempo, monitor dei parametri vitali, azioni, transizioni e dettagli aggiuntivi.
-     * Permette la modifica in linea di questi elementi.
-     *
-     * @param tempi                   La lista di oggetti {@link Tempo} che compongono la timeline.
-     * @param scenarioId              L'ID dello scenario a cui appartiene la timeline.
-     * @param advancedScenarioService Il servizio per la gestione degli scenari avanzati.
-     * @param isPediatric             Indica se lo scenario è di tipo pediatrico (per mostrare il ruolo del genitore).
-     * @return Un {@link VerticalLayout} che rappresenta l'intera timeline.
-     */
+
     public static VerticalLayout createTimelineContent(List<Tempo> tempi,
-                                                       int scenarioId,
-                                                       AdvancedScenarioService advancedScenarioService,
-                                                       boolean isPediatric) {
+                                                       boolean isPediatric,
+                                                       TimelineConfiguration config) {
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(false);
         layout.setSpacing(true);
@@ -219,50 +207,65 @@ public class TimesSupport {
             Div rightSpacer = new Div();
             rightSpacer.getStyle().set("flex-grow", "1");
 
-            H3 timeTitle = new H3(String.format("T%d - %s", tempo.getIdTempo(), formatTime(tempo.getTimerTempo())));
-            timeTitle.addClassName(LumoUtility.Margin.Top.NONE);
-            timeTitle.getStyle().set("text-align", "center").set("color", "var(--lumo-primary-text-color)");
+            Component headerContent;
+            if (config.getHeaderGenerator() != null) {
+                // Se è stato fornito un generatore personalizzato, usalo.
+                headerContent = config.getHeaderGenerator().apply(tempo, config);
+            } else {
+                // Altrimenti, crea l'header di default (vecchio comportamento).
+                H3 timeTitle = new H3(String.format("T%d - %s", tempo.getIdTempo(), formatTime(tempo.getTimerTempo())));
+                timeTitle.addClassName(LumoUtility.Margin.Top.NONE);
+                timeTitle.getStyle().set("text-align", "center").set("color", "var(--lumo-primary-text-color)");
+                headerContent = timeTitle;
+            }
 
-            Button deleteButton = new Button(VaadinIcon.TRASH.create());
-            deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
-            deleteButton.setTooltipText("Elimina Tempo T" + tempo.getIdTempo());
-            deleteButton.getElement().setAttribute("aria-label", "Elimina Tempo " + tempo.getIdTempo());
-            deleteButton.addClickListener(e -> {
-                Dialog confirmDialog = new Dialog();
-                confirmDialog.setCloseOnEsc(true);
-                confirmDialog.setCloseOnOutsideClick(true);
 
-                confirmDialog.add(new H4("Conferma Eliminazione"));
-                confirmDialog.add(new Paragraph("Sei sicuro di voler eliminare il Tempo T" + tempo.getIdTempo() + "? Questa operazione non può essere annullata."));
+            if (config.isShowDeleteButton()) {
+                Button deleteButton = new Button(VaadinIcon.TRASH.create());
+                deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
+                deleteButton.setTooltipText("Elimina Tempo T" + tempo.getIdTempo());
+                deleteButton.getElement().setAttribute("aria-label", "Elimina Tempo " + tempo.getIdTempo());
+                deleteButton.addClickListener(e -> {
+                    Dialog confirmDialog = new Dialog();
+                    confirmDialog.setCloseOnEsc(true);
+                    confirmDialog.setCloseOnOutsideClick(true);
 
-                Button confirmDeleteButton = new Button("Elimina", VaadinIcon.TRASH.create());
-                confirmDeleteButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
-                confirmDeleteButton.addClickListener(confirmEvent -> {
-                    advancedScenarioService.deleteTempo(tempo.getIdTempo(), scenarioId); // Elimina il tempo dal servizio
-                    Notification.show("Tempo T" + tempo.getIdTempo() + " eliminato con successo. Ricaricare la pagina per aggiornare la timeline.", 5000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                    confirmDialog.close();
-                    UI.getCurrent().getPage().reload(); // Ricarica la pagina per un aggiornamento completo
+                    confirmDialog.add(new H4("Conferma Eliminazione"));
+                    confirmDialog.add(new Paragraph("Sei sicuro di voler eliminare il Tempo T" + tempo.getIdTempo() + "? Questa operazione non può essere annullata."));
+
+                    Button confirmDeleteButton = new Button("Elimina", VaadinIcon.TRASH.create());
+                    confirmDeleteButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
+                    confirmDeleteButton.addClickListener(confirmEvent -> {
+                        config.getService().deleteTempo(tempo.getIdTempo(), config.getScenarioId()); // Elimina il tempo dal servizio
+                        Notification.show("Tempo T" + tempo.getIdTempo() + " eliminato con successo. Ricaricare la pagina per aggiornare la timeline.", 5000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                        confirmDialog.close();
+                        UI.getCurrent().getPage().reload(); // Ricarica la pagina per un aggiornamento completo
+                    });
+
+                    Button cancelDeleteButton = new Button("Annulla");
+                    cancelDeleteButton.addClickListener(cancelEvent -> confirmDialog.close());
+
+                    HorizontalLayout dialogButtons = new HorizontalLayout(confirmDeleteButton, cancelDeleteButton);
+                    dialogButtons.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+                    dialogButtons.setWidthFull();
+                    confirmDialog.add(dialogButtons);
+                    confirmDialog.open();
                 });
+                headerLayout.add(leftSpacer, headerContent, rightSpacer, deleteButton);
+            } else {
+                headerLayout.add(headerContent);
+                headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+            }
 
-                Button cancelDeleteButton = new Button("Annulla");
-                cancelDeleteButton.addClickListener(cancelEvent -> confirmDialog.close());
 
-                HorizontalLayout dialogButtons = new HorizontalLayout(confirmDeleteButton, cancelDeleteButton);
-                dialogButtons.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-                dialogButtons.setWidthFull();
-                confirmDialog.add(dialogButtons);
-                confirmDialog.open();
-            });
-
-            headerLayout.add(leftSpacer, timeTitle, rightSpacer, deleteButton);
             headerLayout.setWidthFull();
             headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
             timeCard.add(headerLayout);
 
             // Monitor dei parametri vitali per questo tempo
-            List<ParametroAggiuntivo> parametriAggiuntivi = advancedScenarioService.getParametriAggiuntiviByTempoId(tempo.getIdTempo(), scenarioId);
+            List<ParametroAggiuntivo> parametriAggiuntivi = config.getService().getParametriAggiuntiviByTempoId(tempo.getIdTempo(), config.getScenarioId());
             VitalSignsDataProvider tempoDataProvider = new TempoVitalSignsAdapter(tempo, parametriAggiuntivi);
-            Component vitalSignsMonitorComponent = MonitorSupport.createVitalSignsMonitor(tempoDataProvider, scenarioId, false, null, null, advancedScenarioService, tempo.getIdTempo());
+            Component vitalSignsMonitorComponent = MonitorSupport.createVitalSignsMonitor(tempoDataProvider, config.getScenarioId(), false, null, null, config.getService(), tempo.getIdTempo(), config.isEditable());
             Div monitorWrapper = new Div(vitalSignsMonitorComponent);
             monitorWrapper.getStyle().set("display", "flex").set("justify-content", "center").set("margin-bottom", "var(--lumo-space-m)");
 
@@ -274,9 +277,15 @@ public class TimesSupport {
 
             // Sezione Azione
             Div azioneSection = createStyledSectionContainer(AZIONE_BORDER_COLOR);
-            Button editAzioneButton = StyleApp.getButton("", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
-            editAzioneButton.setTooltipText("Modifica Azione per T" + tempo.getIdTempo());
-            HorizontalLayout azioneTitleLayout = createSectionTitle(VaadinIcon.PLAY_CIRCLE_O.create(), "Azione", editAzioneButton);
+            HorizontalLayout azioneTitleLayout;
+            Button editAzioneButton = new Button();
+            if (config.isEditable()) {
+                editAzioneButton = StyleApp.getButton("", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
+                editAzioneButton.setTooltipText("Modifica Azione per T" + tempo.getIdTempo());
+                azioneTitleLayout = createSectionTitle(VaadinIcon.PLAY_CIRCLE_O.create(), "Azione", editAzioneButton);
+            } else {
+                azioneTitleLayout = createSectionTitle(VaadinIcon.PLAY_CIRCLE_O.create(), "Azione");
+            }
             azioneSection.add(azioneTitleLayout);
 
             Div azioneContentWrapper = new Div();
@@ -296,45 +305,51 @@ public class TimesSupport {
             azioneTextArea.getStyle().set("min-height", "100px");
             azioneTextArea.setVisible(false);
 
-            final AtomicReference<HorizontalLayout> azioneSaveCancelLayoutRef = new AtomicReference<>();
+            if (config.isEditable()) {
+                final AtomicReference<HorizontalLayout> azioneSaveCancelLayoutRef = new AtomicReference<>();
 
-            Runnable saveAzioneRunnable = () -> {
-                String newValue = azioneTextArea.getValue();
-                advancedScenarioService.setAzione(tempo.getIdTempo(), scenarioId, newValue); // Salva l'azione
-                azioneParagraph.setText(newValue); // Aggiorna il testo visualizzato
-                azioneParagraph.setVisible(true);
-                azioneTextArea.setVisible(false);
-                if (azioneSaveCancelLayoutRef.get() != null) {
-                    azioneSaveCancelLayoutRef.get().setVisible(false);
-                }
-                editAzioneButton.setVisible(true);
-                Notification.show("Azione aggiornata.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            };
+                Button finalEditAzioneButton = editAzioneButton;
+                Runnable saveAzioneRunnable = () -> {
+                    String newValue = azioneTextArea.getValue();
+                    config.getService().setAzione(tempo.getIdTempo(), config.getScenarioId(), newValue); // Salva l'azione
+                    azioneParagraph.setText(newValue); // Aggiorna il testo visualizzato
+                    azioneParagraph.setVisible(true);
+                    azioneTextArea.setVisible(false);
+                    if (azioneSaveCancelLayoutRef.get() != null) {
+                        azioneSaveCancelLayoutRef.get().setVisible(false);
+                    }
+                    finalEditAzioneButton.setVisible(true);
+                    Notification.show("Azione aggiornata.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                };
 
-            Runnable cancelAzioneRunnable = () -> {
-                azioneTextArea.setValue(azioneParagraph.getText()); // Ripristina il testo originale
-                azioneParagraph.setVisible(true);
-                azioneTextArea.setVisible(false);
-                if (azioneSaveCancelLayoutRef.get() != null) {
-                    azioneSaveCancelLayoutRef.get().setVisible(false);
-                }
-                editAzioneButton.setVisible(true);
-            };
+                Button finalEditAzioneButton1 = editAzioneButton;
+                Runnable cancelAzioneRunnable = () -> {
+                    azioneTextArea.setValue(azioneParagraph.getText()); // Ripristina il testo originale
+                    azioneParagraph.setVisible(true);
+                    azioneTextArea.setVisible(false);
+                    if (azioneSaveCancelLayoutRef.get() != null) {
+                        azioneSaveCancelLayoutRef.get().setVisible(false);
+                    }
+                    finalEditAzioneButton1.setVisible(true);
+                };
 
-            HorizontalLayout currentAzioneSaveCancelLayout = createSaveCancelButtons(saveAzioneRunnable, cancelAzioneRunnable);
-            azioneSaveCancelLayoutRef.set(currentAzioneSaveCancelLayout);
-            currentAzioneSaveCancelLayout.setVisible(false);
-            azioneContentWrapper.add(azioneTextArea, currentAzioneSaveCancelLayout);
-            azioneSection.add(azioneContentWrapper);
+                HorizontalLayout currentAzioneSaveCancelLayout = createSaveCancelButtons(saveAzioneRunnable, cancelAzioneRunnable);
+                azioneSaveCancelLayoutRef.set(currentAzioneSaveCancelLayout);
+                currentAzioneSaveCancelLayout.setVisible(false);
+                azioneContentWrapper.add(azioneTextArea, currentAzioneSaveCancelLayout);
+                azioneSection.add(azioneContentWrapper);
 
-            editAzioneButton.addClickListener(e -> {
-                azioneParagraph.setVisible(false);
-                azioneTextArea.setVisible(true);
-                if (azioneSaveCancelLayoutRef.get() != null) {
-                    azioneSaveCancelLayoutRef.get().setVisible(true);
-                }
-                editAzioneButton.setVisible(false);
-            });
+                Button finalEditAzioneButton2 = editAzioneButton;
+                editAzioneButton.addClickListener(e -> {
+                    azioneParagraph.setVisible(false);
+                    azioneTextArea.setVisible(true);
+                    if (azioneSaveCancelLayoutRef.get() != null) {
+                        azioneSaveCancelLayoutRef.get().setVisible(true);
+                    }
+                    finalEditAzioneButton2.setVisible(false);
+                });
+            }
+
 
             // Sezione Transizioni (visibile solo se ci sono transizioni definite)
             if (tempo.getTSi() >= 0 || tempo.getTNo() > 0) {
@@ -351,7 +366,10 @@ public class TimesSupport {
                 transitionsLabel.getStyle().set("font-weight", "500").set("color", "var(--lumo-body-text-color)").set("font-size", "var(--lumo-font-size-s)");
                 Div thSpacer = new Div();
                 thSpacer.getStyle().set("flex-grow", "1");
-                transitionsHeaderLayout.add(transitionsLabel, thSpacer, editTransitionsButton);
+                if (config.isEditable())
+                    transitionsHeaderLayout.add(transitionsLabel, thSpacer, editTransitionsButton);
+                else
+                    transitionsHeaderLayout.add(transitionsLabel, thSpacer);
 
                 azioneSection.add(transitionSeparator, transitionsHeaderLayout);
 
@@ -404,7 +422,7 @@ public class TimesSupport {
                 Runnable saveTransitionsRunnable = () -> {
                     int newTSi = tsiNumberField.getValue() != null ? tsiNumberField.getValue().intValue() : tempo.getTSi();
                     int newTNo = tnoNumberField.getValue() != null ? tnoNumberField.getValue().intValue() : tempo.getTNo();
-                    advancedScenarioService.setTransitions(tempo.getIdTempo(), scenarioId, newTSi, newTNo); // Salva le transizioni
+                    config.getService().setTransitions(tempo.getIdTempo(), config.getScenarioId(), newTSi, newTNo); // Salva le transizioni
                     transitionsLayout.setVisible(true);
                     noTransitionsDefinedMsg.setVisible(transitionsLayout.getComponentCount() == 0);
                     editTransitionsForm.setVisible(false);
@@ -442,6 +460,7 @@ public class TimesSupport {
                     }
                     editTransitionsButton.setVisible(false);
                 });
+
             }
             detailsAndActionsContainer.add(azioneSection);
 
@@ -449,7 +468,12 @@ public class TimesSupport {
             Div dettagliSection = createStyledSectionContainer(DETTAGLI_BORDER_COLOR);
             Button editDettagliButton = StyleApp.getButton("", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
             editDettagliButton.setTooltipText("Modifica Dettagli Aggiuntivi per T" + tempo.getIdTempo());
-            HorizontalLayout dettagliTitleLayout = createSectionTitle(VaadinIcon.INFO_CIRCLE_O.create(), "Dettagli Aggiuntivi", editDettagliButton);
+            HorizontalLayout dettagliTitleLayout;
+            if (config.isEditable())
+                dettagliTitleLayout = createSectionTitle(VaadinIcon.INFO_CIRCLE_O.create(), "Dettagli Aggiuntivi", editDettagliButton);
+            else
+                dettagliTitleLayout = createSectionTitle(VaadinIcon.INFO_CIRCLE_O.create(), "Dettagli Aggiuntivi");
+
             dettagliSection.add(dettagliTitleLayout);
 
             Div dettagliContentWrapper = new Div();
@@ -474,7 +498,7 @@ public class TimesSupport {
 
             Runnable saveDettagliRunnable = () -> {
                 String newValue = dettagliTextArea.getValue();
-                advancedScenarioService.setDettagliAggiuntivi(tempo.getIdTempo(), scenarioId, newValue); // Salva i dettagli
+                config.getService().setDettagliAggiuntivi(tempo.getIdTempo(), config.getScenarioId(), newValue); // Salva i dettagli
                 dettagliParagraph.setText(newValue);
                 dettagliParagraph.setVisible(true);
                 dettagliTextArea.setVisible(false);
@@ -516,7 +540,11 @@ public class TimesSupport {
                 Div ruoloSection = createStyledSectionContainer(RUOLO_BORDER_COLOR);
                 Button editRuoloButton = StyleApp.getButton("", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
                 editRuoloButton.setTooltipText("Modifica Ruolo Genitore per T" + tempo.getIdTempo());
-                HorizontalLayout ruoloTitleLayout = createSectionTitle(FontAwesome.Solid.CHILD_REACHING.create(), "Ruolo Genitore", editRuoloButton);
+                HorizontalLayout ruoloTitleLayout;
+                if (config.isEditable())
+                    ruoloTitleLayout = createSectionTitle(FontAwesome.Solid.CHILD_REACHING.create(), "Ruolo Genitore", editRuoloButton);
+                else
+                    ruoloTitleLayout = createSectionTitle(FontAwesome.Solid.CHILD_REACHING.create(), "Ruolo Genitore");
                 ruoloSection.add(ruoloTitleLayout);
 
                 Div ruoloContentWrapper = new Div();
@@ -541,7 +569,7 @@ public class TimesSupport {
 
                 Runnable saveRuoloRunnable = () -> {
                     String newValue = ruoloTextArea.getValue();
-                    advancedScenarioService.setRuoloGenitore(tempo.getIdTempo(), scenarioId, newValue); // Salva il ruolo
+                    config.getService().setRuoloGenitore(tempo.getIdTempo(), config.getScenarioId(), newValue); // Salva il ruolo
                     ruoloParagraph.setText(newValue);
                     ruoloParagraph.setVisible(true);
                     ruoloTextArea.setVisible(false);
@@ -587,18 +615,20 @@ public class TimesSupport {
             cardWrapper.setPadding(false);
             layout.add(cardWrapper);
         }
-        // Pulsante per aggiungere nuovi tempi
-        HorizontalLayout buttonContainer = new HorizontalLayout();
-        buttonContainer.setWidthFull();
-        buttonContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        if (config.isShowAddButton()) {
+            HorizontalLayout buttonContainer = new HorizontalLayout();
+            buttonContainer.setWidthFull();
+            buttonContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
-        Button addNewTimesButton = StyleApp.getButton("Aggiungi Nuovi Tempi", VaadinIcon.PLUS.create(), ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
-        addNewTimesButton.addThemeVariants(ButtonVariant.LUMO_LARGE);
-        addNewTimesButton.getStyle().set("background-color", "var(--lumo-success-color"); // Colore verde per l'aggiunta
-        addNewTimesButton.addClickListener(ev -> UI.getCurrent().navigate("tempi/" + scenarioId + "/edit")); // Naviga alla pagina di modifica tempi
+            Button addNewTimesButton = StyleApp.getButton("Aggiungi Nuovi Tempi", VaadinIcon.PLUS.create(), ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
+            addNewTimesButton.addThemeVariants(ButtonVariant.LUMO_LARGE);
+            addNewTimesButton.getStyle().set("background-color", "var(--lumo-success-color"); // Colore verde per l'aggiunta
+            addNewTimesButton.addClickListener(ev -> UI.getCurrent().navigate("tempi/" + config.getScenarioId() + "/edit")); // Naviga alla pagina di modifica tempi
 
-        buttonContainer.add(addNewTimesButton);
-        layout.add(buttonContainer);
+            buttonContainer.add(addNewTimesButton);
+            layout.add(buttonContainer);
+        }
+
         return layout;
     }
 

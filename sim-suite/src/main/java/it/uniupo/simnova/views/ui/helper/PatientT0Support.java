@@ -87,7 +87,7 @@ public class PatientT0Support {
             // Crea il monitor dei parametri vitali, passando i dati del paziente T0
             VitalSignsDataProvider t0DataProvider = new PazienteT0VitalSignsAdapter(paziente);
             Component vitalSignsMonitor = MonitorSupport.createVitalSignsMonitor(
-                    t0DataProvider, scenarioId, true, presidiService, pazienteT0Service, advancedScenarioService, null);
+                    t0DataProvider, scenarioId, true, presidiService, pazienteT0Service, advancedScenarioService, null, true);
             patientCard.add(vitalSignsMonitor);
 
             // Crea la card per gli accessi venosi e arteriosi

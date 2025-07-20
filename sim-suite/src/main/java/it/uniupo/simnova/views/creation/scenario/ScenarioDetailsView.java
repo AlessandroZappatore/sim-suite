@@ -20,6 +20,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.domain.scenario.Scenario;
 import it.uniupo.simnova.domain.common.Tempo;
 import it.uniupo.simnova.service.scenario.components.*;
+import it.uniupo.simnova.service.scenario.helper.TimelineConfiguration;
 import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
 import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
 import it.uniupo.simnova.service.storage.FileStorageService;
@@ -461,8 +462,12 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         List<Tempo> tempi = advancedScenarioService.getTempiByScenarioId(scenarioId);
         if (!tempi.isEmpty()) {
             Tab tabTimeline = createTabWithIcon("Timeline", VaadinIcon.CLOCK);
-            Component timelineContent = TimesSupport.createTimelineContent(tempi, scenarioId, advancedScenarioService, scenarioService.isPediatric(scenarioId));
-            tabsToContent.put(tabTimeline, timelineContent);
+            TimelineConfiguration editableConfig = new TimelineConfiguration(advancedScenarioService, scenarioId, true);
+            Component timelineContent = TimesSupport.createTimelineContent(
+                    tempi,
+                    scenarioService.isPediatric(scenarioId),
+                    editableConfig // Pass the editable config
+            );            tabsToContent.put(tabTimeline, timelineContent);
             enhancedTabs.add(tabTimeline);
             logger.debug("Scheda 'Timeline' aggiunta per lo scenario ID {}.", scenarioId);
         } else {

@@ -6,16 +6,15 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.html.Image;
-import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.theme.lumo.LumoUtility;
@@ -27,6 +26,7 @@ import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.service.scenario.components.AzioneChiaveService;
 import it.uniupo.simnova.service.scenario.components.EsameRefertoService;
 import it.uniupo.simnova.service.scenario.components.MaterialeService;
+import it.uniupo.simnova.service.scenario.helper.TimelineConfiguration;
 import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
 import it.uniupo.simnova.service.storage.FileStorageService;
 import it.uniupo.simnova.views.common.components.AppHeader;
@@ -48,16 +48,28 @@ import java.util.Optional;
 @CssImport("./themes/sim.suite/views/execution-view.css")
 public class ExecutionView extends Composite<VerticalLayout> implements HasUrlParameter<String>, BeforeEnterObserver {
     private static final Logger logger = LoggerFactory.getLogger(ExecutionView.class);
-
-    private Integer scenarioId;
     private final ScenarioService scenarioService;
     private final FileStorageService fileStorageService;
     private final MaterialeService materialeService;
     private final AzioneChiaveService azioneChiaveService;
     private final EsameRefertoService esameRefertoService;
     private final AdvancedScenarioService advancedScenarioService;
+    private Integer scenarioId;
     private Scenario scenario;
 
+
+    @Autowired
+    public ExecutionView(ScenarioService scenarioService, FileStorageService fileStorageService,
+                         MaterialeService materialeService, AzioneChiaveService azioneChiaveService,
+                         EsameRefertoService esameRefertoService, AdvancedScenarioService advancedScenarioService) {
+        this.scenarioService = scenarioService;
+        this.fileStorageService = fileStorageService;
+        this.materialeService = materialeService;
+        this.azioneChiaveService = azioneChiaveService;
+        this.esameRefertoService = esameRefertoService;
+        this.advancedScenarioService = advancedScenarioService;
+        logger.info("Inizializzazione della vista di esecuzione con ID scenario predefinito: {}", scenarioId);
+    }
 
     @Override
     public void setParameter(BeforeEvent event, String parameter) {
@@ -86,19 +98,6 @@ public class ExecutionView extends Composite<VerticalLayout> implements HasUrlPa
         }
     }
 
-    @Autowired
-    public ExecutionView(ScenarioService scenarioService, FileStorageService fileStorageService,
-                         MaterialeService materialeService, AzioneChiaveService azioneChiaveService,
-                         EsameRefertoService esameRefertoService, AdvancedScenarioService advancedScenarioService) {
-        this.scenarioService = scenarioService;
-        this.fileStorageService = fileStorageService;
-        this.materialeService = materialeService;
-        this.azioneChiaveService = azioneChiaveService;
-        this.esameRefertoService = esameRefertoService;
-        this.advancedScenarioService = advancedScenarioService;
-        logger.info("Inizializzazione della vista di esecuzione con ID scenario predefinito: {}", scenarioId);
-    }
-
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         if (scenarioId == null) {
@@ -122,13 +121,15 @@ public class ExecutionView extends Composite<VerticalLayout> implements HasUrlPa
 
     private void initView() {
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
+        mainLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
         backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("")));
 
         ReusableTimer generalTimer = new ReusableTimer(
                 "Timer Generale",
-                20,
+                Math.round(scenario.getTimerGenerale()),
                 Notification.Position.MIDDLE
         );
         generalTimer.getStyle().set("margin-bottom", "var(--lumo-space-m)");
@@ -141,9 +142,12 @@ public class ExecutionView extends Composite<VerticalLayout> implements HasUrlPa
 
         HorizontalLayout threeColumnLayout = new HorizontalLayout();
         threeColumnLayout.setWidthFull();
+        threeColumnLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        threeColumnLayout.setAlignItems(FlexComponent.Alignment.START);
+        threeColumnLayout.setSpacing(true);
 
         VerticalLayout leftSidebar = new VerticalLayout();
-        leftSidebar.setWidth("220px");
+        leftSidebar.setWidth("20%");
         leftSidebar.setSpacing(true);
         leftSidebar.addClassName("sticky-sidebar");
 
@@ -223,15 +227,21 @@ public class ExecutionView extends Composite<VerticalLayout> implements HasUrlPa
         VerticalLayout centerContent = new VerticalLayout();
         List<Tempo> tempi = advancedScenarioService.getTempiByScenarioId(scenarioId);
         if (!tempi.isEmpty()) {
-            Component timelineContent = TimesSupport.createTimelineContent(tempi, scenarioId, advancedScenarioService, scenarioService.isPediatric(scenarioId));
-            logger.debug("Scheda 'Timeline' aggiunta per lo scenario ID {}.", scenarioId);
+            TimelineConfiguration readOnlyConfig = getTimelineConfiguration();
+
+            Component timelineContent = TimesSupport.createTimelineContent(
+                    tempi,
+                    scenarioService.isPediatric(scenarioId),
+                    readOnlyConfig
+            );
+
             centerContent.add(timelineContent);
         } else {
             logger.debug("Nessun tempo trovato per lo scenario ID {}. Scheda 'Timeline' non aggiunta.", scenarioId);
         }
 
         VerticalLayout rightSidebar = new VerticalLayout();
-        rightSidebar.setWidth("300px");
+        rightSidebar.setWidth("20%");
         rightSidebar.setSpacing(false);
         rightSidebar.addClassName("sticky-sidebar");
 
@@ -292,6 +302,52 @@ public class ExecutionView extends Composite<VerticalLayout> implements HasUrlPa
 
         HorizontalLayout footerSection = StyleApp.getFooterLayout(null);
         mainLayout.add(customHeader, contentLayout, footerSection);
+    }
+
+    private TimelineConfiguration getTimelineConfiguration() {
+        TimelineConfiguration readOnlyConfig = new TimelineConfiguration(advancedScenarioService, scenarioId, false);
+
+        readOnlyConfig.setHeaderGenerator((tempo, config) -> {
+            VerticalLayout timeHeader = new VerticalLayout();
+            timeHeader.setSpacing(false);
+            timeHeader.setPadding(false);
+            timeHeader.setAlignItems(FlexComponent.Alignment.CENTER);
+
+            H3 timeTitle = new H3("T" + tempo.getIdTempo());
+            timeTitle.getStyle().set("margin-bottom", "var(--lumo-space-s)");
+
+            ReusableTimer timer = new ReusableTimer(
+                    "Timer T" + tempo.getIdTempo(),
+                    (int) tempo.getTimerTempo() / 60,
+                    Notification.Position.BOTTOM_START
+            );
+            timer.getStyle().set("font-size", "var(--lumo-font-size-xl)");
+            timer.getStyle().set("margin-bottom", "var(--lumo-space-m)");
+
+            timeHeader.add(timeTitle, timer);
+            return timeHeader;
+        });
+
+        readOnlyConfig.setCardCustomizer((cardWrapper, tempo) -> {
+            VerticalLayout notesSection = new VerticalLayout();
+            notesSection.setWidthFull();
+            notesSection.getStyle()
+                    .set("background-color", "var(--lumo-contrast-5pct)")
+                    .set("border-radius", "var(--lumo-border-radius-m)")
+                    .set("padding", "var(--lumo-space-m)");
+
+            H4 notesTitle = new H4("Note Esecuzione");
+            notesTitle.getStyle().set("margin-top", "0");
+
+            TextArea notesArea = new TextArea();
+            notesArea.setPlaceholder("Scrivi qui le tue note per lo step T" + tempo.getIdTempo() + "...");
+            notesArea.setWidthFull();
+
+            notesSection.add(notesTitle, notesArea);
+
+            cardWrapper.add(notesSection);
+        });
+        return readOnlyConfig;
     }
 
     private void showInfoDialog(String title, String content) {

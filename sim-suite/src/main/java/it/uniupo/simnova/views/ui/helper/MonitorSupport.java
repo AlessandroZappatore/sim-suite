@@ -147,7 +147,8 @@ public class MonitorSupport {
                                                     PresidiService presidiService,
                                                     PazienteT0Service pazienteT0Service,
                                                     AdvancedScenarioService advancedScenarioService,
-                                                    Integer tempoId) {
+                                                    Integer tempoId,
+                                                    boolean isEditable) {
         // Inietta lo stile CSS per l'animazione di flash una sola volta nell'head del documento
         UI currentUI = UI.getCurrent();
         if (currentUI != null && currentUI.getPage() != null) {
@@ -219,10 +220,10 @@ public class MonitorSupport {
         // Creazione dei box per i parametri vitali predefiniti
         if (dataProvider.getPA() != null && !dataProvider.getPA().isEmpty()) {
             vitalSignsLayout.add(createVitalSignBox("PA", dataProvider.getPA(), "mmHg",
-                    "var(--lumo-primary-color)", null, null, null, null, null, advancedScenarioService, scenarioId, tempoId, null));
+                    "var(--lumo-primary-color)", null, null, null, null, null, advancedScenarioService, scenarioId, tempoId, null, isEditable));
         } else {
             vitalSignsLayout.add(createVitalSignBox("PA", NULL_DISPLAY_VALUE, "mmHg",
-                    "var(--lumo-secondary-text-color)", null, null, null, null, null, advancedScenarioService, scenarioId, tempoId, null));
+                    "var(--lumo-secondary-text-color)", null, null, null, null, null, advancedScenarioService, scenarioId, tempoId, null, isEditable));
         }
 
         final Double FC_CRITICAL_LOW = 40.0;
@@ -232,7 +233,7 @@ public class MonitorSupport {
         vitalSignsLayout.add(createVitalSignBox("FC",
                 formatDisplayValue(dataProvider.getFC()), "bpm",
                 "var(--lumo-primary-color)", toDouble(dataProvider.getFC()),
-                FC_CRITICAL_LOW, FC_CRITICAL_HIGH, FC_WARNING_LOW, FC_WARNING_HIGH, advancedScenarioService, scenarioId, tempoId, null));
+                FC_CRITICAL_LOW, FC_CRITICAL_HIGH, FC_WARNING_LOW, FC_WARNING_HIGH, advancedScenarioService, scenarioId, tempoId, null, isEditable));
 
         if (dataProvider.getT() != null && dataProvider.getT() > -50) { // Valore -50 come discriminante per temperatura valida
             final double MIN_CRITICAL_TEMP = 35.0;
@@ -242,11 +243,11 @@ public class MonitorSupport {
             vitalSignsLayout.add(createVitalSignBox("T",
                     formatDisplayValue(dataProvider.getT(), "%.1f"), "°C",
                     "var(--lumo-success-color)", toDouble(dataProvider.getT()),
-                    MIN_CRITICAL_TEMP, MAX_CRITICAL_TEMP, MIN_WARNING_TEMP, MAX_WARNING_TEMP, advancedScenarioService, scenarioId, tempoId, null));
+                    MIN_CRITICAL_TEMP, MAX_CRITICAL_TEMP, MIN_WARNING_TEMP, MAX_WARNING_TEMP, advancedScenarioService, scenarioId, tempoId, null, isEditable));
         } else {
             vitalSignsLayout.add(createVitalSignBox("T", NULL_DISPLAY_VALUE, "°C",
                     "var(--lumo-secondary-text-color)", null,
-                    null, null, null, null, advancedScenarioService, scenarioId, tempoId, null));
+                    null, null, null, null, advancedScenarioService, scenarioId, tempoId, null, isEditable));
         }
 
         final Double RR_CRITICAL_LOW = 10.0;
@@ -256,24 +257,24 @@ public class MonitorSupport {
         vitalSignsLayout.add(createVitalSignBox("RR",
                 formatDisplayValue(dataProvider.getRR()), "rpm",
                 "var(--lumo-tertiary-color)", toDouble(dataProvider.getRR()),
-                RR_CRITICAL_LOW, RR_CRITICAL_HIGH, RR_WARNING_LOW, RR_WARNING_HIGH, advancedScenarioService, scenarioId, tempoId, null));
+                RR_CRITICAL_LOW, RR_CRITICAL_HIGH, RR_WARNING_LOW, RR_WARNING_HIGH, advancedScenarioService, scenarioId, tempoId, null, isEditable));
 
         final Double SPO2_CRITICAL_LOW = 90.0;
         final Double SPO2_WARNING_LOW = 94.0;
         vitalSignsLayout.add(createVitalSignBox("SpO₂",
                 formatDisplayValue(dataProvider.getSpO2()), "%",
                 "var(--lumo-contrast)", toDouble(dataProvider.getSpO2()),
-                SPO2_CRITICAL_LOW, null, SPO2_WARNING_LOW, null, advancedScenarioService, scenarioId, tempoId, null));
+                SPO2_CRITICAL_LOW, null, SPO2_WARNING_LOW, null, advancedScenarioService, scenarioId, tempoId, null, isEditable));
 
         vitalSignsLayout.add(createVitalSignBox("FiO₂",
                 formatDisplayValue(dataProvider.getFiO2()), "%",
                 "var(--lumo-primary-color-50pct)", toDouble(dataProvider.getFiO2()),
-                null, null, null, null, advancedScenarioService, scenarioId, tempoId, null));
+                null, null, null, null, advancedScenarioService, scenarioId, tempoId, null, isEditable));
 
         vitalSignsLayout.add(createVitalSignBox("Litri O₂",
                 formatDisplayValue(dataProvider.getLitriO2()), "Litri/m",
                 "var(--lumo-contrast-70pct)", toDouble(dataProvider.getLitriO2()),
-                null, null, null, null, advancedScenarioService, scenarioId, tempoId, null));
+                null, null, null, null, advancedScenarioService, scenarioId, tempoId, null, isEditable));
 
         final Double ETCO2_CRITICAL_LOW = 25.0;
         final Double ETCO2_CRITICAL_HIGH = 60.0;
@@ -282,7 +283,7 @@ public class MonitorSupport {
         vitalSignsLayout.add(createVitalSignBox("EtCO₂",
                 formatDisplayValue(dataProvider.getEtCO2()), "mmHg",
                 "var(--lumo-warning-color)", toDouble(dataProvider.getEtCO2()),
-                ETCO2_CRITICAL_LOW, ETCO2_CRITICAL_HIGH, ETCO2_WARNING_LOW, ETCO2_WARNING_HIGH, advancedScenarioService, scenarioId, tempoId, null));
+                ETCO2_CRITICAL_LOW, ETCO2_CRITICAL_HIGH, ETCO2_WARNING_LOW, ETCO2_WARNING_HIGH, advancedScenarioService, scenarioId, tempoId, null, isEditable));
 
         // Gestione dei parametri aggiuntivi
         List<ParametroAggiuntivo> additionalParamsList = dataProvider.getAdditionalParameters();
@@ -333,7 +334,7 @@ public class MonitorSupport {
                 Div paramBox = createVitalSignBox(label, value, unit, color,
                         null, null, null, null, null, // Nessuna soglia per i custom params
                         advancedScenarioService, scenarioId, tempoId,
-                        onDelete
+                        onDelete, isEditable
                 );
                 boxHolder[0] = paramBox;
                 vitalSignsLayout.add(paramBox);
@@ -351,9 +352,11 @@ public class MonitorSupport {
                 tempoId,
                 advancedScenarioService,
                 finalAdditionalParamsList,
-                vitalSignsLayout
+                vitalSignsLayout,
+                isEditable
         ));
-        monitorContainer.add(addParamButton);
+        if (isEditable)
+            monitorContainer.add(addParamButton);
 
         // Sezione per il testo aggiuntivo del monitoraggio
         String additionalText = dataProvider.getAdditionalMonitorText();
@@ -593,7 +596,8 @@ public class MonitorSupport {
             Integer tempoId,
             AdvancedScenarioService advancedScenarioService,
             List<ParametroAggiuntivo> currentAdditionalParams,
-            HorizontalLayout vitalSignsLayout) {
+            HorizontalLayout vitalSignsLayout,
+            boolean isEditable) {
 
         Dialog addParamDialog = new Dialog();
         addParamDialog.setHeaderTitle("Nuovo Parametro Aggiuntivo");
@@ -709,7 +713,7 @@ public class MonitorSupport {
                         color,
                         null, null, null, null, null,
                         advancedScenarioService, scenarioId, tempoId,
-                        onDeleteNewParam
+                        onDeleteNewParam, isEditable
                 );
                 newBoxHolder[0] = newParamBox;
                 vitalSignsLayout.add(newParamBox);
@@ -752,7 +756,8 @@ public class MonitorSupport {
                                           Double criticalLowThreshold, Double criticalHighThreshold,
                                           Double warningLowThreshold, Double warningHighThreshold,
                                           AdvancedScenarioService advancedScenarioService, Integer scenarioId, Integer tempoId,
-                                          Runnable onDeleteCallback) {
+                                          Runnable onDeleteCallback,
+                                          boolean isEditable) {
         Div box = new Div();
         box.getStyle()
                 .set("border", "1px solid var(--lumo-contrast-10pct)")
@@ -871,7 +876,8 @@ public class MonitorSupport {
         editButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_SMALL);
         editButton.setTooltipText("Modifica " + label);
 
-        topRightControls.add(editButton);
+        if (isEditable)
+            topRightControls.add(editButton);
 
         // Aggiunge il pulsante di eliminazione se un callback è fornito (per parametri aggiuntivi)
         if (onDeleteCallback != null) {
@@ -879,7 +885,8 @@ public class MonitorSupport {
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
             deleteButton.setTooltipText("Elimina " + label);
             deleteButton.addClickListener(e -> onDeleteCallback.run());
-            topRightControls.add(deleteButton);
+            if (isEditable)
+                topRightControls.add(deleteButton);
         }
 
         HorizontalLayout labelAndControlsLayout = new HorizontalLayout(labelSpan, topRightControls);
