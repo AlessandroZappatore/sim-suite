@@ -10,8 +10,6 @@ import java.util.List;
 
 @Repository
 public interface ScenarioRepository extends JpaRepository<Scenario, Integer> {
-    List<Scenario> findByTipologiaPazienteIgnoreCase(String tipologiaPaziente);
-
     @Query("SELECT new it.uniupo.simnova.dto.ScenarioSummaryDTO(s.id, s.titolo, s.autori, s.patologia, s.descrizione, s.tipologiaPaziente) FROM Scenario s")
     List<ScenarioSummaryDTO> findAllSummaries();
 }

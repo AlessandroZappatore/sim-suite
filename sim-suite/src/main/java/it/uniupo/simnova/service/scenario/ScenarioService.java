@@ -20,9 +20,9 @@ import java.util.Optional;
  * la determinazione del tipo di scenario (Quick, Advanced, Patient Simulated).
  *
  * @author Alessandro Zappatore
- * @version 1.0
+ * @version 2.0
  */
-@SuppressWarnings({"LoggingSimilarMessage"}) // Sopprime l'avviso di PMD per messaggi di log simili, usato con cautela.
+@SuppressWarnings({"LoggingSimilarMessage"})
 @Service
 public class ScenarioService {
 

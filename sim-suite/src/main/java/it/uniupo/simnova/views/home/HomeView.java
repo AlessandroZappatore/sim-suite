@@ -25,7 +25,7 @@ import it.uniupo.simnova.views.common.components.CreditsComponent;
  * @version 1.0
  */
 @PageTitle("Home")
-@Route("")
+@Route("Home")
 public class HomeView extends Composite<VerticalLayout> {
 
     /**

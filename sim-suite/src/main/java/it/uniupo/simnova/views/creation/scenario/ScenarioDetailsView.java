@@ -467,7 +467,8 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                     tempi,
                     scenarioService.isPediatric(scenarioId),
                     editableConfig // Pass the editable config
-            );            tabsToContent.put(tabTimeline, timelineContent);
+            );
+            tabsToContent.put(tabTimeline, timelineContent);
             enhancedTabs.add(tabTimeline);
             logger.debug("Scheda 'Timeline' aggiunta per lo scenario ID {}.", scenarioId);
         } else {
@@ -512,7 +513,25 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
                 .set("margin", "0");
 
         tabsContainer.add(enhancedTabs, contentContainer); // Aggiunge le schede e il loro contenitore.
-        contentLayout.add(headerSection, titleContainer, subtitle, tabsContainer); // Aggiunge le sezioni al layout del contenuto.
+
+        Button executionButton = StyleApp.getButton(
+                "Esegui Scenario",
+                VaadinIcon.PLAY.create(),
+                ButtonVariant.LUMO_PRIMARY,
+                "var(--lumo-primary-color)"
+        );
+        executionButton.setTooltipText("Esegui lo scenario selezionato");
+        executionButton.getStyle().set("margin-bottom", "var(--lumo-space-m)");
+        executionButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_LARGE);
+
+        executionButton.addClickListener(e -> UI.getCurrent().navigate("execution/" + scenarioId));
+        if (scenarioType.equals("Patient Simulated Scenario") || scenarioType.equals("Advanced Scenario")) {
+            executionButton.setVisible(true);
+        } else {
+            executionButton.setVisible(false);
+            logger.debug("Bottone 'Esegui Scenario' nascosto per lo scenario ID {} di tipo '{}'.", scenarioId, scenarioType);
+        }
+        contentLayout.add(headerSection, executionButton, titleContainer, subtitle, tabsContainer); // Aggiunge le sezioni al layout del contenuto.
 
         // Footer layout (potrebbe essere vuoto o contenere bottoni di navigazione generici).
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(null);

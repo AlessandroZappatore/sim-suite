@@ -176,8 +176,8 @@ public class ObiettivididatticiView extends Composite<VerticalLayout> implements
         if (scenarioOptional.isPresent()) {
             Scenario scenario = scenarioOptional.get();
 
-            if(scenario.getBriefing() != null && !scenario.getBriefing().isEmpty()) {
-                obiettiviEditor.setValue(scenario.getBriefing());
+            if(scenario.getObiettivo() != null && !scenario.getObiettivo().isEmpty()) {
+                obiettiviEditor.setValue(scenario.getObiettivo());
                 logger.debug("Obiettivi didattici caricati per lo scenario ID: {}.", scenarioId);
             }
             else {

@@ -857,7 +857,7 @@ public class TargetView extends Composite<VerticalLayout> implements HasUrlParam
             logger.info("Caricamento dati esistenti per lo scenario ID: {}", scenarioId);
         }
 
-        String targetString = scenario.getTarget().trim();
+        String targetString = scenario.getTarget() != null ? scenario.getTarget().trim() : "";
         logger.debug("Caricamento target esistente per lo scenario {}: '{}'.", scenarioId, targetString);
 
         resetAllFields(); // Resetta tutti i campi prima di popolare, per evitare dati obsoleti.

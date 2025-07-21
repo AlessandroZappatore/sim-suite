@@ -416,7 +416,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         scenariosGrid.setWidthFull();
         scenariosGrid.addClassName(LumoUtility.BorderRadius.MEDIUM);
         scenariosGrid.addClassName(LumoUtility.BoxShadow.SMALL);
-        scenariosGrid.getStyle().set("min-height", "400px");
+        scenariosGrid.getStyle().set("min-height", "410px");
 
         scenariosGrid.addColumn(new ComponentRenderer<>(scenario -> {
                     String patientType = scenario.getTipologiaPaziente() != null ? scenario.getTipologiaPaziente() : "Unknown";
@@ -586,6 +586,24 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                     actions.setPadding(false);
                     actions.setJustifyContentMode(FlexComponent.JustifyContentMode.START);
 
+                    Button executionButton;
+                    if (dto.getTipoScenario().equals("Quick Scenario")) {
+                        executionButton = new Button(FontAwesome.Solid.XMARK.create());
+                        executionButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY_INLINE);
+                        executionButton.getElement().setAttribute("title", "Non è possibile eseguire un Quick Scenario");
+                        executionButton.getStyle().set("margin-right", "var(--lumo-space-xs)");
+                    } else {
+                        executionButton = new Button(FontAwesome.Solid.PLAY.create());
+                        executionButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SUCCESS);
+                        executionButton.getElement().setAttribute("title", "Esegui scenario");
+                        executionButton.getStyle().set("margin-right", "var(--lumo-space-xs)");
+                        executionButton.addClickListener(e -> {
+                            if (!detached.get()) {
+                                getUI().ifPresent(ui -> ui.navigate("execution/" + dto.getId()));
+                            }
+                        });
+                    }
+
                     Button pdfButton = new Button(FontAwesome.Regular.FILE_PDF.create());
                     pdfButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE);
                     pdfButton.getElement().setAttribute("title", "Esporta in PDF");
@@ -615,11 +633,11 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                         }
                     });
 
-                    actions.add(pdfButton, simButton, deleteButton);
+                    actions.add(pdfButton, executionButton, simButton, deleteButton);
                     return actions;
                 }).setHeader("Azioni")
                 .setFlexGrow(0)
-                .setWidth("120px");
+                .setAutoWidth(true);
 
         // Listener per il click su una riga della griglia per navigare ai dettagli dello scenario
         scenariosGrid.addItemClickListener(event -> {

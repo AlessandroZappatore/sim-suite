@@ -1,6 +1,7 @@
 package it.uniupo.simnova;
 
 import com.vaadin.flow.component.page.AppShellConfigurator;
+import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.server.AppShellSettings;
 import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.theme.Theme;
@@ -26,6 +27,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @SpringBootApplication
 @EnableJpaRepositories("it.uniupo.simnova.repository")
 @Theme(value = "sim.suite") // Specifica il tema Vaadin utilizzato dall'applicazione
+@Push
 @PWA(
         name = "Sim Suite", // Nome completo dell'applicazione per la PWA
         shortName = "SimSuite", // Nome breve per la PWA (es. icona nella schermata home)

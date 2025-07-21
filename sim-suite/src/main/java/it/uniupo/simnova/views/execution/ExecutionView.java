@@ -125,7 +125,7 @@ public class ExecutionView extends Composite<VerticalLayout> implements HasUrlPa
 
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
-        backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("")));
+        backButton.addClickListener(event -> getUI().ifPresent(ui -> ui.navigate("scenari")));
 
         ReusableTimer generalTimer = new ReusableTimer(
                 "Timer Generale",
