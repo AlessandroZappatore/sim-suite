@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
@@ -24,6 +25,7 @@ import it.uniupo.simnova.views.common.components.CreditsComponent;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@CssImport(value = "./themes/sim.suite/views/style-app.css")
 public class StyleApp extends HorizontalLayout {
 
     /**
@@ -41,12 +43,8 @@ public class StyleApp extends HorizontalLayout {
      */
     public static Button getBackButton() {
         Button backButton = new Button("Indietro", new Icon(VaadinIcon.ARROW_LEFT));
-        backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY); // Stile terziario di Lumo.
-        backButton.getStyle()
-                .set("margin-right", "auto") // Spinge il pulsante a sinistra.
-                .set("transition", "all 0.2s ease") // Animazione fluida al passaggio del mouse.
-                .set("font-weight", "500");
-        backButton.addClassName("hover-effect"); // Classe CSS per effetti di hover.
+        backButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        backButton.addClassNames("back-button", "hover-effect");
 
         return backButton;
     }
@@ -70,12 +68,7 @@ public class StyleApp extends HorizontalLayout {
         headerSection.setSpacing(false);
         headerSection.setWidthFull();
         headerSection.setAlignItems(FlexComponent.Alignment.CENTER); // Centra il contenuto.
-        headerSection.getStyle()
-                .set("background", "var(--lumo-base-color)") // Sfondo bianco.
-                .set("border-radius", "8px")
-                .set("margin-top", "1rem")
-                .set("margin-bottom", "1rem")
-                .set("box-shadow", "0 2px 10px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0,0,0,0.1)"); // Ombra leggera.
+        headerSection.addClassName("header-section");
 
         HorizontalLayout titleWithIconLayout = new HorizontalLayout();
         titleWithIconLayout.setSpacing(true);
@@ -85,17 +78,13 @@ public class StyleApp extends HorizontalLayout {
 
         iconComponent.setSize("3em"); // Dimensione dell'icona.
         iconComponent.getStyle()
-                .set("margin-right", "0.25em")
                 .set("color", iconColor) // Colore dell'icona.
-                .set("background", iconColor + "1A") // Sfondo semi-trasparente per l'icona.
-                .set("padding", "10px")
-                .set("border-radius", "50%"); // Rende l'icona circolare.
+                .set("background", iconColor + "1A"); // Sfondo semi-trasparente per l'icona.
+        iconComponent.addClassName("icon-component");
 
         headerTitle.getStyle()
-                .set("color", iconColor) // Colore del titolo uguale all'icona.
-                .set("font-weight", "600")
-                .set("letter-spacing", "0.5px")
-                .set("text-align", "center");
+                .set("color", iconColor); // Colore del titolo uguale all'icona.
+        headerTitle.addClassName("header-title");
 
         titleWithIconLayout.add(iconComponent, headerTitle);
 
@@ -113,12 +102,7 @@ public class StyleApp extends HorizontalLayout {
         Paragraph subtitleParagraph = new Paragraph(subtitle);
         subtitleParagraph.addClassName(LumoUtility.Margin.Top.XSMALL);
         subtitleParagraph.addClassName(LumoUtility.Margin.Bottom.MEDIUM);
-        subtitleParagraph.getStyle()
-                .set("color", "var(--lumo-secondary-text-color)")
-                .set("max-width", "750px")
-                .set("text-align", "center")
-                .set("font-weight", "400")
-                .set("line-height", "1.6");
+        subtitleParagraph.addClassName("subtitle-paragraph");
 
         subtitleContainer.add(subtitleParagraph);
         headerSection.add(headerLayout, subtitleContainer);
@@ -158,23 +142,7 @@ public class StyleApp extends HorizontalLayout {
         footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         footerLayout.addClassName(LumoUtility.Border.TOP); // Bordo superiore.
-        footerLayout.getStyle()
-                .set("border-color", "var(--lumo-contrast-10pct)")
-                .set("background", "var(--lumo-contrast-5pct)") // Sfondo leggermente contrastato.
-                .set("box-shadow", "0 -2px 10px rgba(0, 0, 0, 0.03)"); // Ombra leggera dal basso.
-
-        // Inietta stili CSS globali per effetti di hover e active sui bottoni
-        UI.getCurrent().getPage().executeJs(
-                "if (!document.getElementById('custom-hover-active-styles')) {" +
-                        "  const styleElement = document.createElement('style');" +
-                        "  styleElement.id = 'custom-hover-active-styles';" +
-                        "  styleElement.innerHTML = '" +
-                        ".hover-effect:hover { transform: translateY(-2px); }" + // Sposta in alto al hover.
-                        "button:active { transform: scale(0.98); }" + // Scala leggermente al click.
-                        "  ';" +
-                        "  document.head.appendChild(styleElement);" +
-                        "}"
-        );
+        footerLayout.addClassName("footer-layout");
 
         CreditsComponent creditsLayout = new CreditsComponent(); // Componente crediti.
 
@@ -198,10 +166,7 @@ public class StyleApp extends HorizontalLayout {
         Button nextButton = new Button("Avanti", new Icon(VaadinIcon.ARROW_RIGHT));
         nextButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY); // Stile primario di Lumo.
         nextButton.setWidth("150px");
-        nextButton.getStyle()
-                .set("border-radius", "30px") // Pulsante arrotondato.
-                .set("font-weight", "600")
-                .set("transition", "transform 0.2s ease"); // Animazione fluida al passaggio del mouse.
+        nextButton.addClassNames("next-button");
         return nextButton;
     }
 
@@ -226,25 +191,10 @@ public class StyleApp extends HorizontalLayout {
         newButton.addThemeVariants(variant);
         newButton.setMaxWidth("280px");
         newButton.getStyle()
-                .set("border-radius", "30px")
-                .set("font-weight", "600")
-                .set("transition", "all 0.2s ease")
                 .set("background-color", "var(" + iconColor + "-10pct)") // Sfondo leggermente colorato.
                 .set("color", "var(" + iconColor + ")") // Colore del testo/icona.
-                .set("border", "1px solid var(" + iconColor + "-50pct)") // Bordo colorato.
-                .set("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.05)"); // Ombra leggera.
-
-        // Aggiunge effetti di hover tramite JavaScript per cambio colore e ombra.
-        newButton.getElement().executeJs(
-                "this.addEventListener('mouseover', function() { " +
-                        "  this.style.backgroundColor = 'var(" + iconColor + "-20pct)'; " +
-                        "  this.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)'; " +
-                        "});" +
-                        "this.addEventListener('mouseout', function() { " +
-                        "  this.style.backgroundColor = 'var(" + iconColor + "-10pct)'; " +
-                        "  this.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)'; " +
-                        "});"
-        );
+                .set("border", "1px solid var(" + iconColor + "-50pct)"); // Bordo colorato.
+        newButton.addClassName("new-button");
 
         newButton.addClassName("hover-effect");
         return newButton;
@@ -258,12 +208,11 @@ public class StyleApp extends HorizontalLayout {
      * @return Un {@link VerticalLayout} configurato come layout principale.
      */
     public static VerticalLayout getMainLayout(VerticalLayout content) {
-        content.setSizeUndefined(); // Lascia che le dimensioni siano determinate dal contenuto e dal CSS.
+        content.setSizeUndefined();
         content.setPadding(false);
         content.setSpacing(false);
-        content.getStyle()
-                .set("min-height", "100vh") // Altezza minima per occupare l'intera viewport.
-                .set("background", "var(--lumo-contrast-5pct)"); // Sfondo leggermente grigio.
+        content.addClassName("main-layout");
+
         return content;
     }
 
@@ -280,9 +229,7 @@ public class StyleApp extends HorizontalLayout {
         contentLayout.setPadding(true);
         contentLayout.setSpacing(false);
         contentLayout.setAlignItems(FlexComponent.Alignment.CENTER); // Centra orizzontalmente i componenti.
-        contentLayout.getStyle()
-                .set("margin", "0 auto") // Centra il layout orizzontalmente.
-                .set("flex-grow", "1"); // Permette al layout di espandersi e riempire lo spazio verticale.
+        contentLayout.addClassName("content-layout");
         return contentLayout;
     }
 
@@ -296,12 +243,7 @@ public class StyleApp extends HorizontalLayout {
         Button scrollToTopButton = new Button(FontAwesome.Solid.ARROW_TURN_UP.create());
         scrollToTopButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ICON);
         scrollToTopButton.setTooltipText("Torna all'inizio della pagina");
-        scrollToTopButton.getStyle()
-                .set("position", "fixed") // Posizionamento fisso rispetto alla viewport.
-                .set("top", "calc(50% - 50px)") // A metà altezza, leggermente sopra.
-                .set("right", "20px") // A 20px dal bordo destro.
-                .set("z-index", "1000") // Sempre sopra gli altri elementi.
-                .set("box-shadow", "0 2px 5px rgba(0,0,0,0.2)");
+        scrollToTopButton.addClassNames("scroll-top");
         scrollToTopButton.addClickListener(e ->
                 // Esegue JavaScript per scorrere la pagina verso l'alto.
                 UI.getCurrent().getPage().executeJs("window.scrollTo({top: 0, behavior: 'smooth'});")
@@ -320,12 +262,7 @@ public class StyleApp extends HorizontalLayout {
         Button scrollToBottomButton = new Button(FontAwesome.Solid.ARROW_TURN_DOWN.create());
         scrollToBottomButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ICON);
         scrollToBottomButton.setTooltipText("Vai alla fine della pagina");
-        scrollToBottomButton.getStyle()
-                .set("position", "fixed")
-                .set("top", "calc(50% + 10px)") // A metà altezza, leggermente sotto.
-                .set("right", "20px")
-                .set("z-index", "1000")
-                .set("box-shadow", "0 2px 5px rgba(0,0,0,0.2)");
+        scrollToBottomButton.addClassNames("scroll-bottom");
         scrollToBottomButton.addClickListener(e ->
                 // Esegue JavaScript per scorrere la pagina verso il basso.
                 UI.getCurrent().getPage().executeJs(
@@ -359,27 +296,17 @@ public class StyleApp extends HorizontalLayout {
         // --- Sezione Intestazione ---
         Icon titleIcon = VaadinIcon.QUESTION_CIRCLE_O.create(); // Icona per contestualizzare il titolo
         titleIcon.setSize("var(--lumo-icon-size-l)"); // Dimensione icona standard Lumo
-        titleIcon.getStyle()
-                .set("color", "var(--lumo-primary-color)") // Colore primario per l'icona
-                .set("margin-right", "var(--lumo-space-s)"); // Spazio tra icona e testo del titolo
+        titleIcon.addClassName("title-icon");
 
         H3 titleComponent = new H3(title);
-        titleComponent.getStyle()
-                .set("margin", "0") // Rimuove margini predefiniti di H3 per controllo più fine
-                .set("font-size", "var(--lumo-font-size-xl)") // Titolo più grande e prominente
-                .set("font-weight", "600") // Grassetto standard per titoli
-                .set("color", "var(--lumo-header-text-color)"); // Colore standard per testo di intestazione
+        titleComponent.addClassName("title-component");
 
         HorizontalLayout headerLayout = new HorizontalLayout(titleIcon, titleComponent);
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER); // Allinea verticalmente icona e testo
 
         // --- Corpo del Messaggio ---
         Paragraph messageComponent = new Paragraph(message);
-        messageComponent.getStyle()
-                .set("color", "var(--lumo-secondary-text-color)") // Colore per testo secondario, meno enfasi
-                .set("font-size", "var(--lumo-font-size-m)") // Dimensione font standard per testo
-                .set("line-height", "var(--lumo-line-height-m)"); // Altezza linea per leggibilità
-        // Il margine inferiore sarà gestito dalla spaziatura del VerticalLayout
+        messageComponent.addClassName("message-component");
 
         // --- Pulsanti di Azione ---
         Button confirmButton = new Button(confirmText);
@@ -413,4 +340,3 @@ public class StyleApp extends HorizontalLayout {
         dialog.open();
     }
 }
-

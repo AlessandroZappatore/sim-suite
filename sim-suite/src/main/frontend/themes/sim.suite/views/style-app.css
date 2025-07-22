@@ -1,0 +1,104 @@
+.back-button {
+    margin-right: auto;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.header-section {
+    background: var(--lumo-base-color);
+    border-radius: 8px;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.icon-component {
+    margin-right: 0.25rem;
+    padding: 10px;
+    border-radius: 50%;
+}
+
+.icon-title {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-align: center;
+}
+
+.subtitle-paragraph {
+    color: var(--lumo-secondary-text-color);
+    max-width: 750px;
+    text-align: center;
+    font-weight: 400;
+    line-height: 1.6;
+}
+
+.footer-layout {
+    border-collapse: var(--lumo-contrast-10pct);
+    background: var(--lumo-contrast-5pct);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.hover-effect:hover {
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+.next-button {
+    border-radius: 30px;
+    font-weight: 600;
+    transition: tranform 0.2s ease;
+}
+
+.new-button {
+    border-radius: 30px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.main-layout {
+    min-height: 100vh;
+    background: linear-gradient(180deg, var(--lumo-contrast-5pct), var(--lumo-contrast-10pct));
+}
+
+.content-layout {
+    margin: 0 auto;
+    flex-grow: 1;
+}
+
+.scroll-top {
+    position: fixed;
+    top: calc(50% - 50px);
+    right: 20px;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.scroll-bottom {
+    position: fixed;
+    top: calc(50% + 10px);
+    right: 20px;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.title-icon {
+    color: var(--lumo-primary-color);
+    margin-right: var(--lumo-space-s);
+}
+
+.title-component {
+    margin: 0;
+    font-size: var(--lumo-font-size-xl);
+    font-weight: 600;
+    color: var(--lumo-header-text-color);
+}
+
+.message-component {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-m);
+    line-height: var(--lumo-line-height-m);
+}

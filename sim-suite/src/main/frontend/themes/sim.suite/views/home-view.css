@@ -30,7 +30,6 @@
   display: contents;
 }
 
-/* The root layout is not necessarily inside a flex box so width/height needs to be used */
 .home-view .preview-container > .layout[style*='align-self: stretch'] {
   width: 100%;
 }
@@ -38,7 +37,6 @@
   height: 100%;
 }
 
-/* Apply some default gap and padding to layouts that don't have inline styles for them while dragging. */
 .home-view[dragging] .layout:not([style*='gap:']) {
   gap: 8px;
 }
@@ -164,7 +162,6 @@ vaadin-form-layout[empty] {
   min-height: 32px;
 }
 
-/* styles.css */
 .full-width-button {
   width: 100% !important;
   height: 200px !important;

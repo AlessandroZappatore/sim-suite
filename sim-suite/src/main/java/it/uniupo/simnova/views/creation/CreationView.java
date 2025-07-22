@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
@@ -27,8 +28,9 @@ import it.uniupo.simnova.views.common.utils.StyleApp;
  * @author Alessandro Zappatore
  * @version 2.0
  */
-@PageTitle("Creation")
+@PageTitle("SIM SUITE")
 @Route("")
+@CssImport(value = "./themes/sim.suite/views/creation-view.css")
 public class CreationView extends Composite<VerticalLayout> {
 
     private final FileStorageService fileStorageService;
@@ -52,8 +54,6 @@ public class CreationView extends Composite<VerticalLayout> {
         layout.setSpacing(false);
         layout.setSizeFull();
         layout.setAlignItems(FlexComponent.Alignment.CENTER);
-        layout.getStyle().set("min-height", "100vh");
-        layout.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
 
         layout.add(createHeader(), createContent(), createFooter());
         attachListeners();
@@ -88,50 +88,41 @@ public class CreationView extends Composite<VerticalLayout> {
         creationOptionsLayout.addClassName("creation-options-layout");
         creationOptionsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         creationOptionsLayout.setFlexWrap(FlexLayout.FlexWrap.WRAP);
-        creationOptionsLayout.getStyle()
-                .set("gap", "1.5rem")
-                .set("width", "100%");
 
         quickScenarioButton = createOptionCard(
                 "Quick Scenario",
                 VaadinIcon.BOLT.create(),
-                "Scenario veloce.",
-                "FF9800"
+                "Scenario veloce."
         );
+        quickScenarioButton.addClassName("quick-scenario-card");
+
         advancedScenarioButton = createOptionCard(
                 "Advanced Scenario",
                 VaadinIcon.CLOCK.create(),
-                "Scenario multi-tempo.",
-                "FF9800"
+                "Scenario multi-tempo."
         );
+        advancedScenarioButton.addClassName("advanced-scenario-card");
+
         patientSimulatedScenarioButton = createOptionCard(
                 "Patient Simulated",
                 FontAwesome.Solid.USER_INJURED.create(),
-                "Scenario con sceneggiatura.",
-                "FF9800"
+                "Scenario con sceneggiatura."
         );
+        patientSimulatedScenarioButton.addClassName("patient-simulated-card");
 
         creationOptionsLayout.add(quickScenarioButton, advancedScenarioButton, patientSimulatedScenarioButton);
 
         viewSavedScenariosButton = createOptionCard(
                 "Lista Scenari Salvati",
                 FontAwesome.Solid.ARCHIVE.create(),
-                "Lista completa degli scenari salvati.",
-                "4CAF50"
+                "Lista completa degli scenari salvati."
         );
         viewSavedScenariosButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_LARGE);
         viewSavedScenariosButton.setWidthFull();
-        viewSavedScenariosButton.getStyle()
-                .set("margin-top", "2rem")
-                .set("padding", "1rem")
-        .set("height", "10rem");
+        viewSavedScenariosButton.addClassName("saved-scenarios-button");
 
         Div contentContainer = new Div(creationOptionsLayout, viewSavedScenariosButton);
-        contentContainer.getStyle()
-                .set("width", "min(90%, 900px)")
-                .set("margin", "0 auto")
-                .set("padding", "1rem");
-
+        contentContainer.addClassName("content-container");
         contentLayout.add(headerSection, contentContainer);
         return contentLayout;
     }
@@ -146,30 +137,23 @@ public class CreationView extends Composite<VerticalLayout> {
         footerLayout.setWidthFull();
         footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         footerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        footerLayout.addClassName(LumoUtility.Border.TOP);
-        footerLayout.getStyle()
-                .set("border-color", "var(--lumo-contrast-10pct)")
-                .set("background-color", "var(--lumo-contrast-5pct)");
+        footerLayout.addClassNames(LumoUtility.Border.TOP, "creation-footer");
+
         return footerLayout;
     }
 
     /**
      * Crea una "card" cliccabile per una opzione di scenario.
      */
-    private Button createOptionCard(String title, Icon icon, String description, String accentColor) {
+    private Button createOptionCard(String title, Icon icon, String description) {
         icon.setSize("28px");
-        icon.getStyle()
-                .set("margin-bottom", "1rem")
-                .set("color", accentColor);
+        icon.addClassName("card-icon");
 
         Span titleSpan = new Span(title);
-        titleSpan.getStyle()
-                .set("font-weight", "600")
-                .set("font-size", "1.1rem");
+        titleSpan.addClassName("card-title");
 
         Span descSpan = new Span(description);
-        descSpan.addClassNames(LumoUtility.FontSize.SMALL, LumoUtility.TextColor.SECONDARY);
-        descSpan.getStyle().set("margin-top", "0.5rem");
+        descSpan.addClassNames(LumoUtility.FontSize.SMALL, LumoUtility.TextColor.SECONDARY, "card-description");
 
         VerticalLayout cardContent = new VerticalLayout(icon, titleSpan, descSpan);
         cardContent.setPadding(false);
@@ -180,31 +164,7 @@ public class CreationView extends Composite<VerticalLayout> {
         Button cardButton = new Button(cardContent);
         cardButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         cardButton.setHeight("auto");
-        cardButton.getStyle()
-                .set("padding", "1.5rem")
-                .set("border-radius", "16px")
-                .set("box-shadow", "var(--lumo-box-shadow-s)")
-                .set("transition", "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)")
-                .set("flex", "1 1 280px")
-                .set("position", "relative")
-                .set("overflow", "hidden");
-
-        // Effetto gradiente sottile
-        cardButton.getElement().getStyle()
-                .set("background", "linear-gradient(135deg, var(--lumo-primary-color) 0%, var(--lumo-primary-color-50pct) 100%)")
-                .set("cursor", "pointer")
-                .set("transform", "translateY(0) scale(1)");
-
-        // Animazioni più sofisticate
-        cardButton.getElement().addEventListener("mouseover", e -> cardButton.getStyle()
-                .set("transform", "translateY(-8px) scale(1.02)")
-                .set("box-shadow", "var(--lumo-box-shadow-l)")
-                .set("filter", "brightness(1.1)"));
-
-        cardButton.getElement().addEventListener("mouseout", e -> cardButton.getStyle()
-                .set("transform", "translateY(0) scale(1)")
-                .set("box-shadow", "var(--lumo-box-shadow-s)")
-                .set("filter", "brightness(1)"));
+        cardButton.addClassName("option-card");
 
         return cardButton;
     }
