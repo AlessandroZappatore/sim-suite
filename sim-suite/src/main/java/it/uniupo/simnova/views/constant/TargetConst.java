@@ -1,5 +1,7 @@
 package it.uniupo.simnova.views.constant;
 
+import lombok.NoArgsConstructor;
+
 /**
  * Classe di supporto contenente le ***costanti per la definizione dei target**
  * di uno scenario di simulazione. Include categorie professionali e specializzazioni.
@@ -7,6 +9,7 @@ package it.uniupo.simnova.views.constant;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@NoArgsConstructor
 public final class TargetConst {
 
     /**
@@ -97,10 +100,4 @@ public final class TargetConst {
      * Costante per la specializzazione in cure urgenti.
      */
     public static final String SPEC_INF_CURE_URGENTI = "Cure Urgenti";
-    /**
-     * Costruttore privato per evitare l'istanza della classe.
-     */
-    private TargetConst() {
-        // Costruttore privato per evitare istanziazione
-    }
 }

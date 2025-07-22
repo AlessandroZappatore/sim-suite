@@ -52,8 +52,7 @@ public class AppHeader extends HorizontalLayout {
 
         // Logo SIM SUITE (a sinistra)
         Image simSuiteLogo = new Image(LOGO_URL, "SIM SUITE Logo");
-        simSuiteLogo.setHeight("40px");
-        simSuiteLogo.getStyle().set("cursor", "pointer");
+        simSuiteLogo.addClassName("sim-suite-logo");
         simSuiteLogo.addClickListener(e -> UI.getCurrent().navigate(""));
         Tooltip.forComponent(simSuiteLogo)
                 .withText("Torna alla Home")
@@ -62,18 +61,11 @@ public class AppHeader extends HorizontalLayout {
         // Titolo dell'applicazione
         Div appTitle = new Div();
         appTitle.setText("SIM SUITE");
-        appTitle.addClassNames(
-                LumoUtility.FontSize.XLARGE,
-                LumoUtility.FontWeight.BOLD,
-                LumoUtility.TextColor.PRIMARY
-        );
+        appTitle.addClassName("app-title");
 
         // Contenitore per il logo del centro
         centerLogoContainer = new Div();
-        centerLogoContainer.getStyle()
-                .set("margin-left", LumoUtility.Margin.MEDIUM)
-                .set("display", "flex")
-                .set("align-items", "center");
+        centerLogoContainer.addClassName("center-logo");
         updateCenterLogoArea();
 
         showMissingLogoPopoverIfNeeded();
@@ -118,11 +110,7 @@ public class AppHeader extends HorizontalLayout {
             upload.setDropLabel(new Div(new Text("o trascina qui"))); // Testo per il drag-and-drop
 
             // Stili per il componente upload
-            upload.getStyle()
-                    .set("min-width", "180px")
-                    .set("height", "40px")
-                    .set("display", "flex")
-                    .set("align-items", "center");
+            upload.addClassName("upload-field");
             uploadButton.getStyle().set("height", "40px"); // Allinea il pulsante di upload
 
             upload.addSucceededListener(event -> {

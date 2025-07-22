@@ -21,6 +21,7 @@ import it.uniupo.simnova.service.scenario.components.AzioneChiaveService;
 import it.uniupo.simnova.service.scenario.components.MaterialeService;
 import it.uniupo.simnova.views.common.utils.StyleApp;
 import it.uniupo.simnova.views.common.utils.TinyEditor;
+import lombok.NoArgsConstructor;
 import org.vaadin.tinymce.TinyMce;
 
 import java.util.ArrayList;
@@ -35,14 +36,8 @@ import java.util.stream.Collectors;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@NoArgsConstructor
 public class GeneralSupport extends HorizontalLayout {
-
-    /**
-     * Costruttore privato per evitare istanziazioni dirette.
-     */
-    private GeneralSupport() {
-        // Costruttore privato per evitare istanziazioni dirette
-    }
 
     /**
      * Crea e popola un layout verticale con le informazioni generali di uno scenario.

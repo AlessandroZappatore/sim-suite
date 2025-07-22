@@ -5,6 +5,7 @@ import com.vaadin.flow.component.Focusable;
 import com.vaadin.flow.component.HasValidation;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import lombok.NoArgsConstructor;
 
 /**
  * Classe di utilità per la ***gestione centralizzata degli errori di validazione** nei componenti Vaadin.
@@ -14,15 +15,8 @@ import com.vaadin.flow.component.notification.NotificationVariant;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@NoArgsConstructor
 public class ValidationError {
-    /**
-     * Costruttore privato per prevenire l'istanza della classe.
-     * Questa classe è pensata per essere utilizzata solo tramite metodi statici.
-     */
-    private ValidationError() {
-        // Costruttore privato per prevenire l'istanza della classe.
-        // Questa classe è pensata per essere utilizzata solo tramite metodi statici.
-    }
 
     /**
      * Mostra una ***notifica di errore** visibile all'utente.

@@ -18,6 +18,7 @@ import it.uniupo.simnova.domain.paziente.EsameFisico;
 import it.uniupo.simnova.service.scenario.components.EsameFisicoService;
 import it.uniupo.simnova.views.common.utils.StyleApp;
 import it.uniupo.simnova.views.common.utils.TinyEditor;
+import lombok.NoArgsConstructor;
 import org.vaadin.tinymce.TinyMce;
 
 import java.util.Map;
@@ -30,15 +31,8 @@ import java.util.Map;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@NoArgsConstructor
 public class PhysicalExamSupport {
-
-    /**
-     * Costruttore privato per evitare l'istanza della classe.
-     * Questa classe è un utility e non dovrebbe essere istanziata.
-     */
-    private PhysicalExamSupport() {
-        // Costruttore privato per evitare l'istanza della classe.
-    }
 
     /**
      * Crea una card riassuntiva che mostra tutte le sezioni dell'esame fisico.

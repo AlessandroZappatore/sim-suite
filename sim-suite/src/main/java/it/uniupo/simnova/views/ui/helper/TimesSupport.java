@@ -26,6 +26,7 @@ import it.uniupo.simnova.domain.common.ParametroAggiuntivo;
 import it.uniupo.simnova.domain.common.Tempo;
 import it.uniupo.simnova.service.scenario.helper.TimelineConfiguration;
 import it.uniupo.simnova.views.common.utils.StyleApp;
+import lombok.NoArgsConstructor;
 
 import java.util.Comparator;
 import java.util.List;
@@ -39,6 +40,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@NoArgsConstructor
 public class TimesSupport {
     /**
      * Colore del bordo sinistro per la sezione Azione.
@@ -52,14 +54,6 @@ public class TimesSupport {
      * Colore del bordo sinistro per la sezione Ruolo Genitore (visibile solo per scenari pediatrici).
      */
     private static final String RUOLO_BORDER_COLOR = "var(--lumo-warning-color)";
-
-    /**
-     * Costruttore privato per evitare istanziazione della classe.
-     * Questa classe è un utility e non dovrebbe essere istanziata.
-     */
-    private TimesSupport() {
-        // Costruttore privato per evitare istanziazione
-    }
 
     /**
      * Crea un contenitore stilizzato per le sezioni interne (Azione, Dettagli, Ruolo Genitore).

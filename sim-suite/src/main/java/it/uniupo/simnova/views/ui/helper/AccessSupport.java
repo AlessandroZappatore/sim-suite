@@ -17,6 +17,7 @@ import it.uniupo.simnova.domain.common.Accesso;
 import it.uniupo.simnova.domain.paziente.PazienteT0;
 import it.uniupo.simnova.service.scenario.components.PazienteT0Service;
 import it.uniupo.simnova.views.common.utils.StyleApp;
+import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,18 +31,13 @@ import java.util.List;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@NoArgsConstructor
 public class AccessSupport {
     /**
      * Logger per la registrazione degli eventi e degli errori.
      */
     private static final Logger logger = LoggerFactory.getLogger(AccessSupport.class);
 
-    /**
-     * Costruttore privato per evitare l'istanza della classe.
-     */
-    public AccessSupport() {
-        // Costruttore vuoto, non necessario per questa classe di utilità
-    }
     /**
      * Genera una card per la visualizzazione e gestione degli accessi venosi e arteriosi.
      * Include griglie per visualizzare gli accessi esistenti e form per aggiungerne di nuovi.

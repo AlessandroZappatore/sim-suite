@@ -16,6 +16,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.views.common.components.AppHeader;
 import it.uniupo.simnova.views.common.components.CreditsComponent;
+import lombok.NoArgsConstructor;
 
 /**
  * Classe di utilità per la gestione degli stili e dei componenti UI comuni nell'applicazione.
@@ -24,15 +25,8 @@ import it.uniupo.simnova.views.common.components.CreditsComponent;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@NoArgsConstructor
 public class StyleApp extends HorizontalLayout {
-
-    /**
-     * Costruttore privato per evitare istanziazioni dirette della classe.
-     */
-    private StyleApp() {
-        // Costruttore privato per evitare istanziazioni dirette.
-        // Questa classe è pensata per essere utilizzata solo tramite metodi statici.
-    }
 
     /**
      * Crea e restituisce un pulsante "Indietro" con un'icona a freccia sinistra e stili specifici.

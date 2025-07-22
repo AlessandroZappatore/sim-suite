@@ -16,6 +16,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
@@ -33,14 +34,9 @@ import static it.uniupo.simnova.views.constant.AdditionParametersConst.CUSTOM_PA
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@NoArgsConstructor
 public class AdditionalParamDialog {
 
-    /**
-     * Costruttore privato per evitare l'istanza diretta di questa utility.
-     */
-    public AdditionalParamDialog() {
-        // Costruttore vuoto, non necessario per questa utility
-    }
     /**
      * Mostra un dialog per selezionare parametri aggiuntivi predefiniti per una data sezione temporale.
      * Permette anche di cercare tra i parametri disponibili e di accedere alla creazione di parametri personalizzati.

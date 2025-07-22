@@ -1,6 +1,30 @@
 .card-style {
-  background: var(--lumo-primary-color-10pct);
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0,0,0,0.1);
-  padding: 10px;
+    background: var(--lumo-primary-color-10pct);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+}
+
+.sim-suite-logo {
+    height: 40px;
+    cursor: pointer;
+}
+
+.app-title {
+    font-size: x-large;
+    font-weight: bold;
+    color: var(--lumo-primary-text-color);
+}
+
+.center-logo {
+    margin-left: var(--lumo-space-m);
+    display: flex;
+    align-items: center;
+}
+
+.upload-field {
+    min-width: 180px;
+    height: 40px;
+    display: flex;
+    align-items: center;
 }

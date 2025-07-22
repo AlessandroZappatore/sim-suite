@@ -1,5 +1,7 @@
 package it.uniupo.simnova.views.constant;
 
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
 /**
@@ -10,6 +12,7 @@ import java.util.List;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@NoArgsConstructor
 public final class ExamConst {
 
     /**
@@ -32,12 +35,4 @@ public final class ExamConst {
             "RM Encefalo", "TC Cranio (con mdc)", "TC Cranio (senza mdc)", "Doppler TSA (Tronchi Sovraortici)",
             "Angio-TC Polmonare", "Fundus oculi"
     );
-
-    /**
-     * Costruttore privato per evitare l'istanza della classe.
-     * Questa classe è pensata per essere utilizzata solo come contenitore di costanti.
-     */
-    private ExamConst() {
-        // Costruttore privato per evitare l'istanza della classe
-    }
 }

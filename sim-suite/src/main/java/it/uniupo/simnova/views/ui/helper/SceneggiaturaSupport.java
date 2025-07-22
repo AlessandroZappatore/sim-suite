@@ -16,6 +16,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
 import it.uniupo.simnova.views.common.utils.StyleApp;
 import it.uniupo.simnova.views.common.utils.TinyEditor;
+import lombok.NoArgsConstructor;
 import org.vaadin.tinymce.TinyMce;
 
 /**
@@ -26,14 +27,8 @@ import org.vaadin.tinymce.TinyMce;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@NoArgsConstructor
 public class SceneggiaturaSupport extends HorizontalLayout {
-
-    /**
-     * Costruttore privato per evitare istanziazioni dirette della classe.
-     */
-    private SceneggiaturaSupport() {
-        // Costruttore privato per evitare istanziazioni dirette.
-    }
 
     /**
      * Crea un componente per visualizzare e modificare la sceneggiatura.

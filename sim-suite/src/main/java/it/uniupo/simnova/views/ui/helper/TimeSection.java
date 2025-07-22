@@ -22,6 +22,7 @@ import it.uniupo.simnova.domain.common.ParametroAggiuntivo;
 import it.uniupo.simnova.domain.common.Tempo;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.views.common.utils.FieldGenerator;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,13 +51,11 @@ public class TimeSection {
      */
     private static final Logger logger = LoggerFactory.getLogger(TimeSection.class);
 
-    /**
-     * Numero identificativo del tempo (es. 0 per T0, 1 per T1, ...).
-     */
+
+    @Getter
     public final int timeNumber;
-    /**
-     * Layout principale della sezione temporale, che contiene tutti i campi e le informazioni.
-     */
+
+    @Getter
     public final VerticalLayout layout;
 
     /**
@@ -116,18 +115,16 @@ public class TimeSection {
      * Può contenere informazioni fornite dal genitore sul paziente.
      */
     public final TextArea ruoloGenitoreArea;
-    /**
-     * Layout che contiene i campi per i parametri medici base.
-     */
+
+    @Getter
     public final FormLayout medicalParamsForm;
     /**
      * Contenitore per i campi dei parametri aggiuntivi/personalizzati.
      * Permette di aggiungere dinamicamente nuovi parametri con unità di misura specifiche.
      */
     public final VerticalLayout customParamsContainer;
-    /**
-     * Mappa che associa i parametri aggiuntivi (predefiniti o personalizzati) ai loro campi di input.
-     */
+
+    @Getter
     public final Map<String, NumberField> customParameters = new HashMap<>();
     /**
      * Mappa che associa i parametri aggiuntivi (predefiniti o personalizzati) alle loro unità di misura.
@@ -270,42 +267,6 @@ public class TimeSection {
             layout.add(removeButton);
             layout.setHorizontalComponentAlignment(FlexComponent.Alignment.END, removeButton);
         }
-    }
-
-    /**
-     * Restituisce il layout principale ({@link VerticalLayout}) di questa sezione temporale.
-     *
-     * @return Il layout della sezione.
-     */
-    public VerticalLayout getLayout() {
-        return layout;
-    }
-
-    /**
-     * Restituisce il numero identificativo di questo tempo (0 per T0, 1 per T1, ...).
-     *
-     * @return Il numero del tempo.
-     */
-    public int getTimeNumber() {
-        return timeNumber;
-    }
-
-    /**
-     * Restituisce il {@link FormLayout} che contiene i campi dei parametri medici base.
-     *
-     * @return Il FormLayout dei parametri medici.
-     */
-    public FormLayout getMedicalParamsForm() {
-        return medicalParamsForm;
-    }
-
-    /**
-     * Restituisce la mappa dei parametri aggiuntivi/personalizzati (chiave -> campo {@link NumberField}).
-     *
-     * @return La mappa dei campi dei parametri aggiuntivi.
-     */
-    public Map<String, NumberField> getCustomParameters() {
-        return customParameters;
     }
 
     /**

@@ -23,6 +23,7 @@ import it.uniupo.simnova.domain.scenario.Scenario;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.views.common.utils.FieldGenerator;
 import it.uniupo.simnova.views.common.utils.StyleApp;
+import lombok.NoArgsConstructor;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -38,6 +39,7 @@ import java.util.function.Supplier;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@NoArgsConstructor
 public class InfoSupport extends HorizontalLayout {
 
     /**
@@ -69,14 +71,6 @@ public class InfoSupport extends HorizontalLayout {
         tipologiaIconMap.put("Pediatrico", FontAwesome.Solid.CHILD::create);
         tipologiaIconMap.put("Neonatale", FontAwesome.Solid.BABY::create);
         tipologiaIconMap.put("Prematuro", FontAwesome.Solid.HANDS_HOLDING_CHILD::create);
-    }
-
-    /**
-     * Costruttore privato per evitare istanziazioni dirette della classe.
-     * Utilizzare i metodi statici per ottenere i badge informativi.
-     */
-    private InfoSupport() {
-        // Costruttore privato per evitare istanziazioni dirette
     }
 
     /**

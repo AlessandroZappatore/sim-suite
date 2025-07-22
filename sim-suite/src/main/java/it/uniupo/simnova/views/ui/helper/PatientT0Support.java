@@ -17,6 +17,7 @@ import it.uniupo.simnova.service.scenario.components.PazienteT0Service;
 import it.uniupo.simnova.service.scenario.components.PresidiService;
 import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
 import it.uniupo.simnova.views.common.utils.StyleApp;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -27,15 +28,8 @@ import java.util.List;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@NoArgsConstructor
 public class PatientT0Support {
-
-    /**
-     * Costruttore privato per evitare istanziazioni dirette della classe.
-     * Utilizzare i metodi statici per creare il layout del paziente T0.
-     */
-    public PatientT0Support() {
-        // Costruttore privato per evitare istanziazioni
-    }
 
     /**
      * Crea un layout verticale che aggrega i componenti UI per visualizzare

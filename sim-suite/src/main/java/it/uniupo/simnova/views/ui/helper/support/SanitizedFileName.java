@@ -1,5 +1,7 @@
 package it.uniupo.simnova.views.ui.helper.support;
 
+import lombok.NoArgsConstructor;
+
 /**
  * Utility class per la sanificazione dei nomi di file.
  * Questo assicura che i nomi dei file siano validi e sicuri per l'utilizzo nei sistemi operativi.
@@ -7,15 +9,8 @@ package it.uniupo.simnova.views.ui.helper.support;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@NoArgsConstructor
 public class SanitizedFileName {
-
-    /**
-     * Costante per il nome di file predefinito quando il nome fornito è null o vuoto.
-     */
-    private SanitizedFileName() {
-        // Costruttore privato per evitare l'istanza della classe
-    }
-
     /**
      * Sanifica una stringa rimuovendo o sostituendo caratteri non validi per i nomi di file.
      * I caratteri invalidi includono: \, /, :, *, ?, ", &lt;, &gt;, |, e spazi.

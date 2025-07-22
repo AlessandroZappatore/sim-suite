@@ -29,6 +29,7 @@ import it.uniupo.simnova.domain.paziente.EsameReferto;
 import it.uniupo.simnova.service.scenario.components.EsameRefertoService;
 import it.uniupo.simnova.service.storage.FileStorageService;
 import it.uniupo.simnova.views.common.utils.StyleApp;
+import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,18 +45,12 @@ import java.util.ArrayList;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@NoArgsConstructor
 public class ExamSupport {
     /**
      * Logger per la classe ExamSupport.
      */
     private static final Logger logger = LoggerFactory.getLogger(ExamSupport.class);
-
-    /**
-     * Costruttore privato per evitare l'istanza della classe, dato che contiene solo metodi statici.
-     */
-    private ExamSupport() {
-        // Costruttore privato per evitare l'istanza della classe, dato che contiene solo metodi statici.
-    }
 
     /**
      * Crea un layout verticale contenente le card di tutti gli esami e referti associati a uno scenario.

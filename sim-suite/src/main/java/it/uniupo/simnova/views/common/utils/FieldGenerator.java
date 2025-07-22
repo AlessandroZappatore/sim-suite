@@ -15,6 +15,7 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.timepicker.TimePicker;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import lombok.NoArgsConstructor;
 
 import java.time.Duration;
 import java.time.LocalTime;
@@ -31,15 +32,8 @@ import java.util.List;
  * @author Alessandro Zappatore
  * @version 1.3
  */
+@NoArgsConstructor
 public class FieldGenerator extends HorizontalLayout {
-
-    /**
-     * Costruttore privato per evitare istanziazioni dirette.
-     */
-    private FieldGenerator() {
-        // Costruttore privato per evitare istanziazioni dirette.
-        // Tutti i metodi sono statici e non richiedono un'istanza della classe.
-    }
 
     /**
      * Crea e configura un ***campo di testo ({@link TextField})** con stili avanzati.

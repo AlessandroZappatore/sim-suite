@@ -15,6 +15,7 @@ import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import it.uniupo.simnova.service.scenario.operations.ScenarioImportService;
+import lombok.NoArgsConstructor;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,15 +29,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@NoArgsConstructor
 public class DialogSupport {
-
-    /**
-     * Costruttore privato per prevenire l'istanza della classe.
-     * Questa classe contiene solo metodi statici e non dovrebbe essere istanziata.
-     */
-    public DialogSupport() {
-        // Costruttore vuoto per prevenire l'istanza della classe
-    }
 
     /**
      * Mostra un dialog modale per il caricamento di un file ZIP.

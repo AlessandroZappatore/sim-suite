@@ -1,5 +1,7 @@
 package it.uniupo.simnova.views.constant;
 
+import lombok.NoArgsConstructor;
+
 /**
  * Classe di supporto contenente le <strong>costanti informative sui crediti</strong> per il progetto.
  * Include dati relativi a versioni, date di rilascio, e collegamenti a profili e istituzioni.
@@ -8,6 +10,7 @@ package it.uniupo.simnova.views.constant;
  * @version 1.0
  */
 
+@NoArgsConstructor
 public final class CreditConst {
 
     /**
@@ -47,12 +50,4 @@ public final class CreditConst {
      * Il link alla homepage dell'università coinvolta nel progetto.
      */
     public static final String UNIVERSITYLINK = "https://www.uniupo.it";
-
-    /**
-     * Costruttore privato per evitare l'istanza della classe.
-     * Questa classe è destinata a essere utilizzata solo come contenitore di costanti.
-     */
-    public CreditConst() {
-        // Costruttore privato per evitare l'istanza della classe
-    }
 }

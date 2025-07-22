@@ -5,6 +5,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.tabs.Tab;
+import lombok.NoArgsConstructor;
 
 /**
  * Classe di utility per la creazione di Tab personalizzati con icone e testo.
@@ -12,14 +13,8 @@ import com.vaadin.flow.component.tabs.Tab;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@NoArgsConstructor
 public class TabsSupport {
-
-    /**
-     * Costruttore privato per impedire l'istanza della classe.
-     */
-    private TabsSupport() {
-        // Costruttore privato per impedire l'istanza della classe.
-    }
 
     /**
      * Crea un componente {@link Tab} con un'icona e un testo, centrati all'interno.

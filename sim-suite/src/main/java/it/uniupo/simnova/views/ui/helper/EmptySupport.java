@@ -9,6 +9,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import lombok.NoArgsConstructor;
 
 /**
  * Classe di utility per la creazione di un componente visuale che indica
@@ -18,14 +19,8 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@NoArgsConstructor
 public class EmptySupport extends HorizontalLayout {
-
-    /**
-     * Costruttore vuoto per la classe EmptySupport.
-     */
-    public EmptySupport() {
-        // Costruttore vuoto per la classe EmptySupport
-    }
 
     /**
      * Crea un componente visivo standard per segnalare contenuto vuoto o un errore.

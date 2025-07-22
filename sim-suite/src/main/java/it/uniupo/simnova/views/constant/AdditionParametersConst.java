@@ -1,5 +1,7 @@
 package it.uniupo.simnova.views.constant;
 
+import lombok.NoArgsConstructor;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -11,6 +13,7 @@ import java.util.Map;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@NoArgsConstructor
 public final class AdditionParametersConst {
 
     /**
@@ -80,12 +83,5 @@ public final class AdditionParametersConst {
         // Altri Monitoraggi Specializzati
         ADDITIONAL_PARAMETERS.put("pCO₂ cutanea", "pCO₂ cutanea (mmHg)");
         ADDITIONAL_PARAMETERS.put("NIRS", "Ossimetria cerebrale (%)");
-    }
-
-    /**
-     * Costruttore privato per evitare l'istanza della classe.
-     */
-    public AdditionParametersConst() {
-        // Costruttore privato per evitare l'istanza della classe
     }
 }

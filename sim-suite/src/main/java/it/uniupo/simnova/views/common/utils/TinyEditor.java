@@ -1,6 +1,7 @@
 package it.uniupo.simnova.views.common.utils;
 
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import lombok.NoArgsConstructor;
 import org.vaadin.tinymce.TinyMce;
 
 /**
@@ -11,16 +12,8 @@ import org.vaadin.tinymce.TinyMce;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@NoArgsConstructor
 public class TinyEditor extends HorizontalLayout {
-
-    /**
-     * Costruttore privato per evitare l'istanza diretta della classe.
-     * Utilizzare il metodo statico {@link #getEditor()} per ottenere un'istanza configurata.
-     */
-    private TinyEditor() {
-        // Costruttore privato per evitare l'istanza diretta della classe.
-        // Utilizzare il metodo statico getEditor() per ottenere un'istanza configurata.
-    }
 
     /**
      * Genera e configura un'istanza dell'editor di testo ***TinyMce** con un set di funzionalità standard.

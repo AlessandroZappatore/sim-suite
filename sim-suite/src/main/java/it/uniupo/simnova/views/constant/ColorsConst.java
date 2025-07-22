@@ -1,5 +1,7 @@
 package it.uniupo.simnova.views.constant;
 
+import lombok.NoArgsConstructor;
+
 /**
  * Classe di supporto contenente le <strong>costanti dei colori</strong> da utilizzare per
  * stilizzare le righe e le sezioni dell'interfaccia utente, in particolare
@@ -8,6 +10,7 @@ package it.uniupo.simnova.views.constant;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@NoArgsConstructor
 public final class ColorsConst {
 
     /**
@@ -25,11 +28,4 @@ public final class ColorsConst {
             "#4DD0E1",                   // Azzurro chiaro
             "#F06292"                    // Rosa
     };
-
-    /**
-     * Costruttore privato per evitare l'istanza della classe.
-     */
-    public ColorsConst() {
-        // Costruttore vuoto per evitare istanziazioni
-    }
 }

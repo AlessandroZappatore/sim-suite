@@ -25,6 +25,7 @@ import it.uniupo.simnova.service.scenario.components.PazienteT0Service;
 import it.uniupo.simnova.service.scenario.components.PresidiService;
 import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
 import it.uniupo.simnova.views.common.utils.StyleApp;
+import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +44,7 @@ import java.util.stream.Stream;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@NoArgsConstructor
 public class MonitorSupport {
     /**
      * Logger per il monitoraggio delle operazioni e degli errori.
@@ -79,13 +81,6 @@ public class MonitorSupport {
      * Utilizzato quando un parametro non ha un valore definito o è nullo.
      */
     private static final String NULL_DISPLAY_VALUE = "-";
-
-    /**
-     * Costruttore privato per evitare istanziazioni dirette della classe.
-     */
-    private MonitorSupport() {
-        // Costruttore privato per evitare istanziazioni
-    }
 
     /**
      * Converte un {@link Number} in {@link Double}.
