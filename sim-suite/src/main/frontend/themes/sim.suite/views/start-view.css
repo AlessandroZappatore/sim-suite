@@ -1,0 +1,7 @@
+.form-card {
+    background-color: var(--lumo-base-color);
+    border-radius: var(--lumo-border-radius-l);
+    box-shadow: var(--lumo-box-shadow-s);
+    padding: var(--lumo-space-l);
+    margin-top: var(--lumo-space-l);
+}

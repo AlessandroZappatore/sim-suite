@@ -4,7 +4,6 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
@@ -33,7 +32,6 @@ import java.io.InputStream;
  * @author Alessandro Zappatore
  * @version 1.6
  */
-@CssImport("./themes/sim.suite/views/header-style.css")
 public class AppHeader extends HorizontalLayout {
     private static final Logger logger = LoggerFactory.getLogger(AppHeader.class);
     private static final String CENTER_LOGO_FILENAME = "center_logo.png";

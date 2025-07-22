@@ -3,7 +3,6 @@ package it.uniupo.simnova.views.execution;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.*;
@@ -44,8 +43,6 @@ import java.util.Optional;
 
 @PageTitle("Execution")
 @Route(value = "execution")
-@CssImport("./themes/sim.suite/views/header-style.css")
-@CssImport("./themes/sim.suite/views/execution-view.css")
 public class ExecutionView extends Composite<VerticalLayout> implements HasUrlParameter<String>, BeforeEnterObserver {
     private static final Logger logger = LoggerFactory.getLogger(ExecutionView.class);
     private final ScenarioService scenarioService;

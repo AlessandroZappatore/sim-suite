@@ -31,7 +31,6 @@ import java.util.List;
  * @author Alessandro Zappatore
  * @version 1.3
  */
-@SuppressWarnings("ThisExpressionReferencesGlobalObjectJS") // Sopprime avvisi per l'uso di 'this' in JavaScript.
 public class FieldGenerator extends HorizontalLayout {
 
     /**
@@ -57,38 +56,19 @@ public class FieldGenerator extends HorizontalLayout {
         TextField field = new TextField(label);
         field.setPlaceholder(placeholder);
         field.setWidthFull(); // Il campo occupa la larghezza disponibile.
-        field.getStyle()
-                .set("border-radius", "var(--lumo-border-radius-m)")
-                .set("box-shadow", "var(--lumo-box-shadow-xs)") // Ombra predefinita.
-                .set("transition", "box-shadow 0.3s ease-in-out") // Transizione per l'ombra.
-                .set("flex-grow", "1") // Permette al campo di espandersi.
-                .set("flex-shrink", "1"); // Permette al campo di restringersi.
-
-        // Eccezione per "Azione Chiave" per non limitare la larghezza massima.
-        if (!label.equals("Azione Chiave")) {
-            field.getStyle().set("max-width", "500px");
-        }
-
-        field.getElement().getStyle()
-                .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)"); // Colore di sfondo interno del campo.
-
-        // Aggiunge effetti di ombra al passaggio del mouse tramite JavaScript.
-        field.getElement().executeJs(
-                "this.addEventListener('mouseover', function() { this.style.boxShadow = 'var(--lumo-box-shadow-s)'; });" +
-                        "this.addEventListener('mouseout', function() { this.style.boxShadow = 'var(--lumo-box-shadow-xs)'; });"
-        );
+        field.addClassName("field");
 
         field.addClassName(LumoUtility.Margin.Top.LARGE); // Margine superiore.
         field.addClassName(LumoUtility.Padding.SMALL); // Padding interno.
 
         // Configura il bordo sinistro in base alla obbligatorietà.
         if (required == null) {
-            field.getStyle().set("border-left", "3px solid var(--lumo-contrast-30pct)");
+            field.addClassName("null-field");
         } else if (required) {
             field.setRequired(true);
-            field.getStyle().set("border-left", "3px solid var(--lumo-primary-color)");
+            field.addClassName("required-field");
         } else {
-            field.getStyle().set("border-left", "3px solid var(--lumo-success-color-50pct)");
+            field.addClassName("not-required-field");
         }
 
         return field;
@@ -107,29 +87,16 @@ public class FieldGenerator extends HorizontalLayout {
         NumberField field = new NumberField(label);
         field.setPlaceholder(placeholder);
         field.setWidthFull();
-        field.getStyle()
-                .set("max-width", "500px")
-                .set("border-radius", "var(--lumo-border-radius-m)")
-                .set("box-shadow", "var(--lumo-box-shadow-xs)")
-                .set("transition", "box-shadow 0.3s ease-in-out")
-                .set("flex-grow", "1")
-                .set("flex-shrink", "1");
-
-        field.getElement().getStyle()
-                .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
-        field.getElement().executeJs(
-                "this.addEventListener('mouseover', function() { this.style.boxShadow = 'var(--lumo-box-shadow-s)'; });" +
-                        "this.addEventListener('mouseout', function() { this.style.boxShadow = 'var(--lumo-box-shadow-xs)'; });"
-        );
+        field.addClassName("field");
 
         field.addClassName(LumoUtility.Margin.Top.LARGE);
         field.addClassName(LumoUtility.Padding.SMALL);
 
         if (required) {
             field.setRequired(true);
-            field.getStyle().set("border-left", "3px solid var(--lumo-primary-color)");
+            field.addClassName("required-field");
         } else {
-            field.getStyle().set("border-left", "3px solid var(--lumo-success-color-50pct)");
+            field.addClassName("not-required-field");
         }
         return field;
     }
@@ -154,29 +121,16 @@ public class FieldGenerator extends HorizontalLayout {
         }
 
         comboBox.setWidthFull();
-        comboBox.getStyle()
-                .set("max-width", "500px")
-                .set("border-radius", "var(--lumo-border-radius-m)")
-                .set("box-shadow", "var(--lumo-box-shadow-xs)")
-                .set("transition", "box-shadow 0.3s ease-in-out")
-                .set("flex-grow", "1")
-                .set("flex-shrink", "1");
-
-        comboBox.getElement().getStyle()
-                .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
-        comboBox.getElement().executeJs(
-                "this.addEventListener('mouseover', function() { this.style.boxShadow = 'var(--lumo-box-shadow-s)'; });" +
-                        "this.addEventListener('mouseout', function() { this.style.boxShadow = 'var(--lumo-box-shadow-xs)'; });"
-        );
+        comboBox.addClassName("field");
 
         comboBox.addClassName(LumoUtility.Margin.Top.LARGE);
         comboBox.addClassName(LumoUtility.Padding.SMALL);
 
         if (required) {
             comboBox.setRequired(true);
-            comboBox.getStyle().set("border-left", "3px solid var(--lumo-primary-color)");
+            comboBox.addClassName("required-field");
         } else {
-            comboBox.getStyle().set("border-left", "3px solid var(--lumo-success-color-50pct)");
+            comboBox.addClassName("not-required-field");
         }
 
         return comboBox;
@@ -203,28 +157,15 @@ public class FieldGenerator extends HorizontalLayout {
         }
 
         select.setWidthFull();
-        select.getStyle()
-                .set("max-width", "500px")
-                .set("border-radius", "var(--lumo-border-radius-m)")
-                .set("box-shadow", "var(--lumo-box-shadow-xs)")
-                .set("transition", "box-shadow 0.3s ease-in-out")
-                .set("flex-grow", "1")
-                .set("flex-shrink", "1");
-
-        select.getElement().getStyle()
-                .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
-        select.getElement().executeJs(
-                "this.addEventListener('mouseover', function() { this.style.boxShadow = 'var(--lumo-box-shadow-s)'; });" +
-                        "this.addEventListener('mouseout', function() { this.style.boxShadow = 'var(--lumo-box-shadow-xs)'; });"
-        );
+        select.addClassName("field");
 
         select.addClassName(LumoUtility.Margin.Top.LARGE);
         select.addClassName(LumoUtility.Padding.SMALL);
 
         if (required) {
-            select.getStyle().set("border-left", "3px solid var(--lumo-primary-color)");
+            select.addClassName("required-field");
         } else {
-            select.getStyle().set("border-left", "3px solid var(--lumo-success-color-50pct)");
+            select.addClassName("not-required-field");
         }
 
         return select;
@@ -265,28 +206,16 @@ public class FieldGenerator extends HorizontalLayout {
         TextArea textArea = new TextArea(label);
         textArea.setPlaceholder(placeholder);
         textArea.setWidthFull();
-        textArea.getStyle()
-                .set("border-radius", "var(--lumo-border-radius-m)")
-                .set("box-shadow", "var(--lumo-box-shadow-xs)")
-                .set("transition", "box-shadow 0.3s ease-in-out")
-                .set("min-height", "100px") // Altezza minima.
-                .set("flex-grow", "1")
-                .set("flex-shrink", "1");
-        textArea.getElement().getStyle()
-                .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
-        textArea.getElement().executeJs(
-                "this.addEventListener('mouseover', function() { this.style.boxShadow = 'var(--lumo-box-shadow-s)'; });" +
-                        "this.addEventListener('mouseout', function() { this.style.boxShadow = 'var(--lumo-box-shadow-xs)'; });"
-        );
+        textArea.addClassNames("field", "text-area");
 
         textArea.addClassName(LumoUtility.Margin.Top.LARGE);
         textArea.addClassName(LumoUtility.Padding.SMALL);
 
         if (required) {
             textArea.setRequired(true);
-            textArea.getStyle().set("border-left", "3px solid var(--lumo-primary-color)");
+            textArea.addClassName("required-field");
         } else {
-            textArea.getStyle().set("border-left", "3px solid var(--lumo-success-color-50pct)");
+            textArea.addClassNames("not-required-field");
         }
 
         return textArea;
@@ -305,20 +234,8 @@ public class FieldGenerator extends HorizontalLayout {
         timerPicker.setPlaceholder("hh:mm:ss");
         timerPicker.setClearButtonVisible(true);
 
-        timerPicker.getStyle()
-                .set("border-radius", "var(--lumo-border-radius-m)")
-                .set("box-shadow", "var(--lumo-box-shadow-xs)")
-                .set("transition", "box-shadow 0.3s ease-in-out")
-                .set("border-left", "3px solid var(--lumo-success-color-50pct)") // Bordo fisso per i timer.
-                .set("flex-grow", "1")
-                .set("flex-shrink", "1");
+        timerPicker.addClassName("field");
 
-        timerPicker.getElement().getStyle()
-                .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
-        timerPicker.getElement().executeJs(
-                "this.addEventListener('mouseover', function() { this.style.boxShadow = 'var(--lumo-box-shadow-s)'; });" +
-                        "this.addEventListener('mouseout', function() { this.style.boxShadow = 'var(--lumo-box-shadow-xs)'; });"
-        );
 
         timerPicker.addClassName(LumoUtility.Margin.Top.LARGE);
         timerPicker.addClassName(LumoUtility.Padding.SMALL);
@@ -355,18 +272,12 @@ public class FieldGenerator extends HorizontalLayout {
     public static Checkbox createCheckbox(String label) {
         Checkbox checkbox = new Checkbox(label);
 
-        checkbox.getStyle()
-                .set("margin-top", "var(--lumo-space-m)")
-                .set("padding", "var(--lumo-space-s)")
-                .set("transition", "opacity 0.3s ease-in-out"); // Transizione per l'opacità al passaggio del mouse.
+        checkbox.addClassName("checkbox-field");
 
         checkbox.getElement().executeJs(
                 "this.addEventListener('mouseover', function() { this.style.opacity = '0.85'; });" +
                         "this.addEventListener('mouseout', function() { this.style.opacity = '1'; });"
         );
-
-        checkbox.addClassName(LumoUtility.Margin.Top.MEDIUM);
-
         return checkbox;
     }
 
@@ -387,28 +298,16 @@ public class FieldGenerator extends HorizontalLayout {
         field.setWidth("150px"); // Larghezza fissa.
         field.setPlaceholder(placeholder != null ? placeholder : "ID Tempo");
 
-        field.getStyle()
-                .set("border-radius", "var(--lumo-border-radius-m)")
-                .set("box-shadow", "var(--lumo-box-shadow-xs)")
-                .set("transition", "box-shadow 0.3s ease-in-out")
-                .set("flex-grow", "1")
-                .set("flex-shrink", "1");
-
-        field.getElement().getStyle()
-                .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
-        field.getElement().executeJs(
-                "this.addEventListener('mouseover', function() { this.style.boxShadow = 'var(--lumo-box-shadow-s)'; });" +
-                        "this.addEventListener('mouseout', function() { this.style.boxShadow = 'var(--lumo-box-shadow-xs)'; });"
-        );
+        field.addClassName("field");
 
         field.addClassName(LumoUtility.Margin.Top.LARGE);
         field.addClassName(LumoUtility.Padding.SMALL);
 
         if (required) {
             field.setRequired(true);
-            field.getStyle().set("border-left", "3px solid var(--lumo-primary-color)");
+            field.addClassName("required-field");
         } else {
-            field.getStyle().set("border-left", "3px solid var(--lumo-success-color-50pct)");
+            field.addClassName("not-required-field");
         }
 
         return field;
@@ -429,29 +328,16 @@ public class FieldGenerator extends HorizontalLayout {
         multiSelectComboBox.setItems(items);
         multiSelectComboBox.setPlaceholder("Seleziona uno o più elementi");
         multiSelectComboBox.setWidthFull();
-        multiSelectComboBox.getStyle()
-                .set("max-width", "500px")
-                .set("border-radius", "var(--lumo-border-radius-m)")
-                .set("box-shadow", "var(--lumo-box-shadow-xs)")
-                .set("transition", "box-shadow 0.3s ease-in-out")
-                .set("flex-grow", "1")
-                .set("flex-shrink", "1");
-
-        multiSelectComboBox.getElement().getStyle()
-                .set("--lumo-contrast-10pct", "rgba(0, 0, 0, 0.05)");
-        multiSelectComboBox.getElement().executeJs(
-                "this.addEventListener('mouseover', function() { this.style.boxShadow = 'var(--lumo-box-shadow-s)'; });" +
-                        "this.addEventListener('mouseout', function() { this.style.boxShadow = 'var(--lumo-box-shadow-xs)'; });"
-        );
+        multiSelectComboBox.addClassName("field");
 
         multiSelectComboBox.addClassName(LumoUtility.Margin.Top.LARGE);
         multiSelectComboBox.addClassName(LumoUtility.Padding.SMALL);
 
         if (required) {
             multiSelectComboBox.setRequired(true);
-            multiSelectComboBox.getStyle().set("border-left", "3px solid var(--lumo-primary-color)");
+            multiSelectComboBox.addClassName("required-field");
         } else {
-            multiSelectComboBox.getStyle().set("border-left", "3px solid var(--lumo-success-color-50pct)");
+            multiSelectComboBox.addClassName("not-required-field");
         }
 
         return multiSelectComboBox;

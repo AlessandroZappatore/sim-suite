@@ -5,6 +5,8 @@
 @import url('./views/scenario-details-view.css');
 @import url('./views/style-app.css');
 @import url('./views/timer-styles.css');
+@import url('./views/start-view.css');
+@import url('./views/field-generator.css');
 
 vaadin-grid-cell-content {
     white-space: normal !important;

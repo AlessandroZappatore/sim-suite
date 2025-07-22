@@ -45,12 +45,7 @@ public class TinyEditor extends HorizontalLayout {
                         "resize: true" // Permette il ridimensionamento manuale dell'editor
         );
 
-        // Stili CSS aggiuntivi per l'editor (bordo arrotondato, ombra, overflow nascosto).
-        editor.getElement().getStyle()
-                .set("border-radius", "8px")
-                .set("overflow", "hidden")
-                .set("box-shadow", "0 2px 10px rgba(0, 0, 0, 0.05)");
-
+        editor.addClassName("editor-field");
         return editor;
     }
 }

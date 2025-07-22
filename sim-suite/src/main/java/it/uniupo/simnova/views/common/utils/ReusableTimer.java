@@ -2,7 +2,6 @@ package it.uniupo.simnova.views.common.utils;
 
 import com.flowingcode.vaadin.addons.simpletimer.SimpleTimer;
 import com.vaadin.flow.component.Composite;
-import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
@@ -15,7 +14,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 
-@CssImport("./themes/sim.suite/views/timer-styles.css")
 public class ReusableTimer extends Composite<Div> {
     private final SimpleTimer timer;
     private final Button toggleButton;

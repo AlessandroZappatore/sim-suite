@@ -4,7 +4,6 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
@@ -25,7 +24,6 @@ import it.uniupo.simnova.views.common.components.CreditsComponent;
  * @author Alessandro Zappatore
  * @version 1.0
  */
-@CssImport(value = "./themes/sim.suite/views/style-app.css")
 public class StyleApp extends HorizontalLayout {
 
     /**
