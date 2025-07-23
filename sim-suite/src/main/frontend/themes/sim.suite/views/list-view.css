@@ -1,0 +1,28 @@
+.margin-top {
+    margin-top: auto;
+}
+
+.scenario-grid {
+    min-height: 410px;
+    box-shadow: var(--lumo-box-shadow-s);
+    border-radius: var(--lumo-border-radius-m);
+}
+
+.container {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.margin-right {
+    margin-right: var(--lumo-space-xs);
+}
+
+.page-info {
+    margin: 0 var(--lumo-space-s);
+}
+
+.scenario-title {
+    font-weight: bold;
+}

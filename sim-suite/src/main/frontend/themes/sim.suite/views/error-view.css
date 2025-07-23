@@ -1,0 +1,24 @@
+.error-logo {
+    margin-bottom: -100px;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+    animation: float 3s ease-in-out infinite;
+    width: 280px;
+    height: 280px;
+}
+
+.error-text {
+    color: var(--lumo-error-color);
+    text-shadow: -1px 0 var(--lumo-error-color);
+    margin: var(--lumo-space-xs);
+    text-align: center;
+    font-size: xxx-large;
+    font-weight: bold;
+}
+
+.error-subtitle {
+    color: var(--lumo-secondary-text-color);
+    text-shadow: -1px 0 var(--lumo-secondary-text-color);
+    margin: var(--lumo-space-xs);
+    text-align: center;
+    font-size: large;
+}

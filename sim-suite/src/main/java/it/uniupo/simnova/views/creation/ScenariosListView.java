@@ -366,7 +366,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
 
         resetButton = new Button("Reset Filtri", new Icon(VaadinIcon.CLOSE_CIRCLE_O));
         resetButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        resetButton.getStyle().set("margin-top", "auto");
+        resetButton.addClassName("margin-top");
         resetButton.addClickListener(e -> {
             searchPatientType.setValue("Tutti");
             searchTitolo.clear();
@@ -414,9 +414,8 @@ public class ScenariosListView extends Composite<VerticalLayout> {
      */
     private void configureGrid() {
         scenariosGrid.setWidthFull();
-        scenariosGrid.addClassName(LumoUtility.BorderRadius.MEDIUM);
-        scenariosGrid.addClassName(LumoUtility.BoxShadow.SMALL);
-        scenariosGrid.getStyle().set("min-height", "410px");
+        scenariosGrid.addClassName("scenario-grid");
+
 
         scenariosGrid.addColumn(new ComponentRenderer<>(scenario -> {
                     String patientType = scenario.getTipologiaPaziente() != null ? scenario.getTipologiaPaziente() : "Unknown";
@@ -563,11 +562,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                     String descrizione = scenario.getDescrizione() != null ? scenario.getDescrizione() : "";
                     Div container = new Div();
                     container.setWidthFull();
-                    container.getStyle()
-                            .set("max-width", "200px")
-                            .set("overflow", "hidden")
-                            .set("text-overflow", "ellipsis")
-                            .set("white-space", "nowrap");
+                    container.addClassName("container");
                     if (descrizione.isEmpty()) {
                         return container;
                     }
@@ -591,12 +586,12 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                         executionButton = new Button(FontAwesome.Solid.XMARK.create());
                         executionButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY_INLINE);
                         executionButton.getElement().setAttribute("title", "Non è possibile eseguire un Quick Scenario");
-                        executionButton.getStyle().set("margin-right", "var(--lumo-space-xs)");
+                        executionButton.addClassName("margin-right");
                     } else {
                         executionButton = new Button(FontAwesome.Solid.PLAY.create());
                         executionButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SUCCESS);
                         executionButton.getElement().setAttribute("title", "Esegui scenario");
-                        executionButton.getStyle().set("margin-right", "var(--lumo-space-xs)");
+                        executionButton.addClassName("margin-right");
                         executionButton.addClickListener(e -> {
                             if (!detached.get()) {
                                 getUI().ifPresent(ui -> ui.navigate("execution/" + dto.getId()));
@@ -607,7 +602,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                     Button pdfButton = new Button(FontAwesome.Regular.FILE_PDF.create());
                     pdfButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE);
                     pdfButton.getElement().setAttribute("title", "Esporta in PDF");
-                    pdfButton.getStyle().set("margin-right", "var(--lumo-space-xs)");
+                    pdfButton.addClassName("margin-right");
                     pdfButton.addClickListener(e -> {
                         if (!detached.get()) {
                             exportToPdf(dto.getId());
@@ -617,7 +612,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                     Button simButton = new Button(FontAwesome.Solid.FILE_EXPORT.create());
                     simButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE);
                     simButton.getElement().setAttribute("title", "Esporta in .zip (sim.execution)");
-                    simButton.getStyle().set("margin-right", "var(--lumo-space-xs)");
+                    simButton.addClassName("margin-right");
                     simButton.addClickListener(e -> {
                         if (!detached.get()) {
                             exportToSimExecution(dto.getId());
@@ -669,8 +664,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         nextPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
         lastPageButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
 
-        pageInfo.getStyle().set("margin", "0 var(--lumo-space-s)");
-
+        pageInfo.addClassName("page-info");
         // Listener per i bottoni di paginazione
         firstPageButton.addClickListener(e -> {
             if (currentPage > 0 && !detached.get()) {
@@ -1062,7 +1056,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         VerticalLayout dialogLayout = new VerticalLayout();
         dialogLayout.add(new Paragraph("Sei sicuro di voler eliminare lo scenario:"));
         Span scenarioTitleSpan = new Span("\"" + dto.getTitolo() + "\"?");
-        scenarioTitleSpan.getStyle().set("font-weight", "bold");
+        scenarioTitleSpan.addClassName("scenario-title");
         dialogLayout.add(scenarioTitleSpan);
         dialogLayout.add(new Paragraph("L'azione non è reversibile."));
         dialogLayout.setPadding(false);

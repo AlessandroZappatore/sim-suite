@@ -136,6 +136,7 @@ public class ExecutionView extends Composite<VerticalLayout> implements HasUrlPa
         customHeader.expand(header);
 
         VerticalLayout contentLayout = StyleApp.getContentLayout();
+        contentLayout.setMaxWidth("90%");
 
         HorizontalLayout threeColumnLayout = new HorizontalLayout();
         threeColumnLayout.setWidthFull();
@@ -263,7 +264,7 @@ public class ExecutionView extends Composite<VerticalLayout> implements HasUrlPa
                 HorizontalLayout buttonLayout = new HorizontalLayout();
 
                 Button viewMediaButton = StyleApp.getButton(
-                        "Vedi Esame",
+                        "Esame",
                         VaadinIcon.PAPERCLIP.create(),
                         ButtonVariant.LUMO_PRIMARY,
                         "var(--lumo-primary-color)"
@@ -275,7 +276,7 @@ public class ExecutionView extends Composite<VerticalLayout> implements HasUrlPa
                 }
 
                 Button viewReportButton = StyleApp.getButton(
-                        "Vedi Referto",
+                        "Referto",
                         VaadinIcon.FILE_TEXT_O.create(),
                         ButtonVariant.LUMO_PRIMARY,
                         "var(--lumo-primary-color)"

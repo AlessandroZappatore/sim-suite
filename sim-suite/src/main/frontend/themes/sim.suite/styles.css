@@ -7,6 +7,8 @@
 @import url('./views/timer-styles.css');
 @import url('./views/start-view.css');
 @import url('./views/field-generator.css');
+@import url('./views/list-view.css');
+@import url('./views/error-view.css');
 
 vaadin-grid-cell-content {
     white-space: normal !important;
