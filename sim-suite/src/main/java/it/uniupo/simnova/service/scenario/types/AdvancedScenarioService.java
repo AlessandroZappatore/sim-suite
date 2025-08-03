@@ -60,7 +60,7 @@ public class AdvancedScenarioService {
      */
     public int startAdvancedScenario(String titolo, String nomePaziente, String patologia, String autori, float timerGenerale, String tipologia) {
         // Delega la creazione del record base dello scenario al ScenarioService.
-        int scenarioId = scenarioService.startQuickScenario(-1, titolo, nomePaziente, patologia, autori, timerGenerale, tipologia);
+        int scenarioId = scenarioService.startQuickScenario(-1, titolo, nomePaziente, patologia, autori, timerGenerale, tipologia, "Advanced");
 
         if (scenarioId > 0) {
             // Se lo scenario base è stato creato con successo, aggiunge un record in AdvancedScenario.

@@ -66,6 +66,12 @@ public class Scenario {
     @Column(name = "target")
     private String target;
 
+    @Column(name = "tipo_scenario")
+    private String tipologiaScenario;
+
+    @Column(name = "sceneggiatura")
+    private String sceneggiatura;
+
     public Scenario(Integer id, String titolo, String autori, String patologia, String descrizione, String tipologiaPaziente) {
         this.id = id;
         this.titolo = titolo;

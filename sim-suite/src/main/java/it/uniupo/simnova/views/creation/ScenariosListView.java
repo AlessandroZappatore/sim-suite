@@ -354,7 +354,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         searchAutori.setValueChangeMode(ValueChangeMode.LAZY);
         searchAutori.addValueChangeListener(e -> applyFiltersAndRefreshGrid());
 
-        List<String> allTypes = List.of("Tutti", "Patient Simulated Scenario", "Advanced Scenario", "Quick Scenario");
+        List<String> allTypes = List.of("Tutti", "Patient Simulated", "Advanced", "Quick");
         searchTipo = FieldGenerator.createComboBox("Filtra per Tipo", allTypes, "Tutti", false);
         searchTipo.setClearButtonVisible(true);
         searchTipo.addValueChangeListener(e -> applyFiltersAndRefreshGrid());
@@ -489,21 +489,21 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                     String fontWeightClass = LumoUtility.FontWeight.NORMAL;
 
                     switch (tipo.toLowerCase()) {
-                        case "patient simulated scenario":
+                        case "patient simulated":
                             icon = FontAwesome.Solid.USER_INJURED.create();
                             icon.setSize("24px");
                             iconColorClass = LumoUtility.TextColor.ERROR;
                             fontWeightClass = LumoUtility.FontWeight.SEMIBOLD;
                             tipoSpan.addClassNames(LumoUtility.TextColor.ERROR, LumoUtility.FontWeight.SEMIBOLD);
                             break;
-                        case "advanced scenario":
+                        case "advanced":
                             icon = VaadinIcon.CLOCK.create();
                             icon.setSize("20px");
                             iconColorClass = LumoUtility.TextColor.SUCCESS;
                             fontWeightClass = LumoUtility.FontWeight.SEMIBOLD;
                             tipoSpan.addClassNames(LumoUtility.TextColor.SUCCESS, LumoUtility.FontWeight.SEMIBOLD);
                             break;
-                        case "quick scenario":
+                        case "quick":
                             icon = VaadinIcon.BOLT.create();
                             icon.setSize("20px");
                             iconColorClass = LumoUtility.TextColor.PRIMARY;
@@ -529,7 +529,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                     return container;
                 })).setHeader("Tipo")
                 .setSortable(true)
-                .setFlexGrow(2)
+                .setFlexGrow(1)
                 .setComparator(Comparator.comparing(ScenarioSummaryDTO::getTipoScenario, Comparator.nullsLast(String::compareToIgnoreCase)));
 
         scenariosGrid.addColumn(new ComponentRenderer<>(scenario -> {
@@ -582,16 +582,18 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                     actions.setJustifyContentMode(FlexComponent.JustifyContentMode.START);
 
                     Button executionButton;
-                    if (dto.getTipoScenario().equals("Quick Scenario")) {
+                    if (dto.getTipoScenario().equals("Quick")) {
                         executionButton = new Button(FontAwesome.Solid.XMARK.create());
                         executionButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY_INLINE);
                         executionButton.getElement().setAttribute("title", "Non è possibile eseguire un Quick Scenario");
                         executionButton.addClassName("margin-right");
+                        executionButton.addClassName("action-button");
                     } else {
                         executionButton = new Button(FontAwesome.Solid.PLAY.create());
                         executionButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SUCCESS);
                         executionButton.getElement().setAttribute("title", "Esegui scenario");
                         executionButton.addClassName("margin-right");
+                        executionButton.addClassName("action-button");
                         executionButton.addClickListener(e -> {
                             if (!detached.get()) {
                                 getUI().ifPresent(ui -> ui.navigate("execution/" + dto.getId()));
@@ -603,6 +605,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                     pdfButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE);
                     pdfButton.getElement().setAttribute("title", "Esporta in PDF");
                     pdfButton.addClassName("margin-right");
+                    pdfButton.addClassName("action-button");
                     pdfButton.addClickListener(e -> {
                         if (!detached.get()) {
                             exportToPdf(dto.getId());
@@ -613,6 +616,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                     simButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE);
                     simButton.getElement().setAttribute("title", "Esporta in .zip (sim.execution)");
                     simButton.addClassName("margin-right");
+                    simButton.addClassName("action-button");
                     simButton.addClickListener(e -> {
                         if (!detached.get()) {
                             exportToSimExecution(dto.getId());
@@ -622,6 +626,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                     Button deleteButton = new Button(new Icon(VaadinIcon.TRASH));
                     deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY_INLINE);
                     deleteButton.getElement().setAttribute("title", "Elimina scenario");
+                    deleteButton.addClassName("action-button");
                     deleteButton.addClickListener(e -> {
                         if (!detached.get()) {
                             confirmAndDeleteScenario(dto);
@@ -760,10 +765,10 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         } else {
             scenario = scenarioOptional.get();
         }
-        String scenarioType = scenarioService.getScenarioType(scenario.getId());
+        String scenarioType = scenario.getTipologiaScenario();
 
         // Se lo scenario non è avanzato o simulato, esporta tutto direttamente
-        if (!"Advanced Scenario".equals(scenarioType) && !"Patient Simulated Scenario".equals(scenarioType)) {
+        if (!"Advanced".equals(scenarioType) && !"Patient Simulated".equals(scenarioType)) {
             executeExport(scenario, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, zipExportService);
             return;
         }
@@ -851,7 +856,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
 
         // Aggiunge checkbox "Sceneggiatura" solo per scenari di tipo "Patient Simulated Scenario"
         Checkbox sceneggiaturaChk = new Checkbox("Sceneggiatura", true);
-        if ("Patient Simulated Scenario".equals(scenarioType)) {
+        if ("Patient Simulated".equals(scenarioType)) {
             if (patientSimulatedScenarioService.getPatientSimulatedScenarioById(scenario.getId()).getSceneggiatura() == null ||
                     patientSimulatedScenarioService.getPatientSimulatedScenarioById(scenario.getId()).getSceneggiatura().isEmpty()) {
                 sceneggiaturaChk.setEnabled(false);

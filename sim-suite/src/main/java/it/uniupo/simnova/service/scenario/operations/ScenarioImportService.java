@@ -174,7 +174,7 @@ public class ScenarioImportService {
             // Basato sul tipo di scenario, invoca il metodo di creazione appropriato.
             switch (scenarioType) {
                 case "Quick Scenario":
-                    creationResult = createQuickScenarioFromJson(jsonData, titolo, nomePaziente, patologia, autori, timerGenerale, tipologia);
+                    creationResult = createQuickScenarioFromJson(jsonData, titolo, nomePaziente, patologia, autori, timerGenerale, tipologia, "Quick");
                     break;
                 case "Advanced Scenario":
                     // Crea lo scenario avanzato e, se riuscito, salva i componenti comuni e avanzati.
@@ -302,9 +302,9 @@ public class ScenarioImportService {
      * durante la creazione dello scenario principale o il salvataggio dei componenti.
      */
     private int createQuickScenarioFromJson(Map<String, Object> scenarioData, String titolo, String nomePaziente,
-                                            String patologia, String autori, float timerGenerale, String tipologia) {
+                                            String patologia, String autori, float timerGenerale, String tipologia, String tipologiaScenario) {
         // Avvia la creazione di uno scenario Quick.
-        int newId = scenarioService.startQuickScenario(-1, titolo, nomePaziente, patologia, autori, timerGenerale, tipologia);
+        int newId = scenarioService.startQuickScenario(-1, titolo, nomePaziente, patologia, autori, timerGenerale, tipologia, tipologiaScenario);
         if (newId <= 0) {
             logger.error("Fallimento nella creazione del Quick Scenario principale. ID restituito: {}.", newId);
             return -1;

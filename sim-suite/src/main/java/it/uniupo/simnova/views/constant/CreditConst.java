@@ -16,7 +16,7 @@ public final class CreditConst {
     /**
      * La data dell'ultima modifica o rilascio del progetto, formattata come stringa.
      */
-    public static final String DATE = "20/07/2025";
+    public static final String DATE = "04/08/2025";
     /**
      * La versione corrente del progetto, espressa come stringa semantica.
      */

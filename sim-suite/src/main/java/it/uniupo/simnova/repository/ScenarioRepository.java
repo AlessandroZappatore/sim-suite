@@ -10,6 +10,6 @@ import java.util.List;
 
 @Repository
 public interface ScenarioRepository extends JpaRepository<Scenario, Integer> {
-    @Query("SELECT new it.uniupo.simnova.dto.ScenarioSummaryDTO(s.id, s.titolo, s.autori, s.patologia, s.descrizione, s.tipologiaPaziente) FROM Scenario s")
+    @Query("SELECT new it.uniupo.simnova.dto.ScenarioSummaryDTO(s.id, s.titolo, s.autori, s.patologia, s.descrizione, s.tipologiaPaziente, s.tipologiaScenario) FROM Scenario s")
     List<ScenarioSummaryDTO> findAllSummaries();
 }

@@ -476,7 +476,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
         }
 
         // Aggiunge la scheda "Sceneggiatura" se lo scenario è di tipo Patient Simulated.
-        String scenarioType = scenarioService.getScenarioType(scenarioId);
+        String scenarioType = scenario.getTipologiaScenario();
         if ("Patient Simulated Scenario".equalsIgnoreCase(scenarioType)) {
             Tab tabSceneggiatura = createTabWithIcon("Sceneggiatura", VaadinIcon.FILE_TEXT);
             Component sceneggiaturaContent = SceneggiaturaSupport.createSceneggiaturaContent(

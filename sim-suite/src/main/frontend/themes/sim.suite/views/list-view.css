@@ -4,8 +4,26 @@
 
 .scenario-grid {
     min-height: 410px;
-    box-shadow: var(--lumo-box-shadow-s);
-    border-radius: var(--lumo-border-radius-m);
+    box-shadow: var(--lumo-box-shadow-m);
+    border-radius: var(--lumo-border-radius-l);
+}
+
+.scenario-grid::part(row) {
+    transition: background-color 0.2s ease-in-out;
+}
+
+.scenario-grid::part(row)[v-row-hover] {
+    background-color: var(--lumo-primary-color-10pct);
+    cursor: pointer;
+}
+
+.action-button {
+    background-color: transparent !important;
+    transition: transform 0.15s ease-in-out;
+}
+
+.action-button:hover {
+    transform: scale(1.3);
 }
 
 .container {

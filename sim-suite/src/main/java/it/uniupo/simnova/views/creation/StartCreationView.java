@@ -23,8 +23,6 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import it.uniupo.simnova.dto.ScenarioDetailsDto;
 import it.uniupo.simnova.service.scenario.ScenarioService;
-import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
-import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
 import it.uniupo.simnova.service.storage.FileStorageService;
 import it.uniupo.simnova.views.common.components.AppHeader;
 import it.uniupo.simnova.views.common.utils.FieldGenerator;
@@ -51,8 +49,6 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
     private static final Logger logger = LoggerFactory.getLogger(StartCreationView.class);
 
     private final ScenarioService scenarioService;
-    private final AdvancedScenarioService advancedScenarioService;
-    private final PatientSimulatedScenarioService patientSimulatedScenarioService;
     private final FileStorageService fileStorageService;
     private final Binder<ScenarioDetailsDto> binder = new Binder<>(ScenarioDetailsDto.class);
     private final ScenarioDetailsDto scenarioDetails = new ScenarioDetailsDto();
@@ -66,12 +62,9 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
     private Button nextButton;
     private String scenarioType;
 
-    public StartCreationView(ScenarioService scenarioService, FileStorageService fileStorageService,
-                             AdvancedScenarioService advancedScenarioService, PatientSimulatedScenarioService patientSimulatedScenarioService) {
+    public StartCreationView(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
         this.fileStorageService = fileStorageService;
-        this.advancedScenarioService = advancedScenarioService;
-        this.patientSimulatedScenarioService = patientSimulatedScenarioService;
 
         initComponents();
         setupBinder();
@@ -197,21 +190,23 @@ public class StartCreationView extends Composite<VerticalLayout> implements HasU
                                 -1,
                                 scenarioDetails.getTitle(), scenarioDetails.getPatientName(),
                                 scenarioDetails.getPathology(), scenarioDetails.getAuthor(),
-                                duration, scenarioDetails.getType()
+                                duration, scenarioDetails.getType(), "Quick"
                         );
                         break;
                     case "advancedscenario":
-                        scenarioId = advancedScenarioService.startAdvancedScenario(
+                        scenarioId = scenarioService.startQuickScenario(
+                                -1,
                                 scenarioDetails.getTitle(), scenarioDetails.getPatientName(),
                                 scenarioDetails.getPathology(), scenarioDetails.getAuthor(),
-                                duration, scenarioDetails.getType()
+                                duration, scenarioDetails.getType(), "Advanced"
                         );
                         break;
                     case "patientsimulatedscenario":
-                        scenarioId = patientSimulatedScenarioService.startPatientSimulatedScenario(
+                        scenarioId = scenarioService.startQuickScenario(
+                                -1,
                                 scenarioDetails.getTitle(), scenarioDetails.getPatientName(),
                                 scenarioDetails.getPathology(), scenarioDetails.getAuthor(),
-                                duration, scenarioDetails.getType()
+                                duration, scenarioDetails.getType(), "Patient Simulated"
                         );
                         break;
                     default:

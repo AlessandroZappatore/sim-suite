@@ -57,7 +57,7 @@ public class AdvancedScenario extends Scenario {
         // Chiama il costruttore della superclass Scenario per inizializzare i campi comuni.
         super(id, titolo, nome_paziente, patologia, descrizione, briefing,
                 patto_aula, obiettivo, moulage,
-                liquidi, timer_generale, autori, tipologia, infoGenitore, target);
+                liquidi, timer_generale, autori, tipologia, infoGenitore, target, null, null);
         this.id_advanced_scenario = id_advanced_scenario;
         this.tempi = tempi;
     }

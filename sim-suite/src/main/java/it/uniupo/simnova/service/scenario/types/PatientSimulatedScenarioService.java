@@ -180,7 +180,6 @@ public class PatientSimulatedScenarioService {
     /**
      * Aggiorna il campo <code>sceneggiatura</code> per uno scenario simulato con paziente esistente.
      * Questo metodo verifica prima se lo scenario esiste ed è effettivamente di tipo "PatientSimulatedScenario"
-     * utilizzando {@link ScenarioService#isPresentInTable(int, String)}}.
      *
      * @param scenarioId    L'ID dello scenario simulato con paziente da aggiornare.
      * @param sceneggiatura La nuova stringa della sceneggiatura da salvare.
@@ -189,7 +188,7 @@ public class PatientSimulatedScenarioService {
      */
     public boolean updateScenarioSceneggiatura(Integer scenarioId, String sceneggiatura) {
         // Verifica l'esistenza e la tipologia dello scenario.
-        if (!scenarioService.isPresentInTable(scenarioId, "PatientSimulatedScenario")) {
+        if (!scenarioService.existScenario(scenarioId)) {
             logger.warn("Lo scenario con ID {} non è un PatientSimulatedScenario o non esiste. Impossibile aggiornare la sceneggiatura.", scenarioId);
             return false;
         }
