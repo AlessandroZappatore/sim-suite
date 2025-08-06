@@ -45,46 +45,6 @@ public class AdvancedScenarioService {
     }
 
     /**
-     * Avvia la creazione di un nuovo scenario di tipo "avanzato".
-     * Questo metodo crea prima un record base dello scenario tramite {@link ScenarioService#startQuickScenario},
-     * quindi aggiunge un record nella tabella <code>AdvancedScenario</code> associandolo all'ID dello scenario base.
-     *
-     * @param titolo        Il titolo dello scenario.
-     * @param nomePaziente  Il nome del paziente associato allo scenario.
-     * @param patologia     La patologia del paziente.
-     * @param autori        Gli autori dello scenario.
-     * @param timerGenerale Il timer generale preimpostato per lo scenario.
-     * @param tipologia     La tipologia specifica dello scenario (dovrebbe essere "Advanced Scenario").
-     * @return L'ID (<code>int</code>) dello scenario avanzato appena creato; <code>-1</code> in caso di errore
-     * durante la creazione dello scenario base o l'inserimento del record in <code>AdvancedScenario</code>.
-     */
-    public int startAdvancedScenario(String titolo, String nomePaziente, String patologia, String autori, float timerGenerale, String tipologia) {
-        // Delega la creazione del record base dello scenario al ScenarioService.
-        int scenarioId = scenarioService.startQuickScenario(-1, titolo, nomePaziente, patologia, autori, timerGenerale, tipologia, "Advanced");
-
-        if (scenarioId > 0) {
-            // Se lo scenario base è stato creato con successo, aggiunge un record in AdvancedScenario.
-            final String sql = "INSERT INTO AdvancedScenario (id_advanced_scenario) VALUES (?)";
-
-            try (Connection conn = DBConnect.getInstance().getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-                stmt.setInt(1, scenarioId);
-                stmt.executeUpdate();
-                logger.info("Record 'AdvancedScenario' creato con successo per lo scenario ID: {}.", scenarioId);
-
-            } catch (SQLException e) {
-                logger.error("Errore SQL durante l'inserimento del record 'AdvancedScenario' per lo scenario ID {}: {}. Si consiglia un controllo di consistenza dei dati.", scenarioId, e.getMessage(), e);
-                // In caso di errore, si potrebbe voler eliminare lo scenario base appena creato per evitare orfani.
-                return -1;
-            }
-        } else {
-            logger.error("Impossibile creare lo scenario base. ID restituito: {}.", scenarioId);
-        }
-        return scenarioId;
-    }
-
-    /**
      * Recupera tutti gli oggetti {@link Tempo} associati a uno scenario avanzato specifico.
      * Ogni oggetto <code>Tempo</code> recuperato include anche la sua lista di {@link ParametroAggiuntivo ParametriAggiuntivi} correlati.
      *
@@ -113,7 +73,7 @@ public class AdvancedScenarioService {
                         rs.getFloat("T"),
                         (Integer) rs.getObject("SpO2"),
                         (Integer) rs.getObject("FiO2"),
-                        (Double) rs.getObject("LitriOssigeno"),
+                        (Float) rs.getObject("LitriOssigeno"),
                         (Integer) rs.getObject("EtCO2"),
                         rs.getString("Azione"),
                         rs.getInt("TSi_id"),
@@ -171,7 +131,7 @@ public class AdvancedScenarioService {
                     Integer rr = tempo.getRR();
                     Integer spo2 = tempo.getSpO2();
                     Integer fio2 = tempo.getFiO2();
-                    Double litrio2 = tempo.getLitriO2();
+                    Float litrio2 = tempo.getLitriO2();
                     Integer etco2 = tempo.getEtCO2();
                     String pa = tempo.getPA();
                     int tsi = tempo.getTSi();

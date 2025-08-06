@@ -387,14 +387,14 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                 }
 
                 // Popola i campi della sezione T0 con i dati di PazienteT0.
-                t0Section.setPaValue(pazienteT0.getPA());
-                t0Section.setFcValue(pazienteT0.getFC());
-                t0Section.setRrValue(pazienteT0.getRR());
-                t0Section.setTValue(pazienteT0.getT());
-                t0Section.setSpo2Value(pazienteT0.getSpO2());
-                t0Section.setFio2Value(pazienteT0.getFiO2());
-                t0Section.setLitriO2Value(pazienteT0.getLitriO2());
-                t0Section.setEtco2Value(pazienteT0.getEtCO2());
+                t0Section.setPaValue(String.valueOf(pazienteT0.getPaDiastolica()));
+                t0Section.setFcValue(pazienteT0.getFc());
+                t0Section.setRrValue(pazienteT0.getRr());
+                t0Section.setTValue(Double.valueOf(pazienteT0.getT()));
+                t0Section.setSpo2Value(pazienteT0.getSpo2());
+                t0Section.setFio2Value(pazienteT0.getFio2());
+                t0Section.setLitriO2Value(Double.valueOf(pazienteT0.getLitriOssigeno()));
+                t0Section.setEtco2Value(pazienteT0.getEtco2());
 
                 // Notifica all'utente che i parametri di T0 non sono modificabili direttamente qui.
                 Notification.show("I parametri base di T0 derivano dallo stato iniziale del paziente e non sono modificabili direttamente qui.",
@@ -462,7 +462,7 @@ public class TempoView extends Composite<VerticalLayout> implements HasUrlParame
                             section.tField.setValue(Optional.of(tempo.getT()).orElse(null));
                             section.spo2Field.setValue(Optional.ofNullable(tempo.getSpO2()).map(Double::valueOf).orElse(null));
                             section.fio2Field.setValue(Optional.ofNullable(tempo.getFiO2()).map(Double::valueOf).orElse(null));
-                            section.litriO2Field.setValue(tempo.getLitriO2());
+                            section.litriO2Field.setValue(Double.valueOf(tempo.getLitriO2()));
                             section.etco2Field.setValue(Optional.ofNullable(tempo.getEtCO2()).map(Double::valueOf).orElse(null));
                         }
 

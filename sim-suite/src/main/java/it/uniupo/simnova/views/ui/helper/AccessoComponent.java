@@ -57,7 +57,7 @@ public class AccessoComponent extends HorizontalLayout {
         setSpacing(true);
         getStyle().set("flex-wrap", "wrap"); // Permette al layout di andare a capo su schermi piccoli
 
-        this.accesso = new Accesso(0, "", "", "", 0); // Inizializza un nuovo oggetto Accesso
+        this.accesso = new Accesso(); // Inizializza un nuovo oggetto Accesso
 
         // Campo di selezione per il tipo di accesso
         tipoSelect = FieldGenerator.createSelect(
@@ -79,7 +79,7 @@ public class AccessoComponent extends HorizontalLayout {
                 .set("min-width", "180px"); // Larghezza minima
         tipoSelect.addValueChangeListener(e -> {
             if (e.getValue() != null) {
-                accesso.setTipologia(e.getValue());
+                accesso.setTipo(e.getValue());
             }
         });
 
@@ -149,12 +149,12 @@ public class AccessoComponent extends HorizontalLayout {
     public AccessoComponent(Accesso accesso, String tipo, boolean hasDelete) {
         this(tipo, hasDelete);
         if (accesso != null) {
-            tipoSelect.setValue(accesso.getTipologia());
+            tipoSelect.setValue(accesso.getTipo());
             posizioneField.setValue(accesso.getPosizione());
             latoSelect.setValue(accesso.getLato());
             misuraSelect.setValue(accesso.getMisura());
             // Aggiorna anche l'oggetto interno
-            this.accesso.setTipologia(accesso.getTipologia());
+            this.accesso.setTipo(accesso.getTipo());
             this.accesso.setPosizione(accesso.getPosizione());
             this.accesso.setLato(accesso.getLato());
             this.accesso.setMisura(accesso.getMisura());
@@ -180,7 +180,7 @@ public class AccessoComponent extends HorizontalLayout {
      * @return L'oggetto {@link Accesso} con i dati attuali del componente.
      */
     public Accesso getAccesso() {
-        accesso.setTipologia(tipoSelect.getValue());
+        accesso.setTipo(tipoSelect.getValue());
         accesso.setPosizione(posizioneField.getValue());
         accesso.setLato(latoSelect.getValue());
         accesso.setMisura(misuraSelect.getValue());

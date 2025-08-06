@@ -84,34 +84,34 @@ public class ScenarioPatient {
 
                 // Stampa ogni parametro vitale su una nuova riga, con validazione dello spazio pagina.
                 checkForNewPage(LEADING * 2);
-                drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("PA: %s mmHg", paziente.getPA() != null ? paziente.getPA() : "-"));
+                drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("PA: %s mmHg", paziente.getPaDiastolica() != null ? paziente.getPaDiastolica() : "-"));
 
                 checkForNewPage(LEADING * 2);
-                drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("FC: %d bpm", paziente.getFC() != null ? paziente.getFC() : 0));
+                drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("FC: %d bpm", paziente.getFc() != null ? paziente.getFc() : 0));
 
                 checkForNewPage(LEADING * 2);
-                drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("RR: %d atti/min", paziente.getRR() != null ? paziente.getRR() : 0));
+                drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("RR: %d atti/min", paziente.getRr() != null ? paziente.getRr() : 0));
 
                 checkForNewPage(LEADING * 2);
                 drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("Temperatura: %.1f °C", paziente.getT()));
 
                 checkForNewPage(LEADING * 2);
-                drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("SpO2: %d%%", paziente.getSpO2() != null ? paziente.getSpO2() : 0));
+                drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("SpO2: %d%%", paziente.getSpo2() != null ? paziente.getSpo2() : 0));
 
                 // FiO2 (solo se il valore è maggiore di 0)
-                if (paziente.getFiO2() != null && paziente.getFiO2() > 0) {
+                if (paziente.getFio2() != null && paziente.getFio2() > 0) {
                     checkForNewPage(LEADING * 2);
-                    drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("FiO2: %d%%", paziente.getFiO2()));
+                    drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("FiO2: %d%%", paziente.getFio2()));
                 }
 
                 // Litri O2 (solo se il valore è maggiore di 0)
-                if (paziente.getLitriO2() != null && paziente.getLitriO2() > 0) {
+                if (paziente.getLitriOssigeno() != null && paziente.getLitriOssigeno() > 0) {
                     checkForNewPage(LEADING * 2);
-                    drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("Litri O2: %.1f L/min", paziente.getLitriO2()));
+                    drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("Litri O2: %.1f L/min", paziente.getLitriOssigeno()));
                 }
 
                 checkForNewPage(LEADING * 2);
-                drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("EtCO2: %d mmHg", paziente.getEtCO2() != null ? paziente.getEtCO2() : 0));
+                drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, String.format("EtCO2: %d mmHg", paziente.getEtco2() != null ? paziente.getEtco2() : 0));
 
                 // Monitor (solo se il testo è presente)
                 if (paziente.getMonitor() != null && !paziente.getMonitor().isEmpty()) {
@@ -122,7 +122,7 @@ public class ScenarioPatient {
             }
 
             // Sottosezione: Accessi Venosi
-            List<Accesso> accessiVenosi = paziente.getAccessiVenosi();
+            List<Accesso> accessiVenosi = paziente.getAccessi();
             if (accessiVenosi != null && !accessiVenosi.isEmpty() && acces) {
                 checkForNewPage(LEADING * 3); // Spazio stimato per il titolo della sottosezione.
                 drawSubsection("Accessi Venosi");
@@ -130,14 +130,14 @@ public class ScenarioPatient {
                 for (Accesso accesso : accessiVenosi) {
                     checkForNewPage(LEADING * 2); // Spazio per ogni riga di accesso.
                     String accessoDesc = String.format("• %s - %s (%s) - %dG",
-                            accesso.getTipologia(), accesso.getPosizione(), accesso.getLato(), accesso.getMisura());
+                            accesso.getTipo(), accesso.getPosizione(), accesso.getLato(), accesso.getMisura());
                     drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, accessoDesc);
                 }
                 PdfExportService.currentYPosition -= LEADING; // Spazio extra dopo la sezione.
             }
 
             // Sottosezione: Accessi Arteriosi
-            List<Accesso> accessiArteriosi = paziente.getAccessiArteriosi();
+            List<Accesso> accessiArteriosi = paziente.getAccessi();
             if (accessiArteriosi != null && !accessiArteriosi.isEmpty() && acces) {
                 checkForNewPage(LEADING * 3); // Spazio stimato per il titolo della sottosezione.
                 drawSubsection("Accessi Arteriosi");
@@ -145,7 +145,7 @@ public class ScenarioPatient {
                 for (Accesso accesso : accessiArteriosi) {
                     checkForNewPage(LEADING * 2); // Spazio per ogni riga di accesso.
                     String accessoDesc = String.format("• %s - %s (%s) - %dG",
-                            accesso.getTipologia(), accesso.getPosizione(), accesso.getLato(), accesso.getMisura());
+                            accesso.getTipo(), accesso.getPosizione(), accesso.getLato(), accesso.getMisura());
                     drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, accessoDesc);
                 }
                 PdfExportService.currentYPosition -= LEADING; // Spazio extra dopo la sezione.

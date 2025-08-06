@@ -1,7 +1,9 @@
 package it.uniupo.simnova.domain.common;
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Classe che rappresenta un <strong>accesso venoso o arterioso</strong> nel sistema.
@@ -10,43 +12,33 @@ import lombok.Data;
  * @author Alessandro Zappatore
  * @version 2.0
  */
+@Entity
 @Data
+@Table(name = "PazienteAccesso")
 @AllArgsConstructor
+@NoArgsConstructor
 public class Accesso {
-    /**
-     * Identificativo univoco dell'accesso, assegnato dal database.
-     */
-    private final Integer idAccesso;
-    /**
-     * Tipologia dell'accesso (es. "CVC", "Agocannula" per venoso; "Radiale" per arterioso).
-     */
-    private String tipologia;
-    /**
-     * Posizione anatomica dell'accesso (es. "Giugulare destra", "Cubitale sinistro").
-     */
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_paziente_accesso")
+    private Integer id;
+
+    @Column(name = "paziente_t0_id")
+    private Integer pazienteT0Id;
+
+    @Column(name = "nome_accesso")
+    private String nomeAccesso;
+
+    @Column(name = "tipo")
+    private String tipo;
+
+    @Column(name = "posizione")
     private String posizione;
-    /**
-     * Lato dell'accesso, che può essere "DX" (destro) o "SX" (sinistro).
-     */
+
+    @Column(name = "lato")
     private String lato;
-    /**
-     * Misura dell'accesso, espressa in Gauge (es. 14G, 16G).
-     */
+
+    @Column(name = "misura")
     private Integer misura;
-    /**
-     * Fornisce una rappresentazione in formato stringa dell'oggetto {@code Accesso},
-     * utile per il debugging e la registrazione.
-     *
-     * @return Una stringa che descrive l'ID, la tipologia, la posizione, il lato e la misura dell'accesso.
-     */
-    @Override
-    public String toString() {
-        return "Accesso{" +
-                "idAccesso=" + idAccesso +
-                ", tipologia='" + tipologia + '\'' +
-                ", posizione='" + posizione + '\'' +
-                ", lato='" + lato + '\'' +
-                ", misura=" + misura +
-                '}';
-    }
 }

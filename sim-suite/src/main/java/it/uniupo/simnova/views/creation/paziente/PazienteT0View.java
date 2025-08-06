@@ -34,168 +34,69 @@ import it.uniupo.simnova.views.common.utils.FieldGenerator;
 import it.uniupo.simnova.views.common.utils.StyleApp;
 import it.uniupo.simnova.views.common.utils.ValidationError;
 import it.uniupo.simnova.views.ui.helper.AccessoComponent;
+import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-/**
- * Vista per la gestione dei ***parametri del paziente al tempo T0** (iniziale) nello scenario di simulazione.
- * Permette di definire i parametri vitali principali e di gestire gli accessi venosi e arteriosi,
- * oltre a un campo per il monitoraggio e la selezione di presidi.
- *
- * @author Alessandro Zappatore
- * @version 1.0
- */
 @PageTitle("Parametri Paziente T0")
 @Route(value = "pazienteT0")
 public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlParameter<String> {
-    /**
-     * Logger per la registrazione delle operazioni e degli errori nella vista PazienteT0View.
-     */
+
     private static final Logger logger = LoggerFactory.getLogger(PazienteT0View.class);
 
-    /**
-     * Lista statica per gestire gli accessi venosi e arteriosi.
-     */
-    private static final List<AccessoComponent> venosiAccessi = new ArrayList<>();
-    /**
-     * Lista statica per gestire gli accessi arteriosi.
-     */
-    private static final List<AccessoComponent> arteriosiAccessi = new ArrayList<>();
-    /**
-     * Contenitori per gli accessi venosi e arteriosi, gestiti dinamicamente.
-     * Inizializzati a null per essere creati al momento della costruzione della vista.
-     */
-    private static VerticalLayout venosiContainer = null;
-    /**
-     * Contenitore per gli accessi arteriosi, gestito dinamicamente.
-     * Inizializzato a null per essere creato al momento della costruzione della vista.
-     */
-    private static VerticalLayout arteriosiContainer = null;
+    private final List<AccessoComponent> venosiAccessi = new ArrayList<>();
+    private final List<AccessoComponent> arteriosiAccessi = new ArrayList<>();
 
-    /**
-     * Servizi utilizzati per la gestione degli scenari, dei presidi e dei parametri del paziente T0.
-     */
+    private final VerticalLayout venosiContainer;
+    private final VerticalLayout arteriosiContainer;
+
     private final ScenarioService scenarioService;
-    /**
-     * Servizio per la gestione dei presidi (dispositivi medici e attrezzature).
-     */
     private final PresidiService presidiService;
-    /**
-     * Servizio per la gestione dei parametri del paziente al tempo T0.
-     * Utilizzato per salvare e recuperare i dati del paziente all'inizio dello scenario.
-     */
     private final PazienteT0Service pazienteT0Service;
 
-    /**
-     * Campi per i parametri vitali principali del paziente al tempo T0.
-     */
     private final TextField paField;
-    /**
-     * Campo per la Frequenza Cardiaca (FC) del paziente.
-     */
     private final NumberField fcField;
-    /**
-     * Campo per la Frequenza Respiratoria (RR) del paziente.
-     */
     private final NumberField rrField;
-    /**
-     * Campo per la Temperatura Corporea del paziente.
-     */
     private final NumberField tempField;
-    /**
-     * Campo per la Saturazione di Ossigeno (SpO₂) del paziente.
-     */
     private final NumberField spo2Field;
-    /**
-     * Campo per la Frazione Inspiratoria di Ossigeno (FiO₂) del paziente.
-     * Non obbligatorio, può essere nullo.
-     */
     private final NumberField fio2Field;
-    /**
-     * Campo per il Flusso di Ossigeno in Litri/min (L/min) del paziente.
-     * Non obbligatorio, può essere nullo.
-     */
     private final NumberField litrio2Field;
-    /**
-     * Campo per la Pressione parziale di Anidride Carbonica di fine espirazione (EtCO₂) del paziente.
-     * Non obbligatorio, può essere nullo.
-     */
     private final NumberField etco2Field;
-    /**
-     * Area di testo per il monitoraggio del paziente, dove è possibile inserire dettagli come ECG o altri parametri.
-     */
     private final TextArea monitorArea;
-    /**
-     * Campo per la selezione multipla dei presidi (dispositivi medici e attrezzature) associati al paziente.
-     * Utilizza un {@link MultiSelectComboBox} per permettere la selezione di più opzioni contemporaneamente.
-     */
     private final MultiSelectComboBox<String> presidiField;
-
-    /**
-     * Pulsante per avanzare alla schermata successiva dopo aver inserito i dati del paziente T0.
-     * Utilizza un {@link Button} con stili e icone personalizzate.
-     */
     private final Button nextButton;
-    /**
-     * Checkbox per gestire la visibilità e l'aggiunta di accessi venosi.
-     * Permette di mostrare o nascondere la sezione degli accessi venosi nella vista.
-     */
-    Checkbox venosiCheckbox = FieldGenerator.createCheckbox("Accessi venosi");
-    /**
-     * Checkbox per gestire la visibilità e l'aggiunta di accessi arteriosi.
-     * Permette di mostrare o nascondere la sezione degli accessi arteriosi nella vista.
-     */
-    Checkbox arteriosiCheckbox = FieldGenerator.createCheckbox("Accessi arteriosi");
-    /**
-     * ID dello scenario corrente, utilizzato per identificare lo scenario in cui si sta lavorando.
-     * Viene impostato tramite il parametro dell'URL e utilizzato per salvare i dati del paziente T0.
-     */
-    private Integer scenarioId;
-    /**
-     * Modalità della vista, che può essere "create" per la creazione di nuovi dati o "edit" per modificare dati esistenti.
-     * Viene determinata in base al parametro dell'URL e utilizzata per configurare l'interfaccia utente e le operazioni di salvataggio.
-     */
-    private String mode;
+    private final Checkbox venosiCheckbox = FieldGenerator.createCheckbox("Accessi venosi");
+    private final Checkbox arteriosiCheckbox = FieldGenerator.createCheckbox("Accessi arteriosi");
 
-    /**
-     * Costruttore della vista {@code PazienteT0View}.
-     * Inizializza i servizi e configura la struttura base dell'interfaccia utente,
-     * inclusi i campi per i parametri vitali e i controlli per gli accessi e i presidi.
-     *
-     * @param scenarioService    Servizio per la gestione degli scenari.
-     * @param fileStorageService Servizio per la gestione dei file, utilizzato per l'AppHeader.
-     * @param presidiService     Servizio per la gestione dei presidi.
-     * @param pazienteT0Service  Servizio per la gestione dei parametri del paziente T0.
-     */
+    private Integer scenarioId;
+    private String mode;
+    private PazienteT0 currentPazienteT0;
+
     public PazienteT0View(ScenarioService scenarioService, FileStorageService fileStorageService, PresidiService presidiService, PazienteT0Service pazienteT0Service) {
         this.scenarioService = scenarioService;
         this.presidiService = presidiService;
         this.pazienteT0Service = pazienteT0Service;
 
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
-
         AppHeader header = new AppHeader(fileStorageService);
         Button backButton = StyleApp.getBackButton();
         backButton.setTooltipText("Torna ai liquidi e dosi farmaci");
-
         HorizontalLayout customHeader = StyleApp.getCustomHeader(backButton, header);
-
         VerticalLayout contentLayout = StyleApp.getContentLayout();
-
         VerticalLayout headerSection = StyleApp.getTitleSubtitle(
                 "PARAMETRI VITALI PRINCIPALI IN T0",
                 "Definisci i parametri vitali principali del paziente al tempo T0 (iniziale).",
-                VaadinIcon.HEART.create(), // Icona a forma di cuore
+                VaadinIcon.HEART.create(),
                 "var(--lumo-primary-color)"
         );
-
-        // Inizializzazione dei campi per i parametri vitali con stili predefiniti
         paField = FieldGenerator.createTextField("PA (mmHg)", "(es. 120/80)", true);
+        paField.setPattern("\\d{1,3}/\\d{1,3}");
+        paField.setErrorMessage("Formato non valido. Es: 120/80");
+
         fcField = FieldGenerator.createNumberField("FC (battiti/min)", "(es. 80)", true);
         rrField = FieldGenerator.createNumberField("RR (att/min)", "(es. 16)", true);
         tempField = FieldGenerator.createNumberField("Temp. (°C)", "(es. 36.5)", true);
@@ -204,33 +105,30 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         litrio2Field = FieldGenerator.createNumberField("L/min O₂", "(es. 5)", false);
         etco2Field = FieldGenerator.createNumberField("EtCO₂ (mmHg)", "(es. 35)", false);
 
-        // Contenitori per gli accessi venosi e arteriosi (gestiti dinamicamente)
         venosiContainer = new VerticalLayout();
         venosiContainer.setWidthFull();
         venosiContainer.setSpacing(true);
         venosiContainer.setPadding(false);
-        venosiContainer.setVisible(false); // Nascosto di default
+        venosiContainer.setVisible(false);
 
         arteriosiContainer = new VerticalLayout();
         arteriosiContainer.setWidthFull();
         arteriosiContainer.setSpacing(true);
         arteriosiContainer.setPadding(false);
-        arteriosiContainer.setVisible(false); // Nascosto di default
+        arteriosiContainer.setVisible(false);
 
-        // Pulsanti per aggiungere nuovi accessi
         Button addVenosiButton = StyleApp.getButton("Aggiungi accesso venoso", VaadinIcon.PLUS.create(), ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
-        addVenosiButton.setVisible(false); // Nascosto di default
+        addVenosiButton.setVisible(false);
         addVenosiButton.addClickListener(e -> addAccessoVenoso());
 
         Button addArteriosiButton = StyleApp.getButton("Aggiungi accesso arterioso", VaadinIcon.PLUS.create(), ButtonVariant.LUMO_PRIMARY, "var(--lumo-base-color)");
-        addArteriosiButton.setVisible(false); // Nascosto di default
+        addArteriosiButton.setVisible(false);
         addArteriosiButton.addClickListener(e -> addAccessoArterioso());
 
-        // Checkbox per mostrare/nascondere le sezioni degli accessi
         venosiCheckbox.addValueChangeListener(e -> {
             venosiContainer.setVisible(e.getValue());
             addVenosiButton.setVisible(e.getValue());
-            if (!e.getValue()) { // Se deselezionato, pulisce gli accessi
+            if (!e.getValue()) {
                 venosiAccessi.clear();
                 venosiContainer.removeAll();
             }
@@ -239,18 +137,16 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         arteriosiCheckbox.addValueChangeListener(e -> {
             arteriosiContainer.setVisible(e.getValue());
             addArteriosiButton.setVisible(e.getValue());
-            if (!e.getValue()) { // Se deselezionato, pulisce gli accessi
+            if (!e.getValue()) {
                 arteriosiAccessi.clear();
                 arteriosiContainer.removeAll();
             }
         });
 
         monitorArea = FieldGenerator.createTextArea("Monitoraggio", "Specificare dettagli ECG o altri parametri...", false);
-
         List<String> allPresidiList = PresidiService.getAllPresidi();
         presidiField = FieldGenerator.createMultiSelectComboBox("Presidi", allPresidiList, false);
 
-        // Aggiunta di tutti i componenti al layout di contenuto
         contentLayout.add(
                 headerSection,
                 paField, fcField, rrField, tempField, spo2Field, fio2Field, litrio2Field, etco2Field,
@@ -259,31 +155,19 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                 monitorArea, presidiField
         );
 
-        nextButton = StyleApp.getNextButton(); // Pulsante per la navigazione successiva
+        nextButton = StyleApp.getNextButton();
         HorizontalLayout footerLayout = StyleApp.getFooterLayout(nextButton);
-
-        // Aggiunta dei layout all'UI principale
         mainLayout.add(customHeader, contentLayout, footerLayout);
-
-        // Listener per la navigazione indietro (alla vista liquidi)
         backButton.addClickListener(e -> backButton.getUI().ifPresent(ui -> ui.navigate("liquidi/" + scenarioId)));
 
-        // Listener per il pulsante "Avanti" (validazione e salvataggio)
         nextButton.addClickListener(e -> {
-            if (!validateInput()) { // Esegue la validazione dei campi
+            if (!validateInput()) {
                 return;
             }
-            saveDataAndNavigate(nextButton.getUI()); // Salva i dati e naviga
+            saveDataAndNavigate(nextButton.getUI());
         });
     }
 
-    /**
-     * Gestisce il parametro dell'URL, che può includere l'ID dello scenario e la modalità (edit/create).
-     *
-     * @param event     L'evento di navigazione.
-     * @param parameter La stringa del parametro URL (es. "123/edit").
-     * @throws NotFoundException Se l'ID dello scenario non è valido o mancante.
-     */
     @Override
     public void setParameter(BeforeEvent event, @WildcardParameter String parameter) {
         try {
@@ -291,48 +175,35 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                 logger.warn("Parametro mancante nell'URL.");
                 throw new NumberFormatException("ID Scenario è richiesto");
             }
-
             String[] parts = parameter.split("/");
             String scenarioIdStr = parts[0];
-
             this.scenarioId = Integer.parseInt(scenarioIdStr.trim());
-            // Verifica che lo scenario esista nel servizio
             if (scenarioId <= 0 || !scenarioService.existScenario(scenarioId)) {
                 logger.warn("ID Scenario non valido o non esistente: {}", scenarioId);
                 throw new NumberFormatException("ID Scenario non valido");
             }
-
-            // Determina la modalità: "edit" se il secondo segmento è "edit", altrimenti "create"
             mode = parts.length > 1 && "edit".equals(parts[1]) ? "edit" : "create";
-
             logger.info("Scenario ID impostato a: {}, Mode: {}", this.scenarioId, mode);
-
-            // Ottiene il layout principale (Composite) per accedere ai suoi figli
             VerticalLayout mainLayout = getContent();
-
-            // Rende visibili o invisibili componenti specifici a seconda della modalità
-            // L'header (first HorizontalLayout) viene nascosto in modalità "edit"
             mainLayout.getChildren()
                     .filter(component -> component instanceof HorizontalLayout)
                     .findFirst()
                     .ifPresent(headerLayout -> headerLayout.setVisible(!"edit".equals(mode)));
-
-            // Il CreditsComponent nel footer (secondo HorizontalLayout, o ultimo) viene nascosto in modalità "edit"
             mainLayout.getChildren()
                     .filter(component -> component instanceof HorizontalLayout)
-                    .reduce((first, second) -> second) // Prende l'ultimo HorizontalLayout (il footer)
+                    .reduce((first, second) -> second)
                     .ifPresent(footerLayout -> footerLayout.getChildren()
                             .filter(component -> component instanceof CreditsComponent)
                             .forEach(credits -> credits.setVisible(!"edit".equals(mode))));
 
             if ("edit".equals(mode)) {
-                logger.info("Modalità EDIT: caricamento dati Tempi esistenti per scenario {}", this.scenarioId);
+                logger.info("Modalità EDIT: caricamento dati per scenario {}", this.scenarioId);
                 nextButton.setText("Salva");
                 nextButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
                 nextButton.setIcon(new Icon(VaadinIcon.CHECK));
-                nextButton.setIconAfterText(false); // Posiziona l'icona prima del testo
+                nextButton.setIconAfterText(false);
             } else {
-                logger.info("Modalità CREATE: caricamento dati iniziali T0 e preparazione per nuovi tempi per scenario {}", this.scenarioId);
+                logger.info("Modalità CREATE: preparazione per scenario {}", this.scenarioId);
             }
             loadData();
         } catch (NumberFormatException e) {
@@ -341,37 +212,22 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         }
     }
 
-    /**
-     * Aggiunge un nuovo componente {@link AccessoComponent} per un accesso venoso
-     * al layout e alla lista degli accessi venosi.
-     */
     private void addAccessoVenoso() {
-        AccessoComponent accesso = new AccessoComponent("Venoso", true); // Passa true per abilitare il pulsante elimina
+        AccessoComponent accesso = new AccessoComponent("Venoso", true);
         venosiAccessi.add(accesso);
         venosiContainer.add(accesso);
     }
 
-    /**
-     * Aggiunge un nuovo componente {@link AccessoComponent} per un accesso arterioso
-     * al layout e alla lista degli accessi arteriosi.
-     */
     private void addAccessoArterioso() {
-        AccessoComponent accesso = new AccessoComponent("Arterioso", true); // Passa true per abilitare il pulsante elimina
+        AccessoComponent accesso = new AccessoComponent("Arterioso", true);
         arteriosiAccessi.add(accesso);
         arteriosiContainer.add(accesso);
     }
 
-    /**
-     * Valida i campi di input principali per assicurarsi che siano compilati correttamente.
-     * Utilizza {@link ValidationError} per mostrare messaggi di errore e impostare il focus.
-     *
-     * @return {@code true} se tutti i campi obbligatori sono validi, {@code false} altrimenti.
-     */
     private boolean validateInput() {
         boolean isValid = true;
-        // La validazione showErrorAndReturnFalse aggiorna isValid e mostra l'errore.
-        if (paField.isEmpty()) {
-            isValid = ValidationError.showErrorAndReturnFalse(paField, "La Pressione Arteriosa (PA) è obbligatoria.");
+        if (paField.isInvalid() || paField.isEmpty()) {
+            isValid = ValidationError.showErrorAndReturnFalse(paField, paField.isEmpty() ? "La Pressione Arteriosa (PA) è obbligatoria." : "Formato PA non valido. Es: 120/80");
         }
         if (fcField.isEmpty()) {
             isValid = ValidationError.showErrorAndReturnFalse(fcField, "La Frequenza Cardiaca (FC) è obbligatoria.");
@@ -385,134 +241,129 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         if (spo2Field.isEmpty()) {
             isValid = ValidationError.showErrorAndReturnFalse(spo2Field, "La Saturazione di Ossigeno (SpO₂) è obbligatoria.");
         }
-        // Validazioni specifiche sui range dei valori possono essere aggiunte qui se necessarie.
-
         return isValid;
     }
 
     /**
-     * Salva i dati del paziente T0 e naviga alla vista successiva.
-     * L'operazione mostra una progress bar e notifiche di stato/errore.
-     *
-     * @param uiOptional L'oggetto {@link UI} opzionale per l'accesso e la navigazione.
+     * NUOVO METODO: Salva i dati usando il nuovo PazienteT0Service.
      */
     private void saveDataAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {
             ProgressBar progressBar = new ProgressBar();
             progressBar.setIndeterminate(true);
-            getContent().add(progressBar); // Mostra una progress bar durante il salvataggio
+            getContent().add(progressBar);
 
             try {
-                // Raccoglie i dati dagli AccessoComponent
-                List<Accesso> venosi = new ArrayList<>();
+                PazienteT0 pazienteToSave = (currentPazienteT0 != null) ? currentPazienteT0 : new PazienteT0();
+
+                if (pazienteToSave.getId() == null) {
+                    pazienteToSave.setId(scenarioId);
+                }
+
+                String[] paValues = paField.getValue().split("/");
+                pazienteToSave.setPaSistolica(Integer.parseInt(paValues[0].trim()));
+                pazienteToSave.setPaDiastolica(Integer.parseInt(paValues[1].trim()));
+                pazienteToSave.setFc(fcField.getValue().intValue());
+                pazienteToSave.setRr(rrField.getValue().intValue());
+                pazienteToSave.setT(tempField.getValue().floatValue());
+                pazienteToSave.setSpo2(spo2Field.getValue().intValue());
+                pazienteToSave.setFio2(fio2Field.isEmpty() ? null : fio2Field.getValue().intValue());
+                pazienteToSave.setLitriOssigeno(litrio2Field.isEmpty() ? null : litrio2Field.getValue().floatValue());
+                pazienteToSave.setEtco2(etco2Field.isEmpty() ? null : etco2Field.getValue().intValue());
+                pazienteToSave.setMonitor(monitorArea.getValue());
+
+                List<Accesso> tuttiGliAccessi = new ArrayList<>();
                 for (AccessoComponent comp : venosiAccessi) {
-                    venosi.add(comp.getAccesso());
+                    Accesso accesso = comp.getAccesso();
+                    accesso.setTipo("venoso");
+                    tuttiGliAccessi.add(accesso);
                 }
-
-                List<Accesso> arteriosi = new ArrayList<>();
                 for (AccessoComponent comp : arteriosiAccessi) {
-                    arteriosi.add(comp.getAccesso());
+                    Accesso accesso = comp.getAccesso();
+                    accesso.setTipo("arterioso");
+                    tuttiGliAccessi.add(accesso);
                 }
 
-                // Salva i dati del paziente T0
-                boolean success = pazienteT0Service.savePazienteT0(
-                        scenarioId,
-                        paField.getValue(),
-                        fcField.getValue().intValue(),
-                        rrField.getValue().intValue(),
-                        tempField.getValue(),
-                        spo2Field.getValue().intValue(),
-                        fio2Field.getValue() != null ? fio2Field.getValue().intValue() : 0, // 0 se nullo
-                        litrio2Field.getValue() != null ? litrio2Field.getValue().intValue() : 0, // 0 se nullo
-                        etco2Field.getValue() != null ? etco2Field.getValue().intValue() : 0, // 0 se nullo
-                        monitorArea.getValue(),
-                        venosi,
-                        arteriosi
-                );
+                pazienteToSave.getAccessi().clear();
+                pazienteToSave.getAccessi().addAll(tuttiGliAccessi);
 
-                // Salva i presidi selezionati
+                pazienteT0Service.savePazienteT0(pazienteToSave);
                 boolean successPresidi = presidiService.savePresidi(scenarioId, presidiField.getValue());
 
-                // Aggiorna l'UI dopo il salvataggio
-                ui.accessSynchronously(() -> {
-                    getContent().remove(progressBar); // Rimuove la progress bar
-                    if (success && successPresidi) {
-                        if (!mode.equals("edit")) {
-                            Notification.show("Dati T0 salvati con successo",
-                                    3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                            ui.navigate("esameFisico/" + scenarioId); // Naviga alla vista Esame Fisico
-                        } else {
-                            Notification.show("Dati T0 aggiornati con successo",
-                                    3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                            ui.navigate("scenari/" + scenarioId); // In modalità edit, torna alla vista dettaglio scenario
-                        }
-                    } else {
-                        Notification.show("Errore durante il salvataggio dei dati. Riprova.",
-                                3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    }
-                });
-            } catch (Exception e) {
-                // Gestisce eventuali eccezioni durante il salvataggio
                 ui.accessSynchronously(() -> {
                     getContent().remove(progressBar);
-                    Notification.show("Si è verificato un errore inaspettato: " + e.getMessage(),
-                            5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    if (successPresidi) {
+                        String message = mode.equals("edit") ? "Dati T0 aggiornati con successo" : "Dati T0 salvati con successo";
+                        Notification.show(message, 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+
+                        String nextPage = mode.equals("edit") ? "scenari/" + scenarioId : "esameFisico/" + scenarioId;
+                        ui.navigate(nextPage);
+                    } else {
+                        Notification.show("Errore durante il salvataggio dei presidi. Riprova.", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
+                });
+
+            } catch (Exception e) {
+                ui.accessSynchronously(() -> {
+                    getContent().remove(progressBar);
+                    Notification.show("Si è verificato un errore inaspettato: " + e.getMessage(), 5000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);
                     logger.error("Errore durante il salvataggio dei dati del paziente T0 per lo scenario con ID: {}", scenarioId, e);
                 });
             }
         });
     }
 
+    /**
+     * NUOVO METODO: Carica i dati usando il nuovo PazienteT0Service.
+     */
     private void loadData() {
-        // Carica i dati del paziente T0 se in modalità "edit"
-        PazienteT0 p = pazienteT0Service.getPazienteT0ById(scenarioId);
-        if (p != null) {
-            paField.setValue(p.getPA());
-            fcField.setValue((double) p.getFC());
-            rrField.setValue((double) p.getRR());
-            tempField.setValue(Math.round(p.getT() * 10.0) / 10.0);
-            spo2Field.setValue((double) p.getSpO2());
-            fio2Field.setValue((double) p.getFiO2());
-            litrio2Field.setValue(p.getLitriO2());
-            etco2Field.setValue((double) p.getEtCO2());
-            monitorArea.setValue(p.getMonitor());
+        try {
+            currentPazienteT0 = pazienteT0Service.getPazienteT0ById(scenarioId);
 
-            // Carica gli accessi venosi e arteriosi
+            paField.setValue(String.format("%d/%d", currentPazienteT0.getPaSistolica(), currentPazienteT0.getPaDiastolica()));
+            fcField.setValue((double) currentPazienteT0.getFc());
+            rrField.setValue((double) currentPazienteT0.getRr());
+            tempField.setValue(Math.round(currentPazienteT0.getT() * 10.0) / 10.0);
+            spo2Field.setValue((double) currentPazienteT0.getSpo2());
+            if (currentPazienteT0.getFio2() != null) fio2Field.setValue((double) currentPazienteT0.getFio2());
+            if (currentPazienteT0.getLitriOssigeno() != null) litrio2Field.setValue((double) currentPazienteT0.getLitriOssigeno());
+            if (currentPazienteT0.getEtco2() != null) etco2Field.setValue((double) currentPazienteT0.getEtco2());
+            monitorArea.setValue(currentPazienteT0.getMonitor());
+
             venosiAccessi.clear();
             venosiContainer.removeAll();
-            if (!p.getAccessiVenosi().isEmpty()) {
-                venosiCheckbox.setValue(true);
-                for (Accesso a : p.getAccessiVenosi()) {
-                    AccessoComponent comp = new AccessoComponent(a, "Venoso", true);
-                    venosiAccessi.add(comp);
-                    venosiContainer.add(comp);
-                }
-                venosiContainer.setVisible(true);
-            } else {
-                venosiCheckbox.setValue(false);
-                venosiContainer.setVisible(false);
-            }
-
             arteriosiAccessi.clear();
             arteriosiContainer.removeAll();
-            if (!p.getAccessiArteriosi().isEmpty()) {
-                arteriosiCheckbox.setValue(true);
-                for (Accesso a : p.getAccessiArteriosi()) {
-                    AccessoComponent comp = new AccessoComponent(a, "Arterioso", true);
-                    arteriosiAccessi.add(comp);
-                    arteriosiContainer.add(comp);
+
+            if (currentPazienteT0.getAccessi() != null && !currentPazienteT0.getAccessi().isEmpty()) {
+                boolean hasVenosi = false;
+                boolean hasArteriosi = false;
+
+                for (Accesso a : currentPazienteT0.getAccessi()) {
+                    if ("venoso".equalsIgnoreCase(a.getTipo())) {
+                        AccessoComponent comp = new AccessoComponent(a, "Venoso", true);
+                        venosiAccessi.add(comp);
+                        venosiContainer.add(comp);
+                        hasVenosi = true;
+                    } else if ("arterioso".equalsIgnoreCase(a.getTipo())) {
+                        AccessoComponent comp = new AccessoComponent(a, "Arterioso", true);
+                        arteriosiAccessi.add(comp);
+                        arteriosiContainer.add(comp);
+                        hasArteriosi = true;
+                    }
                 }
-                arteriosiContainer.setVisible(true);
+                venosiCheckbox.setValue(hasVenosi);
+                arteriosiCheckbox.setValue(hasArteriosi);
             } else {
+                venosiCheckbox.setValue(false);
                 arteriosiCheckbox.setValue(false);
-                arteriosiContainer.setVisible(false);
             }
 
-            // Carica i presidi selezionati
             presidiField.setValue(PresidiService.getPresidiByScenarioId(scenarioId));
-        } else {
-            logger.warn("Nessun dato T0 trovato per lo scenario con ID: {}", scenarioId);
+
+        } catch (EntityNotFoundException e) {
+            logger.warn("Nessun dato T0 trovato per lo scenario con ID: {}. Si tratta di una nuova creazione.", scenarioId);
+            currentPazienteT0 = null;
         }
     }
 }
-

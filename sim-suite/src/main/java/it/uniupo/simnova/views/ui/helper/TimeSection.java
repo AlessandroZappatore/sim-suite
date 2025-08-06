@@ -401,7 +401,7 @@ public class TimeSection {
                 t,
                 spo2,
                 fiO2,
-                litriO2,
+                (float) (litriO2 != null ? litriO2 : 0.0),
                 etco2,
                 actionDescription,
                 nextTimeIfYes,

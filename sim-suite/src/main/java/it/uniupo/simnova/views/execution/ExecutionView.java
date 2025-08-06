@@ -39,7 +39,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
-import java.util.Optional;
 
 @PageTitle("Execution")
 @Route(value = "execution")
@@ -103,14 +102,7 @@ public class ExecutionView extends Composite<VerticalLayout> implements HasUrlPa
             UI.getCurrent().navigate("scenari");
             return;
         }
-        Optional<Scenario> scenarioOptional = scenarioService.getScenarioById(scenarioId);
-
-        if (scenarioOptional.isEmpty()) {
-            logger.error("Scenario con ID {} non trovato.", scenarioId);
-            throw new NotFoundException("Scenario con ID " + scenarioId + " non trovato.");
-        } else {
-            this.scenario = scenarioOptional.get();
-        }
+        this.scenario = scenarioService.getScenarioById(scenarioId);
         logger.info("Scenario con ID {} caricato con successo per la visualizzazione dettagliata.", scenarioId);
         initView();
     }

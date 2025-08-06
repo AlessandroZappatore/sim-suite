@@ -38,7 +38,7 @@ public class Tempo {
     /**
      * Litri di ossigeno somministrati al paziente (L/min).
      */
-    private final Double LitriO2;
+    private final Float LitriO2;
     /**
      * Pressione parziale di CO2 espirata del paziente (mmHg).
      */
@@ -110,7 +110,7 @@ public class Tempo {
      * @param ruoloGenitore    Ruolo del genitore associato a questo tempo, se lo scenario è pediatrico.
      * @throws IllegalArgumentException se i valori di PA, FC, RR, SpO2, FiO2, LitriO2, EtCO2 o timerTempo non rispettano i criteri di validazione.
      */
-    public Tempo(int idTempo, int advancedScenario, String PA, Integer FC, Integer RR, double t, Integer spO2, Integer fiO2, Double litriO2, Integer etCO2, String azione, int TSi, int TNo, String altriDettagli, long timerTempo, String ruoloGenitore) {
+    public Tempo(int idTempo, int advancedScenario, String PA, Integer FC, Integer RR, double t, Integer spO2, Integer fiO2, Float litriO2, Integer etCO2, String azione, int TSi, int TNo, String altriDettagli, long timerTempo, String ruoloGenitore) {
         this.idTempo = idTempo;
         this.advancedScenario = advancedScenario;
 

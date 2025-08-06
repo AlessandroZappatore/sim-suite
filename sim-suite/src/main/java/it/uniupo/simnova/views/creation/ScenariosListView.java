@@ -41,7 +41,6 @@ import it.uniupo.simnova.service.scenario.components.PazienteT0Service;
 import it.uniupo.simnova.service.scenario.operations.ScenarioDeletionService;
 import it.uniupo.simnova.service.scenario.operations.ScenarioImportService;
 import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
-import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
 import it.uniupo.simnova.service.storage.FileStorageService;
 import it.uniupo.simnova.views.common.components.AppHeader;
 import it.uniupo.simnova.views.common.utils.FieldGenerator;
@@ -52,7 +51,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -140,10 +138,6 @@ public class ScenariosListView extends Composite<VerticalLayout> {
      * Servizi per la gestione di scenari avanzati e simulati.
      */
     private final AdvancedScenarioService advancedScenarioService;
-    /**
-     * Servizio per la gestione di scenari simulati per pazienti.
-     */
-    private final PatientSimulatedScenarioService patientSimulatedScenarioService;
     /**
      * Servizio per la cancellazione degli scenari.
      */
@@ -237,7 +231,6 @@ public class ScenariosListView extends Composite<VerticalLayout> {
      * @param esameFisicoService              servizio per la gestione degli esami fisici
      * @param esameRefertoService             servizio per la gestione degli esami e referti
      * @param advancedScenarioService         servizio per la gestione degli scenari avanzati
-     * @param patientSimulatedScenarioService servizio per la gestione degli scenari simulati per pazienti
      * @param scenarioDeletionService         servizio per la cancellazione degli scenari
      * @param materialeService                servizio per la gestione del materiale necessario
      */
@@ -251,7 +244,6 @@ public class ScenariosListView extends Composite<VerticalLayout> {
                              EsameFisicoService esameFisicoService,
                              EsameRefertoService esameRefertoService,
                              AdvancedScenarioService advancedScenarioService,
-                             PatientSimulatedScenarioService patientSimulatedScenarioService,
                              ScenarioDeletionService scenarioDeletionService,
                              MaterialeService materialeService) {
         this.scenarioService = scenarioService;
@@ -263,7 +255,6 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         this.esameFisicoService = esameFisicoService;
         this.esameRefertoService = esameRefertoService;
         this.advancedScenarioService = advancedScenarioService;
-        this.patientSimulatedScenarioService = patientSimulatedScenarioService;
         this.scenarioDeletionService = scenarioDeletionService;
         this.materialeService = materialeService;
         this.detached = new AtomicBoolean(false);
@@ -757,14 +748,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         if (detached.get() || id == null) {
             return;
         }
-        Optional<Scenario> scenarioOptional = scenarioService.getScenarioById(id);
-        Scenario scenario;
-        if (scenarioOptional.isEmpty()) {
-            Notification.show("Scenario non trovato", 3000, Notification.Position.MIDDLE);
-            return;
-        } else {
-            scenario = scenarioOptional.get();
-        }
+        Scenario scenario = scenarioService.getScenarioById(id);
         String scenarioType = scenario.getTipologiaScenario();
 
         // Se lo scenario non è avanzato o simulato, esporta tutto direttamente
@@ -799,11 +783,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         Checkbox esamiERefertiChk = new Checkbox("Esami e referti", true);
         Checkbox timelineChk = new Checkbox("Timeline", true);
 
-        Optional<Scenario> scenarioOptionalNew = scenarioService.getScenarioById(scenario.getId());
-        Scenario scenarioNew = new Scenario();
-        if (scenarioOptionalNew.isPresent()) {
-            scenarioNew = scenarioOptionalNew.get();
-        }
+        Scenario scenarioNew = scenarioService.getScenarioById(scenario.getId());
 
         if (scenarioNew.getDescrizione() == null || scenarioNew.getDescrizione().isEmpty()) descChk.setEnabled(false);
         if (scenarioNew.getBriefing() == null || scenarioNew.getBriefing().isEmpty()) briefingChk.setEnabled(false);
@@ -831,8 +811,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
             accessiChk.setEnabled(false);
             accessiChk.setValue(false);
         } else {
-            boolean hasAccessi = (pazienteT0.getAccessiVenosi() != null && !pazienteT0.getAccessiVenosi().isEmpty()) ||
-                    (pazienteT0.getAccessiArteriosi() != null && !pazienteT0.getAccessiArteriosi().isEmpty());
+            boolean hasAccessi = (pazienteT0.getAccessi() != null && !pazienteT0.getAccessi().isEmpty());
             if (!hasAccessi) {
                 accessiChk.setEnabled(false);
                 accessiChk.setValue(false);
@@ -857,8 +836,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         // Aggiunge checkbox "Sceneggiatura" solo per scenari di tipo "Patient Simulated Scenario"
         Checkbox sceneggiaturaChk = new Checkbox("Sceneggiatura", true);
         if ("Patient Simulated".equals(scenarioType)) {
-            if (patientSimulatedScenarioService.getPatientSimulatedScenarioById(scenario.getId()).getSceneggiatura() == null ||
-                    patientSimulatedScenarioService.getPatientSimulatedScenarioById(scenario.getId()).getSceneggiatura().isEmpty()) {
+            if (scenarioNew.getSceneggiatura() == null || scenarioNew.getSceneggiatura().isEmpty()) {
                 sceneggiaturaChk.setEnabled(false);
                 sceneggiaturaChk.setValue(false);
             }
@@ -983,14 +961,7 @@ public class ScenariosListView extends Composite<VerticalLayout> {
         if (detached.get() || id == null) {
             return;
         }
-        Optional<Scenario> scenarioOptional = scenarioService.getScenarioById(id);
-        Scenario scenario;
-        if (scenarioOptional.isEmpty()) {
-            Notification.show("Scenario non trovato", 3000, Notification.Position.MIDDLE);
-            return;
-        } else {
-            scenario = scenarioOptional.get();
-        }
+        Scenario scenario = scenarioService.getScenarioById(id);
         Notification.show("Generazione dell'archivio ZIP...", 3000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_PRIMARY);
         try {
             String fileName = "Execution_scenario_" + limitLength(sanitizeFileName(scenario.getTitolo())) + ".zip";

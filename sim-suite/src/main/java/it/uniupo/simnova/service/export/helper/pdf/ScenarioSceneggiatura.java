@@ -2,7 +2,6 @@ package it.uniupo.simnova.service.export.helper.pdf;
 
 import it.uniupo.simnova.domain.scenario.Scenario;
 import it.uniupo.simnova.service.export.PdfExportService;
-import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,10 +27,6 @@ public class ScenarioSceneggiatura {
      */
     private static final Logger logger = LoggerFactory.getLogger(ScenarioSceneggiatura.class);
 
-    /**
-     * Costruttore privato per evitare l'istanza della classe, dato che è una classe di utilità.
-     * Non deve essere istanziata, ma solo utilizzata attraverso il metodo statico {@link #createSceneggiaturaSection(Scenario, boolean, PatientSimulatedScenarioService)}.
-     */
     private ScenarioSceneggiatura() {
         // Costruttore privato per evitare l'istanza della classe, dato che è una classe di utilità.
     }
@@ -43,13 +38,11 @@ public class ScenarioSceneggiatura {
      *
      * @param scenario                        L'oggetto {@link Scenario} di riferimento.
      * @param scen                            Un flag che indica se la sezione "Sceneggiatura" deve essere inclusa nel PDF.
-     * @param patientSimulatedScenarioService Il servizio {@link PatientSimulatedScenarioService}
-     *                                        per recuperare il testo della sceneggiatura.
      * @throws IOException Se si verifica un errore durante la scrittura nel documento PDF.
      */
-    public static void createSceneggiaturaSection(Scenario scenario, boolean scen, PatientSimulatedScenarioService patientSimulatedScenarioService) throws IOException {
+    public static void createSceneggiaturaSection(Scenario scenario, boolean scen) throws IOException {
         // Recupera il testo della sceneggiatura per lo scenario dato.
-        String sceneggiatura = patientSimulatedScenarioService.getSceneggiatura(scenario.getId());
+        String sceneggiatura = scenario.getSceneggiatura();
 
         // Se la sceneggiatura è nulla, vuota, o la sezione non è richiesta, il metodo termina.
         if (sceneggiatura == null || sceneggiatura.isEmpty() || !scen) {

@@ -422,7 +422,7 @@ public class MonitorSupport {
             saveMonitorButton.addClickListener(ev -> {
                 String newText = monitorTextArea.getValue();
                 monitorText.setText(newText);
-                pazienteT0Service.saveMonitor(scenarioId, newText); // Salva il testo nel servizio
+                pazienteT0Service.updateMonitor(scenarioId, newText); // Salva il testo nel servizio
                 monitorText.setVisible(true);
                 monitorTextArea.setVisible(false);
                 monitorActions.setVisible(false);

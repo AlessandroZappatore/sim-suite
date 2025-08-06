@@ -33,7 +33,7 @@ public interface VitalSignsDataProvider {
      *
      * @return La temperatura in gradi Celsius (°C).
      */
-    Double getT();
+    Float getT();
 
     /**
      * Restituisce il valore della Frequenza Respiratoria (RR).
@@ -61,7 +61,7 @@ public interface VitalSignsDataProvider {
      *
      * @return I litri di ossigeno al minuto (L/min).
      */
-    Double getLitriO2();
+    Float getLitriO2();
 
     /**
      * Restituisce il valore della Capnometria di fine espirazione (EtCO₂).

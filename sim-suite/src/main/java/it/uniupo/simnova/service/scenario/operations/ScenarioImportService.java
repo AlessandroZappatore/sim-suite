@@ -8,10 +8,10 @@ import it.uniupo.simnova.domain.common.Accesso;
 import it.uniupo.simnova.domain.common.ParametroAggiuntivo;
 import it.uniupo.simnova.domain.common.Tempo;
 import it.uniupo.simnova.domain.paziente.EsameReferto;
+import it.uniupo.simnova.domain.paziente.PazienteT0;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.service.scenario.components.*;
 import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
-import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
 import it.uniupo.simnova.service.storage.FileStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,12 +66,6 @@ public class ScenarioImportService {
      * Servizio per la gestione delle logiche specifiche degli scenari di tipo "Advanced Scenario".
      */
     private final AdvancedScenarioService advancedScenarioService;
-
-    /**
-     * Servizio per la gestione delle logiche specifiche degli scenari di tipo "Patient Simulated Scenario".
-     */
-    private final PatientSimulatedScenarioService patientSimulatedScenarioService;
-
     /**
      * Servizio per la gestione dei materiali necessari all'interno degli scenari.
      */
@@ -106,7 +100,6 @@ public class ScenarioImportService {
      * @param pazienteT0Service               Il servizio per i dati del paziente T0.
      * @param esameRefertoService             Il servizio per gli esami e referti.
      * @param advancedScenarioService         Il servizio per gli scenari avanzati.
-     * @param patientSimulatedScenarioService Il servizio per gli scenari simulati con paziente.
      * @param materialeService                Il servizio per i materiali necessari.
      * @param presidiService                  Il servizio per i presidi.
      * @param azioneChiaveService             Il servizio per le azioni chiave.
@@ -115,7 +108,7 @@ public class ScenarioImportService {
      */
     public ScenarioImportService(ScenarioService scenarioService, EsameFisicoService esameFisicoService,
                                  PazienteT0Service pazienteT0Service, EsameRefertoService esameRefertoService,
-                                 AdvancedScenarioService advancedScenarioService, PatientSimulatedScenarioService patientSimulatedScenarioService,
+                                 AdvancedScenarioService advancedScenarioService,
                                  MaterialeService materialeService, PresidiService presidiService, AzioneChiaveService azioneChiaveService,
                                  UnZipScenarioService unZipScenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
@@ -123,7 +116,6 @@ public class ScenarioImportService {
         this.pazienteT0Service = pazienteT0Service;
         this.esameRefertoService = esameRefertoService;
         this.advancedScenarioService = advancedScenarioService;
-        this.patientSimulatedScenarioService = patientSimulatedScenarioService;
         this.materialeService = materialeService;
         this.presidiService = presidiService;
         this.azioneChiaveService = azioneChiaveService;
@@ -178,7 +170,7 @@ public class ScenarioImportService {
                     break;
                 case "Advanced Scenario":
                     // Crea lo scenario avanzato e, se riuscito, salva i componenti comuni e avanzati.
-                    creationResult = advancedScenarioService.startAdvancedScenario(titolo, nomePaziente, patologia, autori, timerGenerale, tipologia);
+                    creationResult = createQuickScenarioFromJson(jsonData, titolo, nomePaziente, patologia, autori, timerGenerale, tipologia, "Advanced");
                     if (creationResult > 0) {
                         saveCommonScenarioComponents(creationResult, jsonData);
                         saveAdvancedScenarioComponents(creationResult, jsonData);
@@ -186,7 +178,7 @@ public class ScenarioImportService {
                     break;
                 case "Patient Simulated Scenario":
                     // Crea lo scenario simulato dal paziente e, se riuscito, salva i componenti comuni, avanzati e specifici.
-                    creationResult = patientSimulatedScenarioService.startPatientSimulatedScenario(titolo, nomePaziente, patologia, autori, timerGenerale, tipologia);
+                    creationResult = createQuickScenarioFromJson(jsonData, titolo, nomePaziente, patologia, autori, timerGenerale, tipologia, "Patient Simulated");
                     if (creationResult > 0) {
                         saveCommonScenarioComponents(creationResult, jsonData);
                         saveAdvancedScenarioComponents(creationResult, jsonData);
@@ -450,7 +442,10 @@ public class ScenarioImportService {
             String monitor = (String) pazienteT0Data.get("Monitor");
 
             // Salva i dati del paziente T0 e i suoi accessi.
-            if (!pazienteT0Service.savePazienteT0(scenarioId, pa, fc, rr, temp, spo2, fio2, litrio2, etco2, monitor, venosi, arteriosi)) {
+            PazienteT0 pazienteT0 = new PazienteT0(
+
+            );
+            if (pazienteT0Service.savePazienteT0(pazienteT0) != null) {
                 logger.warn("Errore durante il salvataggio del paziente T0 per lo scenario ID {}.", scenarioId);
                 // Non lancio un'eccezione critica qui; il warning è sufficiente.
             }
@@ -493,7 +488,7 @@ public class ScenarioImportService {
      */
     private void savePatientSimulatedScenarioComponents(int scenarioId, Map<String, Object> jsonData) {
         String sceneggiatura = (String) jsonData.get("sceneggiatura");
-        boolean result = patientSimulatedScenarioService.updateScenarioSceneggiatura(scenarioId, sceneggiatura);
+        boolean result = scenarioService.updateScenarioSceneggiatura(scenarioId, sceneggiatura);
         if (!result) {
             throw new RuntimeException("Errore durante il salvataggio della sceneggiatura per lo scenario " + scenarioId);
         }
@@ -539,7 +534,7 @@ public class ScenarioImportService {
                                 (Double) t.getOrDefault("T", 0.0), // Default a 0.0 se nullo.
                                 t.get("SpO2") != null ? ((Double) t.get("SpO2")).intValue() : null,
                                 t.get("FiO2") != null ? ((Double) t.get("FiO2")).intValue() : null,
-                                t.get("LitriO2") != null ? ((Double) t.get("LitriO2")).doubleValue() : null,
+                                t.get("LitriO2") != null ? ((Double) t.get("LitriO2")).floatValue() : null,
                                 t.get("EtCO2") != null ? ((Double) t.get("EtCO2")).intValue() : null,
                                 (String) t.get("Azione"),
                                 t.get("TSi") != null ? ((Double) t.get("TSi")).intValue() : 0, // Default a 0 se nullo.
@@ -578,6 +573,7 @@ public class ScenarioImportService {
         return accessiData.stream()
                 .map(a -> new Accesso(
                         a.get("idAccesso") != null ? ((Double) a.get("idAccesso")).intValue() : -1, // ID potrebbe essere -1 se non gestito in export
+                        "Nome",
                         (String) a.get("tipologia"),
                         (String) a.get("posizione"),
                         (String) a.get("lato"),

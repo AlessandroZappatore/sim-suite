@@ -79,7 +79,7 @@ public class AccessSupport {
         accessesCard.add(accessVenosiTitleLayout);
 
         // Griglia per gli accessi venosi
-        Grid<Accesso> accessiVenosiGrid = createAccessiGrid(paziente.getAccessiVenosi(), pazienteT0Service, scenarioId, true);
+        Grid<Accesso> accessiVenosiGrid = createAccessiGrid(paziente.getAccessi(), pazienteT0Service, scenarioId, true);
         accessiVenosiGrid.getStyle()
                 .set("border", "none")
                 .set("box-shadow", "none")
@@ -115,7 +115,7 @@ public class AccessSupport {
             saveVenosoButton.addClickListener(saveEvent -> {
                 Accesso nuovoAccesso = nuovoAccessoVenosoComp.getAccesso();
                 // Validazione dei campi
-                if (nuovoAccesso.getTipologia() == null || nuovoAccesso.getTipologia().isEmpty() ||
+                if (nuovoAccesso.getTipo() == null || nuovoAccesso.getTipo().isEmpty() ||
                         nuovoAccesso.getPosizione() == null || nuovoAccesso.getPosizione().isEmpty() ||
                         nuovoAccesso.getLato() == null || nuovoAccesso.getLato().isEmpty() ||
                         nuovoAccesso.getMisura() == null) {
@@ -123,9 +123,9 @@ public class AccessSupport {
                     return;
                 }
                 try {
-                    pazienteT0Service.addAccesso(scenarioId, nuovoAccesso, true); // Aggiunge l'accesso venoso
+                    pazienteT0Service.addAccesso(scenarioId, nuovoAccesso); // Aggiunge l'accesso venoso
                     PazienteT0 pazienteAggiornato = pazienteT0Service.getPazienteT0ById(scenarioId); // Ricarica i dati
-                    accessiVenosiGrid.setItems(pazienteAggiornato.getAccessiVenosi()); // Aggiorna la griglia
+                    accessiVenosiGrid.setItems(pazienteAggiornato.getAccessi()); // Aggiorna la griglia
                     Notification.show("Accesso venoso aggiunto con successo", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
                     // Nasconde il form e riabilita il pulsante "Aggiungi"
@@ -180,7 +180,7 @@ public class AccessSupport {
         accessesCard.add(accessArtTitleLayout);
 
         // Griglia per gli accessi arteriosi
-        Grid<Accesso> accessiArtGrid = createAccessiGrid(paziente.getAccessiArteriosi(), pazienteT0Service, scenarioId, false);
+        Grid<Accesso> accessiArtGrid = createAccessiGrid(paziente.getAccessi(), pazienteT0Service, scenarioId, false);
         accessiArtGrid.getStyle()
                 .set("border", "none")
                 .set("box-shadow", "none")
@@ -215,7 +215,7 @@ public class AccessSupport {
             saveArteriosoButton.addClickListener(saveEvent -> {
                 Accesso nuovoAccesso = nuovoAccessoArteriosoComp.getAccesso();
                 // Validazione dei campi
-                if (nuovoAccesso.getTipologia() == null || nuovoAccesso.getTipologia().isEmpty() ||
+                if (nuovoAccesso.getTipo() == null || nuovoAccesso.getTipo().isEmpty() ||
                         nuovoAccesso.getPosizione() == null || nuovoAccesso.getPosizione().isEmpty() ||
                         nuovoAccesso.getLato() == null || nuovoAccesso.getLato().isEmpty() ||
                         nuovoAccesso.getMisura() == null) {
@@ -223,9 +223,9 @@ public class AccessSupport {
                     return;
                 }
                 try {
-                    pazienteT0Service.addAccesso(scenarioId, nuovoAccesso, false); // Aggiunge l'accesso arterioso
+                    pazienteT0Service.addAccesso(scenarioId, nuovoAccesso); // Aggiunge l'accesso arterioso
                     PazienteT0 pazienteAggiornato = pazienteT0Service.getPazienteT0ById(scenarioId);
-                    accessiArtGrid.setItems(pazienteAggiornato.getAccessiArteriosi()); // Aggiorna la griglia
+                    accessiArtGrid.setItems(pazienteAggiornato.getAccessi()); // Aggiorna la griglia
                     Notification.show("Accesso arterioso aggiunto con successo", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
                     addArteriosoFormContainer.removeAll();
@@ -272,7 +272,7 @@ public class AccessSupport {
     private static Grid<Accesso> createAccessiGrid(List<Accesso> accessi, PazienteT0Service pazienteT0Service, Integer scenarioId, boolean isVenoso) {
         Grid<Accesso> grid = new Grid<>();
         grid.setItems(accessi);
-        grid.addColumn(Accesso::getTipologia).setHeader("Tipologia").setAutoWidth(true);
+        grid.addColumn(Accesso::getTipo).setHeader("Tipologia").setAutoWidth(true);
         grid.addColumn(Accesso::getPosizione).setHeader("Posizione").setAutoWidth(true);
         grid.addColumn(Accesso::getLato).setHeader("Lato").setAutoWidth(true);
         grid.addColumn(Accesso::getMisura).setHeader("Misura").setAutoWidth(true);
@@ -281,7 +281,7 @@ public class AccessSupport {
         grid.addComponentColumn(accesso -> {
             Button deleteButton = new Button(new Icon(VaadinIcon.TRASH));
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
-            deleteButton.setTooltipText("Elimina accesso " + accesso.getTipologia());
+            deleteButton.setTooltipText("Elimina accesso " + accesso.getTipo());
             deleteButton.getElement().setAttribute("aria-label", "Elimina accesso");
             deleteButton.getStyle()
                     .set("color", "var(--lumo-error-color)")
@@ -300,11 +300,11 @@ public class AccessSupport {
 
                 confirmDialog.addConfirmListener(event -> {
                     try {
-                        pazienteT0Service.deleteAccesso(scenarioId, accesso.getIdAccesso(), isVenoso); // Elimina l'accesso
+                        pazienteT0Service.deleteAccesso(scenarioId, accesso.getId()); // Elimina l'accesso
                         // Mostra notifica di successo
                         Notification.show("Accesso " + (isVenoso ? "venoso" : "arterioso") + " eliminato con successo", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                         // Ricarica gli elementi nella griglia per riflettere la modifica
-                        grid.setItems(isVenoso ? pazienteT0Service.getPazienteT0ById(scenarioId).getAccessiVenosi() : pazienteT0Service.getPazienteT0ById(scenarioId).getAccessiArteriosi());
+                        grid.setItems(pazienteT0Service.getPazienteT0ById(scenarioId).getAccessi());
                     } catch (Exception ex) {
                         logger.error("Errore durante l'eliminazione dell'accesso", ex);
                         Notification.show("Errore durante l'eliminazione dell'accesso", 3000, Notification.Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_ERROR);

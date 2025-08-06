@@ -4,7 +4,6 @@ import it.uniupo.simnova.domain.scenario.Scenario;
 import it.uniupo.simnova.service.export.helper.pdf.LogoLoader;
 import it.uniupo.simnova.service.scenario.components.*;
 import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
-import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
 import it.uniupo.simnova.service.storage.FileStorageService;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Optional;
 
 import static it.uniupo.simnova.service.export.helper.pdf.LoadFont.loadFont;
 import static it.uniupo.simnova.service.export.helper.pdf.LogoLoader.loadCenterLogo;
@@ -109,12 +107,6 @@ public class PdfExportService {
      * Servizio per la gestione dei materiali associati agli scenari.
      */
     private final MaterialeService materialeService;
-
-    /**
-     * Servizio per la gestione degli scenari di tipo "Paziente Simulato Scenario".
-     */
-    private final PatientSimulatedScenarioService patientSimulatedScenarioService;
-
     /**
      * Servizio per la gestione delle azioni chiave definite negli scenari.
      */
@@ -152,7 +144,6 @@ public class PdfExportService {
      * @param scenarioService                 Il servizio per le operazioni sugli scenari.
      * @param fileStorageService              Il servizio per lo storage dei file.
      * @param materialeService                Il servizio per i materiali.
-     * @param patientSimulatedScenarioService Il servizio per gli scenari simulati con paziente.
      * @param azioneChiaveService             Il servizio per le azioni chiave.
      * @param pazienteT0Service               Il servizio per i dati del paziente T0.
      * @param esameRefertoService             Il servizio per gli esami e referti.
@@ -162,7 +153,6 @@ public class PdfExportService {
     public PdfExportService(ScenarioService scenarioService,
                             FileStorageService fileStorageService,
                             MaterialeService materialeService,
-                            PatientSimulatedScenarioService patientSimulatedScenarioService,
                             AzioneChiaveService azioneChiaveService,
                             PazienteT0Service pazienteT0Service,
                             EsameRefertoService esameRefertoService,
@@ -170,7 +160,7 @@ public class PdfExportService {
         this.scenarioService = scenarioService;
         this.fileStorageService = fileStorageService;
         this.materialeService = materialeService;
-        this.patientSimulatedScenarioService = patientSimulatedScenarioService;
+
         this.azioneChiaveService = azioneChiaveService;
         this.pazienteT0Service = pazienteT0Service;
         this.esameRefertoService = esameRefertoService;
@@ -330,16 +320,7 @@ public class PdfExportService {
             // Inizializza la prima pagina del documento.
             initNewPage();
 
-            // Recupera l'oggetto Scenario principale.
-            Optional<Scenario> scenarioOptional = scenarioService.getScenarioById(scenarioId);
-
-            Scenario scenario;
-            if (scenarioOptional.isEmpty()) {
-                logger.error("Scenario con ID {} non trovato.", scenarioId);
-                throw new IOException("Scenario non trovato con ID: " + scenarioId);
-            } else {
-                scenario = scenarioOptional.get();
-            }
+            Scenario scenario = scenarioService.getScenarioById(scenarioId);
             logger.info("Recuperato scenario con titolo: {}", scenario.getTitolo());
 
             // Crea la sezione dell'intestazione dello scenario.
@@ -366,7 +347,7 @@ public class PdfExportService {
 
             // Aggiunge la sezione sceneggiatura solo se lo scenario è "Patient Simulated Scenario" e il flag 'scen' è true.
             if (scenarioType != null && scenarioType.equals("Patient Simulated Scenario") && scen) {
-                createSceneggiaturaSection(scenario, true, patientSimulatedScenarioService);
+                createSceneggiaturaSection(scenario, true);
                 logger.info("Sezione Sceneggiatura creata per lo scenario {}", scenario.getTitolo());
             }
 

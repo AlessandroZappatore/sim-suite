@@ -10,8 +10,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.router.*;
-import it.uniupo.simnova.domain.scenario.PatientSimulatedScenario;
-import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
+import it.uniupo.simnova.domain.scenario.Scenario;
 import it.uniupo.simnova.service.storage.FileStorageService;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.views.common.components.AppHeader;
@@ -48,12 +47,6 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
      * Il servizio per la gestione delle operazioni sugli scenari.
      */
     private final ScenarioService scenarioService;
-
-    /**
-     * Il servizio specifico per la gestione degli scenari di tipo "Patient Simulated Scenario".
-     */
-    private final PatientSimulatedScenarioService patientSimulatedScenarioService;
-
     /**
      * L'editor di testo avanzato (TinyMCE) utilizzato per la stesura della sceneggiatura.
      */
@@ -71,11 +64,9 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
      *
      * @param scenarioService                 Il servizio per la gestione degli scenari.
      * @param fileStorageService              Il servizio per la gestione dei file, utilizzato per l'intestazione dell'applicazione.
-     * @param patientSimulatedScenarioService Il servizio per la gestione degli scenari di tipo "Patient Simulated Scenario".
      */
-    public SceneggiaturaView(ScenarioService scenarioService, FileStorageService fileStorageService, PatientSimulatedScenarioService patientSimulatedScenarioService) {
+    public SceneggiaturaView(ScenarioService scenarioService, FileStorageService fileStorageService) {
         this.scenarioService = scenarioService;
-        this.patientSimulatedScenarioService = patientSimulatedScenarioService;
 
         // Configura il layout principale della vista.
         VerticalLayout mainLayout = StyleApp.getMainLayout(getContent());
@@ -194,7 +185,7 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
      */
     private void loadExistingSceneggiatura() {
         // Recupera l'oggetto PatientSimulatedScenario dal servizio.
-        PatientSimulatedScenario scenario = patientSimulatedScenarioService.getPatientSimulatedScenarioById(scenarioId);
+        Scenario scenario = scenarioService.getScenarioById(scenarioId);
         // Se lo scenario esiste e ha una sceneggiatura non nulla e non vuota, la imposta nell'editor.
         if (scenario != null && scenario.getSceneggiatura() != null && !scenario.getSceneggiatura().isEmpty()) {
             sceneggiaturaEditor.setValue(scenario.getSceneggiatura());
@@ -219,7 +210,7 @@ public class SceneggiaturaView extends Composite<VerticalLayout> implements HasU
 
             try {
 
-                boolean success = patientSimulatedScenarioService.updateScenarioSceneggiatura(
+                boolean success = scenarioService.updateScenarioSceneggiatura(
                         scenarioId, sceneggiaturaEditor.getValue()
                 );
 

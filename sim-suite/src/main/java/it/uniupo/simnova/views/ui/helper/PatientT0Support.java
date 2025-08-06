@@ -125,42 +125,42 @@ public class PatientT0Support {
 
         @Override
         public String getPA() {
-            return paziente.getPA();
+            return paziente.getPaDiastolica().toString();
         }
 
         @Override
         public Integer getFC() {
-            return paziente.getFC();
+            return paziente.getFc();
         }
 
         @Override
-        public Double getT() {
+        public Float getT() {
             return paziente.getT();
         }
 
         @Override
         public Integer getRR() {
-            return paziente.getRR();
+            return paziente.getRr();
         }
 
         @Override
         public Integer getSpO2() {
-            return paziente.getSpO2();
+            return paziente.getSpo2();
         }
 
         @Override
         public Integer getFiO2() {
-            return paziente.getFiO2();
+            return paziente.getFio2();
         }
 
         @Override
-        public Double getLitriO2() {
-            return paziente.getLitriO2();
+        public Float getLitriO2() {
+            return paziente.getLitriOssigeno();
         }
 
         @Override
         public Integer getEtCO2() {
-            return paziente.getEtCO2();
+            return paziente.getEtco2();
         }
 
         @Override

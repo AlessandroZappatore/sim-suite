@@ -22,7 +22,6 @@ import it.uniupo.simnova.domain.common.Tempo;
 import it.uniupo.simnova.service.scenario.components.*;
 import it.uniupo.simnova.service.scenario.helper.TimelineConfiguration;
 import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
-import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
 import it.uniupo.simnova.service.storage.FileStorageService;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.views.common.components.AppHeader;
@@ -36,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static it.uniupo.simnova.views.ui.helper.TabsSupport.createTabWithIcon;
 
@@ -82,12 +80,6 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * Servizio per la gestione delle logiche specifiche degli scenari avanzati.
      */
     private final AdvancedScenarioService advancedScenarioService;
-
-    /**
-     * Servizio per la gestione delle logiche specifiche degli scenari simulati con paziente.
-     */
-    private final PatientSimulatedScenarioService patientSimulatedScenarioService;
-
     /**
      * Servizio per la gestione delle azioni chiave definite nello scenario.
      */
@@ -167,28 +159,25 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
      * Costruisce una nuova istanza di <code>ScenarioDetailsView</code>.
      * Inietta tutti i servizi necessari per recuperare e visualizzare i dati dello scenario.
      *
-     * @param scenarioService                 Il servizio per la gestione degli scenari.
-     * @param fileStorageService              Il servizio per la gestione dei file caricati.
-     * @param materialeNecessario             Il servizio per la gestione del materiale necessario.
-     * @param advancedScenarioService         Il servizio per la gestione degli scenari avanzati.
-     * @param patientSimulatedScenarioService Il servizio per la gestione degli scenari simulati con paziente.
-     * @param azionechiaveService             Il servizio per la gestione delle azioni chiave.
-     * @param esameRefertoService             Il servizio per la gestione degli esami e referti.
-     * @param esameFisicoService              Il servizio per la gestione degli esami fisici.
-     * @param pazienteT0Service               Il servizio per la gestione dei pazienti T0.
-     * @param presidiService                  Il servizio per la gestione dei presidi.
+     * @param scenarioService         Il servizio per la gestione degli scenari.
+     * @param fileStorageService      Il servizio per la gestione dei file caricati.
+     * @param materialeNecessario     Il servizio per la gestione del materiale necessario.
+     * @param advancedScenarioService Il servizio per la gestione degli scenari avanzati.
+     * @param azionechiaveService     Il servizio per la gestione delle azioni chiave.
+     * @param esameRefertoService     Il servizio per la gestione degli esami e referti.
+     * @param esameFisicoService      Il servizio per la gestione degli esami fisici.
+     * @param pazienteT0Service       Il servizio per la gestione dei pazienti T0.
+     * @param presidiService          Il servizio per la gestione dei presidi.
      */
     @Autowired
     public ScenarioDetailsView(ScenarioService scenarioService, FileStorageService fileStorageService,
                                MaterialeService materialeNecessario, AdvancedScenarioService advancedScenarioService,
-                               PatientSimulatedScenarioService patientSimulatedScenarioService,
                                AzioneChiaveService azionechiaveService, EsameRefertoService esameRefertoService,
                                EsameFisicoService esameFisicoService, PazienteT0Service pazienteT0Service, PresidiService presidiService) {
         this.scenarioService = scenarioService;
         this.fileStorageService = fileStorageService;
         this.materialeNecessario = materialeNecessario;
         this.advancedScenarioService = advancedScenarioService;
-        this.patientSimulatedScenarioService = patientSimulatedScenarioService;
         this.azioneChiaveService = azionechiaveService;
         this.esameRefertoService = esameRefertoService;
         this.esameFisicoService = esameFisicoService;
@@ -256,14 +245,7 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
             return;
         }
         // Carica l'oggetto Scenario completo dal servizio.
-        Optional<Scenario> scenarioOptional = scenarioService.getScenarioById(scenarioId);
-
-        if (scenarioOptional.isEmpty()) {
-            logger.error("Scenario con ID {} non trovato.", scenarioId);
-            throw new NotFoundException("Scenario con ID " + scenarioId + " non trovato.");
-        } else {
-            this.scenario = scenarioOptional.get();
-        }
+        this.scenario = scenarioService.getScenarioById(scenarioId);
         logger.info("Scenario con ID {} caricato con successo per la visualizzazione dettagliata.", scenarioId);
         initView(); // Inizializza i componenti dell'UI con i dati dello scenario.
     }
@@ -481,8 +463,8 @@ public class ScenarioDetailsView extends Composite<VerticalLayout> implements Ha
             Tab tabSceneggiatura = createTabWithIcon("Sceneggiatura", VaadinIcon.FILE_TEXT);
             Component sceneggiaturaContent = SceneggiaturaSupport.createSceneggiaturaContent(
                     scenarioId,
-                    patientSimulatedScenarioService.getSceneggiatura(scenarioId),
-                    patientSimulatedScenarioService
+                    scenario.getSceneggiatura(),
+                    scenarioService
             );
             tabsToContent.put(tabSceneggiatura, sceneggiaturaContent);
             enhancedTabs.add(tabSceneggiatura);

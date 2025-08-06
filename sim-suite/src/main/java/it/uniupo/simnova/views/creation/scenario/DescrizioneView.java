@@ -170,19 +170,13 @@ public class DescrizioneView extends Composite<VerticalLayout> implements HasUrl
      * e lo imposta nell'editor TinyMCE.
      */
     private void loadExistingDescription() {
-        Optional<Scenario> scenarioOptional = scenarioService.getScenarioById(scenarioId);
+        Scenario scenario = scenarioService.getScenarioById(scenarioId);
 
-        if(scenarioOptional.isPresent()) {
-            Scenario scenario = scenarioOptional.get();
-
-            if(scenario.getDescrizione() != null && !scenario.getDescrizione().isEmpty()) {
-                descriptionEditor.setValue(scenario.getDescrizione());
-                logger.debug("Descrizione caricata per lo scenario ID: {}.", scenarioId);
-            } else {
-                logger.debug("Nessuna descrizione esistente trovata per lo scenario ID: {}. L'editor sarà vuoto.", scenarioId);
-            }
+        if (scenario.getDescrizione() != null && !scenario.getDescrizione().isEmpty()) {
+            descriptionEditor.setValue(scenario.getDescrizione());
+            logger.debug("Descrizione caricata per lo scenario ID: {}.", scenarioId);
         } else {
-            logger.debug("Scenario con ID {} non trovato durante il caricamento della descrizione.", scenarioId);
+            logger.debug("Nessuna descrizione esistente trovata per lo scenario ID: {}. L'editor sarà vuoto.", scenarioId);
         }
     }
 

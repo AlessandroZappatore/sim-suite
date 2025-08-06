@@ -6,14 +6,12 @@ import it.uniupo.simnova.domain.scenario.Scenario;
 import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.service.scenario.components.*;
 import it.uniupo.simnova.service.scenario.types.AdvancedScenarioService;
-import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Servizio per l'esportazione di scenari in formato JSON.
@@ -51,12 +49,6 @@ public class JSONExportService implements Serializable {
      * Servizio specifico per la gestione degli scenari di tipo "avanzato".
      */
     private final AdvancedScenarioService advancedScenarioService;
-
-    /**
-     * Servizio specifico per la gestione degli scenari simulati con paziente.
-     */
-    private final PatientSimulatedScenarioService patientSimulatedScenarioService;
-
     /**
      * Servizio per la gestione dei dati relativi all'esame fisico.
      */
@@ -80,20 +72,17 @@ public class JSONExportService implements Serializable {
      * @param esameRefertoService             Il servizio per gli esami e referti.
      * @param pazienteT0Service               Il servizio per i dati del paziente T0.
      * @param advancedScenarioService         Il servizio per gli scenari avanzati.
-     * @param patientSimulatedScenarioService Il servizio per gli scenari simulati con paziente.
      * @param esameFisicoService              Il servizio per l'esame fisico.
      * @param materialeService                Il servizio per i materiali necessari.
      * @param azioneChiaveService             Il servizio per le azioni chiave.
      */
     public JSONExportService(ScenarioService scenarioService, EsameRefertoService esameRefertoService,
-                             PazienteT0Service pazienteT0Service, AdvancedScenarioService advancedScenarioService,
-                             PatientSimulatedScenarioService patientSimulatedScenarioService, EsameFisicoService esameFisicoService,
+                             PazienteT0Service pazienteT0Service, AdvancedScenarioService advancedScenarioService, EsameFisicoService esameFisicoService,
                              MaterialeService materialeService, AzioneChiaveService azioneChiaveService) {
         this.scenarioService = scenarioService;
         this.esameRefertoService = esameRefertoService;
         this.pazienteT0Service = pazienteT0Service;
         this.advancedScenarioService = advancedScenarioService;
-        this.patientSimulatedScenarioService = patientSimulatedScenarioService;
         // Inizializza l'istanza di Gson con formattazione leggibile e inclusione dei null.
         gson = new GsonBuilder()
                 .setPrettyPrinting()
@@ -117,14 +106,8 @@ public class JSONExportService implements Serializable {
      */
     public byte[] exportScenarioToJSON(Integer scenarioId) {
         // Recupera l'oggetto Scenario principale e il suo tipo.
-        Optional<Scenario> scenarioOptional = scenarioService.getScenarioById(scenarioId);
-        Scenario scenario;
-        if (scenarioOptional.isEmpty()) {
-            throw new IllegalArgumentException("Scenario with ID " + scenarioId + " not found.");
-        } else {
-            scenario = scenarioOptional.get();
-        }
-        String scenarioType = scenarioService.getScenarioType(scenarioId);
+        Scenario scenario = scenarioService.getScenarioById(scenarioId);
+        String scenarioType = scenario.getTipologiaScenario();
 
         // Mappa per aggregare tutti i dati da esportare.
         Map<String, Object> exportData = new HashMap<>();
@@ -163,7 +146,7 @@ public class JSONExportService implements Serializable {
 
         // Aggiunge i dati specifici solo per "Patient Simulated Scenario".
         if (scenarioType.equals("Patient Simulated Scenario")) {
-            var sceneggiatura = patientSimulatedScenarioService.getSceneggiatura(scenarioId);
+            var sceneggiatura = scenario.getSceneggiatura();
             exportData.put("sceneggiatura", sceneggiatura);
         }
 

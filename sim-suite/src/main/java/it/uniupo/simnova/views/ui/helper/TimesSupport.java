@@ -659,8 +659,8 @@ public class TimesSupport {
         }
 
         @Override
-        public Double getT() {
-            return tempo.getT();
+        public Float getT() {
+            return (float) tempo.getT();
         }
 
         @Override
@@ -679,7 +679,7 @@ public class TimesSupport {
         }
 
         @Override
-        public Double getLitriO2() {
+        public Float getLitriO2() {
             return tempo.getLitriO2();
         }
 

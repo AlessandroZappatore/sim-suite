@@ -153,20 +153,15 @@ public class MoulageView extends Composite<VerticalLayout> implements HasUrlPara
      * Popola l'editor TinyMCE con il testo recuperato dal database.
      */
     private void loadExistingMoulage() {
-        Optional<Scenario> scenarioOptional = scenarioService.getScenarioById(scenarioId);
+        Scenario scenario = scenarioService.getScenarioById(scenarioId);
 
-        if(scenarioOptional.isPresent()) {
-
-            Scenario scenario = scenarioOptional.get();
-            if (scenario.getMoulage() != null && !scenario.getMoulage().isEmpty()) {
-                logger.debug("Moulage trovato per lo scenario con ID: {}", scenarioId);
-                moulageEditor.setValue(scenario.getMoulage());
-            } else {
-                logger.debug("Nessun moulage definito per lo scenario con ID: {}", scenarioId);
-            }
+        if (scenario.getMoulage() != null && !scenario.getMoulage().isEmpty()) {
+            logger.debug("Moulage trovato per lo scenario con ID: {}", scenarioId);
+            moulageEditor.setValue(scenario.getMoulage());
         } else {
-            logger.debug("Scenario con ID {} non trovato durante il caricamento del moulage.", scenarioId);
+            logger.debug("Nessun moulage definito per lo scenario con ID: {}", scenarioId);
         }
+
     }
 
     /**

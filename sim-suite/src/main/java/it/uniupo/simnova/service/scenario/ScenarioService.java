@@ -22,7 +22,6 @@ import java.util.function.Consumer;
  * @author Alessandro Zappatore
  * @version 2.0
  */
-@SuppressWarnings({"LoggingSimilarMessage"})
 @Service
 public class ScenarioService {
 
@@ -46,9 +45,16 @@ public class ScenarioService {
      * o in caso di errore SQL.
      */
     @Transactional(readOnly = true)
-    public Optional<Scenario> getScenarioById(Integer id) {
+    public Scenario getScenarioById(Integer id) {
         logger.info("Recupero scenario con ID: {}", id);
-        return scenarioRepository.findById(id);
+        Optional<Scenario> scenarioOptional = scenarioRepository.findById(id);
+        if(scenarioOptional.isPresent()) {
+            logger.info("Scenario con ID {} recuperato con successo.", id);
+            return scenarioOptional.get();
+        } else {
+            logger.warn("Scenario con ID {} non trovato.", id);
+            return null;
+        }
     }
 
     /**
@@ -187,6 +193,11 @@ public class ScenarioService {
             scenario.setTitolo(newTitle);
             scenario.setAutori(newAuthors);
         });
+    }
+
+    @Transactional
+    public boolean updateScenarioSceneggiatura(Integer scenarioId, String sceneggiatura) {
+        return updateScenario(scenarioId, "sceneggiatura", scenario -> scenario.setSceneggiatura(sceneggiatura));
     }
 
     @Transactional

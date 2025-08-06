@@ -13,15 +13,15 @@ import lombok.NoArgsConstructor;
  * @version 2.0
  */
 @Entity
-@Table(name = "Scenario") // Specifica il nome della tabella nel database
-@Data // Genera getter, setter, toString, equals, hashCode
-@NoArgsConstructor // Necessario per JPA: genera un costruttore senza argomenti
-@AllArgsConstructor // Opzionale: genera un costruttore con tutti i campi
+@Table(name = "Scenario")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Scenario {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Per ID auto-incrementanti (comune con SQLite, MySQL, etc.)
-    @Column(name = "id_scenario") // Mappa questo campo alla colonna 'id_scenario'
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_scenario")
     private Integer id;
 
     @Column(name = "titolo")

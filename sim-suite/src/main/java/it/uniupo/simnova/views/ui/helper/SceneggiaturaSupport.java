@@ -13,7 +13,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import it.uniupo.simnova.service.scenario.types.PatientSimulatedScenarioService;
+import it.uniupo.simnova.service.scenario.ScenarioService;
 import it.uniupo.simnova.views.common.utils.StyleApp;
 import it.uniupo.simnova.views.common.utils.TinyEditor;
 import lombok.NoArgsConstructor;
@@ -36,11 +36,10 @@ public class SceneggiaturaSupport extends HorizontalLayout {
      *
      * @param scenarioId                      L'ID dello scenario a cui è associata la sceneggiatura.
      * @param sceneggiaturaText               Il testo attuale della sceneggiatura.
-     * @param patientSimulatedScenarioService Il servizio per la gestione degli scenari simulati con paziente.
      * @return Un {@link Component} (VerticalLayout) che rappresenta la sezione della sceneggiatura.
      */
     public static Component createSceneggiaturaContent(Integer scenarioId, String sceneggiaturaText,
-                                                       PatientSimulatedScenarioService patientSimulatedScenarioService) {
+                                                       ScenarioService scenarioService) {
         VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setPadding(true);
         mainLayout.setSpacing(false);
@@ -175,7 +174,7 @@ public class SceneggiaturaSupport extends HorizontalLayout {
         saveButton.addClickListener(e -> {
             String updatedText = editor.getValue();
             // Salva la sceneggiatura tramite il servizio.
-            patientSimulatedScenarioService.updateScenarioSceneggiatura(scenarioId, updatedText);
+            scenarioService.updateScenarioSceneggiatura(scenarioId, updatedText);
 
             currentSceneggiatura[0] = updatedText; // Aggiorna il riferimento locale.
 

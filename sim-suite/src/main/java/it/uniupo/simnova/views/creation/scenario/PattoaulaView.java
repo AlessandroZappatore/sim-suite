@@ -189,19 +189,13 @@ public class PattoaulaView extends Composite<VerticalLayout> implements HasUrlPa
      * e lo imposta nell'editor TinyMCE.
      */
     private void loadExistingPattoAula() {
-        Optional<Scenario> scenarioOptional = scenarioService.getScenarioById(scenarioId);
+        Scenario scenario = scenarioService.getScenarioById(scenarioId);
 
-        if(scenarioOptional.isPresent()) {
-            Scenario scenario = scenarioOptional.get();
-
-            if(scenario.getPattoAula() != null && !scenario.getPattoAula().isEmpty()) {
-                pattoAulaEditor.setValue(scenario.getPattoAula());
-                logger.debug("Patto d'aula esistente caricato per lo scenario ID: {}.", scenarioId);
-            } else {
-                logger.debug("Nessun patto d'aula esistente trovato per lo scenario ID: {}. L'editor sarà vuoto.", scenarioId);
-            }
+        if (scenario.getPattoAula() != null && !scenario.getPattoAula().isEmpty()) {
+            pattoAulaEditor.setValue(scenario.getPattoAula());
+            logger.debug("Patto d'aula esistente caricato per lo scenario ID: {}.", scenarioId);
         } else {
-            logger.debug("Scenario con ID {} non trovato durante il caricamento del patto d'aula.", scenarioId);
+            logger.debug("Nessun patto d'aula esistente trovato per lo scenario ID: {}. L'editor sarà vuoto.", scenarioId);
         }
     }
 

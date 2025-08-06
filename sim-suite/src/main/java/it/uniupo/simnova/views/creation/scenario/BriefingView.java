@@ -168,18 +168,13 @@ public class BriefingView extends Composite<VerticalLayout> implements HasUrlPar
      * e lo imposta nell'editor TinyMCE.
      */
     private void loadExistingBriefing() {
-        Optional<Scenario> scenarioOptional = scenarioService.getScenarioById(scenarioId);
-        if (scenarioOptional.isPresent()) {
-            Scenario scenario = scenarioOptional.get();
+        Scenario scenario = scenarioService.getScenarioById(scenarioId);
 
-            if (scenario.getBriefing() != null && !scenario.getBriefing().isEmpty()) {
-                briefingEditor.setValue(scenario.getBriefing());
-                logger.debug("Briefing esistente caricato per lo scenario ID {}.", scenarioId);
-            } else {
-                logger.debug("Nessun briefing esistente trovato per lo scenario ID {}. L'editor sarà vuoto.", scenarioId);
-            }
+        if (scenario.getBriefing() != null && !scenario.getBriefing().isEmpty()) {
+            briefingEditor.setValue(scenario.getBriefing());
+            logger.debug("Briefing esistente caricato per lo scenario ID {}.", scenarioId);
         } else {
-            logger.debug("Scenario con ID {} non trovato.", scenarioId);
+            logger.debug("Nessun briefing esistente trovato per lo scenario ID {}. L'editor sarà vuoto.", scenarioId);
         }
     }
 
