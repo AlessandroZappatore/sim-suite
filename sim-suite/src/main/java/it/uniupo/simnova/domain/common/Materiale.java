@@ -1,7 +1,9 @@
 package it.uniupo.simnova.domain.common;
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Classe che rappresenta un <strong>materiale</strong> generico utilizzato nel sistema.
@@ -10,33 +12,20 @@ import lombok.Data;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@Entity
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
+@Table(name = "Materiale")
 public class Materiale {
-    /**
-     * Identificativo univoco del materiale, assegnato dal database.
-     */
-    private final Integer idMateriale;
-    /**
-     * Nome del materiale, ad esempio "Siringa", "Defibrillatore".
-     */
-    private final String nome;
-    /**
-     * Descrizione dettagliata del materiale, che fornisce ulteriori informazioni.
-     */
-    private final String descrizione;
-    /**
-     * Fornisce una rappresentazione in formato stringa dell'oggetto <strong><code>Materiale</code></strong>,
-     * utile per il debugging e la registrazione.
-     *
-     * @return Una stringa che descrive l'ID, il nome e la descrizione del materiale.
-     */
-    @Override
-    public String toString() {
-        return "Materiale{" +
-                "idMateriale=" + idMateriale +
-                ", nome='" + nome + '\'' +
-                ", descrizione='" + descrizione + '\'' +
-                '}';
-    }
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_materiale")
+    private Integer idMateriale;
+
+    @Column(name = "nome", nullable = false, unique = true)
+    private String nome;
+
+    @Column(name = "descrizione")
+    private String descrizione;
 }

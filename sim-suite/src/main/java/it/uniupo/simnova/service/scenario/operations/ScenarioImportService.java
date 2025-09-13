@@ -427,8 +427,8 @@ public class ScenarioImportService {
             List<Map<String, Object>> arteriosiData = (List<Map<String, Object>>) pazienteT0Data.get("accessiArteriosi");
 
             // Converte le liste di mappe in liste di oggetti Accesso.
-            List<Accesso> venosi = convertAccessoData(venosiData);
-            List<Accesso> arteriosi = convertAccessoData(arteriosiData);
+            List<Accesso> venosi = convertAccessoData(venosiData, (Integer) pazienteT0Data.get("idPaziente"));
+            List<Accesso> arteriosi = convertAccessoData(arteriosiData, (Integer) pazienteT0Data.get("idPaziente"));
 
             // Recupera e converte tutti i parametri vitali, gestendo i valori nulli.
             String pa = (String) pazienteT0Data.get("PA");
@@ -565,14 +565,15 @@ public class ScenarioImportService {
      * @param accessiData La {@link List} di {@link Map} contenente i dati grezzi degli accessi.
      * @return Una {@link List} di oggetti {@link Accesso}. Restituisce una lista vuota se <code>accessiData</code> è <code>null</code> o vuota.
      */
-    private List<Accesso> convertAccessoData(List<Map<String, Object>> accessiData) {
+    private List<Accesso> convertAccessoData(List<Map<String, Object>> accessiData, Integer idPaziente) {
         if (accessiData == null) {
             return new ArrayList<>();
         }
 
         return accessiData.stream()
                 .map(a -> new Accesso(
-                        a.get("idAccesso") != null ? ((Double) a.get("idAccesso")).intValue() : -1, // ID potrebbe essere -1 se non gestito in export
+                        a.get("idAccesso") != null ? ((Double) a.get("idAccesso")).intValue() : -1, // ID potrebbe essere -1 se non gestito in export,
+                        idPaziente,
                         "Nome",
                         (String) a.get("tipologia"),
                         (String) a.get("posizione"),

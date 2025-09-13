@@ -17,7 +17,7 @@ import java.util.List;
  * @version 1.0
  */
 @Entity
-@Table(name = "PazienteT0")
+@Table(name = "Paziente_T0")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -27,36 +27,37 @@ public class PazienteT0 {
     @Column(name = "id_paziente")
     private Integer id;
 
-    @Column(name = "PA_sistolica")
+    @Column(name = "pa_sistolica")
     private Integer paSistolica;
 
-    @Column(name = "PA_diastolica")
+    @Column(name = "pa_diastolica")
     private Integer paDiastolica;
 
-    @Column(name = "FC")
+    @Column(name = "fc")
     private Integer fc;
 
-    @Column(name = "RR")
+    @Column(name = "rr")
     private Integer rr;
 
-    @Column(name = "T")
+    @Column(name = "t")
     private Float t;
 
-    @Column(name = "SpO2")
+    @Column(name = "spo2")
     private Integer spo2;
 
-    @Column(name = "FiO2")
+    @Column(name = "fio2")
     private Integer fio2;
 
-    @Column(name = "LitriOssigeno")
+    @Column(name = "litri_ossigeno")
     private Float litriOssigeno;
 
-    @Column(name = "EtCO2")
+    @Column(name = "etco2")
     private Integer etco2;
 
-    @Column(name = "Monitor")
+    @Column(name = "monitor")
     private String monitor;
 
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "paziente_t0_id", referencedColumnName = "id_paziente")
     private List<Accesso> accessi = new ArrayList<>();
-
 }

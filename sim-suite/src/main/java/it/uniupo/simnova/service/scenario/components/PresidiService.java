@@ -78,7 +78,7 @@ public class PresidiService {
      */
     public static List<String> getPresidiByScenarioId(Integer scenarioId) {
         final String sql = "SELECT p.nome FROM Presidi p " +
-                "JOIN PresidioScenario ps ON p.id_presidio = ps.id_presidio " +
+                "JOIN Presidio_Scenario ps ON p.id_presidio = ps.id_presidio " +
                 "WHERE ps.id_scenario = ?";
         List<String> presidi = new ArrayList<>();
 
@@ -144,7 +144,7 @@ public class PresidiService {
             conn.setAutoCommit(false); // Inizia la transazione.
 
             // 1. Elimina tutte le associazioni esistenti per lo scenario.
-            final String deleteSQL = "DELETE FROM PresidioScenario WHERE id_scenario = ?";
+            final String deleteSQL = "DELETE FROM Presidio_Scenario WHERE id_scenario = ?";
             try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSQL)) {
                 deleteStmt.setInt(1, scenarioId);
                 int deletedRows = deleteStmt.executeUpdate();
@@ -152,7 +152,7 @@ public class PresidiService {
             }
 
             // 2. Inserisce le nuove associazioni basate sul set di nomi dei presidi.
-            final String insertSQL = "INSERT INTO PresidioScenario (id_presidio, id_scenario) VALUES (?, ?)";
+            final String insertSQL = "INSERT INTO Presidio_Scenario (id_presidio, id_scenario) VALUES (?, ?)";
             try (PreparedStatement insertStmt = conn.prepareStatement(insertSQL)) {
                 for (String presidio : value) {
                     Integer presidioId = getPresidiId(presidio); // Recupera l'ID del presidio.

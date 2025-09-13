@@ -1,7 +1,9 @@
 package it.uniupo.simnova.domain.paziente;
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Classe che rappresenta un <strong>esame con referto</strong> nel sistema.
@@ -16,44 +18,27 @@ import lombok.Data;
  * @author Alessandro Zappatore
  * @version 1.0
  */
+@Entity
 @Data
+@Table(name = "Esame_Referto")
 @AllArgsConstructor
+@NoArgsConstructor
 public class EsameReferto {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_esame")
+    private Integer idEsame;
 
-    /**
-     * <strong>Identificativo univoco</strong> dell'esame e referto, assegnato dal database.
-     */
-    private final Integer idEsame;
-    /**
-     * Identificativo dello scenario associato all'esame.
-     */
-    private final Integer id_scenario;
-    /**
-     * Tipologia dell'esame, ad esempio "Radiografia", "Ecografia".
-     */
-    private String tipo;
-    /**
-     * Percorso del file multimediale associato all'esame.
-     */
+    @Column(name = "id_scenario")
+    private Integer idScenario;
+
+    @Column(name = "tipo")
+    private String tipoEsame;
+
+    @Column(name = "media")
     private String media;
-    /**
-     * Contenuto testuale del referto dell'esame.
-     */
-    private String refertoTestuale;
-    /**
-     * Fornisce una rappresentazione in formato stringa dell'oggetto {@code EsameReferto},
-     * utile per il debugging e la registrazione.
-     *
-     * @return Una stringa che descrive l'ID dell'esame, lo scenario, il tipo, il media e il referto testuale.
-     */
-    @Override
-    public String toString() {
-        return "EsameReferto{" +
-                "id_esame=" + idEsame +
-                ", id_scenario=" + id_scenario +
-                ", tipo='" + tipo + '\'' +
-                ", media='" + media + '\'' +
-                ", refertoTestuale='" + refertoTestuale + '\'' +
-                '}';
-    }
+
+    @Column(name = "referto_testuale")
+    private String referto;
+
 }

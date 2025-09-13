@@ -128,7 +128,7 @@ public class ScenarioDeletionService {
      */
     private void deleteRelatedAzioniChiave(Connection conn, int scenarioId) throws SQLException {
         // Elimina le associazioni specifiche dello scenario.
-        final String sqlDeleteAzioneScenario = "DELETE FROM AzioneScenario WHERE id_scenario = ?";
+        final String sqlDeleteAzioneScenario = "DELETE FROM Azione_Scenario WHERE id_scenario = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sqlDeleteAzioneScenario)) {
             stmt.setInt(1, scenarioId);
             int count = stmt.executeUpdate();
@@ -137,8 +137,8 @@ public class ScenarioDeletionService {
 
         // Elimina le azioni chiave che non sono più associate a nessuno scenario.
         final String sqlDeleteOrphanAzioni =
-                "DELETE FROM AzioniChiave WHERE id_azione NOT IN (" +
-                        "  SELECT DISTINCT id_azione FROM AzioneScenario" +
+                "DELETE FROM Azioni_Chiave WHERE id_azione NOT IN (" +
+                        "  SELECT DISTINCT id_azione FROM Azione_Scenario" +
                         ")";
         try (PreparedStatement stmt = conn.prepareStatement(sqlDeleteOrphanAzioni)) {
             int count = stmt.executeUpdate();
@@ -153,7 +153,7 @@ public class ScenarioDeletionService {
      * @param scenarioId L'ID dello scenario.
      */
     private void deleteRelatedPresidi(Connection conn, int scenarioId) {
-        final String sql = "DELETE FROM PresidioScenario WHERE id_scenario = ?";
+        final String sql = "DELETE FROM Presidio_Scenario WHERE id_scenario = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, scenarioId);
             int count = stmt.executeUpdate();
@@ -191,7 +191,7 @@ public class ScenarioDeletionService {
      * @throws SQLException se si verifica un errore SQL durante l'esecuzione della query.
      */
     private void deleteRelatedMaterial(Connection conn, int scenarioId) throws SQLException {
-        final String sql = "DELETE FROM MaterialeScenario WHERE id_scenario = ?";
+        final String sql = "DELETE FROM Materiale_Scenario WHERE id_scenario = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, scenarioId);
             int count = stmt.executeUpdate();

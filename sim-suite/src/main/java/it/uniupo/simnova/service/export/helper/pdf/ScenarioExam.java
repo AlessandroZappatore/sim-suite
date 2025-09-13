@@ -79,9 +79,9 @@ public class ScenarioExam {
             drawSubsection(examType);
 
             // Aggiunge il referto testuale, se presente.
-            if (esame.getRefertoTestuale() != null && !esame.getRefertoTestuale().isEmpty()) {
+            if (esame.getReferto() != null && !esame.getReferto().isEmpty()) {
                 // Il testo viene disegnato con un margine sinistro maggiore per indentazione.
-                drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, "Referto: " + esame.getRefertoTestuale());
+                drawWrappedText(FONTREGULAR, BODY_FONT_SIZE, MARGIN + 20, "Referto: " + esame.getReferto());
             }
 
             // Aggiunge il nome del media allegato, se presente.
@@ -105,7 +105,7 @@ public class ScenarioExam {
      * @return Il tipo di esame con i caratteri speciali sostituiti.
      */
     private static String getExamType(EsameReferto esame) {
-        String examType = esame.getTipo();
+        String examType = esame.getTipoEsame();
         // Utilizza il metodo di utilità per sostituire i caratteri non supportati.
         return replaceSubscriptCharacters(examType);
     }

@@ -74,7 +74,6 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
 
     private Integer scenarioId;
     private String mode;
-    private PazienteT0 currentPazienteT0;
 
     public PazienteT0View(ScenarioService scenarioService, FileStorageService fileStorageService, PresidiService presidiService, PazienteT0Service pazienteT0Service) {
         this.scenarioService = scenarioService;
@@ -244,9 +243,6 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
         return isValid;
     }
 
-    /**
-     * NUOVO METODO: Salva i dati usando il nuovo PazienteT0Service.
-     */
     private void saveDataAndNavigate(Optional<UI> uiOptional) {
         uiOptional.ifPresent(ui -> {
             ProgressBar progressBar = new ProgressBar();
@@ -254,9 +250,17 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
             getContent().add(progressBar);
 
             try {
-                PazienteT0 pazienteToSave = (currentPazienteT0 != null) ? currentPazienteT0 : new PazienteT0();
-
-                if (pazienteToSave.getId() == null) {
+                // Recupera l'entità esistente o crea una nuova se non esiste
+                PazienteT0 pazienteToSave;
+                if (mode.equals("edit")) {
+                    // In modalità edit, recupera l'entità esistente
+                    pazienteToSave = pazienteT0Service.getPazienteT0ById(scenarioId);
+                    if (pazienteToSave == null) {
+                        throw new RuntimeException("Paziente T0 non trovato per lo scenario ID: " + scenarioId);
+                    }
+                } else {
+                    // In modalità creazione, crea una nuova entità
+                    pazienteToSave = new PazienteT0();
                     pazienteToSave.setId(scenarioId);
                 }
 
@@ -284,9 +288,11 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
                     tuttiGliAccessi.add(accesso);
                 }
 
+                // Gestisci gli accessi in modo sicuro
                 pazienteToSave.getAccessi().clear();
                 pazienteToSave.getAccessi().addAll(tuttiGliAccessi);
 
+                // Usa il repository direttamente per evitare problemi di stato dell'entità
                 pazienteT0Service.savePazienteT0(pazienteToSave);
                 boolean successPresidi = presidiService.savePresidi(scenarioId, presidiField.getValue());
 
@@ -317,53 +323,56 @@ public class PazienteT0View extends Composite<VerticalLayout> implements HasUrlP
      * NUOVO METODO: Carica i dati usando il nuovo PazienteT0Service.
      */
     private void loadData() {
+        PazienteT0 currentPazienteT0;
         try {
             currentPazienteT0 = pazienteT0Service.getPazienteT0ById(scenarioId);
+            if(currentPazienteT0 != null) {
 
-            paField.setValue(String.format("%d/%d", currentPazienteT0.getPaSistolica(), currentPazienteT0.getPaDiastolica()));
-            fcField.setValue((double) currentPazienteT0.getFc());
-            rrField.setValue((double) currentPazienteT0.getRr());
-            tempField.setValue(Math.round(currentPazienteT0.getT() * 10.0) / 10.0);
-            spo2Field.setValue((double) currentPazienteT0.getSpo2());
-            if (currentPazienteT0.getFio2() != null) fio2Field.setValue((double) currentPazienteT0.getFio2());
-            if (currentPazienteT0.getLitriOssigeno() != null) litrio2Field.setValue((double) currentPazienteT0.getLitriOssigeno());
-            if (currentPazienteT0.getEtco2() != null) etco2Field.setValue((double) currentPazienteT0.getEtco2());
-            monitorArea.setValue(currentPazienteT0.getMonitor());
+                paField.setValue(String.format("%d/%d", currentPazienteT0.getPaSistolica(), currentPazienteT0.getPaDiastolica()));
+                fcField.setValue((double) currentPazienteT0.getFc());
+                rrField.setValue((double) currentPazienteT0.getRr());
+                tempField.setValue(Math.round(currentPazienteT0.getT() * 10.0) / 10.0);
+                spo2Field.setValue((double) currentPazienteT0.getSpo2());
+                if (currentPazienteT0.getFio2() != null) fio2Field.setValue((double) currentPazienteT0.getFio2());
+                if (currentPazienteT0.getLitriOssigeno() != null)
+                    litrio2Field.setValue((double) currentPazienteT0.getLitriOssigeno());
+                if (currentPazienteT0.getEtco2() != null) etco2Field.setValue((double) currentPazienteT0.getEtco2());
+                monitorArea.setValue(currentPazienteT0.getMonitor());
 
-            venosiAccessi.clear();
-            venosiContainer.removeAll();
-            arteriosiAccessi.clear();
-            arteriosiContainer.removeAll();
+                venosiAccessi.clear();
+                venosiContainer.removeAll();
+                arteriosiAccessi.clear();
+                arteriosiContainer.removeAll();
 
-            if (currentPazienteT0.getAccessi() != null && !currentPazienteT0.getAccessi().isEmpty()) {
-                boolean hasVenosi = false;
-                boolean hasArteriosi = false;
+                if (currentPazienteT0.getAccessi() != null && !currentPazienteT0.getAccessi().isEmpty()) {
+                    boolean hasVenosi = false;
+                    boolean hasArteriosi = false;
 
-                for (Accesso a : currentPazienteT0.getAccessi()) {
-                    if ("venoso".equalsIgnoreCase(a.getTipo())) {
-                        AccessoComponent comp = new AccessoComponent(a, "Venoso", true);
-                        venosiAccessi.add(comp);
-                        venosiContainer.add(comp);
-                        hasVenosi = true;
-                    } else if ("arterioso".equalsIgnoreCase(a.getTipo())) {
-                        AccessoComponent comp = new AccessoComponent(a, "Arterioso", true);
-                        arteriosiAccessi.add(comp);
-                        arteriosiContainer.add(comp);
-                        hasArteriosi = true;
+                    for (Accesso a : currentPazienteT0.getAccessi()) {
+                        if ("venoso".equalsIgnoreCase(a.getTipo())) {
+                            AccessoComponent comp = new AccessoComponent(a, "Venoso", true);
+                            venosiAccessi.add(comp);
+                            venosiContainer.add(comp);
+                            hasVenosi = true;
+                        } else if ("arterioso".equalsIgnoreCase(a.getTipo())) {
+                            AccessoComponent comp = new AccessoComponent(a, "Arterioso", true);
+                            arteriosiAccessi.add(comp);
+                            arteriosiContainer.add(comp);
+                            hasArteriosi = true;
+                        }
                     }
+                    venosiCheckbox.setValue(hasVenosi);
+                    arteriosiCheckbox.setValue(hasArteriosi);
+                } else {
+                    venosiCheckbox.setValue(false);
+                    arteriosiCheckbox.setValue(false);
                 }
-                venosiCheckbox.setValue(hasVenosi);
-                arteriosiCheckbox.setValue(hasArteriosi);
-            } else {
-                venosiCheckbox.setValue(false);
-                arteriosiCheckbox.setValue(false);
+
+                presidiField.setValue(PresidiService.getPresidiByScenarioId(scenarioId));
             }
-
-            presidiField.setValue(PresidiService.getPresidiByScenarioId(scenarioId));
-
         } catch (EntityNotFoundException e) {
             logger.warn("Nessun dato T0 trovato per lo scenario con ID: {}. Si tratta di una nuova creazione.", scenarioId);
-            currentPazienteT0 = null;
         }
     }
 }
+

@@ -344,10 +344,10 @@ public class EsamefisicoView extends Composite<VerticalLayout> implements HasUrl
 
                     // Naviga alla vista successiva in base al tipo di scenario
                     String scenarioType = scenarioService.getScenarioType(scenarioId);
-                    if ("Quick Scenario".equals(scenarioType)) {
+                    if ("Quick".equals(scenarioType)) {
                         ui.navigate("scenari/" + scenarioId); // Naviga alla vista dettaglio scenario
-                    } else if ("Advanced Scenario".equals(scenarioType) ||
-                            "Patient Simulated Scenario".equals(scenarioType)) {
+                    } else if ("Advanced".equals(scenarioType) ||
+                            "Patient Simulated".equals(scenarioType)) {
                         ui.navigate("tempi/" + scenarioId + "/create"); // Naviga alla creazione dei tempi
                     }
                 });

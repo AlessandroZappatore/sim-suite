@@ -76,7 +76,7 @@ public class MaterialeService {
     public List<Materiale> getMaterialiByScenarioId(int scenarioId) {
         final String sql = "SELECT m.id_materiale, m.nome, m.descrizione " +
                 "FROM Materiale m " +
-                "JOIN MaterialeScenario sm ON m.id_materiale = sm.id_materiale " +
+                "JOIN Materiale_Scenario sm ON m.id_materiale = sm.id_materiale " +
                 "WHERE sm.id_scenario = ?";
 
         List<Materiale> materiali = new ArrayList<>();
@@ -156,7 +156,7 @@ public class MaterialeService {
             conn.setAutoCommit(false); // Inizia la transazione.
 
             // Elimina tutte le associazioni esistenti tra lo scenario e i materiali.
-            final String deleteSQL = "DELETE FROM MaterialeScenario WHERE id_scenario = ?";
+            final String deleteSQL = "DELETE FROM Materiale_Scenario WHERE id_scenario = ?";
             try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSQL)) {
                 deleteStmt.setInt(1, scenarioId);
                 int deletedRows = deleteStmt.executeUpdate();
@@ -165,7 +165,7 @@ public class MaterialeService {
 
             // Inserisce le nuove associazioni, se la lista non è vuota.
             if (!idsMateriali.isEmpty()) {
-                final String insertSQL = "INSERT INTO MaterialeScenario (id_scenario, id_materiale) VALUES (?, ?)";
+                final String insertSQL = "INSERT INTO Materiale_Scenario (id_scenario, id_materiale) VALUES (?, ?)";
                 try (PreparedStatement insertStmt = conn.prepareStatement(insertSQL)) {
                     for (Integer idMateriale : idsMateriali) {
                         insertStmt.setInt(1, scenarioId);
@@ -220,7 +220,7 @@ public class MaterialeService {
             conn.setAutoCommit(false); // Inizia la transazione.
 
             // Elimina tutte le associazioni del materiale con gli scenari.
-            final String deleteAssociazioniSQL = "DELETE FROM MaterialeScenario WHERE id_materiale = ?";
+            final String deleteAssociazioniSQL = "DELETE FROM Materiale_Scenario WHERE id_materiale = ?";
             try (PreparedStatement deleteAssociazioniStmt = conn.prepareStatement(deleteAssociazioniSQL)) {
                 deleteAssociazioniStmt.setInt(1, idMateriale);
                 int deletedAssocRows = deleteAssociazioniStmt.executeUpdate();

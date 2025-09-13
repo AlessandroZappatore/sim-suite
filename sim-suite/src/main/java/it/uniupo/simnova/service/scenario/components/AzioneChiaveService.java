@@ -46,8 +46,8 @@ public class AzioneChiaveService {
 
         // Query SQL per selezionare i nomi delle azioni chiave associate a un dato scenario.
         final String sql = "SELECT ac.nome " +
-                "FROM AzioniChiave ac " +
-                "JOIN AzioneScenario a ON ac.id_azione = a.id_azione " +
+                "FROM Azioni_Chiave ac " +
+                "JOIN Azione_Scenario a ON ac.id_azione = a.id_azione " +
                 "WHERE a.id_scenario = ?";
 
         // Utilizza try-with-resources per assicurare la chiusura automatica di Connection e PreparedStatement.
@@ -109,7 +109,7 @@ public class AzioneChiaveService {
             }
 
             // Elimina tutte le associazioni esistenti per lo scenario.
-            final String deleteSql = "DELETE FROM AzioneScenario WHERE id_scenario = ?";
+            final String deleteSql = "DELETE FROM Azione_Scenario WHERE id_scenario = ?";
             try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSql)) {
                 deleteStmt.setInt(1, scenarioId);
                 int deletedRows = deleteStmt.executeUpdate();
@@ -118,7 +118,7 @@ public class AzioneChiaveService {
 
             // Inserisce le nuove associazioni azione-scenario, se presenti.
             if (!idAzioniFinali.isEmpty()) {
-                final String insertSql = "INSERT INTO AzioneScenario (id_scenario, id_azione) VALUES (?, ?)";
+                final String insertSql = "INSERT INTO Azione_Scenario (id_scenario, id_azione) VALUES (?, ?)";
                 try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
                     for (Integer idAzione : idAzioniFinali) {
                         insertStmt.setInt(1, scenarioId);
@@ -170,7 +170,7 @@ public class AzioneChiaveService {
      */
     private Integer getOrCreateAzioneChiaveId(Connection conn, String nomeAzione) throws SQLException {
         // Query per cercare un'azione chiave esistente per nome.
-        final String selectSql = "SELECT id_azione FROM AzioniChiave WHERE nome = ?";
+        final String selectSql = "SELECT id_azione FROM Azioni_Chiave WHERE nome = ?";
         try (PreparedStatement selectStmt = conn.prepareStatement(selectSql)) {
             selectStmt.setString(1, nomeAzione);
             ResultSet rs = selectStmt.executeQuery();
@@ -180,7 +180,7 @@ public class AzioneChiaveService {
         }
 
         // Se l'azione chiave non esiste, la inserisce e recupera l'ID generato.
-        final String insertSql = "INSERT INTO AzioniChiave (nome) VALUES (?)";
+        final String insertSql = "INSERT INTO Azioni_Chiave (nome) VALUES (?)";
         // Richiede il recupero delle chiavi generate automaticamente.
         try (PreparedStatement insertStmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
             insertStmt.setString(1, nomeAzione);
@@ -225,7 +225,7 @@ public class AzioneChiaveService {
 
             Integer idAzione = null;
             // Cerca l'ID dell'azione chiave basandosi sul nome.
-            final String selectSql = "SELECT id_azione FROM AzioniChiave WHERE nome = ?";
+            final String selectSql = "SELECT id_azione FROM Azioni_Chiave WHERE nome = ?";
             try (PreparedStatement selectStmt = conn.prepareStatement(selectSql)) {
                 selectStmt.setString(1, nome);
                 ResultSet rs = selectStmt.executeQuery();
@@ -236,7 +236,7 @@ public class AzioneChiaveService {
 
             if (idAzione != null) {
                 // Elimina l'associazione tra l'azione chiave e lo scenario specifico.
-                final String deleteAssociationSql = "DELETE FROM AzioneScenario WHERE id_azione = ? AND id_scenario = ?";
+                final String deleteAssociationSql = "DELETE FROM Azione_Scenario WHERE id_azione = ? AND id_scenario = ?";
                 try (PreparedStatement deleteAssocStmt = conn.prepareStatement(deleteAssociationSql)) {
                     deleteAssocStmt.setInt(1, idAzione);
                     deleteAssocStmt.setInt(2, scenarioId);
@@ -245,13 +245,13 @@ public class AzioneChiaveService {
                 }
 
                 // Controlla se l'azione chiave è ancora associata a qualsiasi altro scenario.
-                final String checkAssociationSql = "SELECT COUNT(*) FROM AzioneScenario WHERE id_azione = ?";
+                final String checkAssociationSql = "SELECT COUNT(*) FROM Azione_Scenario WHERE id_azione = ?";
                 try (PreparedStatement checkAssocStmt = conn.prepareStatement(checkAssociationSql)) {
                     checkAssocStmt.setInt(1, idAzione);
                     ResultSet rs = checkAssocStmt.executeQuery();
                     // Se non ci sono più associazioni, elimina l'azione chiave dalla tabella principale.
                     if (rs.next() && rs.getInt(1) == 0) {
-                        final String deleteActionSql = "DELETE FROM AzioniChiave WHERE id_azione = ?";
+                        final String deleteActionSql = "DELETE FROM Azioni_Chiave WHERE id_azione = ?";
                         try (PreparedStatement deleteActionStmt = conn.prepareStatement(deleteActionSql)) {
                             deleteActionStmt.setInt(1, idAzione);
                             int actionRowsDeleted = deleteActionStmt.executeUpdate();

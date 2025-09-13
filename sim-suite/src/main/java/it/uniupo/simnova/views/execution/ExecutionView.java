@@ -250,7 +250,7 @@ public class ExecutionView extends Composite<VerticalLayout> implements HasUrlPa
                 esameLayout.setPadding(false);
                 esameLayout.getStyle().set("gap", "var(--lumo-space-s)");
 
-                Span esameTitle = new Span(esame.getTipo());
+                Span esameTitle = new Span(esame.getTipoEsame());
                 esameTitle.getStyle().set("font-weight", "bold");
 
                 HorizontalLayout buttonLayout = new HorizontalLayout();
@@ -264,7 +264,7 @@ public class ExecutionView extends Composite<VerticalLayout> implements HasUrlPa
                 boolean hasMedia = esame.getMedia() != null && !esame.getMedia().trim().isEmpty();
                 viewMediaButton.setEnabled(hasMedia);
                 if (hasMedia) {
-                    viewMediaButton.addClickListener(e -> showMediaDialog("Esame: " + esame.getTipo(), esame.getMedia()));
+                    viewMediaButton.addClickListener(e -> showMediaDialog("Esame: " + esame.getTipoEsame(), esame.getMedia()));
                 }
 
                 Button viewReportButton = StyleApp.getButton(
@@ -273,10 +273,10 @@ public class ExecutionView extends Composite<VerticalLayout> implements HasUrlPa
                         ButtonVariant.LUMO_PRIMARY,
                         "var(--lumo-primary-color)"
                 );
-                boolean hasReferto = esame.getRefertoTestuale() != null && !esame.getRefertoTestuale().trim().isEmpty();
+                boolean hasReferto = esame.getReferto() != null && !esame.getReferto().trim().isEmpty();
                 viewReportButton.setEnabled(hasReferto);
                 if (hasReferto) {
-                    viewReportButton.addClickListener(e -> handleInfoButtonClick(esame.getRefertoTestuale(), "Referto: " + esame.getTipo()));
+                    viewReportButton.addClickListener(e -> handleInfoButtonClick(esame.getReferto(), "Referto: " + esame.getTipoEsame()));
                 }
 
                 buttonLayout.add(viewMediaButton, viewReportButton);

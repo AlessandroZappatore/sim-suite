@@ -88,7 +88,7 @@ public class ExamSupport {
                 cardHeader.setAlignItems(FlexComponent.Alignment.CENTER);
                 cardHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
-                H3 examTitle = new H3(esame.getTipo());
+                H3 examTitle = new H3(esame.getTipoEsame());
                 examTitle.getStyle()
                         .set("margin-top", "0")
                         .set("margin-bottom", "0")
@@ -96,8 +96,8 @@ public class ExamSupport {
                         .set("flex-grow", "1");
 
                 Button editMediaButton = StyleApp.getButton("Modifica Media", VaadinIcon.EDIT.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
-                editMediaButton.setTooltipText("Modifica file multimediale per " + esame.getTipo());
-                editMediaButton.getElement().setAttribute("aria-label", "Modifica file multimediale per " + esame.getTipo());
+                editMediaButton.setTooltipText("Modifica file multimediale per " + esame.getTipoEsame());
+                editMediaButton.getElement().setAttribute("aria-label", "Modifica file multimediale per " + esame.getTipoEsame());
 
                 HorizontalLayout titleAndEditMedia = new HorizontalLayout(examTitle, editMediaButton);
                 titleAndEditMedia.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -106,22 +106,22 @@ public class ExamSupport {
 
                 Button deleteButton = new Button(VaadinIcon.TRASH.create());
                 deleteButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_TERTIARY);
-                deleteButton.setTooltipText("Elimina Esame " + esame.getTipo());
-                deleteButton.getElement().setAttribute("aria-label", "Elimina Esame " + esame.getTipo());
+                deleteButton.setTooltipText("Elimina Esame " + esame.getTipoEsame());
+                deleteButton.getElement().setAttribute("aria-label", "Elimina Esame " + esame.getTipoEsame());
                 deleteButton.addClickListener(e -> {
                     Dialog confirmDialog = new Dialog();
                     confirmDialog.setCloseOnEsc(true);
                     confirmDialog.setCloseOnOutsideClick(true);
 
                     confirmDialog.add(new H4("Conferma Eliminazione"));
-                    confirmDialog.add(new Paragraph("Sei sicuro di voler eliminare l'esame/referto '" + esame.getTipo() + "'? Questa operazione non può essere annullata."));
+                    confirmDialog.add(new Paragraph("Sei sicuro di voler eliminare l'esame/referto '" + esame.getTipoEsame() + "'? Questa operazione non può essere annullata."));
 
                     Button confirmDeleteButton = new Button("Elimina", VaadinIcon.TRASH.create());
                     confirmDeleteButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
                     confirmDeleteButton.addClickListener(confirmEvent -> {
                         boolean deleted = esameRefertoService.deleteEsameReferto(esame.getIdEsame(), scenarioId);
                         if (deleted) {
-                            Notification.show("Esame '" + esame.getTipo() + "' eliminato con successo.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                            Notification.show("Esame '" + esame.getTipoEsame() + "' eliminato con successo.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                             layout.remove(examCard); // Rimuove la card dalla UI
                         } else {
                             Notification.show("Errore durante l'eliminazione dell'esame.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -227,7 +227,7 @@ public class ExamSupport {
                                 selectExistingMediaEdit.setValue(esame.getMedia());
                                 mediaSourceGroupEdit.setValue("Seleziona da esistenti");
                             } else if (esame.getMedia() != null && !esame.getMedia().isEmpty()) {
-                                logger.warn("Current media '{}' for exam '{}' not in available files list. Defaulting to upload.", esame.getMedia(), esame.getTipo());
+                                logger.warn("Current media '{}' for exam '{}' not in available files list. Defaulting to upload.", esame.getMedia(), esame.getTipoEsame());
                                 mediaSourceGroupEdit.setValue("Carica nuovo file");
                                 selectExistingMediaEdit.clear(); // Pulisce la selezione precedente se il file non è più disponibile
                             } else {
@@ -367,7 +367,7 @@ public class ExamSupport {
 
                 refertoHeader.add(refertoTitleLayout, editRefertoButton);
 
-                String refertoTestuale = esame.getRefertoTestuale();
+                String refertoTestuale = esame.getReferto();
                 if (refertoTestuale == null || refertoTestuale.isEmpty()) {
                     refertoTestuale = "Nessun referto disponibile.";
                 }
@@ -394,7 +394,7 @@ public class ExamSupport {
                 TextArea editRefertoArea = new TextArea("Modifica Referto");
                 editRefertoArea.setWidthFull();
                 editRefertoArea.setMinHeight("150px");
-                editRefertoArea.setValue(esame.getRefertoTestuale());
+                editRefertoArea.setValue(esame.getReferto());
 
                 Button saveRefertoButton = StyleApp.getButton("Salva Referto", VaadinIcon.CHECK.create(), ButtonVariant.LUMO_SUCCESS, "var(--lumo-base-color)");
                 Button cancelRefertoButton = StyleApp.getButton("Annulla", VaadinIcon.CLOSE.create(), ButtonVariant.LUMO_TERTIARY, "var(--lumo-base-color)");
@@ -407,7 +407,7 @@ public class ExamSupport {
                 editRefertoButton.addClickListener(ev -> {
                     refertoDisplayContainer.setVisible(false); // Nasconde il display del referto
                     refertoEditLayout.setVisible(true); // Mostra il form di modifica
-                    editRefertoArea.setValue(esame.getRefertoTestuale()); // Popola l'area di testo con il referto attuale
+                    editRefertoArea.setValue(esame.getReferto()); // Popola l'area di testo con il referto attuale
                 });
 
                 // Listener per il pulsante "Annulla" la modifica del referto
@@ -422,7 +422,7 @@ public class ExamSupport {
 
                     boolean updated = esameRefertoService.updateRefertoTestuale(esame.getIdEsame(), scenarioId, nuovoReferto);
                     if (updated) {
-                        esame.setRefertoTestuale(nuovoReferto); // Aggiorna l'oggetto in memoria
+                        esame.setReferto(nuovoReferto); // Aggiorna l'oggetto in memoria
                         refertoText.setText(nuovoReferto); // Aggiorna il testo visualizzato
                         Notification.show("Referto aggiornato con successo.", 3000, Notification.Position.BOTTOM_CENTER).addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                         refertoEditLayout.setVisible(false);

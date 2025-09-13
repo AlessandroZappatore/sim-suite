@@ -44,7 +44,7 @@ public class EsameFisicoService {
      * o se si verifica un errore SQL.
      */
     public EsameFisico getEsameFisicoById(Integer id) {
-        final String sql = "SELECT * FROM EsameFisico WHERE id_esame_fisico = ?";
+        final String sql = "SELECT * FROM Esame_Fisico WHERE id_esame_fisico = ?";
         EsameFisico esameFisico = null;
 
         try (Connection conn = DBConnect.getInstance().getConnection();
@@ -101,10 +101,10 @@ public class EsameFisicoService {
 
         // Determina la query SQL da usare (INSERT o UPDATE) in base alla presenza dell'esame.
         final String sql = exists ?
-                "UPDATE EsameFisico SET generale=?, pupille=?, collo=?, torace=?, cuore=?, " +
+                "UPDATE Esame_Fisico SET generale=?, pupille=?, collo=?, torace=?, cuore=?, " +
                         "addome=?, retto=?, cute=?, estremità=?, neurologico=?, FAST=? " +
                         "WHERE id_esame_fisico=?" :
-                "INSERT INTO EsameFisico (id_esame_fisico, generale, pupille, collo, torace, " +
+                "INSERT INTO Esame_Fisico (id_esame_fisico, generale, pupille, collo, torace, " +
                         "cuore, addome, retto, cute, estremità, neurologico, FAST) " +
                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -178,7 +178,7 @@ public class EsameFisicoService {
         // Costruisce la query SQL dinamicamente per l'aggiornamento della singola colonna.
         // La soppressione di "SqlSourceToSinkFlow" è necessaria perché il nome della colonna è una variabile e non un letterale,
         // ma è stata validata contro una lista fissa per prevenire SQL Injection.
-        final String sql = "UPDATE EsameFisico SET " + name + "=? WHERE id_esame_fisico=?";
+        final String sql = "UPDATE Esame_Fisico SET " + name + "=? WHERE id_esame_fisico=?";
 
         // Utilizza try-with-resources per assicurare la chiusura automatica di Connection e PreparedStatement.
         //noinspection SqlSourceToSinkFlow

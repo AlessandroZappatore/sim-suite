@@ -1,5 +1,9 @@
 package it.uniupo.simnova.domain.common;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -14,31 +18,26 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class ParametroAggiuntivo {
-
-    /**
-     * Identificativo univoco del parametro, ID assegnato dal database.
-     */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "parametri_aggiuntivi_id")
     private Integer id;
-    /**
-     * Identificativo del tempo a cui appartiene il parametro.
-     */
+
+    @Column(name = "tempo_id")
     private Integer tempoId;
-    /**
-     * Identificativo dello scenario a cui appartiene il parametro.
-     */
-    private Integer scenarioId;
-    /**
-     * Nome del parametro (es. "Pressione venosa centrale", "Glicemia").
-     */
+
+    @Column(name = "id_scenario")
+    private Integer idScenario;
+
+    @Column(name = "nome", nullable = false)
     private String nome;
-    /**
-     * Valore del parametro, memorizzato come stringa (es. "12", "98.5").
-     */
+
+    @Column(name = "valore", nullable = false)
     private String valore;
-    /**
-     * Unità di misura del parametro (es. "mmHg", "%").
-     */
-    private final String unitaMisura;
+
+    @Column(name = "unità_misura")
+    private String unitaMisura;
+
     /**
      * Costruttore semplificato per creare un nuovo oggetto <strong><code>ParametroAggiuntivo</code></strong>,
      * utile quando l'ID non è ancora noto (es. prima del salvataggio nel database).
@@ -51,22 +50,5 @@ public class ParametroAggiuntivo {
         this.nome = nome;
         this.valore = String.valueOf(valore); // Converte il valore numerico in stringa.
         this.unitaMisura = unita;
-    }
-    /**
-     * Fornisce una rappresentazione in formato stringa dell'oggetto {@code ParametroAggiuntivo},
-     * utile per il debugging e la registrazione.
-     *
-     * @return Una stringa che descrive l'ID, il tempo, lo scenario, il nome, il valore e l'unità di misura del parametro.
-     */
-    @Override
-    public String toString() {
-        return "ParametroAggiuntivo{" +
-                "id=" + id +
-                ", tempoId=" + tempoId +
-                ", scenarioId=" + scenarioId +
-                ", nome='" + nome + '\'' +
-                ", valore='" + valore + '\'' +
-                ", unitaMisura='" + unitaMisura + '\'' +
-                '}';
     }
 }

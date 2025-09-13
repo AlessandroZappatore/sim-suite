@@ -32,6 +32,7 @@ import it.uniupo.simnova.views.ui.helper.support.FormRow;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -230,10 +231,11 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
     private void loadExistingData() {
         List<EsameReferto> existingData = esameRefertoService.getEsamiRefertiByScenarioId(scenarioId);
 
-        if (existingData == null || existingData.isEmpty()) {
+        if (existingData == null || existingData.isEmpty() || existingData.stream().allMatch(Objects::isNull)) {
             logger.warn("Nessun dato esistente trovato per scenario {} in modalità edit. Aggiungo una riga vuota.", this.scenarioId);
             addNewRow();
         } else {
+            System.out.println("Dati esistenti "+existingData);
             rowsContainer.removeAll(); // Rimuove tutte le righe esistenti nella UI
             formRows.clear(); // Pulisce la lista interna di FormRow
             rowCount = 1; // Resetta il contatore delle righe per ripartire
@@ -306,18 +308,18 @@ public class EsamiRefertiView extends Composite<VerticalLayout> implements HasUr
         formRows.add(existingRow);
 
         // Determina se il tipo di esame è personalizzato o proviene dalle liste predefinite
-        boolean isCustom = !ALLLABSEXAMS.contains(data.getTipo()) && !ALLINSTREXAMS.contains(data.getTipo());
+        boolean isCustom = !ALLLABSEXAMS.contains(data.getTipoEsame()) && !ALLINSTREXAMS.contains(data.getTipoEsame());
 
         if (isCustom) {
             existingRow.examTypeGroup.setValue("Inserisci manualmente");
-            existingRow.customExamField.setValue(data.getTipo() != null ? data.getTipo() : "");
+            existingRow.customExamField.setValue(data.getTipoEsame() != null ? data.getTipoEsame() : "");
         } else {
             existingRow.examTypeGroup.setValue("Seleziona da elenco");
-            existingRow.selectedExamField.setValue(data.getTipo() != null ? data.getTipo() : "");
+            existingRow.selectedExamField.setValue(data.getTipoEsame() != null ? data.getTipoEsame() : "");
         }
         existingRow.updateExamFieldVisibility(); // Aggiorna la visibilità dei campi di esame
 
-        existingRow.getReportField().setValue(data.getRefertoTestuale() != null ? data.getRefertoTestuale() : "");
+        existingRow.getReportField().setValue(data.getReferto() != null ? data.getReferto() : "");
 
         // Popola i campi relativi al media
         if (data.getMedia() != null && !data.getMedia().isEmpty()) {
