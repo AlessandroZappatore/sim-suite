@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.nio.file.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -107,21 +109,31 @@ public class FileStorageService {
      * @throws RuntimeException Se si verifica un errore durante il salvataggio.
      */
     public String storeFile(InputStream file, String filename) {
+        String sanitizedFilename;
         try {
             if (file == null || filename == null || filename.isBlank()) {
                 logger.warn("Input non valido per storeFile: file, nome file o idScenario mancanti.");
                 return null;
             }
-            String sanitizedFilename = getSanitizedFilename(filename);
+            String baseName = filename;
+            String extension = "";
+            int dotIndex = filename.lastIndexOf('.');
+            if (dotIndex >= 0 && dotIndex < filename.length() - 1) {
+                baseName = filename.substring(0, dotIndex);
+                extension = filename.substring(dotIndex);
+            }
 
+            String timeStamp = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now());
+
+            String uniqueFilename = baseName + "_" + timeStamp + extension;
+
+            sanitizedFilename = getSanitizedFilename(uniqueFilename);
             Path destinationFile = this.rootLocation.resolve(sanitizedFilename).normalize();
-
 
             if (!destinationFile.getParent().equals(this.rootLocation)) {
                 logger.error("Tentativo di memorizzare il file fuori dalla directory consentita: {}", destinationFile);
                 throw new RuntimeException("Cannot store file outside current directory");
             }
-
 
             Files.copy(file, destinationFile, StandardCopyOption.REPLACE_EXISTING);
             logger.info("File memorizzato con successo: {}", sanitizedFilename);
