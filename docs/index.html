@@ -4,14 +4,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>SimSuite v1.0 - Simulazioni Avanzate</title>    
     <link rel="icon" href="img/favicon.ico" type="image/x-icon">
     <script>
-        // Sopprimi l'avviso di produzione per Tailwind CDN PRIMA del caricamento
         if (typeof console !== 'undefined' && console.warn) {
             const originalWarn = console.warn;
             console.warn = function(...args) {
                 if (args[0] && typeof args[0] === 'string' && 
                     (args[0].includes('tailwindcss.com should not be used in production') ||
                      args[0].includes('cdn.tailwindcss.com should not be used'))) {
-                    return; // Sopprimi questi avvisi specifici
+                    return; 
                 }
                 originalWarn.apply(console, args);
             };
@@ -358,33 +357,7 @@
             background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
         }        .modern-shadow {
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        }        /* Download Modal Styles */
-        #downloadModal {
-            backdrop-filter: blur(8px);
-            animation: fadeIn 0.3s ease-out;
-            padding: 1rem;
-            overflow-y: auto;
-            max-height: 100vh;
-        }
-
-        #downloadModal.hidden {
-            display: none !important;
-        }
-
-        #downloadModal .glass-morphism {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-            animation: slideUp 0.4s ease-out;
-            max-width: 500px;
-            width: 100%;
-            margin: auto;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        /* Feedback Modal Styles */
+        }        /* Feedback Modal Styles */
         #feedbackModal {
             backdrop-filter: blur(8px);
             animation: fadeIn 0.3s ease-out;
@@ -430,38 +403,21 @@
 
         /* Responsive adjustments for modals */
         @media (max-width: 640px) {
-            #downloadModal, #feedbackModal {
+            #feedbackModal {
                 padding: 0.5rem;
             }
             
-            #downloadModal .glass-morphism, #feedbackModal .glass-morphism {
+            #feedbackModal .glass-morphism {
                 max-height: 95vh;
                 padding: 1.5rem;
             }
         }
 
         @media (max-height: 700px) {
-            #downloadModal .glass-morphism, #feedbackModal .glass-morphism {
+            #feedbackModal .glass-morphism {
                 max-height: 85vh;
                 padding: 1rem;
             }
-        }
-
-        #downloadModal input,
-        #downloadModal select,
-        #downloadModal textarea {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-        }
-
-        #downloadModal input::placeholder,
-        #downloadModal textarea::placeholder {
-            color: rgba(255, 255, 255, 0.5);        }
-
-        #downloadModal select option {
-            background: #1e293b;
-            color: white;
         }
 
         #feedbackModal input,
@@ -480,12 +436,6 @@
         #feedbackModal select option {
             background: #1e293b;
             color: white;
-        }
-
-        #downloadModal input:focus,
-        #downloadModal select:focus,
-        #downloadModal textarea:focus {
-            border-color: #10B981;
         }
 
         #feedbackModal input:focus,
@@ -900,7 +850,7 @@
                                         <div class="flex items-start">
                                             <div class="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold mr-4 mt-1">1</div>
                                             <div class="flex-1">                                                <p class="text-gray-700 mb-3">🚀 Scarica l'installer automatico</p>
-                                                <button onclick="openDownloadModal('installer')"
+                                                <button onclick="initiateDownload('installer')"
                                                    class="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-300">
                                                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                                         <path d="M19 12V19H5V12H3V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12H19ZM13 12.67L15.59 10.09L17 11.5L12 16.5L7 11.5L8.41 10.09L11 12.67V3H13V12.67Z"/>
@@ -933,7 +883,7 @@
                                             <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold mr-4 mt-1">1</div>
                                             <div class="flex-1">
                                                 <p class="text-gray-700 mb-3">📦 Scarica e decomprimi SimSuite</p>
-                                                <button onclick="openDownloadModal('zip')"
+                                                <button onclick="initiateDownload('zip')"
                                                    class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-300">
                                                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                                         <path d="M19 12V19H5V12H3V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12H19ZM13 12.67L15.59 10.09L17 11.5L12 16.5L7 11.5L8.41 10.09L11 12.67V3H13V12.67Z"/>
@@ -962,7 +912,7 @@
                                         <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold mr-4 mt-1">1</div>
                                         <div class="flex-1">
                                             <p class="text-gray-700 mb-3">📦 Scarica e decomprimi SimSuite</p>
-                                            <button onclick="openDownloadModal('zip')"
+                                            <button onclick="initiateDownload('zip')"
                                                class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-300">
                                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                                     <path d="M19 12V19H5V12H3V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12H19ZM13 12.67L15.59 10.09L17 11.5L12 16.5L7 11.5L8.41 10.09L11 12.67V3H13V12.67Z"/>
@@ -998,7 +948,7 @@
                                         <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold mr-4 mt-1">1</div>
                                         <div class="flex-1">
                                             <p class="text-gray-700 mb-3">📦 Scarica e decomprimi SimSuite</p>
-                                            <button onclick="openDownloadModal('zip')"
+                                            <button onclick="initiateDownload('zip')"
                                                class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-300">
                                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                                     <path d="M19 12V19H5V12H3V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12H19ZM13 12.67L15.59 10.09L17 11.5L12 16.5L7 11.5L8.41 10.09L11 12.67V3H13V12.67Z"/>
@@ -1378,7 +1328,7 @@
                             </div>
                         </div>                        <div class="glass-morphism p-8 rounded-2xl text-center">
                             <h3 class="text-2xl font-bold text-white mb-6">🔗 Collegamenti Utili</h3>                            <div class="flex flex-wrap justify-center gap-4">
-                                <button onclick="openDownloadModal('installer')"
+                                <button onclick="initiateDownload('installer')"
                                    class="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-green-700 transition-all duration-300">
                                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M19 12V19H5V12H3V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12H19ZM13 12.67L15.59 10.09L17 11.5L12 16.5L7 11.5L8.41 10.09L11 12.67V3H13V12.67Z"/>
@@ -1425,11 +1375,11 @@
                         </p>
                     </div>                    <div>
                         <h4 class="text-xl font-bold text-white mb-4">🚀 Collegamenti Rapidi</h4>                        <div class="space-y-3 quick-links-container">
-                            <button onclick="openDownloadModal('installer')"
+                            <button onclick="initiateDownload('installer')"
                                class="block text-white/80 hover:text-white transition-colors duration-300 bg-transparent border-none cursor-pointer">
                                 🚀 Installer Windows
                             </button>
-                            <button onclick="openDownloadModal('zip')"
+                            <button onclick="initiateDownload('zip')"
                                class="block text-white/80 hover:text-white transition-colors duration-300 bg-transparent border-none cursor-pointer">
                                 📦 Download SimSuite
                             </button>
@@ -1498,90 +1448,7 @@
                     </div>
                 </div>
             </footer>
-        </div>        <div id="toast" class="toast-message">Messaggio Toast!</div>        <!-- Download Form Modal -->
-        <div id="downloadModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center">
-            <div class="glass-morphism p-6 rounded-2xl">
-                <div class="text-center mb-6">
-                    <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M19 12V19H5V12H3V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V12H19ZM13 12.67L15.59 10.09L17 11.5L12 16.5L7 11.5L8.41 10.09L11 12.67V3H13V12.67Z"/>
-                    </div>
-                    <h3 class="text-2xl font-bold text-white mb-2">📋 Prima di scaricare SimSuite</h3>
-                    <p class="text-white/80">Aiutaci a migliorare SimSuite con le tue informazioni</p>
-                </div>
-
-                <form id="downloadForm" class="space-y-4">
-                    <div>
-                        <label class="block text-white/90 font-medium mb-2">Nome e Cognome *</label>
-                        <input type="text" id="userName" name="name" required 
-                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:border-green-400 focus:outline-none transition-colors"
-                               placeholder="Il tuo nome e cognome">
-                    </div>
-
-                    <div>
-                        <label class="block text-white/90 font-medium mb-2">Email *</label>
-                        <input type="email" id="userEmail" name="email" required 
-                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:border-green-400 focus:outline-none transition-colors"
-                               placeholder="la-tua-email@esempio.com">
-                    </div>
-
-                    <div>
-                        <label class="block text-white/90 font-medium mb-2">Organizzazione</label>
-                        <input type="text" id="userOrganization" name="organization" 
-                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:border-green-400 focus:outline-none transition-colors"
-                               placeholder="Università, Ospedale, Azienda...">
-                    </div>
-
-                    <div>
-                        <label class="block text-white/90 font-medium mb-2">Come utilizzerai SimSuite?</label>
-                        <select id="userUsage" name="usage" 
-                                class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:border-green-400 focus:outline-none transition-colors">
-                            <option value="">Seleziona un'opzione</option>
-                            <option value="formazione-medica">Formazione medica</option>
-                            <option value="ricerca">Ricerca e sviluppo</option>
-                            <option value="education">Educazione/Insegnamento</option>
-                            <option value="training-aziendale">Training aziendale</option>
-                            <option value="personale">Uso personale</option>
-                            <option value="altro">Altro</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-white/90 font-medium mb-2">Note aggiuntive</label>
-                        <textarea id="userNotes" name="notes" rows="3"
-                                  class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:border-green-400 focus:outline-none transition-colors resize-none"
-                                  placeholder="Feedback, suggerimenti o come hai conosciuto SimSuite..."></textarea>
-                    </div>
-
-                    <div class="flex items-start space-x-3 pt-2">
-                        <input type="checkbox" id="privacyConsent" name="privacy" required
-                               class="mt-1 w-4 h-4 text-green-400 border-white/20 rounded focus:ring-green-400">
-                        <label for="privacyConsent" class="text-white/80 text-sm">
-                            Accetto che i miei dati vengano utilizzati esclusivamente per migliorare SimSuite e ricevere aggiornamenti importanti. 
-                            <span class="text-green-400">I dati non verranno mai condivisi con terze parti.</span>
-                        </label>
-                    </div>
-
-                    <div class="flex gap-3 pt-4">
-                        <button type="button" id="cancelDownload" 
-                                class="flex-1 px-6 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-medium hover:bg-white/20 transition-colors">
-                            Annulla
-                        </button>
-                        <button type="submit" id="submitDownload"
-                                class="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-medium hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center">
-                            <span class="download-text">Invia e Scarica</span>
-                            <div class="download-loader hidden">
-                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Invio...
-                            </div>
-                        </button>
-                    </div>                </form>            </div>
-        </div>
-
-        <!-- Feedback Form Modal -->
+        </div>        <div id="toast" class="toast-message">Messaggio Toast!</div>        <!-- Feedback Form Modal -->
         <div id="feedbackModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center">
             <div class="glass-morphism p-6 rounded-2xl">
                 <div class="text-center mb-6">

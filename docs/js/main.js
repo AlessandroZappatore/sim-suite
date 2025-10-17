@@ -19,15 +19,14 @@ const downloadUrls = {
     zip: 'https://github.com/AlessandroZappatore/sim-suite/releases/download/SimSuite_1.0/Sim_suite.zip'
 };
 
-// URL del Google Apps Script Web App (da sostituire con il tuo)
-// TODO: Sostituisci con l'URL della tua Web App Google Apps Script
+// URL del Google Apps Script Web App
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbySuUXG_POgHZjW7OQtSflj_ucS3-8qZbK2Q1oaRmL8WxMuG0Ohe8ubGh9-BHAzT8yD/exec';
 
 // Variabili globali
 let currentDownloadType = '';
 
-// Elementi DOM - saranno inizializzati quando il DOM è pronto
-let tabButtons, contentSections, osTabButtons, osInstructions, toastElement, downloadModal, downloadForm, cancelButton, submitButton;
+// Elementi DOM
+let tabButtons, contentSections, osTabButtons, osInstructions, toastElement;
 let feedbackModal, feedbackForm, feedbackCancelButton, feedbackSubmitButton, starButtons, ratingInput;
 
 // ==========================================
@@ -227,144 +226,6 @@ function copyToClipboardStatic(textToCopy, message) {
         showToast('Errore durante la copia.');
         console.error('Errore durante la copia: ', err);
     });
-}
-
-// ==========================================
-// GESTIONE MODAL DI DOWNLOAD
-// ==========================================
-
-/**
- * Apre il modal di download
- * @param {string} downloadType - Tipo di download ('installer' o 'zip')
- */
-function openDownloadModal(downloadType) {
-    console.log('🔍 openDownloadModal chiamata con:', downloadType);
-    
-    currentDownloadType = downloadType;
-    downloadModal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-    
-    // Reset form
-    downloadForm.reset();
-    
-    // Focus sul primo campo
-    setTimeout(() => {
-        document.getElementById('userName').focus();
-    }, 300);
-}
-
-/**
- * Chiude il modal di download
- */
-function closeDownloadModal() {
-    downloadModal.classList.add('hidden');
-    document.body.style.overflow = 'auto';
-    currentDownloadType = '';
-}
-
-/**
- * Inizializza gli eventi del modal di download
- */
-function initDownloadModalEvents() {
-    // Evento click su pulsante annulla
-    cancelButton.addEventListener('click', closeDownloadModal);
-
-    // Chiudi modal cliccando fuori
-    downloadModal.addEventListener('click', (e) => {
-        if (e.target === downloadModal) {
-            closeDownloadModal();
-        }
-    });
-
-    // Chiudi modal con ESC
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && !downloadModal.classList.contains('hidden')) {
-            closeDownloadModal();
-        }
-    });
-
-    // Validazione email real-time
-    document.getElementById('userEmail').addEventListener('input', (e) => {
-        const email = e.target.value;
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        
-        if (email && !emailRegex.test(email)) {
-            e.target.style.borderColor = '#ef4444';
-        } else {
-            e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-        }
-    });
-
-    // Gestione invio form
-    downloadForm.addEventListener('submit', handleFormSubmit);
-}
-
-/**
- * Gestisce l'invio del form di download
- * @param {Event} e - Evento di submit
- */
-async function handleFormSubmit(e) {
-    e.preventDefault();
-    
-    if (!currentDownloadType) {
-        showToast('Errore: tipo di download non specificato');
-        return;
-    }
-
-    // Mostra loading
-    const downloadText = submitButton.querySelector('.download-text');
-    const downloadLoader = submitButton.querySelector('.download-loader');
-    
-    downloadText.classList.add('hidden');
-    downloadLoader.classList.remove('hidden');
-    submitButton.disabled = true;
-
-    try {        // Raccogli dati del form
-        const formData = {
-            type: 'download', // Identificatore per il tipo di dati
-            name: document.getElementById('userName').value,
-            email: document.getElementById('userEmail').value,
-            organization: document.getElementById('userOrganization').value || 'Non specificato',
-            usage: document.getElementById('userUsage').value || 'Non specificato',
-            notes: document.getElementById('userNotes').value || 'Nessuna nota',
-            downloadType: currentDownloadType,
-            timestamp: new Date().toISOString(),
-            userAgent: navigator.userAgent,
-            language: navigator.language,
-            referrer: document.referrer || 'Diretto'
-        };// Invia dati a Google Spreadsheet
-        await sendDataToGoogleSheets(formData);
-        
-        // Salva il tipo di download prima di chiudere il modal
-        const downloadTypeToUse = currentDownloadType;
-        
-        // Mostra successo
-        showToast('✅ Dati inviati con successo! Il download inizierà tra poco...');
-        
-        // Chiudi modal
-        closeDownloadModal();
-        
-        // Inizia download dopo un breve delay
-        setTimeout(() => {
-            initiateDownload(downloadTypeToUse);
-        }, 1000);    } catch (error) {
-        console.error('Errore nell\'invio dei dati:', error);
-        showToast('⚠️ Errore nell\'invio dei dati. Il download inizierà comunque...');
-        
-        // Salva il tipo di download prima di chiudere il modal
-        const downloadTypeToUse = currentDownloadType;
-        
-        // Chiudi modal e procedi con download anche in caso di errore
-        closeDownloadModal();
-        setTimeout(() => {
-            initiateDownload(downloadTypeToUse);
-        }, 1000);
-    } finally {
-        // Reset button state
-        downloadText.classList.remove('hidden');
-        downloadLoader.classList.add('hidden');
-        submitButton.disabled = false;
-    }
 }
 
 // ==========================================
@@ -687,10 +548,6 @@ function initializeApp() {    // Inizializza elementi DOM
     osTabButtons = document.querySelectorAll('.os-tab-button');
     osInstructions = document.querySelectorAll('.os-instructions');
     toastElement = document.getElementById('toast');
-    downloadModal = document.getElementById('downloadModal');
-    downloadForm = document.getElementById('downloadForm');
-    cancelButton = document.getElementById('cancelDownload');
-    submitButton = document.getElementById('submitDownload');
     
     // Inizializza elementi DOM per feedback modal
     feedbackModal = document.getElementById('feedbackModal');
@@ -706,7 +563,6 @@ function initializeApp() {    // Inizializza elementi DOM
         contentSections: contentSections.length,
         osTabButtons: osTabButtons.length,
         toastElement: !!toastElement,
-        downloadModal: !!downloadModal,
         feedbackModal: !!feedbackModal,
         starButtons: starButtons.length
     });
@@ -718,7 +574,6 @@ function initializeApp() {    // Inizializza elementi DOM
     }, 300);    // Inizializza eventi
     initTabEvents();
     initOsTabEvents();
-    initDownloadModalEvents();
     initFeedbackModalEvents();
 
     // Crea particelle ogni tot secondi
@@ -732,7 +587,7 @@ function initializeApp() {    // Inizializza elementi DOM
 // ==========================================
 
 // Esporta le funzioni per uso globale nel HTML
-window.openDownloadModal = openDownloadModal;
+window.initiateDownload = initiateDownload;
 window.openFeedbackModal = openFeedbackModal;
 window.copyToClipboard = copyToClipboard;
 window.copyToClipboardStatic = copyToClipboardStatic;
